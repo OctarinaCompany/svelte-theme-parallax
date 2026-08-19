@@ -24,7 +24,7 @@ dist-ssr
 .claude/worktrees/
 
 # Skills vendored by the skill manager. It reinstalls them into both of these paths on demand,
-# so they are local build output, not source — see df30b36, which removed them from the tree.
+# so they are local build output, not source, and are kept out of the tree.
 .claude/skills/
 .agents/
 

@@ -7,9 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.1.0] - 2026-08-17
-
-The first curated state of the project.
+The first published state of the project. Nothing is tagged yet, so everything the repository
+ships today is listed here.
 
 ### Added
 
@@ -26,9 +25,11 @@ The first curated state of the project.
   sized control, and per-surface density tiers on tables and cards.
 - The hash router derived from a single `CATEGORIES` ladder in `src/lib/hooks/route.svelte.ts`;
   routes, route types and the sidebar menu are all generated from it.
-- House conventions written down in `docs/CONVENTIONS.md`; the theme system in `docs/THEME.md`.
+- The published registry: `registry.json` is generated from the source by `tools/registry/`,
+  compiled into `public/r/`, and deployed to GitHub Pages with the gallery on every push to
+  `main` — so the theme, the shell, the Agent Skill and every house component install into
+  another project through the shadcn-svelte CLI.
+- House conventions written down in `docs/CONVENTIONS.md`; the theme system in `docs/THEME.md`;
+  the published items in `docs/REGISTRY.md`.
 - CI: formatting, type-checking, production build, the theme audit and the loader-style check
   on every push and pull request.
-
-[Unreleased]: https://github.com/OctarinaCompany/svelte-theme-parallax/compare/v0.1.0...HEAD
-[0.1.0]: https://github.com/OctarinaCompany/svelte-theme-parallax/releases/tag/v0.1.0

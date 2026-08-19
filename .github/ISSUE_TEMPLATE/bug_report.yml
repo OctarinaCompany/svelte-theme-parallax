@@ -39,7 +39,7 @@ body:
     attributes:
       label: Environment
       description: Browser and OS, plus the commit or version if you know it.
-      placeholder: Firefox 142 / Windows 11, main @ 6af86d6
+      placeholder: Firefox 142 / Windows 11, main @ <short sha>
   - type: textarea
     id: extra
     attributes:
