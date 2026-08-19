@@ -1,0 +1,64 @@
+# Publishes the gallery AND the registry to GitHub Pages.
+#
+# The registry is the reason this workflow has to build rather than upload a committed folder:
+# `public/r/` is generated (and gitignored), so `registry:build` runs here and Vite then copies
+# the result into `dist/`. That is what makes
+# `https://octarinacompany.github.io/svelte-theme-parallax/r/<item>.json` — the URL every
+# cross-item dependency is baked with — answer at all.
+name: Pages
+
+# Every push to `main` republishes, so the registry a consumer fetches is never older than the
+# source it is generated from. `workflow_dispatch` stays alongside it for a redeploy without a
+# commit — re-running the build is the only way to fix a deployment that half-failed.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# The deploy job needs to mint an id-token for the Pages deployment; nothing else does.
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# One deploy at a time, and never cancel one midway: a half-finished deployment would leave the
+# registry answering some items and 404-ing others.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      # Pinned to commits for the same reason CI is — a tag is mutable.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      # Regenerates registry.json and compiles it into public/r/ before the site build copies
+      # that folder. Running it here rather than trusting a committed artefact means the
+      # published JSON cannot lag the source it is generated from.
+      - run: npm run registry:build
+      - run: npm run build
+      # SPA fallback: a visitor landing on a deep link gets index.html rather than the 404 page,
+      # after which the hash router takes over.
+      - run: cp dist/index.html dist/404.html
+      - uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b # v5.0.0
+      - uses: actions/upload-pages-artifact@7b1f4a764d45c48632c6b24a0339c27f5614fb0b # v4.0.0
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e # v4.0.5

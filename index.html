@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Parallax theme kit for shadcn-svelte</title>
+		<meta
+			name="description"
+			content="Parallax-themed component library and demo gallery built on shadcn-svelte, Svelte 5 and Tailwind CSS v4."
+		/>
+
+		<!-- Link-preview metadata. og:image is deliberately absent until a real 1200x630 still
+		     of the gallery exists — scrapers fall back to title + description, which is honest;
+		     a wrong-ratio placeholder would be worse. The theme-color pair mirrors the base
+		     palette's `--background` in src/app.css (light and dark). -->
+		<meta property="og:title" content="Parallax theme kit for shadcn-svelte" />
+		<meta
+			property="og:description"
+			content="Parallax-themed component library and demo gallery built on shadcn-svelte, Svelte 5 and Tailwind CSS v4."
+		/>
+		<meta property="og:type" content="website" />
+		<meta name="twitter:card" content="summary" />
+		<meta name="theme-color" media="(prefers-color-scheme: light)" content="#f4f6f8" />
+		<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0f263f" />
+
+		<!--
+      Paint the right theme on the FIRST frame.
+
+      `ModeWatcher` applies the mode and the palette from an effect, which runs after the app
+      module has been fetched, parsed and mounted — so without this the page renders as the
+      light default palette for a beat and then snaps to whatever the user chose. mode-watcher ships a fix
+      for exactly this (`createInitialModeExpression`), but it delivers it through
+      `<svelte:head>`, which only works when the markup is server-rendered: a `<script>` element
+      inserted into the DOM by a client-side framework never executes. This app is a static
+      Vite SPA, so the script has to be in the HTML itself.
+
+      Inline and non-module on purpose: a classic inline script blocks parsing and runs before
+      anything paints, where `type="module"` would be deferred and defeat the point.
+
+      THE FOUR KEYS AND THE DEFAULT MUST MATCH THE APP. The first two are mode-watcher's own
+      defaults; `mode-watcher-theme` is also stated as `THEME_STORAGE_KEY` in
+      `src/lib/themes/index.ts`, `sidebar-mode` as `SIDEBAR_MODE_STORAGE_KEY` in
+      `src/lib/hooks/sidebar-mode.svelte.ts`, `header-mode` as `HEADER_MODE_STORAGE_KEY` in
+      `src/lib/hooks/header-mode.svelte.ts`, and `parallax` is the `defaultTheme` passed to
+      `ModeWatcher` in `App.svelte`. Nothing enforces the agreement across a plain HTML file, so
+      it is written down on both ends.
+
+      Each chrome attribute is set only for `light` and `dark`. Its absence is the third state —
+      the surface follows what is around it — so writing `"auto"` would be writing a value no
+      stylesheet answers, and one more thing to strip later.
+
+      BE HONEST ABOUT WHAT THE LAST TWO BUY. Unlike `.dark` and `data-theme`, neither prevents a
+      flash: both surfaces are client-rendered, and each hook writes its attribute at module
+      evaluation, before the component that imports it can render. They are here for the reason
+      this block already exists — every appearance key declared in one place, and all four read the
+      same way in devtools — and they cost four lines each.
+
+      `try`/`catch` because reading `localStorage` throws outright when a browser is set to
+      block storage; the failure then costs a flash, not a blank page.
+    -->
+		<script>
+			try {
+				var root = document.documentElement;
+				var mode = localStorage.getItem("mode-watcher-mode") || "system";
+				var light =
+					mode === "light" ||
+					(mode === "system" && window.matchMedia("(prefers-color-scheme: light)").matches);
+				root.classList.toggle("dark", !light);
+				root.style.colorScheme = light ? "light" : "dark";
+				root.setAttribute("data-theme", localStorage.getItem("mode-watcher-theme") || "parallax");
+				/*
+				 * The two chrome axes are RELATIVE TO THE PAGE ("inverted" = the opposite half) and
+				 * independent of each other, but the stylesheets key on absolute light/dark
+				 * attributes AND hand the bar the rail's tokens when its own attribute is absent —
+				 * so this performs the same resolution the hooks re-perform reactively after
+				 * hydration: the rail's attribute only under inversion, the bar's whenever its wear
+				 * differs from the rail's. "dark" is the retired absolute spelling of the rail's
+				 * inverted state and is honoured until the hook migrates the stored value.
+				 */
+				var pageWear = light ? "light" : "dark";
+				var railWear = pageWear;
+				var sidebar = localStorage.getItem("sidebar-mode");
+				if (sidebar === "inverted" || sidebar === "dark") {
+					railWear = light ? "dark" : "light";
+					root.setAttribute("data-sidebar-mode", railWear);
+				}
+				var barWear =
+					localStorage.getItem("header-mode") === "inverted"
+						? light
+							? "dark"
+							: "light"
+						: pageWear;
+				if (barWear !== railWear) {
+					root.setAttribute("data-header-mode", barWear);
+				}
+			} catch (e) {
+				/* storage blocked — the app applies all four on mount instead */
+			}
+		</script>
+	</head>
+	<body>
+		<div id="app"></div>
+		<script type="module" src="/src/main.ts"></script>
+	</body>
+</html>

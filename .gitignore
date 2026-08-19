@@ -1,0 +1,45 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+*.local
+
+# Environment files. Vite loads these and exposes them via `import.meta.env`, so a committed
+# key would ship to every visitor; only a documented example may be tracked.
+.env
+.env.*
+!.env.example
+
+# Claude Code's scratch worktrees. Each one is a full `git worktree` checkout with its own
+# `node_modules`, so it must never be committed. The ignores stay narrow — subdirectories, not
+# the whole `.claude/` folder — so tracked files there (shared settings, say) remain possible.
+.claude/worktrees/
+
+# Skills vendored by the skill manager. It reinstalls them into both of these paths on demand,
+# so they are local build output, not source — see df30b36, which removed them from the tree.
+.claude/skills/
+.agents/
+
+# The built registry. `registry.json` is the source and is tracked; these are what
+# `registry:build` compiles it into, regenerated from it on demand and copied verbatim into
+# `dist/` by Vite — build output, like `dist` itself, not something to review in a diff.
+public/r/
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?

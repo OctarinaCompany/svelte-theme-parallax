@@ -1,0 +1,38 @@
+# The whole quality gate this repository has: formatting, types, a production build, the theme
+# audit and the loader-style check. The audit exits non-zero on any unexplained contrast
+# regression, so a palette edit that silently loses to the base palette's own numbers fails the
+# build instead of shipping; the loader check covers the CSS-in-markup mismatches svelte-check
+# cannot see.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+# Nothing here pushes or calls the API; the token needs read access and no more.
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      # Pinned to a commit, not a tag: a tag is mutable, and a compromised action would run
+      # with this workflow's token. Dependabot bumps the pins. The v7 line is what runs on the
+      # runner's node24 — the v4 line is forced onto it and warns on every run.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          # The floor `engines` declares, so CI fails on anything that needs more than it.
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npm run format:check
+      - run: npm run check
+      - run: npm run build
+      - run: npm run themes:audit
+      - run: npm run loaders:check

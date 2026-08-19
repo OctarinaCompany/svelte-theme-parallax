@@ -1,0 +1,27 @@
+name: Feature request
+description: A new component, variant, or capability
+title: "feat: "
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: The problem
+      description: What you are trying to build and what is missing or awkward today.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: The proposal
+      description: |
+        What you would like to exist. For a new component: which tier would it belong to
+        (registry mirror or house component), and which sidebar group would file it?
+        See docs/CONVENTIONS.md §9 — the catalog is an ordered ladder.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Other shapes of the same capability, and why they fit less well.

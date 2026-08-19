@@ -1,0 +1,21 @@
+# Weekly dependency bumps, grouped so the noise stays proportional to the repo:
+# one PR for the npm tree's patch/minor moves, one per major, one for the SHA-pinned actions.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      minor-and-patch:
+        update-types:
+          - minor
+          - patch
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      actions:
+        patterns:
+          - "*"

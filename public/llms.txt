@@ -1,0 +1,266 @@
+# Parallax
+
+> Parallax is a dashboard theme kit for shadcn-svelte (Svelte 5, Tailwind v4): a palette of
+> 12 themes over one token set, four persisted appearance axes (inverted sidebar/header,
+> floating header, auto-hide), an installable application shell, and a gallery of patterns.
+> Distribution is a shadcn-svelte registry: source is copied into the consumer project.
+
+## Registry items
+
+Install with `npx shadcn-svelte@latest add <url>`. Post-install notes: https://raw.githubusercontent.com/OctarinaCompany/svelte-theme-parallax/main/docs/REGISTRY.md
+
+- [parallax-theme](https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-theme.json): The Parallax palette: the base light and dark tokens, the eleven alternate palettes behind `data-theme`, and the Tailwind mappings for the token families shadcn does not ship — success, warning, info, the subtle family, and `--sidebar-outline`.
+- [parallax-appearance](https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-appearance.json): The four appearance axes as persisted state: an inverted sidebar, an inverted header, a floating header and a header that hides on scroll down. Module-level runes that write attributes on `<html>`, plus the CSS those attributes key on.
+- [parallax-appearance-controls](https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-appearance-controls.json): The two dropdown menus that drive the axes: one for the sidebar (inverted, floating) and one for the header (inverted, floating, hide on scroll). Drop them in a header and the axes become user-facing.
+- [parallax-swap](https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-swap.json): A two-state icon crossfade — the house primitive behind the light/dark toggle. Not in the official registry, which is why it ships from here.
+- [parallax-shell](https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-shell.json): The application shell: the sidebar (workspace switcher, two-shape navigation, user menu, icon rail, mobile drawer) and the page header bar (breadcrumb, search slot, appearance controls) — wired to the published appearance axes, taking their content as typed props.
+- [parallax-skill](https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-skill.json): The Agent Skill that teaches an AI assistant to use Parallax correctly: registry installation, shell composition, the token families, the palettes and the appearance axes, with the pitfalls spelled out. Installs into the project's `.claude/skills/parallax/`.
+- [parallax-primitives](https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-primitives.json): Shared infrastructure the house components compose: roving focus, form-control bridging, the TanStack table bridge, scroll position, DOM-ordered collections. Installed automatically as a dependency; rarely asked for by name.
+- [parallax-restyle](https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-restyle.json): The Parallax shape for the OFFICIAL components: css-only restyles of switch, checkbox, tooltip, inputs, native-select, select, sliders, sonner, navigation-menu, kbd, command and the tabs line variant, plus the global menu-shadow and dialog-scrim opinions. Install once beside parallax-theme.
+- [parallax-accordion](https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-accordion.json): The Parallax fork of the official accordion: the same API with the house refinements this theme depends on.
+- [parallax-action-bar](https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-action-bar.json): The floating bulk-selection bar: a count, grouped actions, and an Escape that defers to open overlays.
+- [parallax-alert](https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-alert.json): The Parallax fork of the official alert: the same API with the house refinements this theme depends on.
+- [parallax-alert-dialog](https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-alert-dialog.json): The Parallax fork of the official alert-dialog: the same API with the house refinements this theme depends on.
+- [parallax-angle-slider](https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-angle-slider.json): Parallax's angle slider component — not in the official shadcn-svelte registry.
+- [parallax-autocomplete](https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-autocomplete.json): Parallax's autocomplete component — not in the official shadcn-svelte registry.
+- [parallax-avatar](https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-avatar.json): The house avatar: shadcn's API plus a size ramp and the hairline ring treatment.
+- [parallax-badge](https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-badge.json): The house badge: shadcn's API plus the soft *-subtle variants for every status family.
+- [parallax-badge-overflow](https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-badge-overflow.json): Parallax's badge overflow component — not in the official shadcn-svelte registry.
+- [parallax-banner](https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-banner.json): Parallax's banner component — not in the official shadcn-svelte registry.
+- [parallax-breadcrumb](https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-breadcrumb.json): The Parallax fork of the official breadcrumb: the same API with the house refinements this theme depends on.
+- [parallax-button](https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-button.json): The house button: shadcn's API on the --control-h-* ramp (24/32/40/48px), with xs/icon-xs sizes and the data-icon slots.
+- [parallax-button-group](https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-button-group.json): The Parallax fork of the official button-group: the same API with the house refinements this theme depends on.
+- [parallax-calendar](https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-calendar.json): The Parallax fork of the official calendar: the same API with the house refinements this theme depends on.
+- [parallax-card](https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-card.json): The house card: shadcn's API plus a size prop and the ring-drawn outline.
+- [parallax-carousel](https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-carousel.json): The Parallax fork of the official carousel: the same API with the house refinements this theme depends on.
+- [parallax-chart](https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-chart.json): The Parallax fork of the official chart: the same API with the house refinements this theme depends on.
+- [parallax-checkbox](https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-checkbox.json): The Parallax fork of the official checkbox: the same API with the house refinements this theme depends on.
+- [parallax-checkbox-group](https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-checkbox-group.json): Parallax's checkbox group component — not in the official shadcn-svelte registry.
+- [parallax-circular-progress](https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-circular-progress.json): Parallax's circular progress component — not in the official shadcn-svelte registry.
+- [parallax-code-block](https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-code-block.json): Parallax's code block component — not in the official shadcn-svelte registry.
+- [parallax-color-picker](https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-color-picker.json): Parallax's color picker component — not in the official shadcn-svelte registry.
+- [parallax-color-swatch](https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-color-swatch.json): Parallax's color swatch component — not in the official shadcn-svelte registry.
+- [parallax-combobox](https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-combobox.json): Parallax's combobox component — not in the official shadcn-svelte registry.
+- [parallax-command](https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-command.json): The Parallax fork of the official command: the same API with the house refinements this theme depends on.
+- [parallax-compare-slider](https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-compare-slider.json): Parallax's compare slider component — not in the official shadcn-svelte registry.
+- [parallax-context-menu](https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-context-menu.json): The Parallax fork of the official context-menu: the same API with the house refinements this theme depends on.
+- [parallax-copy-button](https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-copy-button.json): Parallax's copy button component — not in the official shadcn-svelte registry.
+- [parallax-cropper](https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-cropper.json): Parallax's cropper component — not in the official shadcn-svelte registry.
+- [parallax-data-grid](https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-data-grid.json): The spreadsheet: virtualized rows, cell-addressed keyboard navigation, in-place editors per cell variant, its own ARIA grid markup.
+- [parallax-data-table](https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-data-table.json): The TanStack-driven table engine: createDataTable state in runes, Toolbar with meta-driven filters, ColumnHeader, FlexRender, Pagination. The motor behind every list page in the gallery.
+- [parallax-date-selector](https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-date-selector.json): Parallax's date selector component — not in the official shadcn-svelte registry.
+- [parallax-dialog](https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-dialog.json): The Parallax fork of the official dialog: the same API with the house refinements this theme depends on.
+- [parallax-direction-provider](https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-direction-provider.json): Parallax's direction provider component — not in the official shadcn-svelte registry.
+- [parallax-drawer](https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-drawer.json): The Parallax fork of the official drawer: the same API with the house refinements this theme depends on.
+- [parallax-dropdown-menu](https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-dropdown-menu.json): The Parallax fork of the official dropdown-menu: the same API with the house refinements this theme depends on.
+- [parallax-editable](https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-editable.json): Parallax's editable component — not in the official shadcn-svelte registry.
+- [parallax-empty](https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-empty.json): The Parallax fork of the official empty: the same API with the house refinements this theme depends on.
+- [parallax-event-calendar](https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-event-calendar.json): Parallax's event calendar component — not in the official shadcn-svelte registry.
+- [parallax-field](https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-field.json): The Parallax fork of the official field: the same API with the house refinements this theme depends on.
+- [parallax-filters](https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-filters.json): Parallax's filters component — not in the official shadcn-svelte registry.
+- [parallax-fps](https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-fps.json): Parallax's fps component — not in the official shadcn-svelte registry.
+- [parallax-frame](https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-frame.json): Parallax's frame component — not in the official shadcn-svelte registry.
+- [parallax-gauge](https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-gauge.json): Parallax's gauge component — not in the official shadcn-svelte registry.
+- [parallax-hover-card](https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-hover-card.json): The Parallax fork of the official hover-card: the same API with the house refinements this theme depends on.
+- [parallax-icon-stack](https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-icon-stack.json): Parallax's icon stack component — not in the official shadcn-svelte registry.
+- [parallax-icon-tile](https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-icon-tile.json): Parallax's icon tile component — not in the official shadcn-svelte registry.
+- [parallax-input](https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-input.json): The Parallax fork of the official input: the same API with the house refinements this theme depends on.
+- [parallax-input-group](https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-input-group.json): The Parallax fork of the official input-group: the same API with the house refinements this theme depends on.
+- [parallax-input-otp](https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-input-otp.json): The Parallax fork of the official input-otp: the same API with the house refinements this theme depends on.
+- [parallax-item](https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-item.json): The Parallax fork of the official item: the same API with the house refinements this theme depends on.
+- [parallax-json-viewer](https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-json-viewer.json): Parallax's json viewer component — not in the official shadcn-svelte registry.
+- [parallax-kanban](https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-kanban.json): Parallax's kanban component — not in the official shadcn-svelte registry.
+- [parallax-kbd](https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-kbd.json): The Parallax fork of the official kbd: the same API with the house refinements this theme depends on.
+- [parallax-key-value](https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-key-value.json): Parallax's key value component — not in the official shadcn-svelte registry.
+- [parallax-language-selector](https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-language-selector.json): Parallax's language selector component — not in the official shadcn-svelte registry.
+- [parallax-listbox](https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-listbox.json): Parallax's listbox component — not in the official shadcn-svelte registry.
+- [parallax-loader](https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-loader.json): 128 loaders behind one API, with a shared reduced-motion answer: moving parts stop, the loader breathes.
+- [parallax-marquee](https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-marquee.json): Parallax's marquee component — not in the official shadcn-svelte registry.
+- [parallax-mask-input](https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-mask-input.json): Parallax's mask input component — not in the official shadcn-svelte registry.
+- [parallax-masonry](https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-masonry.json): Parallax's masonry component — not in the official shadcn-svelte registry.
+- [parallax-media-player](https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-media-player.json): Parallax's media player component — not in the official shadcn-svelte registry.
+- [parallax-mention](https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-mention.json): Parallax's mention component — not in the official shadcn-svelte registry.
+- [parallax-menubar](https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-menubar.json): The Parallax fork of the official menubar: the same API with the house refinements this theme depends on.
+- [parallax-native-select](https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-native-select.json): The Parallax fork of the official native-select: the same API with the house refinements this theme depends on.
+- [parallax-navigation-menu](https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-navigation-menu.json): The Parallax fork of the official navigation-menu: the same API with the house refinements this theme depends on.
+- [parallax-number-field](https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-number-field.json): Parallax's number field component — not in the official shadcn-svelte registry.
+- [parallax-pagination](https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-pagination.json): The Parallax fork of the official pagination: the same API with the house refinements this theme depends on.
+- [parallax-partition-bar](https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-partition-bar.json): Parallax's partition bar component — not in the official shadcn-svelte registry.
+- [parallax-pending](https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-pending.json): Parallax's pending component — not in the official shadcn-svelte registry.
+- [parallax-phone-input](https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-phone-input.json): Parallax's phone input component — not in the official shadcn-svelte registry.
+- [parallax-popover](https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-popover.json): The Parallax fork of the official popover: the same API with the house refinements this theme depends on.
+- [parallax-progress](https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-progress.json): The Parallax fork of the official progress: the same API with the house refinements this theme depends on.
+- [parallax-qr-code](https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-qr-code.json): Parallax's qr code component — not in the official shadcn-svelte registry.
+- [parallax-radio-group](https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-radio-group.json): The Parallax fork of the official radio-group: the same API with the house refinements this theme depends on.
+- [parallax-range-calendar](https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-range-calendar.json): The Parallax fork of the official range-calendar: the same API with the house refinements this theme depends on.
+- [parallax-rating](https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-rating.json): Parallax's rating component — not in the official shadcn-svelte registry.
+- [parallax-relative-time-card](https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-relative-time-card.json): Parallax's relative time card component — not in the official shadcn-svelte registry.
+- [parallax-resizable](https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-resizable.json): The Parallax fork of the official resizable: the same API with the house refinements this theme depends on.
+- [parallax-responsive-dialog](https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-responsive-dialog.json): Parallax's responsive dialog component — not in the official shadcn-svelte registry.
+- [parallax-scroll-area](https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-scroll-area.json): The Parallax fork of the official scroll-area: the same API with the house refinements this theme depends on.
+- [parallax-scroll-spy](https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-scroll-spy.json): Parallax's scroll spy component — not in the official shadcn-svelte registry.
+- [parallax-scroller](https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-scroller.json): Parallax's scroller component — not in the official shadcn-svelte registry.
+- [parallax-segmented-input](https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-segmented-input.json): Parallax's segmented input component — not in the official shadcn-svelte registry.
+- [parallax-select](https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-select.json): The Parallax fork of the official select: the same API with the house refinements this theme depends on.
+- [parallax-selection-toolbar](https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-selection-toolbar.json): Parallax's selection toolbar component — not in the official shadcn-svelte registry.
+- [parallax-separator](https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-separator.json): The Parallax fork of the official separator: the same API with the house refinements this theme depends on.
+- [parallax-shake](https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-shake.json): Parallax's shake component — not in the official shadcn-svelte registry.
+- [parallax-sheet](https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-sheet.json): The Parallax fork of the official sheet: the same API with the house refinements this theme depends on.
+- [parallax-sidebar](https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-sidebar.json): The Parallax fork of the official sidebar: the same API with the house refinements this theme depends on.
+- [parallax-skeleton](https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-skeleton.json): The Parallax fork of the official skeleton: the same API with the house refinements this theme depends on.
+- [parallax-slider](https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-slider.json): The Parallax fork of the official slider: the same API with the house refinements this theme depends on.
+- [parallax-sonner](https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-sonner.json): The Parallax fork of the official sonner: the same API with the house refinements this theme depends on.
+- [parallax-sortable](https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-sortable.json): Parallax's sortable component — not in the official shadcn-svelte registry.
+- [parallax-speed-dial](https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-speed-dial.json): Parallax's speed dial component — not in the official shadcn-svelte registry.
+- [parallax-spinner](https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-spinner.json): The Parallax fork of the official spinner: the same API with the house refinements this theme depends on.
+- [parallax-status](https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-status.json): Parallax's status component — not in the official shadcn-svelte registry.
+- [parallax-status-monitor](https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-status-monitor.json): Parallax's status monitor component — not in the official shadcn-svelte registry.
+- [parallax-stepper](https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-stepper.json): Parallax's stepper component — not in the official shadcn-svelte registry.
+- [parallax-switch](https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-switch.json): The Parallax fork of the official switch: the same API with the house refinements this theme depends on.
+- [parallax-table](https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-table.json): The house table: shadcn's API plus the three-tier density axis (data-density retunes row/head/cell tokens; tiers are floors, not clamps).
+- [parallax-tabs](https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-tabs.json): The Parallax fork of the official tabs: the same API with the house refinements this theme depends on.
+- [parallax-tags-input](https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-tags-input.json): Parallax's tags input component — not in the official shadcn-svelte registry.
+- [parallax-text-gradient](https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-text-gradient.json): Parallax's text gradient component — not in the official shadcn-svelte registry.
+- [parallax-textarea](https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-textarea.json): The Parallax fork of the official textarea: the same API with the house refinements this theme depends on.
+- [parallax-timeline](https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-timeline.json): Parallax's timeline component — not in the official shadcn-svelte registry.
+- [parallax-toggle](https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-toggle.json): The Parallax fork of the official toggle: the same API with the house refinements this theme depends on.
+- [parallax-toggle-group](https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-toggle-group.json): The Parallax fork of the official toggle-group: the same API with the house refinements this theme depends on.
+- [parallax-tooltip](https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-tooltip.json): The Parallax fork of the official tooltip: the same API with the house refinements this theme depends on.
+- [parallax-tour](https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-tour.json): Parallax's tour component — not in the official shadcn-svelte registry.
+- [parallax-tree](https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-tree.json): Parallax's tree component — not in the official shadcn-svelte registry.
+
+## Guides
+
+- [Registry guide](https://raw.githubusercontent.com/OctarinaCompany/svelte-theme-parallax/main/docs/REGISTRY.md): every item's post-install notes, wiring sample, first-paint script
+- [Theme system](https://raw.githubusercontent.com/OctarinaCompany/svelte-theme-parallax/main/docs/THEME.md): the base palette, the OKLCH ladder, the token mapping, the audit
+- [Conventions](https://raw.githubusercontent.com/OctarinaCompany/svelte-theme-parallax/main/docs/CONVENTIONS.md): the house rules the source follows
+- [AI skill](https://raw.githubusercontent.com/OctarinaCompany/svelte-theme-parallax/main/skills/parallax/SKILL.md): the Agent Skill (install it via the parallax-skill registry item)
+- [Pattern recipes](https://raw.githubusercontent.com/OctarinaCompany/svelte-theme-parallax/main/skills/parallax/references/patterns.md): distilled design recipes of the flagship gallery pages
+
+## Gallery
+
+Demonstration pages, readable as source (not registry items). Fetch any file at
+`https://raw.githubusercontent.com/OctarinaCompany/svelte-theme-parallax/main/<path>`.
+
+- Settings: src/lib/components/pages/SettingsPage.svelte
+- Themes: src/lib/components/pages/ThemesPage.svelte
+- Sizing: src/lib/components/pages/SizingPage.svelte
+- File upload (Patterns): src/lib/components/pages/FileUploadPage.svelte
+- List group (Patterns): src/lib/components/pages/ListGroupPage.svelte
+- Page headers (Patterns): src/lib/components/pages/PageHeadersPage.svelte
+- Tables in cards (Patterns): src/lib/components/pages/TablesInCardsPage.svelte
+- Typography (Patterns): src/lib/components/pages/TypographyPage.svelte
+- Calendar (Dates and time): src/lib/components/pages/CalendarPage.svelte
+- Date selector (Dates and time): src/lib/components/pages/DateSelectorPage.svelte
+- Event calendar (Dates and time): src/lib/components/pages/EventCalendarPage.svelte
+- Relative time card (Dates and time): src/lib/components/pages/RelativeTimeCardPage.svelte
+- Autocomplete (Pickers): src/lib/components/pages/AutocompletePage.svelte
+- Combobox (Pickers): src/lib/components/pages/ComboboxPage.svelte
+- Command (Pickers): src/lib/components/pages/CommandPage.svelte
+- Filters (Pickers): src/lib/components/pages/FiltersPage.svelte
+- Language selector (Pickers): src/lib/components/pages/LanguageSelectorPage.svelte
+- Listbox (Pickers): src/lib/components/pages/ListboxPage.svelte
+- Native select (Pickers): src/lib/components/pages/NativeSelectPage.svelte
+- Select (Pickers): src/lib/components/pages/SelectPage.svelte
+- Tree (Pickers): src/lib/components/pages/TreePage.svelte
+- Angle slider (Form controls): src/lib/components/pages/AngleSliderPage.svelte
+- Checkbox (Form controls): src/lib/components/pages/CheckboxPage.svelte
+- Checkbox group (Form controls): src/lib/components/pages/CheckboxGroupPage.svelte
+- Color picker (Form controls): src/lib/components/pages/ColorPickerPage.svelte
+- Cropper (Form controls): src/lib/components/pages/CropperPage.svelte
+- Input (Form controls): src/lib/components/pages/InputPage.svelte
+- Input OTP (Form controls): src/lib/components/pages/InputOtpPage.svelte
+- Key value (Form controls): src/lib/components/pages/KeyValuePage.svelte
+- Mask input (Form controls): src/lib/components/pages/MaskInputPage.svelte
+- Mention (Form controls): src/lib/components/pages/MentionPage.svelte
+- Number field (Form controls): src/lib/components/pages/NumberFieldPage.svelte
+- Phone input (Form controls): src/lib/components/pages/PhoneInputPage.svelte
+- Radio group (Form controls): src/lib/components/pages/RadioGroupPage.svelte
+- Rating (Form controls): src/lib/components/pages/RatingPage.svelte
+- Segmented input (Form controls): src/lib/components/pages/SegmentedInputPage.svelte
+- Slider (Form controls): src/lib/components/pages/SliderPage.svelte
+- Switch (Form controls): src/lib/components/pages/SwitchPage.svelte
+- Tags input (Form controls): src/lib/components/pages/TagsInputPage.svelte
+- Textarea (Form controls): src/lib/components/pages/TextareaPage.svelte
+- Field (Form layout): src/lib/components/pages/FieldPage.svelte
+- Input group (Form layout): src/lib/components/pages/InputGroupPage.svelte
+- Accordion (Layout): src/lib/components/pages/AccordionPage.svelte
+- Aspect ratio (Layout): src/lib/components/pages/AspectRatioPage.svelte
+- Card (Layout): src/lib/components/pages/CardPage.svelte
+- Carousel (Layout): src/lib/components/pages/CarouselPage.svelte
+- Collapsible (Layout): src/lib/components/pages/CollapsiblePage.svelte
+- Compare slider (Layout): src/lib/components/pages/CompareSliderPage.svelte
+- Frame (Layout): src/lib/components/pages/FramePage.svelte
+- Item (Layout): src/lib/components/pages/ItemPage.svelte
+- Masonry (Layout): src/lib/components/pages/MasonryPage.svelte
+- Resizable (Layout): src/lib/components/pages/ResizablePage.svelte
+- Separator (Layout): src/lib/components/pages/SeparatorPage.svelte
+- Breadcrumb (Navigation): src/lib/components/pages/BreadcrumbPage.svelte
+- Menubar (Navigation): src/lib/components/pages/MenubarPage.svelte
+- Navigation menu (Navigation): src/lib/components/pages/NavigationMenuPage.svelte
+- Pagination (Navigation): src/lib/components/pages/PaginationPage.svelte
+- Scroll spy (Navigation): src/lib/components/pages/ScrollSpyPage.svelte
+- Stepper (Navigation): src/lib/components/pages/StepperPage.svelte
+- Tabs (Navigation): src/lib/components/pages/TabsPage.svelte
+- Dialog (Overlays): src/lib/components/pages/DialogPage.svelte
+- Alert dialog (Overlays): src/lib/components/pages/AlertDialogPage.svelte
+- Responsive dialog (Overlays): src/lib/components/pages/ResponsiveDialogPage.svelte
+- Sheet (Overlays): src/lib/components/pages/SheetPage.svelte
+- Drawer (Overlays): src/lib/components/pages/DrawerPage.svelte
+- Popover (Overlays): src/lib/components/pages/PopoverPage.svelte
+- Hover card (Overlays): src/lib/components/pages/HoverCardPage.svelte
+- Tooltip (Overlays): src/lib/components/pages/TooltipPage.svelte
+- Dropdown menu (Overlays): src/lib/components/pages/DropdownMenuPage.svelte
+- Context menu (Overlays): src/lib/components/pages/ContextMenuPage.svelte
+- Action bar (Overlays): src/lib/components/pages/ActionBarPage.svelte
+- Selection toolbar (Overlays): src/lib/components/pages/SelectionToolbarPage.svelte
+- Tour (Overlays): src/lib/components/pages/TourPage.svelte
+- Alert (Feedback): src/lib/components/pages/AlertPage.svelte
+- Banner (Feedback): src/lib/components/pages/BannerPage.svelte
+- Sonner (Feedback): src/lib/components/pages/SonnerPage.svelte
+- Status (Feedback): src/lib/components/pages/StatusPage.svelte
+- Progress (Feedback): src/lib/components/pages/ProgressPage.svelte
+- Circular progress (Feedback): src/lib/components/pages/CircularProgressPage.svelte
+- Spinner (Feedback): src/lib/components/pages/SpinnerPage.svelte
+- Loader (Feedback): src/lib/components/pages/LoaderPage.svelte
+- Skeleton (Feedback): src/lib/components/pages/SkeletonPage.svelte
+- Empty (Feedback): src/lib/components/pages/EmptyPage.svelte
+- Status monitor (Feedback): src/lib/components/pages/StatusMonitorPage.svelte
+- FPS (Feedback): src/lib/components/pages/FpsPage.svelte
+- Table (Data display): src/lib/components/pages/TablePage.svelte
+- Data table (Data display): src/lib/components/pages/DataTablePage.svelte
+- Data grid (Data display): src/lib/components/pages/DataGridPage.svelte
+- Kanban (Data display): src/lib/components/pages/KanbanPage.svelte
+- Timeline (Data display): src/lib/components/pages/TimelinePage.svelte
+- Avatar (Data display): src/lib/components/pages/AvatarPage.svelte
+- Badge (Data display): src/lib/components/pages/BadgePage.svelte
+- Kbd (Data display): src/lib/components/pages/KbdPage.svelte
+- Icon stack (Data display): src/lib/components/pages/IconStackPage.svelte
+- Icon tile (Data display): src/lib/components/pages/IconTilePage.svelte
+- Color swatch (Data display): src/lib/components/pages/ColorSwatchPage.svelte
+- Chart (Data display): src/lib/components/pages/ChartPage.svelte
+- Gauge (Data display): src/lib/components/pages/GaugePage.svelte
+- Code block (Data display): src/lib/components/pages/CodeBlockPage.svelte
+- JSON viewer (Data display): src/lib/components/pages/JsonViewerPage.svelte
+- Partition bar (Data display): src/lib/components/pages/PartitionBarPage.svelte
+- QR code (Data display): src/lib/components/pages/QrCodePage.svelte
+- Media player (Data display): src/lib/components/pages/MediaPlayerPage.svelte
+- Scroll area (Utilities): src/lib/components/pages/ScrollAreaPage.svelte
+- Scroller (Utilities): src/lib/components/pages/ScrollerPage.svelte
+- Sortable (Utilities): src/lib/components/pages/SortablePage.svelte
+- Marquee (Utilities): src/lib/components/pages/MarqueePage.svelte
+- Pending (Utilities): src/lib/components/pages/PendingPage.svelte
+- Swap (Utilities): src/lib/components/pages/SwapPage.svelte
+- Shake (Utilities): src/lib/components/pages/ShakePage.svelte
+- Text gradient (Utilities): src/lib/components/pages/TextGradientPage.svelte
+- Button (Actions): src/lib/components/pages/ButtonPage.svelte
+- Button group (Actions): src/lib/components/pages/ButtonGroupPage.svelte
+- Toggle (Actions): src/lib/components/pages/TogglePage.svelte
+- Toggle group (Actions): src/lib/components/pages/ToggleGroupPage.svelte
+- Speed dial (Actions): src/lib/components/pages/SpeedDialPage.svelte
+- Copy button (Actions): src/lib/components/pages/CopyButtonPage.svelte
+
+## UI components
+
+115 folders under src/lib/components/ui/ — 
+accordion, action-bar, alert, alert-dialog, angle-slider, aspect-ratio, autocomplete, avatar, badge, badge-overflow, banner, breadcrumb, button, button-group, calendar, card, carousel, chart, checkbox, checkbox-group, circular-progress, code-block, collapsible, color-picker, color-swatch, combobox, command, compare-slider, context-menu, copy-button, cropper, data-grid, data-table, date-selector, dialog, direction-provider, drawer, dropdown-menu, editable, empty, event-calendar, field, filters, fps, frame, gauge, hover-card, icon-stack, icon-tile, input, input-group, input-otp, item, json-viewer, kanban, kbd, key-value, label, language-selector, listbox, loader, marquee, mask-input, masonry, media-player, mention, menubar, native-select, navigation-menu, number-field, pagination, partition-bar, pending, phone-input, popover, progress, qr-code, radio-group, range-calendar, rating, relative-time-card, resizable, responsive-dialog, scroll-area, scroll-spy, scroller, segmented-input, select, selection-toolbar, separator, shake, sheet, sidebar, skeleton, slider, sonner, sortable, speed-dial, spinner, status, status-monitor, stepper, swap, switch, table, tabs, tags-input, text-gradient, textarea, timeline, toggle, toggle-group, tooltip, tour, tree

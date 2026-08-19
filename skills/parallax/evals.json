@@ -1,0 +1,37 @@
+{
+	"$comment": "Behavioural checks for the parallax skill. Run each prompt against a model with the skill loaded, in a scratch shadcn-svelte project, and grade against the expectations. Re-run whenever the skill or the registry changes.",
+	"evals": [
+		{
+			"name": "install-and-wire-shell",
+			"prompt": "Add the Parallax sidebar and header to this fresh shadcn-svelte project. I use SvelteKit.",
+			"expectations": [
+				"Reads components.json before proposing anything, and does not guess aliases",
+				"Installs with `npx shadcn-svelte@latest add .../parallax-shell.json`, never by copying files by hand",
+				"Applies AND announces both manual steps: the ./themes.css + @fontsource imports, and the first-paint script in src/app.html",
+				"Wires AppShell with a sidebar snippet passing typed data, and isActive={(url) => url === page.url.pathname} — no router import inside shell components",
+				"Puts page content beside <PageHeader />, never nested inside it",
+				"Runs svelte-check before declaring the task done"
+			]
+		},
+		{
+			"name": "status-badge-tokens",
+			"prompt": "Add a small 'Pending' badge and a 'Live' badge to this card, matching the theme.",
+			"expectations": [
+				"Uses the soft family with its own foreground: bg-warning-subtle text-warning-subtle-foreground and bg-success-subtle text-success-subtle-foreground",
+				"Never pairs text-warning with bg-warning-subtle, and never uses raw palette colors like bg-green-100",
+				"Uses rounded-4xl (the pill radius) or the Badge component rather than an arbitrary radius",
+				"Writes Svelte 5 runes syntax if any script is needed ($props, onclick, snippets)"
+			]
+		},
+		{
+			"name": "drive-appearance-axes",
+			"prompt": "Add a settings row with switches for a floating header and an inverted sidebar.",
+			"expectations": [
+				"Imports headerFloating/setHeaderFloating and sidebarMode/setSidebarMode from $lib/hooks — no local $state duplicating the axes",
+				"Maps the sidebar switch to setSidebarMode('inverted'|'default'), understanding the axis is relative to the page mode",
+				"Does not write data-* attributes, classes, or localStorage keys directly",
+				"Mentions (or verifies) the first-paint script when the inverted axis is involved"
+			]
+		}
+	]
+}

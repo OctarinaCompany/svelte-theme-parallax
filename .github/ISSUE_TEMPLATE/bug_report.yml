@@ -1,0 +1,47 @@
+name: Bug report
+description: Something renders or behaves wrongly
+title: "bug: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the report. A minute of precision here saves an hour of guessing later.
+        For security issues, do **not** file a public issue — see SECURITY.md.
+  - type: input
+    id: component
+    attributes:
+      label: Component or page
+      description: The `ui/` folder or gallery page where it happens, e.g. `kanban` or `/components/data-grid`.
+      placeholder: kanban
+    validations:
+      required: true
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: What you did, what you expected, and what you saw instead.
+      placeholder: |
+        1. Open /components/…
+        2. Click …
+        Expected: …
+        Actual: …
+    validations:
+      required: true
+  - type: input
+    id: theme-mode
+    attributes:
+      label: Theme and mode
+      description: Which palette and light/dark mode — some issues only show in one.
+      placeholder: parallax, dark
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      description: Browser and OS, plus the commit or version if you know it.
+      placeholder: Firefox 142 / Windows 11, main @ 6af86d6
+  - type: textarea
+    id: extra
+    attributes:
+      label: Anything else
+      description: Screenshots, console output, a reduced reproduction — whatever helps.

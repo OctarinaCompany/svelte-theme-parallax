@@ -1,0 +1,32 @@
+{
+	"extends": "@tsconfig/svelte/tsconfig.json",
+	"compilerOptions": {
+		"tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
+		/**
+		 * Mirrors the `$lib` alias declared in vite.config.ts. Both must stay in sync:
+		 * Vite resolves it at build time, TypeScript resolves it for editors and `npm run check`.
+		 *
+		 * The official docs also set `baseUrl`, but TypeScript 6 deprecates it. Since TS 4.4,
+		 * `paths` entries resolve relative to this file, so `baseUrl` is unnecessary here.
+		 */
+		"paths": {
+			"$lib": ["./src/lib"],
+			"$lib/*": ["./src/lib/*"]
+		},
+		"target": "es2023",
+		"module": "esnext",
+		"types": ["svelte", "vite/client"],
+		"allowArbitraryExtensions": true,
+		"noEmit": true,
+		/**
+		 * Typecheck JS in `.svelte` and `.js` files by default.
+		 * Disable checkJs if you'd like to use dynamic types in JS.
+		 * Note that setting allowJs false does not prevent the use
+		 * of JS in `.svelte` files.
+		 */
+		"allowJs": true,
+		"checkJs": true,
+		"moduleDetection": "force"
+	},
+	"include": ["src/**/*.ts", "src/**/*.js", "src/**/*.svelte"]
+}
