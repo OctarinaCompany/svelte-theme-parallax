@@ -25,6 +25,26 @@ The intended destination is a
 distributable registry/skill; today the repository is the library, its gallery, and the reasoning
 written down.
 
+## Start here — install the skill
+
+Building with Parallax through an AI assistant? Install its
+[Agent Skill](./skills/parallax/README.md) first. It teaches the assistant the registry, the
+shell's props, the token families and the twelve palettes, so everything below becomes a
+conversation instead of a manual read.
+
+```sh
+npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-skill.json
+```
+
+Seven files land in your project's `.claude/skills/parallax/`, and nothing else changes — the
+item carries no dependencies and touches no CSS. **Restart your assistant afterwards:** skills
+are discovered when a session opens, not while one runs.
+
+It needs a working shadcn-svelte project — a `components.json`, a `tsconfig.json`, Tailwind v4
+and Svelte 5. Without one the CLI stops before writing anything, so a failed run leaves nothing
+behind. Then add the theme and whatever else you need:
+[Using Parallax in another project](#using-parallax-in-another-project).
+
 ## Quick start
 
 Requires Node.js 20.19 or newer (22.12+ on the 22 line) — Vite 8's own floor.
@@ -107,7 +127,7 @@ this repository.
 npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-theme.json
 ```
 
-Seventy-nine items ship today — the palette, the axes, the shell, the skill, and every Parallax-authored or Parallax-forked ui/ component (verbatim ports of official components are deliberately never published). The flagship items: Their post-install notes live in [`docs/REGISTRY.md`](./docs/REGISTRY.md) — generated beside the manifest, because the registry build strips each item's `docs` field from the published JSON:
+One hundred and nineteen items ship today — the palette, the axes, the shell, the skill, and every Parallax-authored or Parallax-forked ui/ component (verbatim ports of official components are deliberately never published). Their post-install notes live in [`docs/REGISTRY.md`](./docs/REGISTRY.md) — generated beside the manifest, because the registry build strips each item's `docs` field from the published JSON. The flagship items:
 
 | Item | What it installs |
 |------|------------------|
@@ -141,14 +161,9 @@ guides, and the whole gallery as fetchable source. The skill's
 patterns (tables in cards, page headers, uploads, data table/grid…) so an assistant can
 reproduce them without the registry publishing them.
 
-> **The URL above does not answer yet.** `.github/workflows/pages.yml` builds and publishes
-> everything the site needs (it runs `registry:build`, since `public/r/` is generated), but
-> GitHub Pages refuses this repository: it is private under a free-plan organisation, where
-> Pages is a public-repository feature. Making the repository public, upgrading the plan, or
-> deploying `dist/` anywhere else all fix it — the workflow's build half is already correct
-> and its trigger is manual until then. Meanwhile `npm run registry:build` and serving
-> `public/r` locally works; `PARALLAX_REGISTRY_HOMEPAGE` overrides the origin baked into the
-> cross-item links.
+> Working on the registry locally: `npm run registry:build` compiles `public/r/`, which Vite
+> then copies into `dist/`, and `PARALLAX_REGISTRY_HOMEPAGE` overrides the origin baked into the
+> cross-item links. Every push to `main` republishes the site and the registry together.
 
 ## Read further
 
