@@ -16,14 +16,14 @@ The library has two kinds of components, and one theme over both:
   editable, gauge, phone input, media player, and many more), written idiomatically for
   Svelte 5 runes and first-class code in this repository.
 
-An app shell (sidebar, breadcrumb, theme picker) and a gallery of ~120 pages document all of it —
+An app shell (sidebar, breadcrumb, theme picker) and a gallery of ~130 pages document all of it —
 every sidebar entry that goes anywhere goes somewhere real. The sidebar's twelve headings are
 groups rather than destinations: the catalog is filed as an ordered ladder, where a component
 belongs to the first group whose test it passes. The ladder is declared once, in
 `src/lib/hooks/route.svelte.ts`, and the routes, the route type and the menu are derived from it.
-The intended destination is a
-distributable registry/skill; today the repository is the library, its gallery, and the reasoning
-written down.
+All of it is distributable: the repository publishes its own shadcn-svelte registry and the Agent
+Skill that drives it, so another project installs the theme, the shell or any single component
+straight from the URLs below.
 
 ## Start here — install the skill
 
@@ -88,8 +88,9 @@ The non-obvious behaviours are deliberate and documented where they live:
   beside the rail instead of turning into a dead button. Children are real `<a href>` links, so
   middle-click and "open in new tab" work.
 - **The menu is data, not markup.** Workspaces, navigation and user live in one typed file,
-  `src/lib/data/dashboard.ts`; the sidebar's anchors ARE the route table of the ~40-line hash
-  router (`src/lib/hooks/route.svelte.ts`).
+  `src/lib/data/dashboard.ts`; the sidebar's anchors ARE the route table of the small hash
+  router that closes `src/lib/hooks/route.svelte.ts` — the rest of that file is the catalog it
+  routes over.
 
 ## Themes
 
@@ -172,6 +173,8 @@ stating what it does and which decision it embodies, while registry files stay c
 match upstream. [`docs/THEME.md`](./docs/THEME.md) documents
 the theme system — the base palette, the ladder, the token mapping, and what the audit enforces.
 [`docs/CONVENTIONS.md`](./docs/CONVENTIONS.md) states the house rules in one place.
+[`docs/REGISTRY.md`](./docs/REGISTRY.md) is the consumer's page: every published item, its
+install URL, and the post-install steps a registry item cannot perform for you.
 
 ## Repository layout
 
@@ -190,8 +193,12 @@ the theme system — the base palette, the ladder, the token mapping, and what t
 | `tools/themes/` | The generator and its audit — the only place a palette is edited |
 | `registry.json` | The registry manifest — **generated** by `tools/registry/` |
 | `tools/registry/` | The manifest generator, and the `app.css` block reader it uses |
+| `skills/parallax/` | The Agent Skill published as `parallax-skill`, with its references and evals |
+| `public/llms.txt` | The machine-readable index of every item and guide — **generated** |
+| `.github/workflows/pages.yml` | Builds the registry and the gallery, and deploys both to Pages on every push to `main` |
 | `docs/THEME.md` | The theme system: base palette, ladder, token mapping, audit |
 | `docs/CONVENTIONS.md` | House conventions: tiers, naming, status vocabulary, imports |
+| `docs/REGISTRY.md` | Every published item and its install URL — **generated** |
 | `LICENSE` | MIT |
 
 Two house rules run through all of it: semantic tokens, never raw colours; and one coherent
