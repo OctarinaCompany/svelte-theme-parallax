@@ -22,6 +22,19 @@ npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-para
 This writes the skill into the project's `.claude/skills/parallax/` — commit it so the
 whole team's assistants share it.
 
+**For starting projects from scratch** — the registry route needs a project to install
+into, so it cannot be how you *begin* one. Install the skill at personal scope instead and
+it is loaded in every session, empty directories included:
+
+```sh
+npx degit OctarinaCompany/svelte-theme-parallax/skills/parallax ~/.claude/skills/parallax
+```
+
+On Windows PowerShell, `~` is not expanded by degit — use
+`"$env:USERPROFILE\.claude\skills\parallax"`. From there,
+[`references/bootstrap.md`](./references/bootstrap.md) carries the whole path from an empty
+directory to a running dashboard.
+
 **Manually**: copy this `skills/parallax/` directory to
 
 - `<your-project>/.claude/skills/parallax/` — project scope (recommended, commit it), or
@@ -56,7 +69,10 @@ skills/parallax/
 ├── references/
 │   ├── shell.md              # component contracts, incorrect/correct pairs
 │   ├── theming.md            # tokens → utility classes, palettes, axes, first-paint script
-│   └── install.md            # the five items, manual steps, troubleshooting
+│   ├── install.md            # the five items, manual steps, troubleshooting
+│   ├── bootstrap.md          # empty directory → running dashboard, and its version traps
+│   ├── patterns.md           # distilled recipes of the flagship gallery patterns
+│   └── components.md         # generated map of every gallery page and ui/ folder
 ├── evals.json                # behavioural checks — re-run when skill or registry changes
 └── README.md                 # this notice (not loaded by the model)
 ```

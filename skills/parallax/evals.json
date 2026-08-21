@@ -14,6 +14,19 @@
 			]
 		},
 		{
+			"name": "bootstrap-from-empty-directory",
+			"prompt": "This directory is empty. Set me up a Svelte dashboard using Parallax.",
+			"expectations": [
+				"Scaffolds first with `npx sv@latest create`, and does NOT open by running `shadcn-svelte add` or `init`",
+				"Passes `--overwrite` alongside `--yes` on the first add, knowing `--yes` alone leaves the stylesheet-merge prompt unanswered",
+				"Passes the tailwindcss add-on with its plugin option pinned (`--add \"tailwindcss=plugins:none\"`) rather than a bare `--add tailwindcss`",
+				"Writes components.json by hand instead of waiting on an interactive `init` preset prompt, and points tailwind.css at the stylesheet the scaffold actually produced (src/routes/layout.css, not an assumed src/app.css)",
+				"Adds the `utils` item and installs the `shadcn-svelte` package — the two things skipping `init` leaves missing",
+				"Imports the palette with a path resolved against the stylesheet's own directory (../themes.css from src/routes/), not a blind ./themes.css",
+				"Reaches a clean `npx svelte-check` and runs the app before calling it done"
+			]
+		},
+		{
 			"name": "status-badge-tokens",
 			"prompt": "Add a small 'Pending' badge and a 'Live' badge to this card, matching the theme.",
 			"expectations": [

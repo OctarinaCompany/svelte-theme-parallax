@@ -477,6 +477,11 @@ const SKILL = {
 			target: "~/.claude/skills/parallax/references/install.md",
 		},
 		{
+			path: "skills/parallax/references/bootstrap.md",
+			type: "registry:file",
+			target: "~/.claude/skills/parallax/references/bootstrap.md",
+		},
+		{
 			path: "skills/parallax/references/patterns.md",
 			type: "registry:file",
 			target: "~/.claude/skills/parallax/references/patterns.md",

@@ -1,6 +1,6 @@
 ---
 name: parallax
-description: Build and style dashboards with Parallax, the shadcn-svelte theme kit (Svelte 5 + Tailwind v4). Use when a project consumes the Parallax registry (svelte-theme-parallax), when AppShell/AppSidebar/PageHeader or parallax-* registry items appear in the code, or when the user asks to install Parallax, add a sidebar/header shell, theme a dashboard, use the success/warning/info or subtle token families, or drive the floating/inverted/auto-hide appearance axes. Covers registry installation, shell composition through typed props and snippets, nav data wiring with an isActive predicate, the 12 palettes over mode-watcher, and the appearance hooks. Not for generic shadcn-svelte components that Parallax does not ship.
+description: Build and style dashboards with Parallax, the shadcn-svelte theme kit (Svelte 5 + Tailwind v4). Use when a project consumes the Parallax registry (svelte-theme-parallax), when AppShell/AppSidebar/PageHeader or parallax-* registry items appear in the code, or when the user asks to install Parallax, start a new Svelte dashboard project from an empty directory, add a sidebar/header shell, theme a dashboard, use the success/warning/info or subtle token families, or drive the floating/inverted/auto-hide appearance axes. Covers bootstrapping a project from scratch, registry installation, shell composition through typed props and snippets, nav data wiring with an isActive predicate, the 12 palettes over mode-watcher, and the appearance hooks. Not for generic shadcn-svelte components that Parallax does not ship.
 license: MIT
 ---
 
@@ -38,6 +38,10 @@ Run `npx svelte-check` before finalizing any component you write or edit.
 
 Before adding or changing anything:
 
+0. **No `components.json`, or no Svelte project at all?** The directory is empty or
+   non-Svelte: follow [references/bootstrap.md](references/bootstrap.md) end to end, then
+   come back here. Do not run `shadcn-svelte add` first — it reads `components.json` and
+   its failure names the symptom, not the cause.
 1. Read `components.json` — it defines the aliases (`$lib/components`, `$lib/hooks`, …)
    every import below assumes. Never guess aliases.
 2. Check what is already installed: `src/lib/components/layout/AppShell.svelte` present
@@ -91,8 +95,12 @@ Before adding or changing anything:
 - **Drive the axes through their setters** (`setHeaderFloating`, `setSidebarMode`, …),
   never by toggling classes or attributes yourself.
 
-**Installation** — see [references/install.md](references/install.md)
+**Installation** — see [references/install.md](references/install.md), and
+[references/bootstrap.md](references/bootstrap.md) for an empty directory
 
+- **From scratch, `shadcn-svelte init` cannot run unattended** — it demands a `--preset`
+  only the docs-site builder issues. Write `components.json` by hand instead, and add the
+  two things `init` would have left: the `utils` item and the `shadcn-svelte` package.
 - **Two manual steps after `parallax-theme`** (a registry item cannot patch existing
   files): the `@import "./themes.css";` + font imports in the global stylesheet, and the
   **first-paint script** in `index.html` / `app.html` (exact copy in theming.md).
@@ -196,6 +204,9 @@ List group, …). The COMPONENTS it uses are installable; the composition is wha
   classes, the 12 palettes, the appearance hooks, the first-paint script
 - [references/install.md](references/install.md) — the registry items, install order,
   manual steps, fidelity notes, troubleshooting
+- [references/bootstrap.md](references/bootstrap.md) — empty directory to running
+  dashboard: scaffolding, the hand-written `components.json`, what `init` leaves behind,
+  and the version traps
 - [references/patterns.md](references/patterns.md) — distilled recipes of the flagship
   gallery patterns (tables in cards, page headers, list group, uploads, typography,
   sizing, data table/grid) with their Parallax-only dependencies flagged

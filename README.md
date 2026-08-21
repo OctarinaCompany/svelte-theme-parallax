@@ -36,7 +36,7 @@ conversation instead of a manual read.
 npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-skill.json
 ```
 
-Seven files land in your project's `.claude/skills/parallax/`, and nothing else changes — the
+Eight files land in your project's `.claude/skills/parallax/`, and nothing else changes — the
 item carries no dependencies and touches no CSS. **Restart your assistant afterwards:** skills
 are discovered when a session opens, not while one runs.
 

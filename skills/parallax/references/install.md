@@ -39,8 +39,10 @@ resolves the entire chain, and the same is true of every component item.
 ## Prerequisites
 
 - Svelte 5 + Tailwind v4 project with shadcn-svelte **1.x** initialised (a
-  `components.json` with the `$lib` aliases). Not initialised? Run
-  `npx shadcn-svelte@latest init` first, or write `components.json` by hand.
+  `components.json` with the `$lib` aliases). Not initialised — or no Svelte project at
+  all? [bootstrap.md](bootstrap.md) covers the whole path from an empty directory. Note
+  that `init` cannot run unattended (it demands a `--preset` only the docs-site builder
+  issues), so a scripted setup writes `components.json` by hand.
 - npm dependencies arrive with the items (`mode-watcher`, `@lucide/svelte`,
   `@fontsource-variable/hanken-grotesk`); the CLI adds and installs them.
 
@@ -65,12 +67,17 @@ explicit approval — the files are their code now.
 A registry item cannot patch files that already exist. After `parallax-theme` (direct or
 via the shell), do both and tell the user you did:
 
-1. In the global stylesheet (`src/app.css`), after the Tailwind import:
+1. In the global stylesheet, after the Tailwind import:
 
    ```css
    @import "./themes.css";
    @import "@fontsource-variable/hanken-grotesk";
    ```
+
+   The `./` holds only when the stylesheet is `src/app.css`, a sibling of the
+   `src/themes.css` the item just wrote. Resolve the path against the stylesheet's own
+   directory: a SvelteKit scaffold puts it at `src/routes/layout.css`, which needs
+   `../themes.css`. Read `components.json`'s `tailwind.css` for the real location.
 
 2. The **first-paint script** in `index.html` / `src/app.html` — exact copy in
    [theming.md](theming.md#the-first-paint-script).
