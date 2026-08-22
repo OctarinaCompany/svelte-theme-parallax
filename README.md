@@ -32,17 +32,34 @@ Building with Parallax through an AI assistant? Install its
 shell's props, the token families and the twelve palettes, so everything below becomes a
 conversation instead of a manual read.
 
+**Into a project you already have** — the registry route, so the skill updates like any other
+item and one committed copy serves the whole team's assistants:
+
 ```sh
 npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-skill.json
 ```
 
 Eight files land in your project's `.claude/skills/parallax/`, and nothing else changes — the
-item carries no dependencies and touches no CSS. **Restart your assistant afterwards:** skills
-are discovered when a session opens, not while one runs.
+item carries no dependencies and touches no CSS. It needs a working shadcn-svelte project — a
+`components.json`, a `tsconfig.json`, Tailwind v4 and Svelte 5 — and stops before writing
+anything without one, so a failed run leaves nothing behind.
 
-It needs a working shadcn-svelte project — a `components.json`, a `tsconfig.json`, Tailwind v4
-and Svelte 5. Without one the CLI stops before writing anything, so a failed run leaves nothing
-behind. Then add the theme and whatever else you need:
+**Starting from an empty directory** — then the command above cannot be your first move: it
+installs *into* a project, and you do not have one yet. Install the skill once at personal
+scope instead, where every session finds it, empty directories included:
+
+```powershell
+npx degit OctarinaCompany/svelte-theme-parallax/skills/parallax "$env:USERPROFILE\.claude\skills\parallax"
+```
+
+`~/.claude/skills/parallax` on macOS and Linux. It is a one-time install per machine, not a
+per-project step; re-run it with `--force` to update, since degit refuses a destination that is
+not empty. From there the skill's
+[`bootstrap.md`](./skills/parallax/references/bootstrap.md) carries the whole path from nothing
+to a running dashboard — scaffold, configure, install, wire, validate.
+
+**Restart your assistant afterwards**, either route: skills are discovered when a session opens,
+not while one runs. Then add the theme and whatever else you need:
 [Using Parallax in another project](#using-parallax-in-another-project).
 
 ## Quick start

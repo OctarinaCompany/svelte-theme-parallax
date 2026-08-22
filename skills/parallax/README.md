@@ -30,8 +30,11 @@ it is loaded in every session, empty directories included:
 npx degit OctarinaCompany/svelte-theme-parallax/skills/parallax ~/.claude/skills/parallax
 ```
 
-On Windows PowerShell, `~` is not expanded by degit — use
-`"$env:USERPROFILE\.claude\skills\parallax"`. From there,
+It is a one-time install per machine, not a per-project step, and `--force` re-runs it to
+update — degit refuses a destination that is not empty. On Windows use
+`"$env:USERPROFILE\.claude\skills\parallax"`: PowerShell expands a bare `~` but passes a
+QUOTED one through untouched, so `"~/.claude/skills/parallax"` would create a directory
+literally named `~` in the current folder. From there,
 [`references/bootstrap.md`](./references/bootstrap.md) carries the whole path from an empty
 directory to a running dashboard.
 
