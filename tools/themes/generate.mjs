@@ -246,8 +246,15 @@ export const THEME_IDS = [${built.map((t) => `'${t.spec.id}'`).join(", ")}] as c
 
 export type ThemeId = (typeof THEME_IDS)[number];
 
-/** The default, and what an unknown or missing stored value falls back to. */
-export const DEFAULT_THEME: ThemeId = 'parallax';
+/**
+ * The default, and what an unknown or missing stored value falls back to.
+ *
+ * Not the same notion as the base above: the base is the palette \`:root\` already wears, while
+ * this is the one a first visit is dressed in. They were the same id until Amethyst took over,
+ * so \`data-theme\` is now written on the first frame rather than left absent — \`index.html\`'s
+ * first-paint script carries the same spelling, and nothing across a plain HTML file enforces it.
+ */
+export const DEFAULT_THEME: ThemeId = 'amethyst';
 
 export type Theme = {
 	id: ThemeId;

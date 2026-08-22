@@ -97,7 +97,7 @@
 		setHeaderMode("default");
 		setSidebarFloating(true);
 		setHeaderAutoHide(false);
-		setHeaderFloating(false);
+		setHeaderFloating(true);
 		sidebar.setOpen(true);
 	}
 </script>
@@ -290,8 +290,8 @@
 		<DocSection title="Reset">
 			{#snippet blurb()}
 				Back to the defaults: system mode, the {THEMES.find((t) => t.id === DEFAULT_THEME)?.name}
-				palette, both chrome axes on Default, the sidebar floating and expanded, both header behaviours
-				off.
+				palette, both chrome axes on Default, the sidebar floating and expanded, the header bar floating
+				with auto-hide off.
 			{/snippet}
 			<Card.Root>
 				<Card.Content>

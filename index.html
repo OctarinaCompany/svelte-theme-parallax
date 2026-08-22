@@ -12,8 +12,9 @@
 
 		<!-- Link-preview metadata. og:image is deliberately absent until a real 1200x630 still
 		     of the gallery exists — scrapers fall back to title + description, which is honest;
-		     a wrong-ratio placeholder would be worse. The theme-color pair mirrors the base
-		     palette's `--background` in src/app.css (light and dark). -->
+		     a wrong-ratio placeholder would be worse. The theme-color pair mirrors the DEFAULT
+		     palette's `--background` — Amethyst, in src/themes.css, not the `:root` base in
+		     src/app.css — because that is what a first visit actually paints. -->
 		<meta property="og:title" content="Parallax theme kit for shadcn-svelte" />
 		<meta
 			property="og:description"
@@ -21,8 +22,8 @@
 		/>
 		<meta property="og:type" content="website" />
 		<meta name="twitter:card" content="summary" />
-		<meta name="theme-color" media="(prefers-color-scheme: light)" content="#f4f6f8" />
-		<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0f263f" />
+		<meta name="theme-color" media="(prefers-color-scheme: light)" content="#fbfafc" />
+		<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#282232" />
 
 		<!--
       Paint the right theme on the FIRST frame.
@@ -42,9 +43,9 @@
       defaults; `mode-watcher-theme` is also stated as `THEME_STORAGE_KEY` in
       `src/lib/themes/index.ts`, `sidebar-mode` as `SIDEBAR_MODE_STORAGE_KEY` in
       `src/lib/hooks/sidebar-mode.svelte.ts`, `header-mode` as `HEADER_MODE_STORAGE_KEY` in
-      `src/lib/hooks/header-mode.svelte.ts`, and `parallax` is the `defaultTheme` passed to
-      `ModeWatcher` in `App.svelte`. Nothing enforces the agreement across a plain HTML file, so
-      it is written down on both ends.
+      `src/lib/hooks/header-mode.svelte.ts`, and `amethyst` is `DEFAULT_THEME`, the `defaultTheme`
+      passed to `ModeWatcher` in `App.svelte`. Nothing enforces the agreement across a plain HTML
+      file, so it is written down on both ends.
 
       Each chrome attribute is set only for `light` and `dark`. Its absence is the third state —
       the surface follows what is around it — so writing `"auto"` would be writing a value no
@@ -68,7 +69,7 @@
 					(mode === "system" && window.matchMedia("(prefers-color-scheme: light)").matches);
 				root.classList.toggle("dark", !light);
 				root.style.colorScheme = light ? "light" : "dark";
-				root.setAttribute("data-theme", localStorage.getItem("mode-watcher-theme") || "parallax");
+				root.setAttribute("data-theme", localStorage.getItem("mode-watcher-theme") || "amethyst");
 				/*
 				 * The two chrome axes are RELATIVE TO THE PAGE ("inverted" = the opposite half) and
 				 * independent of each other, but the stylesheets key on absolute light/dark

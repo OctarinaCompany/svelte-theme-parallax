@@ -23,22 +23,26 @@ export const HEADER_AUTO_HIDE_STORAGE_KEY = "header-auto-hide";
 export const HEADER_FLOATING_STORAGE_KEY = "header-floating";
 
 /**
- * Read a persisted boolean.
+ * Read a persisted boolean, falling back to `fallback` when nothing is stored.
  *
- * Anything that is not the literal `"true"` reads as `false`, so a stale or corrupted value falls
- * back to the plain sticky bar — the state that needs no behaviour to be correct, the same
- * principle `auto` follows in the two mode hooks.
+ * ONLY AN ABSENT KEY takes the fallback. A stored value is honoured even when it equals the
+ * opposite of the default, which is the whole point once a default is `true`: a visitor who
+ * turns the floating bar off has to still find it off on the next load. Anything stored that is
+ * not the literal `"true"` reads as `false`, so a corrupted value degrades to the plain sticky
+ * bar — the state that needs no behaviour to be correct.
  */
-function read(key: string): boolean {
+function read(key: string, fallback: boolean): boolean {
 	try {
 		// The `typeof` guard sits INSIDE the try: with storage fully blocked the `localStorage`
 		// getter itself throws, so even the existence check has to be caught.
-		if (typeof localStorage === "undefined") return false;
+		if (typeof localStorage === "undefined") return fallback;
 
-		return localStorage.getItem(key) === "true";
+		const stored = localStorage.getItem(key);
+
+		return stored === null ? fallback : stored === "true";
 	} catch {
 		// Storage blocked outright. The session still toggles, it just does not persist.
-		return false;
+		return fallback;
 	}
 }
 
@@ -51,8 +55,10 @@ function write(key: string, value: boolean): void {
 	}
 }
 
-let autoHide = $state<boolean>(read(HEADER_AUTO_HIDE_STORAGE_KEY));
-let floating = $state<boolean>(read(HEADER_FLOATING_STORAGE_KEY));
+let autoHide = $state<boolean>(read(HEADER_AUTO_HIDE_STORAGE_KEY, false));
+// Floating is the kit's default dress; auto-hide stays opt-in because it moves the bar out from
+// under the pointer, which is a thing to ask for rather than to discover.
+let floating = $state<boolean>(read(HEADER_FLOATING_STORAGE_KEY, true));
 
 /** Slide the bar away on scroll down, bring it back on scroll up. */
 export const headerAutoHide = {
