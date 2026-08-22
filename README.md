@@ -7,6 +7,57 @@
 Svelte 5, Vite, Tailwind CSS v4, [Bits UI](https://bits-ui.com) — about 115 components under one
 coherent theme, each documented by a live page.
 
+## Start here — install the skill
+
+Parallax ships an [Agent Skill](./skills/parallax/README.md). It teaches an AI assistant the
+registry, the shell's props, the token families and the twelve palettes, so everything further
+down becomes a conversation instead of a manual read. Install it before anything else.
+
+**Pick a scope first.** *Personal* covers every session on the machine, empty directories
+included — it is the only scope that can *start* a project. *Project* pins a version the team
+commits beside the code, but it needs a project to install into, so it can never be your first
+move. Both formats are the same `SKILL.md`, so one source serves both assistants:
+
+|                                             | Claude Code                  | Codex                       |
+| ------------------------------------------- | ---------------------------- | --------------------------- |
+| **Personal** — every session on this machine | `~/.claude/skills/parallax/` | `~/.codex/skills/parallax/` |
+| **Project** — committed with the repository  | `.claude/skills/parallax/`   | `.codex/skills/parallax/`   |
+
+```powershell
+# Personal — Windows. Elsewhere the destinations are ~/.claude/... and ~/.codex/...
+npx degit OctarinaCompany/svelte-theme-parallax/skills/parallax "$env:USERPROFILE\.claude\skills\parallax"
+npx degit OctarinaCompany/svelte-theme-parallax/skills/parallax "$env:USERPROFILE\.codex\skills\parallax"
+
+# Project — run from the project root
+npx degit OctarinaCompany/svelte-theme-parallax/skills/parallax .claude/skills/parallax
+npx degit OctarinaCompany/svelte-theme-parallax/skills/parallax .codex/skills/parallax
+```
+
+One install per machine or per repository, never a per-session step. Re-run with `--force` to
+update — degit refuses a destination that is not empty. Keep the `$env:USERPROFILE` form on
+Windows: PowerShell expands a bare `~` but passes a QUOTED one through untouched, so
+`"~/.claude/skills/parallax"` creates a directory literally named `~` in the current folder. And
+the directory name must stay `parallax`, which the spec requires to match the skill's own name.
+
+**Inside a shadcn-svelte project, prefer the registry** over the third command above. Same
+destination, but the skill then updates like every other item:
+
+```sh
+npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-skill.json
+```
+
+Eight files land in the project's `.claude/skills/parallax/`, and nothing else changes — the item
+carries no dependencies and touches no CSS. It needs a working shadcn-svelte project — a
+`components.json`, a `tsconfig.json`, Tailwind v4 and Svelte 5 — and stops before writing
+anything without one, so a failed run leaves nothing behind.
+
+**Restart your assistant afterwards**, whichever route: skills are discovered when a session
+opens, not while one runs. Starting from an empty directory? The skill's
+[`bootstrap.md`](./skills/parallax/references/bootstrap.md) then carries the whole path from
+nothing to a running dashboard — scaffold, configure, install, wire, validate. Otherwise add the
+theme and whatever else you need:
+[Using Parallax in another project](#using-parallax-in-another-project).
+
 The library has two kinds of components, and one theme over both:
 
 - **Registry components** — the official shadcn-svelte set, carrying the Parallax look purely
@@ -24,43 +75,6 @@ belongs to the first group whose test it passes. The ladder is declared once, in
 All of it is distributable: the repository publishes its own shadcn-svelte registry and the Agent
 Skill that drives it, so another project installs the theme, the shell or any single component
 straight from the URLs below.
-
-## Start here — install the skill
-
-Building with Parallax through an AI assistant? Install its
-[Agent Skill](./skills/parallax/README.md) first. It teaches the assistant the registry, the
-shell's props, the token families and the twelve palettes, so everything below becomes a
-conversation instead of a manual read.
-
-**Into a project you already have** — the registry route, so the skill updates like any other
-item and one committed copy serves the whole team's assistants:
-
-```sh
-npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-skill.json
-```
-
-Eight files land in your project's `.claude/skills/parallax/`, and nothing else changes — the
-item carries no dependencies and touches no CSS. It needs a working shadcn-svelte project — a
-`components.json`, a `tsconfig.json`, Tailwind v4 and Svelte 5 — and stops before writing
-anything without one, so a failed run leaves nothing behind.
-
-**Starting from an empty directory** — then the command above cannot be your first move: it
-installs *into* a project, and you do not have one yet. Install the skill once at personal
-scope instead, where every session finds it, empty directories included:
-
-```powershell
-npx degit OctarinaCompany/svelte-theme-parallax/skills/parallax "$env:USERPROFILE\.claude\skills\parallax"
-```
-
-`~/.claude/skills/parallax` on macOS and Linux. It is a one-time install per machine, not a
-per-project step; re-run it with `--force` to update, since degit refuses a destination that is
-not empty. From there the skill's
-[`bootstrap.md`](./skills/parallax/references/bootstrap.md) carries the whole path from nothing
-to a running dashboard — scaffold, configure, install, wire, validate.
-
-**Restart your assistant afterwards**, either route: skills are discovered when a session opens,
-not while one runs. Then add the theme and whatever else you need:
-[Using Parallax in another project](#using-parallax-in-another-project).
 
 ## Quick start
 

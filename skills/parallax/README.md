@@ -38,10 +38,14 @@ literally named `~` in the current folder. From there,
 [`references/bootstrap.md`](./references/bootstrap.md) carries the whole path from an empty
 directory to a running dashboard.
 
-**Manually**: copy this `skills/parallax/` directory to
+**Manually**: copy this `skills/parallax/` directory to whichever of the four locations you
+want. The format is one `SKILL.md` with references beside it, which Claude Code and Codex both
+read, so a single source serves both:
 
-- `<your-project>/.claude/skills/parallax/` — project scope (recommended, commit it), or
-- `~/.claude/skills/parallax/` — personal scope, every project on the machine.
+|                                | Claude Code                  | Codex                       |
+| ------------------------------ | ---------------------------- | --------------------------- |
+| Project scope — commit it      | `.claude/skills/parallax/`   | `.codex/skills/parallax/`   |
+| Personal scope — every project | `~/.claude/skills/parallax/` | `~/.codex/skills/parallax/` |
 
 The directory name must stay `parallax` (the spec requires it to match the skill name).
 
