@@ -31,6 +31,10 @@
  * "of the routes that reach it".
  */
 export const DESTINATIONS = [
+	// Quickstart leads, because it is the only page whose content is a PREREQUISITE for the rest:
+	// every other page documents something a visitor can already see, this one is what makes an
+	// assistant able to build with it.
+	{ title: "Quickstart", slug: "/components/quickstart" },
 	{ title: "Settings", slug: "/components/settings" },
 	{ title: "Themes", slug: "/components/themes" },
 	// Sizing is hoisted for the same reason Themes is: it states the control ramp and density
@@ -458,9 +462,13 @@ const ALIASES: Readonly<Record<string, RoutePath>> = {
  * front door". That reasoning was only ever load-bearing while "first" meant something, and
  * grouping the catalog ended that: the first entry of the first group became `File upload`, a
  * front door nobody chose, so HOME moved to Themes — the page that explains what the repository
- * is for. The Settings page supersedes that in turn: it sits first in the sidebar, above
- * Themes, and gathers every look-and-feel control in one place, so it is the page a visitor
- * arrives on.
+ * is for. The Settings page supersedes that in turn: it gathers every look-and-feel control in
+ * one place, so a visitor arrives already holding the knobs the whole gallery is about.
+ *
+ * IT IS NO LONGER THE FIRST SIDEBAR ENTRY, and that is deliberate rather than an oversight.
+ * Quickstart took that slot because it is a prerequisite, not a destination: it is read once,
+ * acted on, and never returned to, which is the opposite of what a front door should be. Being
+ * first in the sidebar and being HOME stopped meaning the same thing here.
  */
 export const HOME: RoutePath = "/components/settings";
 

@@ -22,6 +22,7 @@ import LayoutGridIcon from "@lucide/svelte/icons/layout-grid";
 import ListChecksIcon from "@lucide/svelte/icons/list-checks";
 import MousePointerClickIcon from "@lucide/svelte/icons/mouse-pointer-click";
 import PaletteIcon from "@lucide/svelte/icons/palette";
+import RocketIcon from "@lucide/svelte/icons/rocket";
 import RulerIcon from "@lucide/svelte/icons/ruler";
 import SettingsIcon from "@lucide/svelte/icons/settings";
 import SlidersHorizontalIcon from "@lucide/svelte/icons/sliders-horizontal";
@@ -91,6 +92,7 @@ const CATEGORY_ICONS: Record<CategoryTitle, NavIcon> = {
 
 /** The same, for the childless entries that sit above the ladder. */
 const DESTINATION_ICONS: Record<(typeof DESTINATIONS)[number]["title"], NavIcon> = {
+	Quickstart: RocketIcon,
 	Themes: PaletteIcon,
 	Settings: SettingsIcon,
 	Sizing: RulerIcon,

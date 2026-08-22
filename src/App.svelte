@@ -132,6 +132,7 @@
 		"/components/popover": () => import("$lib/components/pages/PopoverPage.svelte"),
 		"/components/progress": () => import("$lib/components/pages/ProgressPage.svelte"),
 		"/components/qr-code": () => import("$lib/components/pages/QrCodePage.svelte"),
+		"/components/quickstart": () => import("$lib/components/pages/QuickstartPage.svelte"),
 		"/components/radio-group": () => import("$lib/components/pages/RadioGroupPage.svelte"),
 		"/components/rating": () => import("$lib/components/pages/RatingPage.svelte"),
 		"/components/relative-time-card": () =>
