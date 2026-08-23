@@ -82,6 +82,15 @@ via the shell), do both and tell the user you did:
 2. The **first-paint script** in `index.html` / `src/app.html` — exact copy in
    [theming.md](theming.md#the-first-paint-script).
 
+A third applies only when the stylesheet was **not** created by `shadcn-svelte init` — a
+hand-written one, or a project bootstrapped from an empty directory. Then the file is also
+missing what `init` writes: the `@layer base` block (`* { @apply border-border
+outline-ring/50; }` and the `body` pair) and the `@import "tw-animate-css";` the overlays
+animate through. Both are spelled out, with their symptoms, in
+[bootstrap.md](bootstrap.md#4-the-three-pieces-init-would-have-left) — and the console
+checks in [its step 7](bootstrap.md#7-validate) tell you in one paste whether this project
+has them.
+
 Then wire the shell at the app root — the Key Patterns block in SKILL.md is the canonical
 shape (data as props, `isActive` predicate, content beside `PageHeader`).
 
@@ -116,3 +125,18 @@ installing the item named, never by hand-porting gallery code:
   `parallax-shell` closes both.
 - **One-frame wrong-mode flash on load** — the first-paint script is missing or placed
   after other scripts in `<head>`.
+- **Borders look near-black in light mode and near-white in dark** — while the ones
+  Parallax paints itself (a card header's rule, the sidebar outline) stay correct. The
+  `@layer base` block is missing from the global stylesheet, so every `border-*` utility
+  inherits `currentColor`. Paste the block above. To confirm in one line, in the console:
+  `getComputedStyle(document.body.appendChild(document.createElement("div"))).borderTopColor`
+  — it must be `--border` resolved, not your text colour.
+- **Overlays open and close with no animation** — dropdown menus, tooltips, the sheet and
+  the mobile drawer. `tw-animate-css` is missing: it owns `animate-in` / `fade-in-0` /
+  `zoom-in-95`, Tailwind v4 does not, and `init` is what normally installs and imports it.
+  `npm i -D tw-animate-css`, then `@import "tw-animate-css";` beside the Tailwind import.
+- **Every button shows an arrow where the gallery shows a hand** — Tailwind v4 dropped the
+  pointer cursor on buttons and no registry item restores it (it is an application-global
+  default, and those are the consumer's to own). Add `cursor: pointer` for
+  `button:not(:disabled)`, `[type="submit"]`, `[type="reset"]`, `[type="button"]` and
+  `[role="button"]` in `@layer base`, where any `cursor-*` utility still outranks it.

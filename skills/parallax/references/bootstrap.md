@@ -2,7 +2,7 @@
 
 Contents: [When this applies](#when-this-applies) · [The chain](#the-chain) ·
 [1. Scaffold](#1-scaffold-the-svelte-project) · [2. components.json](#2-write-componentsjson-by-hand) ·
-[3. Install Parallax](#3-install-parallax) · [4. The missing pieces](#4-the-two-pieces-init-would-have-left) ·
+[3. Install Parallax](#3-install-parallax) · [4. The missing pieces](#4-the-three-pieces-init-would-have-left) ·
 [5. Manual steps](#5-the-manual-post-install-steps) · [6. Wire the shell](#6-wire-the-shell) ·
 [7. Validate](#7-validate) · [Traps](#traps)
 
@@ -24,10 +24,11 @@ npx sv@latest create . --template minimal --types ts --add "tailwindcss=plugins:
 # write components.json by hand (step 2 — `init` cannot run unattended)
 npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-shell.json --yes --overwrite
 npx shadcn-svelte@latest add utils --yes
-npm install -D shadcn-svelte
+npm install -D shadcn-svelte tw-animate-css
+# paste the import and the base layer into the global stylesheet (step 4 — nothing writes them)
 ```
 
-Then the two manual steps, the shell wiring, and `npx svelte-check`.
+Then the two manual steps, the shell wiring, and the checks in step 7.
 
 ## 1. Scaffold the Svelte project
 
@@ -121,14 +122,36 @@ twenty-odd `svelte-check` errors in files you never touched.
 If a run did end early, re-run the same command: the merge is the last step, so an
 interrupted install is one that wrote every file and themed nothing.
 
-## 4. The two pieces `init` would have left
+## 4. The three pieces `init` would have left
 
-Skipping `init` skips two things that nothing else provides:
+Skipping `init` skips three things that nothing else provides. Two are commands:
 
 ```sh
-npx shadcn-svelte@latest add utils --yes   # writes src/lib/utils.ts (the `cn` helper)
-npm install -D shadcn-svelte               # provides the `shadcn-svelte/tailwind.css` the CLI imports
+npx shadcn-svelte@latest add utils --yes      # writes src/lib/utils.ts (the `cn` helper)
+npm install -D shadcn-svelte tw-animate-css   # the two packages the stylesheet imports
 ```
+
+and the third is what `init` writes into the stylesheet itself — one import and the base
+layer. No registry item carries either, so both are pasted by hand, into the stylesheet
+found in step 1:
+
+```css
+@import "tw-animate-css";
+
+@layer base {
+	* {
+		@apply border-border outline-ring/50;
+	}
+
+	body {
+		@apply bg-background text-foreground;
+	}
+}
+```
+
+The `@import` belongs beside the two already at the top of that file — `tailwindcss` and
+the `shadcn-svelte/tailwind.css` the CLI merged in — because an `@import` after any rule is
+dropped. The layer block can go anywhere below them.
 
 - **`utils`** is not pulled in as a registry dependency of the shell. Without it every
   component that imports `$lib/utils.js` fails to resolve — roughly a hundred
@@ -137,6 +160,33 @@ npm install -D shadcn-svelte               # provides the `shadcn-svelte/tailwin
   adds `@import "shadcn-svelte/tailwind.css";`. Running the CLI through `npx` does not put
   the package in `node_modules`, and the import then fails at dev-server start with
   `Can't resolve 'shadcn-svelte/tailwind.css'`.
+- **`tw-animate-css`** carries the enter/exit animations the overlays ask for — the
+  `animate-in`, `fade-in-0`, `zoom-in-95` family and the `data-[state=closed]:` half.
+  Tailwind v4 does not ship them, and five of the components a bare `parallax-shell`
+  install writes do use them: the dropdown menu, its submenu, the tooltip, the sheet and
+  the mobile drawer. Without the package and its import Tailwind has no such utility to
+  compile, so every menu appears and vanishes instantly — measured on a fresh bootstrap,
+  the user menu's content computes `animation-name: none` without it and `enter` at 0.1s
+  with it. Nothing errors either way.
+- **The base layer** is the one with no error attached to it, and no registry item ships
+  it: it is shadcn's own boilerplate, written by `init`, and skipping `init` skips it.
+  Tailwind v4's preflight sets `border: 0 solid` — a width and a style, **no colour** — so
+  every `border` / `border-b` / `border-t` utility that does not name one falls back to
+  `currentColor`, i.e. the text colour. The tokens are all correct; the borders simply wear
+  the wrong one. Table rows, card footers and section rules come out near-black in light
+  and near-white in dark, while the borders Parallax paints itself — a `Card.Header`'s
+  rule, the sidebar's outline, a table head — stay right. **That incoherence is the tell**,
+  and it is the whole symptom: the install succeeds, the build is clean, `svelte-check` is
+  at zero, the page renders, and nothing anywhere says a word. Step 7 has the one-liner
+  that proves it landed.
+
+  Those two rules are exactly what `init` writes, and this file stops there deliberately.
+  Parallax's own
+  stylesheet keeps a third rule in that layer — the pointer cursor on `button`,
+  `[type=submit]`, `[type=reset]`, `[type=button]` and `[role=button]`, which Tailwind v4
+  dropped and the gallery restores — and no published item carries it either. If every
+  button in the project shows an arrow where the gallery shows a hand, that rule is what is
+  missing; it belongs in `@layer base` too, so any `cursor-*` utility still outranks it.
 
 ## 5. The manual post-install steps
 
@@ -201,9 +251,58 @@ npx svelte-check   # must reach 0 errors before you call this done
 npm run dev
 ```
 
-A clean `svelte-check` here is meaningful: it proves the aliases resolve, the dependency
-versions agree, and `utils` landed. Then load the page and confirm the sidebar, the header
-bar and its appearance controls render, and that switching palette and light/dark works.
+A clean `svelte-check` here is meaningful, and narrow: it proves the aliases resolve, the
+dependency versions agree, and `utils` landed. It proves **nothing about the theme**. Every
+failure this file warns about is silent at build time — a missing base layer, a stylesheet
+merge that stopped halfway, a canvas that scrolls sideways — and each one leaves a page
+that renders, so *"it displays"* is not a check. Load the page and run these five:
+
+```js
+(() => {
+	const root = document.documentElement;
+	const token = (name) => getComputedStyle(root).getPropertyValue(name).trim();
+	const paint = (name) => {
+		const probe = document.createElement("div");
+		probe.style.color = `var(${name})`;
+		document.body.append(probe);
+		const value = getComputedStyle(probe).color;
+		probe.remove();
+		return value;
+	};
+	const bare = document.createElement("div");
+	document.body.append(bare);
+	const borders = getComputedStyle(bare).borderTopColor;
+	bare.remove();
+	const inset = document.querySelector('[data-slot="sidebar-inset"]');
+	const insetMin = inset && getComputedStyle(inset).minWidth;
+	const overflow = root.scrollWidth - root.clientWidth;
+
+	console.table([
+		{ check: "base layer", ok: borders === paint("--border"), detail: `borders wear ${borders}, --border paints ${paint("--border")}` },
+		{ check: "animations", ok: token("--tw-enter-opacity") !== "", detail: token("--tw-enter-opacity") ? "tw-animate-css is loaded" : "tw-animate-css is missing" },
+		{ check: "tokens", ok: token("--sidebar-outline") !== "", detail: token("--sidebar-outline") || "absent — the step-3 merge never finished" },
+		{ check: "kit CSS", ok: insetMin === "0px", detail: inset ? `inset min-width: ${insetMin}` : "no [data-slot=sidebar-inset] on this page" },
+		{ check: "no h-scroll", ok: overflow <= 1, detail: `${root.scrollWidth}px of document in a ${root.clientWidth}px window` },
+	]);
+})();
+```
+
+| Check | What a `false` means |
+| ----- | -------------------- |
+| **base layer** | The `@layer base` block from step 4 is missing. Borders are wearing the text colour. |
+| **animations** | `tw-animate-css` is not installed or not imported. Menus, tooltips, the sheet and the drawer open and close with no transition. |
+| **tokens** | The step-3 stylesheet merge did not complete — re-run the `add`. |
+| **kit CSS** | `parallax-shell`'s `css` blocks never reached the stylesheet (same cause, same fix), or the install predates them. |
+| **no h-scroll** | Something on the page is wider than the canvas and is not in a scroll container of its own. |
+
+Compare colours as **resolved** values, never a computed colour against a raw token: a
+custom property reads back as its literal text (`#3c354a`) while `getComputedStyle` returns
+`rgb(60, 53, 74)`, so a direct `===` between the two is false on a perfectly healthy
+project. That is what `paint()` above is for — it makes the browser resolve the token
+through a real element and hands back the same form both sides are compared in.
+
+Then the eye check the console cannot do: the sidebar, the header bar and its appearance
+controls render; collapsing the rail and switching palette and light/dark all work.
 
 ## Traps
 
@@ -217,6 +316,10 @@ bar and its appearance controls render, and that switching palette and light/dar
   Svelte-4 era, ~15 errors). Let the CLI do it, or copy its ranges verbatim.
 - **Restart the dev server after any dependency install.** Vite caches a failed module
   resolution for the process lifetime, so a correct fix keeps showing the old error.
+- **A stylesheet with no `@layer base` block is the silent one.** Nothing errors, nothing
+  warns, and only the borders are wrong — they inherit the text colour, because Tailwind
+  v4's preflight gives them a width and a style but no colour. Step 4 has the block, step 7
+  the one-liner that catches it.
 - **`src/themes.css` alone does not theme anything.** If colors look like stock shadcn,
   the stylesheet merge from step 3 did not complete — check the global stylesheet for
   `--sidebar-outline` and `--success-subtle`, and re-run the add if they are absent.

@@ -113,7 +113,10 @@ Before adding or changing anything:
   beside `overflow-y: visible` and silently kills the sticky header. Use
   `overflow-x: clip` if a clip is ever needed.
 - **Parallax CSS is unlayered on purpose** and beats utility classes on the same slots —
-  override it with plain CSS, not by stacking utilities.
+  override it with plain CSS, or with `!` at the call site, never by stacking utilities.
+  The case that bites: an `Input` given `ps-9` for an icon and `h-8` for size keeps its
+  12px padding and its 40px height, and the icon lands on the placeholder. Reach for
+  `InputGroup` instead — that is what the gallery's own toolbars use.
 
 ## Key patterns
 
@@ -165,6 +168,7 @@ Before adding or changing anything:
 | Sidebar with nav/user/workspaces         | `AppSidebar` props: `items`, `user`, `workspaces`, `isActive`        |
 | Sticky top bar                           | `PageHeader` (snippets: `sidebarTrigger`, `breadcrumb`, `search`, `controls`) |
 | Breadcrumb data                          | `Crumb[]` — `{ label, href? }`, last step never has `href`           |
+| Icon, prefix, suffix or button **inside** a field | `InputGroup.Root` + `InputGroup.Input` + `InputGroup.Addon` / `InputGroup.Button` — never an `Input` with an absolutely positioned child: `[data-slot="input"]`'s padding and height are unlayered and beat `ps-*` / `h-*` |
 | Status badge/alert                       | `bg-{success,warning,info}-subtle` + matching `-foreground`          |
 | Emphasis fill                            | `bg-success` / `bg-warning` / `bg-info` + `text-*-foreground`        |
 | Hairline on a chrome surface             | `border-sidebar-outline` / `ring-sidebar-outline`                    |
@@ -183,7 +187,10 @@ Before adding or changing anything:
    explicitly — the CLI cannot do them.
 4. Wire data at the root the project already owns (its router lives there too).
 5. Validate: `npx svelte-check`, then run the app and check both modes and at least one
-   non-default palette before calling styling done.
+   non-default palette before calling styling done. `svelte-check` says nothing about the
+   theme — run the four console checks in
+   [references/bootstrap.md](references/bootstrap.md#7-validate), which catch the failures
+   that render fine and are wrong.
 
 **Reproducing a gallery pattern** — a page-level design (Tables in cards, Page headers,
 List group, …). The COMPONENTS it uses are installable; the composition is what you build:

@@ -191,6 +191,8 @@ const THEME = {
 		'1. Import the alternate palettes from your global stylesheet, after the Tailwind import: `@import "./themes.css";`',
 		'2. Import the typeface the same way: `@import "@fontsource-variable/hanken-grotesk";`',
 		"",
+		'A third applies only if your stylesheet was NOT created by `shadcn-svelte init` — check it for the `@layer base` block with `* { @apply border-border outline-ring/50; }` and for `@import "tw-animate-css";`, and add whichever is absent. Tailwind v4\'s preflight gives borders a width and a style but no colour, so without that rule every `border-*` utility falls back to `currentColor` and the hairlines wear the text colour instead. Nothing errors, the page renders, and only the borders are wrong.',
+		"",
 		"`parallax` is the base — it IS the `:root` and `.dark` this item just wrote, so it has no `[data-theme]` block of its own. The other eleven answer to `data-theme` on `<html>`; `mode-watcher` owns that attribute and persists it under `mode-watcher-theme`.",
 	].join("\n"),
 };
