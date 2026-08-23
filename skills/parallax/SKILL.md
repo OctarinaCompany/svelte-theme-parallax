@@ -84,6 +84,11 @@ Before adding or changing anything:
   content goes beside the header, inside `AppShell`.
 - **`WorkspaceSwitcher.activeWorkspace` may start undefined** — never pre-seed it with
   `workspaces[0]`; the component resolves the default itself.
+- **The canvas cannot be widened from inside** — `parallax-shell` pins
+  `min-width: 0` on `Sidebar.Inset`, so content too wide for the page scrolls in its own
+  box instead of pushing a horizontal scrollbar onto the document. Wide content therefore
+  needs a scroll container of its own (`Table.Root` already has one). To opt out for one
+  canvas: `min-w-max!`.
 
 **Theming and tokens** — see [references/theming.md](references/theming.md)
 

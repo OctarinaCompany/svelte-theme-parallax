@@ -1078,6 +1078,51 @@
 }
 
 /*
+ * The page canvas may not be widened by what it holds.
+ *
+ * `SidebarInset` is the flex item beside the rail — `flex-1`, and therefore `min-width: auto`,
+ * whose automatic minimum size is the MIN-CONTENT of the whole page inside it. A table wider
+ * than the canvas hands that item a minimum it cannot go below, the item outgrows the viewport,
+ * and the DOCUMENT scrolls sideways: the shell's own chrome — header bar, sidebar edge — slides
+ * off with it, which is the part that reads as broken.
+ *
+ * A SCROLL CONTAINER DOES NOT STOP THIS. `Table.Root` already wraps every table in
+ * `overflow-x-auto`; that isolates the OVERFLOW, not the min-content contribution, which travels
+ * up through it to the flex item regardless. Measured at 1280px on `#/components/data-table`:
+ * `documentElement.scrollWidth` 1530 against `clientWidth` 1280 — the 250px difference is exactly
+ * `--sidebar-width`, the inset being asked to be viewport-wide AND content-wide at once. With
+ * `min-width: 0` the inset lands at 1030 and the document stops overflowing. Nine gallery pages
+ * were affected, and only because their tables were narrow did the rest escape.
+ *
+ * `min-w-0` ON THE BLOCKS BETWEEN CHANGES NOTHING — measured on the page's `<main>`, the card
+ * and the card content. The automatic minimum size is a FLEX AND GRID ITEM rule; those are block
+ * boxes, where `min-width: auto` already resolves to zero. Only the flex item counts.
+ *
+ * WRITTEN HERE RATHER THAN ON THE COMPONENT. `sidebar-inset.svelte` is a verbatim shadcn-svelte
+ * port carrying no house divergence at all, and this is an upstream default, not a Parallax one;
+ * forking a file nobody rereads for one declaration is how a port quietly stops being a port. A
+ * class on `AppShell`'s `<Sidebar.Inset>` would have been honest but partial — it covers the
+ * shell's own composition and misses anyone mounting `Sidebar.Provider` by hand. The slot covers
+ * both, and the port stays byte-identical.
+ *
+ * `overflow-x: hidden` somewhere above is NOT the alternative: it computes to `auto` beside an
+ * `overflow-y: visible` and kills the sticky page header.
+ *
+ * `PageHeader` already answered this for ITSELF — its `w-0 min-w-full` takes the bar out of the
+ * inset's min-content sum, which is the same propagation seen from the one element whose row
+ * happened to be wider than the page. That local escape stays: it is the header's own contract,
+ * and it holds in a shell this rule never reaches. What it never covered is the page BELOW it.
+ *
+ * `:where()` holds the specificity at zero, so a consumer's own rule takes it back without
+ * `!important`. It does not hand it to a UTILITY, though — this file is unlayered and outranks
+ * `@layer utilities` whatever its specificity, so a deliberate `min-w-max` on the inset needs the
+ * `!` (`min-w-max!`), the same escape the card tables use for their edge padding.
+ */
+:where([data-slot="sidebar-inset"]) {
+	min-width: 0;
+}
+
+/*
  * Card outline. Cards read as borderless, and deliberately so: the outline colour
  *
  * resolves to n200 in light — a whisper against white — and to

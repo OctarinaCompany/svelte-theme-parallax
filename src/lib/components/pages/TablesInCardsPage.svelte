@@ -388,6 +388,35 @@
 		},
 	];
 
+	/**
+	 * Which columns survive at which CARD width — the container-query half of the recipe.
+	 *
+	 * The seven columns want 898px together (40 + 204 + 131 + 153 + 161 + 137 + 72, measured at
+	 * the default density). The card in this gallery gets 639px, so three of them have nowhere to
+	 * go, and a horizontally scrolling table is a worse answer than showing what fits: `owner` is
+	 * the column the selection and the row actions are read against, `created` the one nobody
+	 * sorts by twice.
+	 *
+	 * Each threshold is the width the table actually NEEDS once that column returns, rounded up to
+	 * the next half rem: 608 for name + industry + owner (38rem), 761 with location (48rem), 898
+	 * with created at (57rem). Arbitrary steps rather than the named `@2xl` / `@3xl` / `@4xl`,
+	 * because the named ones sit 30–60px above the real minimums and would leave a column hidden
+	 * across a band where it fitted — the point of the exercise is that the column goes exactly
+	 * when the room does. They are measured against THIS dataset; a card fed longer names wants
+	 * them re-measured.
+	 *
+	 * `hidden` and `table-cell` rather than a `display` toggle of our own — a `<td>` that comes
+	 * back as anything but `table-cell` leaves the row a column short.
+	 *
+	 * `select`, `name` and `actions` carry no entry: the checkbox, the thing being named and the
+	 * row menu are the table, not its detail.
+	 */
+	const crmColumnClass: Record<string, string> = {
+		industry: "hidden @min-[38rem]:table-cell",
+		location: "hidden @min-[48rem]:table-cell",
+		created: "hidden @min-[57rem]:table-cell",
+	};
+
 	const crm = createDataTable<Company>({
 		data: () => visibleCompanies,
 		columns: () => crmColumns,
@@ -1007,7 +1036,16 @@
 			floating action bar; the Prev / numbers / Next pager in the footer. The reference's list.js
 			search, sort and pagination are TanStack's here.
 		{/snippet}
-		<Card.Root class="gap-0 py-0">
+		<!--
+			`@container` makes the CARD the yardstick for the columns below, and it has to be: the
+			viewport is not the width the table gets. The rail spends 250px of it, and the card
+			itself is narrower again, so `lg:` / `xl:` would keep a column long after the space for
+			it was gone — and now that the canvas can no longer be widened from inside (see the
+			`sidebar-inset` rule in app.css), the price is a table that scrolls in its own box
+			rather than a page that fits. Asking the card how wide IT is drops each column exactly
+			when the card can no longer hold it.
+		-->
+		<Card.Root class="@container gap-0 py-0">
 			<Card.Header class="flex items-center gap-4">
 				<div class="flex min-w-0 flex-1 items-center gap-3" role="search">
 					<SearchIcon class="size-4 shrink-0 text-muted-foreground" />
@@ -1091,7 +1129,7 @@
 					</Popover.Content>
 				</Popover.Root>
 			</Card.Header>
-			<TablesInCardsTable grid={crm} />
+			<TablesInCardsTable grid={crm} columnClass={crmColumnClass} />
 			<!-- The rule above this footer is the last row's restored border (the helper documents
 				why it, not the footer, carries the line). -->
 			<Card.Footer class="justify-between">

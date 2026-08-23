@@ -43,6 +43,20 @@ Correct — AppShell is the provider; give it the sidebar through the snippet:
 </AppShell>
 ```
 
+**The canvas has `min-width: 0`.** `parallax-shell` ships
+`:where([data-slot="sidebar-inset"]) { min-width: 0 }` unlayered, because the inset is a flex
+item beside the rail and its automatic minimum size would otherwise be the min-content of the
+whole page — a table wider than the window pushes the shell past the viewport and scrolls the
+DOCUMENT sideways, taking the sidebar and the header with it. Consequences:
+
+- Anything that can outgrow the page needs a scroll container of its own. `Table.Root` has
+  one; a wide `<pre>`, a chart band or a board column may not.
+- The rule reaches any `Sidebar.Inset`, whether it came from `AppShell` or from a provider you
+  mounted yourself.
+- To let one canvas widen the document deliberately: `<Sidebar.Inset class="min-w-max!">`. The
+  `!` is required — Parallax CSS is unlayered and outranks utilities — while the rule's
+  `:where()` keeps its specificity at zero, so plain CSS of your own takes it back unaided.
+
 ## AppSidebar
 
 `$lib/components/layout/AppSidebar.svelte` — also accepts every `Sidebar.Root` prop

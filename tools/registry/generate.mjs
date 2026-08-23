@@ -287,7 +287,7 @@ const CONTROLS = {
 /**
  * The selectors `parallax-shell` lifts out of app.css, in source order — which matters once:
  * the grouped active-marker block ties on specificity with the two placement blocks after it,
- * so their order IS the cascade. 14 sidebar restyle blocks, 12 sheet/mobile-drawer blocks
+ * so their order IS the cascade. 15 sidebar restyle blocks, 12 sheet/mobile-drawer blocks
  * (including both backdrop keyframes), and the menu-cursor rule every shell dropdown renders
  * through. Deliberately absent: `@layer base` and the popover shadow-kill rule — both are
  * application-global opinions a shell item has no business imposing (the docs say so instead).
@@ -310,6 +310,8 @@ const SHELL_CSS_SELECTORS = [
 	'[data-slot="sidebar-inner"]',
 	'[data-slot="sidebar-group"], [data-slot="sidebar-header"], [data-slot="sidebar-footer"]',
 	'[data-collapsible="icon"] [data-slot="sidebar-group"], [data-collapsible="icon"] [data-slot="sidebar-header"], [data-collapsible="icon"] [data-slot="sidebar-footer"]',
+	// The canvas beside the rail, kept from being widened by a wide table inside it.
+	':where([data-slot="sidebar-inset"])',
 	// The mobile drawer the sidebar opens in below the breakpoint, plus its scrim — and the
 	// breadcrumb's own drawer scrim, split out of its grouped rule in app.css for exactly this.
 	'[data-slot="drawer-overlay"]',

@@ -539,6 +539,9 @@
 				"[data-collapsible=\"icon\"] [data-slot=\"sidebar-group\"], [data-collapsible=\"icon\"] [data-slot=\"sidebar-header\"], [data-collapsible=\"icon\"] [data-slot=\"sidebar-footer\"]": {
 					"padding-inline": "0.5rem"
 				},
+				":where([data-slot=\"sidebar-inset\"])": {
+					"min-width": "0"
+				},
 				"[data-slot=\"drawer-overlay\"]": {
 					"background-color": "color-mix(in srgb, var(--scrim) 50%, transparent)",
 					"backdrop-filter": "none"

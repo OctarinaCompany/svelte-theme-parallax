@@ -29,11 +29,23 @@
 	let {
 		grid,
 		density = "default",
+		columnClass,
 		class: className,
 	}: {
 		grid: DataTableState<TData>;
 		/** Forwarded to `Table.Root` — the card keeps its chrome, only the rows retune. */
 		density?: "sm" | "default" | "lg";
+		/**
+		 * Per-column classes, keyed by column id and applied to the head cell AND every body cell
+		 * of that column — which is what a responsive `table-cell` toggle needs, since hiding a
+		 * column means hiding one `<th>` and one `<td>` per row in step.
+		 *
+		 * A prop rather than a `meta` field on the column definition: `meta` is the augmented
+		 * `ColumnMeta` that ships with `parallax-data-table`, and a presentation-only class has no
+		 * business widening a published type. The mapping also keeps the decision where it is
+		 * legible — beside the card whose width it answers to, not buried in a column list.
+		 */
+		columnClass?: Record<string, string>;
 		class?: string;
 	} = $props();
 </script>
@@ -50,7 +62,7 @@
 		{#each grid.headerGroups as headerGroup (headerGroup.id)}
 			<Table.Row>
 				{#each headerGroup.headers as header (header.id)}
-					<Table.Head colspan={header.colSpan}>
+					<Table.Head colspan={header.colSpan} class={columnClass?.[header.column.id]}>
 						{#if !header.isPlaceholder}
 							<DataTable.FlexRender
 								template={header.column.columnDef.header}
@@ -68,7 +80,7 @@
 			{#each grid.rows as row (row.id)}
 				<Table.Row data-state={row.getIsSelected() ? "selected" : undefined}>
 					{#each row.getVisibleCells() as cell (cell.id)}
-						<Table.Cell>
+						<Table.Cell class={columnClass?.[cell.column.id]}>
 							<DataTable.FlexRender
 								template={cell.column.columnDef.cell}
 								context={cell.getContext()}

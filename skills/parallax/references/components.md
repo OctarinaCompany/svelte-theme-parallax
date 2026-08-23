@@ -10,6 +10,7 @@ first; everything below is the complete map.
 
 ## Destinations
 
+- Quickstart — `src/lib/components/pages/QuickstartPage.svelte`
 - Settings — `src/lib/components/pages/SettingsPage.svelte`
 - Themes — `src/lib/components/pages/ThemesPage.svelte`
 - Sizing — `src/lib/components/pages/SizingPage.svelte`

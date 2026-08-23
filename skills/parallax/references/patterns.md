@@ -37,6 +37,14 @@ a data table is the page's main content.
   rows.
 - The filter popover holds *pending* state committed on Apply and re-seeded on open; the
   trigger badge counts applied filters; Apply resets `pageIndex`.
+- Secondary columns drop by **card width, not viewport**: `@container` on `Card.Root`, then
+  `hidden @min-[38rem]:table-cell` — 48rem and 57rem for the next two — on the head and body
+  cells of the columns that go. Each threshold is the width the table needs once that column
+  returns.
+  `lg:`/`xl:` would be wrong here — the viewport still counts the 250px the sidebar spent,
+  so a viewport-keyed column survives well past the point where the card can hold it. The
+  page passes the map as `columnClass` (id → classes) rather than adding a field to the
+  published `ColumnMeta`, and the helper applies it to the `<th>` and every `<td>`.
 - Sort-header ghost buttons restate `text-xs font-semibold` (the Button's own scale would
   override the head's); a blank `header: ""` keeps FlexRender from printing the column id.
 

@@ -33,3 +33,23 @@ ships today is listed here.
   the published items in `docs/REGISTRY.md`.
 - CI: formatting, type-checking, production build, the theme audit and the loader-style check
   on every push and pull request.
+
+### Fixed
+
+- **The page canvas can no longer be widened by its own content.** `parallax-shell` now ships
+  `:where([data-slot="sidebar-inset"]) { min-width: 0 }`. Without it the canvas is a flex item
+  whose automatic minimum size is the min-content of the whole page, so anything wider than the
+  viewport — a table, most often — pushed the shell past the window and put a horizontal
+  scrollbar on the DOCUMENT, sliding the sidebar and the header bar off with it. A table's own
+  `overflow-x-auto` container never prevented this: it isolates the overflow, not the min-content
+  that travels up to the flex item. Nine gallery pages overflowed at 1280px and sixty-six at
+  768px; none do now.
+
+  **The contract this changes:** content that does not fit now scrolls inside its own box instead
+  of widening the page. A consumer who deliberately wants a wide canvas to widen the document
+  overrides with `min-w-max!` on the inset — the `!` because Parallax CSS is unlayered — or with
+  a rule of their own, which the zero-specificity `:where()` lets through unaided.
+- The Tables in cards gallery page now drops its secondary columns by CARD width
+  (`@container` plus arbitrary `@min-[38rem]`-style container variants) rather than by viewport breakpoint: `lg:` / `xl:`
+  cannot see the 250px the sidebar already spent, so a viewport-keyed column stays long after
+  the room for it is gone.
