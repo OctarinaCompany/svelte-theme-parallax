@@ -14,18 +14,16 @@
 	import BreadcrumbTrail from "$lib/components/layout/BreadcrumbTrail.svelte";
 	import { Separator } from "$lib/components/ui/separator/index.js";
 	import * as Sidebar from "$lib/components/ui/sidebar/index.js";
-	import HeaderToggle from "$lib/components/navigation/HeaderToggle.svelte";
 	import ModeToggle from "$lib/components/navigation/ModeToggle.svelte";
-	import SidebarModeToggle from "$lib/components/navigation/SidebarModeToggle.svelte";
-	import ThemeSelector from "$lib/components/navigation/ThemeSelector.svelte";
 	import { cn } from "$lib/utils.js";
 	import { headerAutoHide, headerFloating } from "$lib/hooks/header-behaviour.svelte.js";
 	import { useReducedMotion } from "$lib/shared/reduced-motion.svelte.js";
 
 	/**
-	 * The bar every page opens with: sidebar trigger, breadcrumb, the search field, then the four
-	 * appearance controls — this bar's own mode, the sidebar's, the palette picker and the
-	 * light/dark toggle.
+	 * The bar every page opens with: sidebar trigger, breadcrumb, the search field, then the
+	 * light/dark toggle. It carried four appearance controls once — this bar's own mode, the
+	 * sidebar's, the palette picker, light/dark — and the first three moved to the Settings page,
+	 * which can name and explain them; the slot comment below says what that cost and bought.
 	 *
 	 * WHY THIS IS SHARED — the header itself is identical on every page; only the breadcrumb
 	 * differs. Before this component each page carried its own copy, which was fine with one
@@ -63,8 +61,9 @@
 	 *   `search` — EMPTY by default. The one slot inseparable from an application's own route
 	 *     table (the demo passes its command palette from `DocPage`). The bar's centring never
 	 *     depended on it: the two `flex-1` halves simply meet.
-	 *   `controls` — the four appearance controls. They are the product; a caller subtracts by
-	 *     overriding rather than everyone assembling them by hand.
+	 *   `controls` — the light/dark toggle, alone. The palette picker and the two panel
+	 *     switches moved to the Settings page, which can afford to name and explain them; a
+	 *     caller who wants any of them back in the bar renders its own group here.
 	 *
 	 * `restProps` spreads onto `<header>` BEFORE the class and the two data attributes, so a
 	 * caller can label the landmark but cannot clobber `data-floating`/`data-hidden` — those are
@@ -289,22 +288,26 @@
 			(32px of padding, the 32px trigger, the rule and three gaps).
 
 			`sm:min-w-36` — 144px, i.e. the furniture plus ~59px, which is the ellipsis and its
-			separator. It is also the LARGEST floor that never puts a horizontal scrollbar on the page:
-			the tightest case in the whole range is a 780px viewport with the sidebar open, where the bar
-			is 524px and the appearance cluster alone is 364px, and 144 is exactly what is left. A wider
-			floor buys a few characters of trail there and clips the mode toggle to pay for it.
+			separator. It was once the LARGEST floor that fitted: at a 780px viewport with the sidebar
+			open the bar is 514px, and the appearance cluster alone claimed 377px of it, so 144 was
+			exactly what remained. The cluster is one button now — 72px — and the same case has 442px
+			to deal out, so this floor is no longer the ceiling it was. It stays where it is anyway:
+			the floor only decides anything once the bar is over-subscribed, which now happens well
+			below `sm`, and a larger number would only take the search field's width in the band where
+			both still fit.
 
 			`min-w-16` below `sm` — 64px, which is the trigger and its padding and nothing else. Under
-			640px the bar is over-subscribed no matter what: the cluster is 302px and the trigger 32px,
-			so on a 320px phone those two plus the gutters already exceed the bar. The trail is the
-			honest thing to give up there, exactly as it was before this change — but the sidebar trigger
-			is not, because on a phone it is the only way to the navigation at all, and with no floor at
-			all flexbox will happily shrink it away.
+			640px the bar is still over-subscribed by the search field, and the trail is the honest thing
+			to give up there — but the sidebar trigger is not, because on a phone it is the only way to
+			the navigation at all, and with no floor at all flexbox will happily shrink it away. (The
+			pressure used to come from the cluster: four icon dropdowns were 302px on a phone, against
+			the 72px one toggle costs now.)
 
 			So the order in which this bar gives, narrowest first: the trail collapses its steps into the
 			menu, the current page truncates, the search field gives up its label and its width, and
-			below `sm` the trail goes entirely. The appearance cluster never gives — four icon buttons
-			have no compressible axis, which is also why it decides every number above. Centring moved
+			below `sm` the trail goes entirely. The cluster never gives — an icon button has no
+			compressible axis — but it no longer decides the numbers above either, now that it is one
+			button rather than four. Centring moved
 			the FIRST of those earlier: the trail's slot is now half the bar rather than all of it, so a
 			long trail starts collapsing at widths where it used to fit whole. That is the price of a
 			centred field, and it is paid by the one group that was built to give.
@@ -341,8 +344,11 @@
 
 		THE SLOT IS EMPTY BY DEFAULT — the field is the one control inseparable from the
 		application's own route table, so the application supplies it (the demo's `DocPage`
-		passes its command palette here). Whatever is passed must carry `min-w-0 shrink`: the
-		bar is over-subscribed between ~640px and ~1200px, and the field is the designated giver.
+		passes its command palette here). Whatever is passed must still carry `min-w-0 shrink`: it
+		is the designated giver when the bar runs out of room. It rarely has to give now — with the
+		cluster down to one button the field holds its full width at every width from `sm` up, where
+		it used to be squeezed to 18px at 780 — but the contract is unchanged, because a caller who
+		puts its own group in `controls` can spend that room again.
 
 		NO CLASS OF ITS OWN: the centring lives entirely in the two `flex-1` neighbours (see the
 		comment above), which is what makes it degrade instead of break. When their equal halves stop
@@ -351,8 +357,9 @@
 		the field's own `min-w-0 shrink` compresses it, label first, exactly as before.
 
 		WHY NOT ABSOLUTE CENTRING, which would hold the exact centre a little longer. It takes the
-		field out of flow, where `min-w-0 shrink` stops applying — so at 780px with the sidebar open
-		(a 524px bar against a 364px cluster) an exactly centred field would sit ON the breadcrumb.
+		field out of flow, where `min-w-0 shrink` stops applying — so in any over-subscribed bar (a
+		caller with its own control group, or a viewport below `sm`) an exactly centred field would
+		sit ON the breadcrumb.
 		Worse, the trail's slot would extend underneath the field, so the mirror `BreadcrumbTrail`
 		measures against would report room the reader cannot see, and the trail would truncate under
 		the search instead of collapsing into its menu.
@@ -361,37 +368,35 @@
 			{@render search()}
 		{/if}
 		<!--
-		This bar, then the rail, then the palette, then the page — ordered by SCOPE, widening to the
-		right, and starting from the control you are pointing at. Two panel-scoped controls now share
-		the left of the cluster, so the sequence reads outward: this surface, the one beside it, the
-		palette both are drawn from, then the whole document. That also keeps the composition
-		readable left to right — a theme defines both modes, so the sun/moon acts INSIDE whatever the
-		picker selected, and the two panel switches act inside both. Putting a wider control on the
-		outside would have left the sun/moon icon drifting away from the right edge it has always sat
-		against.
+		ONE CONTROL, the light/dark toggle. The header toggle, the sidebar toggle and the palette
+		picker used to stand beside it and now live on the Settings page, which offers all three with
+		room for their names and a sentence each — and offers what the cluster could not, such as
+		`system` mode, since this toggle is a deliberate two-state `Swap`.
 
-		`gap-1` rather than the header's own `gap-2`: these are one group, and the dropdown triggers
-		already carry their own horizontal padding.
+		WHAT THAT BOUGHT, measured at 780px with the sidebar open, the tightest case in the range:
+		the cluster's content was 377px and is 72px, and the difference came straight out of the
+		search field, which was being squeezed to 18px while the cluster still overflowed the bar by
+		41px and was clipped. The field now keeps its full 256px, at every width down to `sm`.
+
+		Light/dark stays because it is the one appearance choice a reader makes WHILE READING — the
+		room got brighter, the screen is too bright at night — where a palette or an inverted rail is
+		set once and left. It is also the cheapest: one icon, no menu, no scope to explain. Everything
+		with a scope to explain went to the page that can explain it.
 
 		`flex-1 justify-end` is the right half of the centring pair — see the left group's comment.
 		The default `min-width: auto` is kept DELIBERATELY, where the left group overrides its own:
 		this cluster is the one part of the bar that never gives, and min-content is exactly the floor
-		that says so. `justify-end` then parks the buttons against the right edge, so the grown half
-		is empty space on the cluster's left — between it and the search — where it belongs.
+		that says so — a floor that now costs 72px instead of 377. `justify-end` parks the button
+		against the right edge, so the grown half is empty space on its left, between it and the
+		search, where it belongs.
 
-		`compact`, so the menu is one name and one swatch per theme, with no blurbs. The header is
-		chrome — it is opened to SWITCH, by someone who has already read the descriptions once on
-		the Themes page — and a 700px wall of prose hanging off the top-right corner is a poor
-		trade for a one-click change. The full form still exists, on the page where the choice is
-		explained.
+		`gap-1` rather than the header's own `gap-2` survives a single child on purpose: a caller
+		overriding `controls` renders a GROUP here, and the gap is part of the slot's contract.
 	-->
 		<div class="flex flex-1 items-center justify-end gap-1 px-4">
 			{#if controls}
 				{@render controls()}
 			{:else}
-				<HeaderToggle />
-				<SidebarModeToggle />
-				<ThemeSelector compact />
 				<ModeToggle />
 			{/if}
 		</div>

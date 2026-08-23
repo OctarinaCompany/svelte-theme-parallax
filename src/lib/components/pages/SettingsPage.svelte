@@ -28,14 +28,18 @@
 	import { setSidebarMode, sidebarMode, type SidebarMode } from "$lib/hooks/sidebar-mode.svelte.js";
 
 	/**
-	 * The Settings page: every look-and-feel control the header's appearance cluster offers, on
-	 * one page, driving the SAME persisted state (six localStorage keys plus the sidebar cookie) —
-	 * so anything switched here is instantly reflected in the header cluster and vice versa.
+	 * The Settings page: every look-and-feel control the theme has, on one page, driving the
+	 * persisted state directly (six localStorage keys plus the sidebar cookie) — so a switch here
+	 * and the header's own toggle are the same state, in both directions.
 	 *
-	 * The rationalisation over the cluster is scope: one section per surface — the document, the
-	 * palette, the sidebar, the header — where the cluster packs the same knobs into four
-	 * unlabelled icon dropdowns ordered by widening scope. The page also reaches one value the
-	 * cluster cannot: `System` mode (the header's ModeToggle is a deliberate two-state Swap).
+	 * IT IS NOW THE ONLY HOME for three of them. The header bar carried four unlabelled icon
+	 * dropdowns; it keeps the light/dark toggle — the one appearance choice a reader makes while
+	 * reading — and the palette, the sidebar and the header's own options moved here, where each
+	 * gets a section, a name and a sentence. The page also reaches one value the bar cannot:
+	 * `System` mode, since that toggle is a deliberate two-state Swap.
+	 *
+	 * The organising idea is scope: one section per surface — the document, the palette, the
+	 * sidebar, the header — which is the same widening order the icons used to sit in.
 	 */
 
 	const sidebar = useSidebar();

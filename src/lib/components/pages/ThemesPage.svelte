@@ -74,8 +74,9 @@
 <DocPage title="Themes">
 	{#snippet subtitle()}
 		{THEMES.length} palettes over one token set. Every theme defines both a light and a dark mode, so
-		the palette and the light/dark switch are independent — the picker below is the same control that
-		sits in every page header, in the two forms it comes in.
+		the palette and the light/dark switch are independent — the picker below is the same control the
+		<a class="text-primary underline underline-offset-3" href="#/components/settings">Settings</a>
+		page mounts, in the two forms it comes in.
 	{/snippet}
 
 	<div>
@@ -104,9 +105,11 @@
 		<DocSection title="The compact picker">
 			{#snippet blurb()}
 				The same control with <code class="text-foreground">compact</code>: the descriptions come
-				off and each row is a swatch and a name on one line. This is the form the page header wears
-				— including the one at the top of this page — because header chrome is opened to switch, not
-				to read.
+				off and each row is a swatch and a name on one line. It is the form for chrome — a bar, a
+				toolbar, anywhere the picker is opened to switch rather than to read. Pair it with
+				<code class="text-foreground">chromeWear</code> on a surface that carries its own light/dark pin,
+				such as an inverted page-header bar, so the trigger's strip shows the half that surface is about
+				to wear.
 			{/snippet}
 
 			<Card.Root>

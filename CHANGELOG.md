@@ -49,6 +49,16 @@ ships today is listed here.
   of widening the page. A consumer who deliberately wants a wide canvas to widen the document
   overrides with `min-w-max!` on the inset — the `!` because Parallax CSS is unlayered — or with
   a rule of their own, which the zero-specificity `:where()` lets through unaided.
+- **The page header bar keeps only the light/dark toggle.** The palette picker and the two
+  panel dropdowns (inverted / floating / hide-on-scroll) moved to the gallery's Settings page,
+  which names and explains what four unlabelled icon dropdowns could not — and reaches `system`
+  mode, which the bar's two-state toggle cannot. Measured at 780px with the sidebar open: the
+  cluster went from 377px to 72px, and the search field, which was being squeezed to 18px while
+  the cluster overflowed the bar by 41px, now keeps its full 256px. `parallax-shell` still
+  installs all four controls; `PageHeader`'s `controls` snippet is how a consumer puts any of
+  them back. `ThemeSelector` gains `chromeWear` for that case — the swatch strip used to follow
+  the header's light/dark pin whenever `compact` was set, and `compact` stopped meaning "on the
+  bar" the moment the picker left it.
 - **The hand cursor now reaches consumer projects, and covers more of the kit.** Tailwind v4
   ships no pointer default on buttons, and the rule that restored it lived in a block no
   registry item carried — so a project built on Parallax showed an arrow on every button where

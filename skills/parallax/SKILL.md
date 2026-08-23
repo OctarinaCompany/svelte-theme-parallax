@@ -183,7 +183,7 @@ Before adding or changing anything:
 | Emphasis fill                            | `bg-success` / `bg-warning` / `bg-info` + `text-*-foreground`        |
 | Hairline on a chrome surface             | `border-sidebar-outline` / `ring-sidebar-outline`                    |
 | Uppercase micro-label                    | `text-xs tracking-label uppercase`                                   |
-| Palette switch UI                        | `ThemeSelector` (`compact` in a header)                              |
+| Palette switch UI                        | `ThemeSelector` (`compact` for a header slot; full form on a settings page) |
 | Light/dark toggle                        | `ModeToggle` (or `toggleMode()` from mode-watcher)                   |
 | Floating / inverted / auto-hide controls | `HeaderToggle`, `SidebarModeToggle`, or the hook setters             |
 | Table-in-a-card page, page header block, list group, upload UI, data table/grid | the recipes in [references/patterns.md](references/patterns.md) |

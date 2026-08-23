@@ -286,7 +286,7 @@ const CONTROLS = {
 	type: "registry:component",
 	title: "Parallax appearance controls",
 	description:
-		"The two dropdown menus that drive the axes: one for the sidebar (inverted, floating) and one for the header (inverted, floating, hide on scroll). Drop them in a header and the axes become user-facing.",
+		"The two dropdown menus that drive the axes: one for the sidebar (inverted, floating) and one for the header (inverted, floating, hide on scroll). Put them on a settings page — or back in the header bar through `PageHeader`'s `controls` snippet — and the axes become user-facing.",
 	registryDependencies: ["dropdown-menu", "button", item("parallax-appearance")],
 	/*
 	 * The icons. `svelte` itself is not listed — it is the framework, not a dependency an item
@@ -298,7 +298,7 @@ const CONTROLS = {
 		file("src/lib/components/navigation/SidebarModeToggle.svelte", "registry:component"),
 		file("src/lib/components/navigation/HeaderToggle.svelte", "registry:component"),
 	],
-	docs: "Both are icon-sized `DropdownMenu` triggers meant for a header's right-hand cluster. They read and write the hooks directly, so they take no props and hold no state of their own.",
+	docs: "Both are icon-sized `DropdownMenu` triggers, for a settings page or a header's right-hand cluster. `parallax-shell`'s own header does not render them — its `controls` snippet is the light/dark toggle alone — so mount them where they belong in your app. They read and write the hooks directly, so they take no props and hold no state of their own.",
 };
 
 /**
@@ -370,7 +370,7 @@ const SHELL = {
 	type: "registry:block",
 	title: "Parallax shell",
 	description:
-		"The application shell: the sidebar (workspace switcher, two-shape navigation, user menu, icon rail, mobile drawer) and the page header bar (breadcrumb, search slot, appearance controls) — wired to the published appearance axes, taking their content as typed props.",
+		"The application shell: the sidebar (workspace switcher, two-shape navigation, user menu, icon rail, mobile drawer) and the page header bar (breadcrumb, search slot, light/dark toggle) — wired to the published appearance axes, taking their content as typed props.",
 	dependencies: ["@lucide/svelte", "mode-watcher"],
 	devDependencies: [],
 	registryDependencies: [
@@ -438,7 +438,7 @@ const SHELL = {
 		"</AppShell>",
 		"```",
 		"",
-		"Every `PageHeader` slot is a snippet with a default: `sidebarTrigger`, `breadcrumb` (receives `trail`), `search` (empty — pass your own field or palette) and `controls` (the four appearance controls). Pass an empty `sidebarTrigger` snippet if the header ever renders outside `AppShell`'s provider.",
+		"Every `PageHeader` slot is a snippet with a default: `sidebarTrigger`, `breadcrumb` (receives `trail`), `search` (empty — pass your own field or palette) and `controls` — which is the light/dark toggle alone. The palette picker and the two panel dropdowns are installed (`ThemeSelector`, plus `HeaderToggle` / `SidebarModeToggle` through `parallax-appearance-controls`) but not rendered: put them on a settings page, or render your own group through `controls`. Pass an empty `sidebarTrigger` snippet if the header ever renders outside `AppShell`'s provider.",
 		"",
 		"## What is already wired",
 		"",

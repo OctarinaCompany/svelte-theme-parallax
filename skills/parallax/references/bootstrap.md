@@ -299,8 +299,15 @@ custom property reads back as its literal text (`#3c354a`) while `getComputedSty
 project. That is what `paint()` above is for — it makes the browser resolve the token
 through a real element and hands back the same form both sides are compared in.
 
-Then the eye check the console cannot do: the sidebar, the header bar and its appearance
-controls render; collapsing the rail and switching palette and light/dark all work.
+Then the eye check the console cannot do: the sidebar and the header bar render, collapsing
+the rail works, and the light/dark toggle at the bar's right flips both halves.
+
+**That toggle is the only appearance control the bar ships.** `ThemeSelector`, `HeaderToggle`
+and `SidebarModeToggle` install with the shell and are deliberately not mounted — a real
+application puts them on a settings surface of its own, which is what the gallery does. To see
+a palette before you have one, call `setTheme("ember")` from the console, or drop a
+`<ThemeSelector />` on a page; [shell.md](shell.md#appearance-controls) has the snippet that
+puts the whole group back in the bar.
 
 ## Traps
 

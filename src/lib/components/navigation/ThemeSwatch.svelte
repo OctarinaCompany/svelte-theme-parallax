@@ -32,10 +32,11 @@
 		/**
 		 * Which half of the palette to draw, when it is not the page's.
 		 *
-		 * The strip exists to show what the surface AROUND it will look like, and every caller but
-		 * one is on the page, so the page mode is the default. The exception is the palette trigger
-		 * in the header: with the bar pinned to the opposite mode, a strip following the page would
-		 * be showing the reader the half they are not looking at.
+		 * The strip exists to show what the surface AROUND it will look like, and every caller in
+		 * this application is on the page, so the page mode is the default. The prop serves the one
+		 * arrangement that is not: a palette picker placed on the page-header bar, which carries its
+		 * own light/dark pin — there a strip following the page would be showing the reader the half
+		 * they are not looking at. `ThemeSelector`'s `chromeWear` is what routes it.
 		 *
 		 * @default the page mode
 		 */

@@ -17,7 +17,7 @@ complete generated list, with each item's post-install notes, is in the reposito
 | `parallax-theme`               | The palette: base light/dark tokens, `src/themes.css` (11 alternates), the Tailwind mappings for success/warning/info, the subtle family, `--sidebar-outline` |
 | `parallax-appearance`          | The four axes as hooks + `reduced-motion` + the page-header CSS         |
 | `parallax-appearance-controls` | `HeaderToggle` + `SidebarModeToggle`                                    |
-| `parallax-shell`               | The whole shell: AppShell/AppSidebar/PageHeader + nav trio + breadcrumb + theme controls + `shared/nav.ts` + the sidebar/drawer CSS |
+| `parallax-shell`               | The whole shell: AppShell/AppSidebar/PageHeader + nav trio + breadcrumb + `ModeToggle` and `ThemeSelector` + `shared/nav.ts` + the sidebar/drawer CSS |
 | `parallax-restyle`             | CSS-only: the Parallax shape for the OFFICIAL components you install by bare name (switch, checkbox, tooltip, inputs, select, sliders, sonner, tabs' line variant) plus the global menu-shadow and dialog-scrim opinions |
 | `parallax-skill`               | This skill, into `.claude/skills/parallax/`                             |
 

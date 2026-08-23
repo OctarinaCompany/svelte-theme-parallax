@@ -12,9 +12,11 @@
 	/**
 	 * The palette picker: a trigger showing the current theme, and a menu of all of them.
 	 *
-	 * It sits beside {@link ModeToggle} in every page header, and the pairing is the point —
-	 * palette and mode are two independent axes over the same token set, so the two controls
-	 * belong together and neither subsumes the other.
+	 * It is the palette half of the two independent axes over one token set — palette and
+	 * light/dark. The two used to sit side by side on the page header; the bar keeps the mode
+	 * toggle and this picker moved to the Settings page, where a choice made once can be named
+	 * and described. It is still the control a caller drops back into `PageHeader`'s `controls`
+	 * snippet, and `chromeWear` below is the only thing that arrangement needs.
 	 *
 	 * A DROPDOWN, NOT A `Select`. Both would be correct for "one of a short list", and `Select` is
 	 * the shorter component. The menu wins on two counts: its items take arbitrary markup, so
@@ -28,22 +30,40 @@
 	 *
 	 * @see $lib/themes — why the state lives in mode-watcher rather than here
 	 */
-	let { class: className, compact = false }: { class?: string; compact?: boolean } = $props();
+	let {
+		class: className,
+		compact = false,
+		chromeWear = false,
+	}: {
+		class?: string;
+		compact?: boolean;
+		/**
+		 * Set this ONLY for an instance rendered on the page-header bar — see the note on
+		 * `triggerMode` below. It is orthogonal to {@link compact}, which decides the ROWS.
+		 */
+		chromeWear?: boolean;
+	} = $props();
 
 	/**
 	 * Which half of the palette the TRIGGER's strip should draw.
 	 *
-	 * The trigger sits on the header bar, which has its own light/dark pin. With the bar pinned
-	 * opposite the page, a strip following the page shows the reader the half they are not looking
-	 * at — the strip is there to say what the surface around it becomes.
+	 * The strip says what the surface AROUND it becomes, so it follows the PAGE — which is where
+	 * every instance in this application now stands.
 	 *
-	 * `compact` is the header form and the only one on the bar, so the override is scoped to it;
-	 * the full form lives on the Themes page, where the page mode is the right answer. The ROWS
-	 * inside the menu keep the page mode either way: the menu is portaled and painted `bg-popover`,
-	 * so it never follows the pin.
+	 * `chromeWear` is the exception, and it is a prop rather than the `compact` flag it used to
+	 * ride on. `compact` means "one line per row"; it meant "on the bar" only for as long as the
+	 * bar was the compact form's only home, and the day the picker left the header that proxy
+	 * started lying — the Themes page renders a compact picker on a CARD, where following the
+	 * header's pin would have shown the reader the half they are not looking at, which is the
+	 * exact inversion this override exists to prevent. A caller putting the picker back on the
+	 * bar through `PageHeader`'s `controls` snippet passes `chromeWear`, because that bar carries
+	 * its own light/dark pin.
+	 *
+	 * The ROWS inside the menu keep the page mode either way: the menu is portaled and painted
+	 * `bg-popover`, so it never follows a pin.
 	 */
 	const triggerMode = $derived(
-		compact ? headerWear.current : mode.current === "dark" ? "dark" : "light",
+		chromeWear ? headerWear.current : mode.current === "dark" ? "dark" : "light",
 	);
 
 	/**

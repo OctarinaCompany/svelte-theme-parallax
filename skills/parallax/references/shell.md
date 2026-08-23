@@ -90,12 +90,13 @@ DOCUMENT sideways, taking the sidebar and the header with it. Consequences:
 | `sidebarTrigger`| `Snippet`           | `Sidebar.Trigger` + separator, as one unit         |
 | `breadcrumb`    | `Snippet<[Crumb[]]>`| `<BreadcrumbTrail {trail} class="min-w-0 flex-1"/>`|
 | `search`        | `Snippet`           | **empty** — the one app-specific slot              |
-| `controls`      | `Snippet`           | the four appearance controls                       |
+| `controls`      | `Snippet`           | `<ModeToggle />` — the light/dark swap, alone      |
 
 Contracts that make overrides safe:
 
-- **`search`**: whatever you pass must carry `min-w-0 shrink` — between ~640 and ~1200px
-  the bar is over-subscribed and this slot is the designated giver.
+- **`search`**: whatever you pass must carry `min-w-0 shrink` — it is the slot that gives
+  when the bar runs out of room. With the default controls (one button) it rarely has to;
+  put your own group of controls back in the bar and it does.
 - **`breadcrumb`**: render into a `min-w-0 flex-1` box whose width your own content cannot
   change; a content-sized box re-enters the trail's measurement loop.
 - **`sidebarTrigger`**: it is a snippet (not a boolean) because `Sidebar.Trigger` throws
@@ -106,7 +107,8 @@ Contracts that make overrides safe:
   carries `data-slot="page-header"` / `"page-header-bar"` and writes
   `data-floating`/`data-hidden` itself.
 
-Incorrect — search field without the giver classes (clips the controls on laptops):
+Incorrect — search field without the giver classes (clips the right-hand controls as soon
+as the bar is over-subscribed):
 
 ```svelte
 {#snippet search()}<Input class="w-64" placeholder="Search" />{/snippet}
@@ -213,6 +215,24 @@ else. Giving it a URL too would make one click carry two meanings.
 
 `HeaderToggle` and `SidebarModeToggle` (`$lib/components/navigation/`) are prop-free
 dropdowns that read and write the appearance hooks directly; `ThemeSelector` takes
-`compact` for the header form; `ModeToggle` is the light/dark swap. All four are the
-default `controls` snippet of `PageHeader` — subtract by overriding the snippet, never by
-editing the header.
+`compact` for the header form; `ModeToggle` is the light/dark swap.
+
+**Only `ModeToggle` is in the bar by default.** Light/dark is the one appearance choice a
+reader makes while reading; a palette, an inverted rail and a floating bar are set once,
+which is a settings page's job — the gallery has one, and it drives the same hooks. Putting
+any of them back is the `controls` snippet, never an edit to the header:
+
+```svelte
+<PageHeader {trail}>
+	{#snippet controls()}
+		<HeaderToggle />
+		<SidebarModeToggle />
+		<ThemeSelector compact />
+		<ModeToggle />
+	{/snippet}
+</PageHeader>
+```
+
+`parallax-shell` still installs all four for exactly that override; `HeaderToggle` and
+`SidebarModeToggle` arrive through `parallax-appearance-controls`. Budget it: those four
+cost 377px of bar against the default's 72px, and the search field is what pays.

@@ -67,7 +67,7 @@ The library has two kinds of components, and one theme over both:
   editable, gauge, phone input, media player, and many more), written idiomatically for
   Svelte 5 runes and first-class code in this repository.
 
-An app shell (sidebar, breadcrumb, theme picker) and a gallery of ~130 pages document all of it —
+An app shell (sidebar, breadcrumb, settings page) and a gallery of ~130 pages document all of it —
 every sidebar entry that goes anywhere goes somewhere real. The sidebar's twelve headings are
 groups rather than destinations: the catalog is filed as an ordered ladder, where a component
 belongs to the first group whose test it passes. The ladder is declared once, in
@@ -167,7 +167,7 @@ One hundred and nineteen items ship today — the palette, the axes, the shell, 
 | `parallax-appearance` | The four appearance axes as persisted state — inverted sidebar, inverted header, floating header, hide-on-scroll — plus the CSS their attributes key on |
 | `parallax-appearance-controls` | The two dropdown menus that drive those axes |
 | `parallax-swap` | The two-state icon crossfade behind the light/dark toggle — a house primitive absent from the official registry |
-| `parallax-shell` | The application shell: sidebar (workspace switcher, navigation, user menu, icon rail, mobile drawer) and page header bar (breadcrumb, search slot, appearance controls), taking content as typed props and active-state as a predicate — never a router |
+| `parallax-shell` | The application shell: sidebar (workspace switcher, navigation, user menu, icon rail, mobile drawer) and page header bar (breadcrumb, search slot, light/dark toggle), taking content as typed props and active-state as a predicate — never a router |
 | `parallax-skill` | The [Agent Skill](./skills/parallax/README.md) that teaches an AI assistant to use all of the above correctly — installs into the consumer's `.claude/skills/` |
 
 One thing a registry item cannot do for you: patch a file you already have — hence the
