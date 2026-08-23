@@ -96,6 +96,19 @@ Express looks as **variants** first and use `class` for layout only; `flex` + `g
 `space-*`; `size-*`, not `w-* h-*` pairs; `data-icon` on Button icons; no sizing classes on
 icons inside components; semantic tokens only, never raw colours.
 
+**The hand rule.** Anything that runs a command or navigates shows `cursor: pointer`, and it is stated once —
+the `@layer base` block in `app.css` that `parallax-restyle` ships, covering buttons, `select`,
+bound `<label>`s and the ARIA roles that stand for a control, plus the unlayered block for the
+menu roles that must beat shadcn's own `cursor-default`. A component therefore writes no
+`cursor-pointer` of its own; it writes a cursor only to depart from the rule, and the departure
+carries its reason in a comment. The departures that exist: a surface clicked **at** rather than
+**on** (data-grid cells, event-calendar slots) keeps `cursor-default`, drag handles take
+`cursor-grab`, inline editors `cursor-text`, the number-field scrubber `ew-resize`, the sidebar
+rail its own directional arrows, a right-click-only surface (the context-menu trigger) keeps the
+arrow, and a `<button>` that exists to be focusable and announced while only opening a tooltip —
+the status-monitor bar — is not a command at all. A sweep of the 121 gallery pages says those are
+the only departures; anything new that leaves the rule should be able to name its class here.
+
 ## 9. The catalog
 
 - The catalog is declared **once**, as `CATEGORIES` in `src/lib/hooks/route.svelte.ts`. `ROUTES`,

@@ -822,26 +822,77 @@
 	html {
 		@apply font-sans;
 	}
+}
 
-	/*
-	 * The classic CSS reboot carries
-	 *
-	 *   [type=submit]:not(:disabled), [type=reset]:not(:disabled),
-	 *   [type=button]:not(:disabled), button:not(:disabled) { cursor: pointer }
-	 *   [role=button] { cursor: pointer }
-	 *
-	 * and Tailwind v4 dropped that default, so every control in the app would show an arrow
-	 * where this theme wants a hand. It is restored here rather than per call site because
-	 * only 1 of the 36 generated `ui/` components sets `cursor-pointer` itself, and those
-	 * are not edited — patching every consumer would be endless and would drift.
-	 *
-	 * In `@layer base` on purpose: this is a default, so any `cursor-*` utility still wins.
-	 */
+/*
+ * THE HAND RULE. Everything a click ACTS on wears `cursor: pointer` — and it is stated once,
+ * here, rather than component by component.
+ *
+ * The classic CSS reboot carried
+ *
+ *   [type=submit]:not(:disabled), [type=reset]:not(:disabled),
+ *   [type=button]:not(:disabled), button:not(:disabled) { cursor: pointer }
+ *   [role=button] { cursor: pointer }
+ *
+ * and Tailwind v4 dropped that default, so every control in the app would show an arrow where
+ * this theme wants a hand. Restored here rather than per call site because NONE of the 55
+ * official ports under `ui/` sets `cursor-pointer` itself — they are generated and not edited,
+ * so patching them would be endless and would drift. (The ten house components that do set it
+ * are the ones with no `<button>` underneath: a json-viewer branch, a calendar event, a rating
+ * star.)
+ *
+ * WHAT WAS ADDED to the classic list, each because a gallery sweep measured it wrong. `select`:
+ * a native select opens a menu on click and the browser gives it an arrow. `label[for]` and a
+ * label WRAPPING its control: clicking a bound label acts on that control — it toggles a
+ * checkbox, it focuses a field — and the kit was already inconsistent about it, since `cursor`
+ * INHERITS and a label that happened to sit inside a clickable ancestor already showed a hand
+ * (49 of the 57 checkbox labels on one page did, and the other 8 did not, from identical
+ * classes). The extra ARIA roles cover the same objects when a consumer builds one out of a
+ * `div` rather than a `button`; every one of them is excluded while `aria-disabled`.
+ *
+ * A SEPARATE BLOCK, and the split is load-bearing: the rules above are what `shadcn-svelte init`
+ * writes and no registry item may impersonate them, while THIS block is a Parallax opinion that
+ * has to reach a consumer's project or the guideline it states cannot hold there. It ships with
+ * `parallax-restyle`, the item that already carries the application-global opinions.
+ *
+ * IT IS A CONVENTION, not a spec default, and worth knowing which way the sources run. The CSS UI
+ * spec and the HTML standard's UA stylesheet reserve `pointer` for LINKS (`:link, :visited` is the
+ * only rule either of them states), and Tailwind, shadcn/ui and Radix Themes all follow that. Six
+ * of the seven design systems measured go the other way — Bootstrap, Primer, MUI, Carbon, Spectrum
+ * and GOV.UK all put the hand on a button — and that is the majority this kit joins, because in a
+ * dashboard almost every command is a button and an arrow over all of them says nothing.
+ *
+ * `[role="button"]:not([aria-disabled="true"])` and not `:not(:disabled)`, which is what Tailwind's
+ * own published restore snippet uses: `:disabled` matches form elements only, so on the `div` this
+ * clause exists for it never matches and a disabled one keeps the hand. `aria-disabled` is what
+ * bits-ui writes on those.
+ *
+ * Still `@layer base`, so it stays a DEFAULT: any `cursor-*` utility at a call site wins, which
+ * is how the deliberate exceptions are written — `cursor-default` on a status-monitor bar (a
+ * button that only opens a tooltip), `cursor-grab` on a drag handle, `cursor-text` on an inline
+ * editor, `cursor-ew-resize` on the number-field scrubber, the data grid's spreadsheet cells,
+ * and the sidebar rail's own directional arrows.
+ *
+ * The menu roles are NOT here — they need to beat a `cursor-default` shadcn writes into the
+ * class list itself, so they are unlayered, in the block below.
+ */
+@layer base {
 	button:not(:disabled),
 	[type="submit"]:not(:disabled),
 	[type="reset"]:not(:disabled),
 	[type="button"]:not(:disabled),
-	[role="button"]:not([aria-disabled="true"]) {
+	select:not(:disabled),
+	summary,
+	::file-selector-button,
+	label[for],
+	label:has(input, button, select, textarea),
+	[role="button"]:not([aria-disabled="true"]),
+	[role="link"]:not([aria-disabled="true"]),
+	[role="tab"]:not([aria-disabled="true"]),
+	[role="switch"]:not([aria-disabled="true"]),
+	[role="checkbox"]:not([aria-disabled="true"]),
+	[role="radio"]:not([aria-disabled="true"]),
+	[role="treeitem"]:not([aria-disabled="true"]) {
 		cursor: pointer;
 	}
 }

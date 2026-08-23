@@ -99,6 +99,16 @@ Before adding or changing anything:
 - **The `parallax` theme id has no CSS block on purpose** — it IS the `:root`/`.dark` base.
 - **Drive the axes through their setters** (`setHeaderFloating`, `setSidebarMode`, …),
   never by toggling classes or attributes yourself.
+- **Anything that runs a command or navigates wears the hand cursor.** `parallax-restyle`
+  ships the rule — buttons, `select`, `summary`, bound `<label>`s and the ARIA roles that
+  stand for a control, in `@layer base` so a `cursor-*` utility still wins per element.
+  Build a clickable `div` with `role="button"` and it inherits the affordance for free.
+  The exceptions are as deliberate as the rule: a surface you click **at** rather than
+  **on** (a data-grid cell, a calendar slot) keeps the arrow, a drag handle takes
+  `cursor-grab`, an inline editor `cursor-text`, and a control that only focuses or opens a
+  tooltip is not a command at all. This is a convention, not a browser default — the spec
+  reserves `pointer` for links, and Parallax follows Bootstrap, Primer, MUI and Carbon
+  instead.
 
 **Installation** — see [references/install.md](references/install.md), and
 [references/bootstrap.md](references/bootstrap.md) for an empty directory

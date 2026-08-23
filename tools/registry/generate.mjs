@@ -64,6 +64,21 @@ const blocks = topLevelBlocks(readFileSync(resolve(root, "src/app.css"), "utf8")
  * failure here, with the fix being to revisit the ordinals rather than to bump this number.
  */
 {
+	/*
+	 * The same tripwire for `@layer base`, which is now TWO blocks read by ordinal: the first is
+	 * init's own boilerplate and is excluded from every item, the second is the hand-cursor rule
+	 * and ships with `parallax-restyle`. Merging them back into one would silently publish the
+	 * consumer's own base defaults from our registry; adding a third would re-index the claim.
+	 */
+	const bases = blocks.filter((b) => b.selector === "@layer base").length;
+	if (bases !== 2) {
+		throw new Error(
+			`src/app.css: expected exactly 2 top-level @layer base blocks (init's boilerplate, then the hand-cursor rule), found ${bases} — the ordinal claims in css-claims.mjs are no longer safe`,
+		);
+	}
+}
+
+{
 	const roots = blocks.filter((b) => b.selector === ":root").length;
 	if (roots !== 3) {
 		throw new Error(

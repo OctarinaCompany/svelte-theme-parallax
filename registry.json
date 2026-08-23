@@ -711,6 +711,14 @@
 			],
 			"files": [],
 			"css": {
+				"@layer base": {
+					"button:not(:disabled), [type=\"submit\"]:not(:disabled), [type=\"reset\"]:not(:disabled), [type=\"button\"]:not(:disabled), select:not(:disabled), summary, ::file-selector-button, label[for], label:has(input, button, select, textarea), [role=\"button\"]:not([aria-disabled=\"true\"]), [role=\"link\"]:not([aria-disabled=\"true\"]), [role=\"tab\"]:not([aria-disabled=\"true\"]), [role=\"switch\"]:not([aria-disabled=\"true\"]), [role=\"checkbox\"]:not([aria-disabled=\"true\"]), [role=\"radio\"]:not([aria-disabled=\"true\"]), [role=\"treeitem\"]:not([aria-disabled=\"true\"])": {
+						"cursor": "pointer"
+					}
+				},
+				"[role=\"menuitem\"]:not([aria-disabled=\"true\"]), [role=\"menuitemcheckbox\"]:not([aria-disabled=\"true\"]), [role=\"menuitemradio\"]:not([aria-disabled=\"true\"]), [role=\"option\"]:not([aria-disabled=\"true\"]), [role=\"slider\"]:not([aria-disabled=\"true\"])": {
+					"cursor": "pointer"
+				},
 				"[data-slot=\"switch\"]": {
 					"width": "3rem",
 					"height": "1.5rem",

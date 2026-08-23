@@ -106,6 +106,9 @@ installing the item named, never by hand-porting gallery code:
   other item smuggles in.
 - The shell's CSS is unlayered and outranks utility classes on the same slots; override
   in plain CSS.
+- Without `parallax-restyle`, every button, `select` and bound `<label>` shows an arrow
+  instead of a hand: Tailwind v4 ships no pointer default, and that item carries the rule
+  (see the hand-cursor rule in SKILL.md's Critical rules).
 
 ## Troubleshooting
 
@@ -136,7 +139,6 @@ installing the item named, never by hand-porting gallery code:
   `zoom-in-95`, Tailwind v4 does not, and `init` is what normally installs and imports it.
   `npm i -D tw-animate-css`, then `@import "tw-animate-css";` beside the Tailwind import.
 - **Every button shows an arrow where the gallery shows a hand** — Tailwind v4 dropped the
-  pointer cursor on buttons and no registry item restores it (it is an application-global
-  default, and those are the consumer's to own). Add `cursor: pointer` for
-  `button:not(:disabled)`, `[type="submit"]`, `[type="reset"]`, `[type="button"]` and
-  `[role="button"]` in `@layer base`, where any `cursor-*` utility still outranks it.
+  pointer cursor on buttons, and the rule that restores it ships with **`parallax-restyle`**.
+  Install that item; it writes the rule into `@layer base`, where any `cursor-*` utility
+  still outranks it per element.

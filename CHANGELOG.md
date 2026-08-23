@@ -49,6 +49,15 @@ ships today is listed here.
   of widening the page. A consumer who deliberately wants a wide canvas to widen the document
   overrides with `min-w-max!` on the inset — the `!` because Parallax CSS is unlayered — or with
   a rule of their own, which the zero-specificity `:where()` lets through unaided.
+- **The hand cursor now reaches consumer projects, and covers more of the kit.** Tailwind v4
+  ships no pointer default on buttons, and the rule that restored it lived in a block no
+  registry item carried — so a project built on Parallax showed an arrow on every button where
+  the gallery showed a hand. It now ships with `parallax-restyle`, in `@layer base`, where a
+  `cursor-*` utility still overrides it per element. A sweep of all 121 gallery pages added
+  what was missing beside buttons: `select`, bound `<label>`s (the kit was already
+  inconsistent there, because `cursor` inherits) and the ARIA roles that stand for a control
+  when it is built from a `div`. The deliberate exceptions are unchanged and now written down
+  in `docs/CONVENTIONS.md` §8.
 - The Tables in cards gallery page now drops its secondary columns by CARD width
   (`@container` plus arbitrary `@min-[38rem]`-style container variants) rather than by viewport breakpoint: `lg:` / `xl:`
   cannot see the 250px the sidebar already spent, so a viewport-keyed column stays long after

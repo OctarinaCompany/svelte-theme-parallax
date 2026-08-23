@@ -181,12 +181,10 @@ dropped. The layer block can go anywhere below them.
   that proves it landed.
 
   Those two rules are exactly what `init` writes, and this file stops there deliberately.
-  Parallax's own
-  stylesheet keeps a third rule in that layer — the pointer cursor on `button`,
-  `[type=submit]`, `[type=reset]`, `[type=button]` and `[role=button]`, which Tailwind v4
-  dropped and the gallery restores — and no published item carries it either. If every
-  button in the project shows an arrow where the gallery shows a hand, that rule is what is
-  missing; it belongs in `@layer base` too, so any `cursor-*` utility still outranks it.
+  The kit's own third base rule — the hand cursor Tailwind v4 dropped — is not pasted by
+  hand: it ships with **`parallax-restyle`**, which is worth adding beside the shell for
+  exactly that reason. Without it every button, `select` and bound `<label>` shows an arrow
+  where the gallery shows a hand.
 
 ## 5. The manual post-install steps
 

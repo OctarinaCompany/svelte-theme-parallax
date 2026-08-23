@@ -32,11 +32,20 @@ export const CSS_CLAIMS = [
 	{ selector: "@keyframes loader-rest", items: ["parallax-loader"] },
 	{ selector: "[data-loader-stage]", items: ["parallax-loader"] },
 
-	// ---- application-global element defaults: a consumer's own init owns that layer
+	// ---- application-global element defaults: a consumer's own init owns that layer.
+	//      FIRST of the two `@layer base` blocks — `* { border-border }`, the body pair and the
+	//      font default are shadcn's own boilerplate, written by `init`, and no item of ours may
+	//      impersonate it (bootstrap.md tells a from-scratch project to paste it instead).
 	{
 		selector: "@layer base",
+		nth: 0,
 		exclude: "global element defaults; the consumer's init writes its own",
 	},
+	// ---- ...and the SECOND is the opposite case: the hand-cursor rule is a Parallax opinion,
+	//      and a guideline the skill states for consumer projects cannot hold in one unless the
+	//      rule travels. It rides with the item that already owns the application-global
+	//      opinions, in `@layer base` so a `cursor-*` utility still overrides it per element.
+	{ selector: "@layer base", nth: 1, items: ["parallax-restyle"] },
 
 	// ---- card fork
 	{ selector: '[data-slot="card"]', nth: 1, items: ["parallax-card"] },
@@ -71,6 +80,15 @@ export const CSS_CLAIMS = [
  * (the menu shadow-kill, the dialog scrim) live HERE and are not smuggled in by the shell.
  */
 export const RESTYLE_SELECTORS = [
+	/*
+	 * The rows that are clickable without being buttons — the same unlayered rule `parallax-shell`
+	 * carries, claimed a second time here on purpose. It is UNLAYERED in app.css because shadcn
+	 * writes `cursor-default` into the class list of every menu and option row, which beats the
+	 * `@layer base` hand rule; and a consumer who installs Select, Command, Combobox, Autocomplete,
+	 * Listbox or Filters WITHOUT the shell would otherwise get an arrow over every dropdown row.
+	 * Shipping it with both items double-applies harmlessly, exactly as the header describes.
+	 */
+	'[role="menuitem"]:not([aria-disabled="true"]), [role="menuitemcheckbox"]:not([aria-disabled="true"]), [role="menuitemradio"]:not([aria-disabled="true"]), [role="option"]:not([aria-disabled="true"]), [role="slider"]:not([aria-disabled="true"])',
 	'[data-slot="switch"]',
 	'[data-slot="switch"][data-state="unchecked"]',
 	'[data-slot="switch-thumb"]',
