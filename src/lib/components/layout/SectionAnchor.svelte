@@ -24,10 +24,11 @@
 	 * same-document fragment, so the address bar, the history entry, the scroll and `:target` are
 	 * all the browser's own work.
 	 *
-	 * NOT `ui/copy-button`. Its props type omits `href` on purpose ("a copy button is never a
-	 * link"), and widening a published component for a gallery affordance is the wrong blast
-	 * radius. The state machine, the icon swap and the receipt classes are exported from its module
-	 * for exactly this kind of reuse, so they are composed here instead of forked.
+	 * NOT `ui/copy-button`, which is exactly what its neighbour `SectionCode` is. The difference is
+	 * the ELEMENT: a link to a section has to be an `<a href>` — middle-click, "open in new tab",
+	 * the address bar, a crawler — and that component's props omit `href` on purpose, because "a
+	 * copy button is never a link". Its state machine, icon swap and receipt classes are exported
+	 * from its module for exactly this kind of reuse, so they are composed here instead of forked.
 	 *
 	 * `variant="ghost"` with `size="icon-xs"`: 24px is the smallest rung of the ramp
 	 * (`CONVENTIONS.md` §3) and the only one that can sit in a heading row without growing it —

@@ -9,6 +9,12 @@
 		/* Bundler mode */
 		"module": "nodenext",
 		"allowImportingTsExtensions": true,
+		/*
+		 * `vite.config.ts` imports the build tools under `tools/site/`, which are plain `.mjs` —
+		 * they run in Node with no build step of their own and are the only consumers of the
+		 * Svelte compiler's parser outside the app. Without this, importing one is TS7016.
+		 */
+		"allowJs": true,
 		"verbatimModuleSyntax": true,
 		"moduleDetection": "force",
 		"noEmit": true,

@@ -522,7 +522,7 @@
 		disappear.
 	-->
 	{#each groups as group (group.title)}
-		<DocSection title={group.title}>
+		<DocSection title={group.title} code={false}>
 			{#snippet blurb()}
 				{group.blurb} {group.specimens.length} of {group.total} ported.
 			{/snippet}

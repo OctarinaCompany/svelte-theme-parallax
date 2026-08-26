@@ -130,6 +130,14 @@ the only departures; anything new that leaves the rule should be able to name it
   fragment to the first element that matches, so a demo control sharing a section's id silently
   steals the link. A dev-only assertion in `DocPage` reports every duplicate on the page you are
   looking at.
+- A section's EXAMPLE is extracted, never annotated. `tools/site/section-source.mjs` parses each
+  page with the Svelte compiler and rebuilds every `DocSection`'s demo as a standalone component;
+  no page carries a second copy of its own code, and no author maintains one. The rule that keeps
+  it honest is stated in that file and repeated here because it decides every judgement in it: an
+  identifier is recorded only when the page declares it, so over-collecting costs a spare helper
+  and under-collecting costs a broken paste — which is why every node the walker does not
+  recognise is still walked. A section the extractor cannot cut — today only one whose title is an
+  expression — must say `code={false}`, and the build FAILS if it does not.
 - `CATEGORIES` is an **ordered ladder, not a set of buckets**. A component belongs to the first
   group whose admission test it passes, and each group carries its test in its own comment.
   Reordering the groups changes what they collect, so it is a decision, not formatting.

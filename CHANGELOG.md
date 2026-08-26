@@ -29,6 +29,13 @@ ships today is listed here.
   and navigates to it, so `/components/badge#sizes` can be shared and opened cold. The id is the
   heading's own title, kebab-cased, which means rewording a title moves the address — `DocSection`
   takes an explicit `id` where that is not acceptable.
+- **The code of every example, on the clipboard.** A second control beside each heading copies that
+  demo as a standalone Svelte component: the markup with the gallery's card frame removed, the
+  imports it needs, and the page declarations it reads — carried whole, `$effect`s and types
+  included. `tools/site/section-source.mjs` extracts all of it at build time with the compiler's
+  own parser, so a page it cannot cut fails the build rather than a reader's click. Where an
+  example leans on something only the gallery has — its router, a page's sample data — the copied
+  header names it instead of dropping it silently.
 - The published registry: `registry.json` is generated from the source by `tools/registry/`,
   compiled into `public/r/`, and deployed to GitHub Pages with the gallery on every push to
   `main` — so the theme, the shell, the Agent Skill and every house component install into

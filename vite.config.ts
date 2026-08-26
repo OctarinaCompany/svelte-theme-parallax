@@ -3,6 +3,8 @@ import tailwindcss from "@tailwindcss/vite";
 import { defineConfig } from "vite";
 import { svelte } from "@sveltejs/vite-plugin-svelte";
 
+import { docSections } from "./tools/site/vite-plugin-doc-sections.mjs";
+
 // https://vite.dev/config/
 export default defineConfig(({ command, isPreview }) => ({
 	/*
@@ -30,7 +32,9 @@ export default defineConfig(({ command, isPreview }) => ({
 	 * from; a fork under another name changes this line.
 	 */
 	base: command === "build" || isPreview ? "/svelte-theme-parallax/" : "/",
-	plugins: [tailwindcss(), svelte()],
+	// `docSections` leads because it answers `X.svelte?sections`, and the Svelte plugin would
+	// otherwise claim that request and try to compile the answer. Its own header says why.
+	plugins: [docSections(), tailwindcss(), svelte()],
 	resolve: {
 		// `$lib` is a SvelteKit convention, not a Svelte one. shadcn-svelte generates
 		// imports such as `$lib/components/ui/...`, so a plain Vite app has to declare

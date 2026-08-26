@@ -1,7 +1,12 @@
 <script lang="ts">
 	import type { Snippet } from "svelte";
 	import SectionAnchor from "$lib/components/layout/SectionAnchor.svelte";
+	import SectionCode from "$lib/components/layout/SectionCode.svelte";
 	import { sectionId } from "$lib/components/layout/section-id.js";
+	import {
+		getSectionSourceContext,
+		sectionSourceText,
+	} from "$lib/components/layout/section-source.js";
 
 	/**
 	 * One numbered section of a component documentation page: an `h2`, an optional
@@ -29,6 +34,7 @@
 		title,
 		blurb,
 		id: idProp,
+		code = true,
 		children,
 	}: {
 		title: string;
@@ -42,10 +48,68 @@
 		 * that is what this is for.
 		 */
 		id?: string;
+		/**
+		 * Offer the copy-code control.
+		 *
+		 * Default true. `false` is for a section the build cannot extract, which today means one
+		 * shape: a title built from an expression, whose key nothing in Node can match to what the
+		 * browser asks for. The flag is explicit rather than inferred so the two halves cannot
+		 * silently disagree — a section that opts out here is also the one the extractor skips,
+		 * and it says so at build time.
+		 */
+		code?: boolean;
 		children: Snippet;
 	} = $props();
 
 	const id = $derived(idProp ?? sectionId(title));
+
+	/**
+	 * The example, if this page has one extracted.
+	 *
+	 * The KEY is the explicit id or the raw title — not the derived anchor id. Deriving it in the
+	 * build tool would put a second copy of `sectionId` in Node, free to drift from this one;
+	 * asking with a string both halves can see removes the possibility.
+	 */
+	const sections = getSectionSourceContext();
+	const hasCode = $derived(code && sections?.available === true);
+
+	/**
+	 * When the controls are on screen.
+	 *
+	 * Written once and shared, because the two must reveal together — a pair that faded in
+	 * separately would read as one control and a glitch. `data-[pending]:` is what holds the code
+	 * control visible while its chunk is in flight: without it, a reader who presses and moves the
+	 * pointer away watches the spinner vanish before the receipt it was promising.
+	 */
+	const reveal =
+		"-my-px opacity-0 transition-opacity group-hover/heading:opacity-100 group-has-[:focus-visible]/heading:opacity-100 data-[copied]:opacity-100 data-[pending]:opacity-100";
+
+	/**
+	 * The link is offered on touch as well; the code control is not.
+	 *
+	 * `hover:` resolves under `@media (any-hover: hover)`, so on a phone neither control can be
+	 * revealed by pointing — the link takes an escape hatch because sharing a section is exactly
+	 * what someone does from a phone. Copying a Svelte component is not, and the control is not
+	 * merely hidden there but removed: 32px of permanently reserved width wrapped twelve more
+	 * headings onto a second line on one page alone, and a control nobody can reveal should not
+	 * be taking space or a tab stop.
+	 */
+	const linkReveal = `${reveal} [@media(any-hover:none)]:opacity-100`;
+	const codeReveal = `${reveal} hidden [@media(any-hover:hover)]:inline-flex`;
+
+	/**
+	 * NOT `async`. An async function always returns a promise, and `CopyButtonState` shows its
+	 * pending face for exactly that — so declaring one here would defeat the synchronous cache in
+	 * `DocPage` and flash a spinner on every press after the first, which is the behaviour that
+	 * cache exists to prevent. The branch below keeps the synchronous answer synchronous.
+	 */
+	function copyValue(): string | Promise<string> {
+		const url = new URL(`#${id}`, window.location.href).href;
+		const source = sections!.get(idProp ?? title);
+		return source instanceof Promise
+			? source.then((resolved) => sectionSourceText(resolved, url, title))
+			: sectionSourceText(source, url, title);
+	}
 </script>
 
 <section class="not-first:mt-12 not-first:border-t not-first:pt-12">
@@ -55,24 +119,25 @@
 		page would grow by 2px, and the section rhythm with it. A ghost button is transparent at
 		rest, so the 1px it overhangs on each side is invisible.
 
-		The control is revealed by hovering the heading rather than shown outright — 1300 of them,
-		one per section, would be a column of link glyphs down the page. `focus-visible:` keeps it
-		reachable by keyboard, `data-[copied]:` keeps the receipt on screen, and the hover gate is
-		lifted wherever a finger might be the input: Tailwind resolves `hover:` under
-		`@media (hover: hover)`, so without an escape the control is unreachable by touch. The test
-		is `any-hover` and not `hover`, because `hover` reports the PRIMARY pointer — a touchscreen
-		laptop answers `hover: hover`, and its user would never reach the control with the finger
-		they are actually using.
+		BOTH controls are revealed by hovering the heading rather than shown outright: two per
+		section across thirteen hundred of them would be a column of glyphs running down every page.
+		They reveal TOGETHER — `group-has-[:focus-visible]/heading:` and not a per-element
+		`focus-visible:`, or a keyboard user sees one 24px glyph jump sideways and change shape
+		rather than a pair — and `data-[copied]:` / `data-[pending]:` hold whichever was pressed on
+		screen while it answers, so a receipt is never cut short by the pointer moving away.
+
+		The `any-hover` test is what the two do NOT share, and why is above the constants. It is
+		`any-hover` rather than `hover` because `hover` reports the PRIMARY pointer: a touchscreen
+		laptop answers `hover: hover`, and its user still has a finger.
 	-->
 	<div class="group/heading mb-2 flex items-center gap-2">
 		<h2 {id} data-slot="section-heading" tabindex="-1" class="text-xl font-medium outline-hidden">
 			{title}
 		</h2>
-		<SectionAnchor
-			href="#{id}"
-			label="Copy link to {title}"
-			class="-my-px opacity-0 group-hover/heading:opacity-100 focus-visible:opacity-100 data-[copied]:opacity-100 [@media(any-hover:none)]:opacity-100"
-		/>
+		<SectionAnchor href="#{id}" label="Copy link to {title}" class={linkReveal} />
+		{#if hasCode}
+			<SectionCode label="Copy code for {title}" value={copyValue} class={codeReveal} />
+		{/if}
 	</div>
 	{#if blurb}
 		<p class="mb-4 text-sm text-muted-foreground">{@render blurb()}</p>

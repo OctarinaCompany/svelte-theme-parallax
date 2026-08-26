@@ -235,6 +235,7 @@ install URL, and the post-install steps a registry item cannot perform for you.
 | `tools/themes/` | The generator and its audit — the only place a palette is edited |
 | `registry.json` | The registry manifest — **generated** by `tools/registry/` |
 | `tools/registry/` | The manifest generator, and the `app.css` block reader it uses |
+| `tools/site/` | The build steps the gallery itself needs: the per-route prerender, and the example extractor behind each heading's copy-code control |
 | `skills/parallax/` | The Agent Skill published as `parallax-skill`, with its references and evals |
 | `public/llms.txt` | The machine-readable index of every item and guide — **generated** |
 | `.github/workflows/pages.yml` | Builds the registry and the gallery — fallback and prerendered pages included, `npm run build` writes those — and deploys the result to Pages on every push to `main` |

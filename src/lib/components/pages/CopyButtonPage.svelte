@@ -109,6 +109,13 @@
 				"Fired with whatever the producer or writeText threw. The component announces the failure; anything visible is the caller's to raise, because only the caller knows where it belongs.",
 		},
 		{
+			prop: "icon",
+			type: "Snippet",
+			default: "a clipboard",
+			description:
+				"The RESTING glyph. For a button whose subject is not the text beside it — the gallery's own copy-this-example control uses a code glyph. The check mark that replaces it is not overridable: it is what done looks like on every control here, and the swap between the two is the reason to compose this component rather than a plain button.",
+		},
+		{
 			prop: "variant",
 			type: "ButtonVariant",
 			default: '"outline"',
@@ -353,9 +360,10 @@
 		<div class="flex flex-col gap-3">
 			<h3 class="text-base font-medium">CopyButton</h3>
 			<p class="text-sm text-muted-foreground">
-				The only part. There is no <code>child</code> snippet: the swap is the content of the button,
-				so an element you rendered yourself would get the wiring and the receipt classes but none of the
-				animation.
+				The only part. There is no <code>child</code> snippet: the swap is the content of the
+				button, so an element you rendered yourself would get the wiring and the receipt classes but
+				none of the animation. <code>icon</code> is the narrow version of that request, and it is granted
+				for the same reason — it replaces the resting glyph alone, and the swap stays the component's.
 			</p>
 			<Card.Root>
 				<Card.Content class="px-0 [&_[data-slot=table-cell]]:whitespace-normal">

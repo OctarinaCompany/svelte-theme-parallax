@@ -5,6 +5,11 @@
 	import PageIntro from "$lib/components/layout/PageIntro.svelte";
 	import CommandPalette from "$lib/components/navigation/CommandPalette.svelte";
 	import {
+		setSectionSourceContext,
+		type PageSections,
+		type SectionSource,
+	} from "$lib/components/layout/section-source.js";
+	import {
 		CATALOG_PATH,
 		CATEGORIES,
 		categoryByPath,
@@ -71,6 +76,77 @@
 		if (group)
 			return [root, { label: group.title, href: href(groupPath(group.slug)) }, { label: title }];
 		return [root, { label: title }];
+	});
+
+	/**
+	 * Every page's examples, extracted at build time and fetched on demand.
+	 *
+	 * LAZY, and that is the whole design. Eagerly, 1295 examples — nearly 2 MB of text nobody has
+	 * asked for — would land in this component's chunk and be downloaded by every visitor. Lazily,
+	 * each page's set is its own small chunk, fetched by the first press of a code control on that
+	 * page and by nothing else. The same shape `LoaderPage` uses for its 128 loader sources.
+	 *
+	 * `?sections` is answered by `tools/site/vite-plugin-doc-sections.mjs`, which runs the
+	 * compiler's parser over the page in Node. Nothing is parsed in the browser.
+	 */
+	const pageSections = import.meta.glob<PageSections>("$lib/components/pages/*Page.svelte", {
+		query: "?sections",
+		import: "default",
+	});
+
+	/**
+	 * The loader for the page on screen, found the way `tools/registry/generate.mjs` finds a page
+	 * file: the route's last segment with its dashes removed, matched case-insensitively against
+	 * the file names. The casing of an acronym is not predictable — `InputOtpPage` beside what
+	 * could as easily have been `InputOTPPage` — so the comparison is lowercased rather than
+	 * reconstructed.
+	 *
+	 * `undefined` for the catalog index and the twelve group pages: they render sections from a
+	 * component that is not named after any route, so there is no page file to extract, and the
+	 * control is simply not offered there.
+	 */
+	const sectionLoader = $derived.by(() => {
+		const slug = route.current.split("/").at(-1) ?? "";
+		const wanted = `${slug.replaceAll("-", "")}page.svelte`;
+		const key = Object.keys(pageSections).find(
+			(path) => (path.split("/").at(-1) ?? "").toLowerCase() === wanted,
+		);
+		return key ? pageSections[key] : undefined;
+	});
+
+	/**
+	 * The examples for the page on screen, once fetched.
+	 *
+	 * Held in a plain `Map` rather than in state: the only reader is the producer below, called
+	 * from a click, and caching by LOADER rather than by route means the twelve group routes that
+	 * share a component would share an entry too, if they had one.
+	 */
+	const loaded = new Map<unknown, PageSections>();
+
+	setSectionSourceContext({
+		get available() {
+			return sectionLoader !== undefined;
+		},
+		get(key: string): SectionSource | Promise<SectionSource> {
+			const loader = sectionLoader;
+			if (!loader) throw new Error(`no extracted examples for ${route.current}`);
+
+			const take = (sections: PageSections) => {
+				const source = sections[key];
+				if (!source) throw new Error(`no example extracted for "${key}" on ${route.current}`);
+				return source;
+			};
+
+			// Synchronous once the page's chunk has arrived, so the pending face appears exactly
+			// once per page rather than flashing on every press.
+			const cached = loaded.get(loader);
+			if (cached) return take(cached);
+
+			return loader().then((sections) => {
+				loaded.set(loader, sections);
+				return take(sections);
+			});
+		},
 	});
 
 	/**

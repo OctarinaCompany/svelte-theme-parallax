@@ -1,4 +1,5 @@
 <script lang="ts" module>
+	import type { Snippet } from "svelte";
 	import { cn, type WithoutChildren } from "$lib/utils.js";
 	import type { ButtonProps } from "$lib/components/ui/button/index.js";
 	import type { CopyButtonValue } from "./copy-button.svelte.js";
@@ -36,6 +37,15 @@
 		onCopy?: (text: string) => void;
 		/** Fired with whatever `writeText` or the producer threw. */
 		onCopyError?: (error: unknown) => void;
+		/**
+		 * The RESTING glyph, replacing the clipboard.
+		 *
+		 * For a button whose subject is not the text beside it: a control that copies a section's
+		 * source is better named by a code glyph than by a second clipboard. The receipt is not
+		 * overridable — a check mark is what "done" looks like on every control in this kit, and
+		 * the swap between the two is what a caller is composing this component to get.
+		 */
+		icon?: Snippet;
 	};
 
 	/** The accessible name an icon-only copy button gives itself. */
@@ -73,6 +83,11 @@
 	 * swap, and the swap is the content of the button — an element the caller rendered would receive
 	 * the click wiring and the receipt classes but none of the animation, which is the part they came
 	 * for. `variant`, `size`, `class` and the forwarded attributes cover the rest.
+	 *
+	 * The `icon` prop is the narrow version of that request, and it is granted for the same reason
+	 * `child` is refused: it replaces the RESTING glyph only, so the swap, the receipt and the
+	 * pending face all stay this component's. A control whose subject is not the text beside
+	 * it — the gallery's own `SectionCode`, which copies an example — needs to say so with its glyph.
 	 */
 	let {
 		ref = $bindable(null),
@@ -83,6 +98,7 @@
 		timeout = DEFAULT_COPY_BUTTON_TIMEOUT,
 		onCopy,
 		onCopyError,
+		icon,
 		// `outline` rather than Button's own `default`, matching `ui/json-viewer`'s copy control: this
 		// sits beside the thing it copies, and a primary-filled button would outrank it. Upstream's
 		// resting grey chip is closest to `secondary` for anyone who wants it.
@@ -223,6 +239,8 @@
 					<CheckIcon />
 				{:else if state.phase === "pending"}
 					<Spinner />
+				{:else if icon}
+					{@render icon()}
 				{:else}
 					<CopyIcon />
 				{/if}
