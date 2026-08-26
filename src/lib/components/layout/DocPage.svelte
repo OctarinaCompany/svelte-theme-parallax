@@ -4,6 +4,8 @@
 	import PageHeader from "$lib/components/layout/PageHeader.svelte";
 	import PageIntro from "$lib/components/layout/PageIntro.svelte";
 	import CommandPalette from "$lib/components/navigation/CommandPalette.svelte";
+	import ModeToggle from "$lib/components/navigation/ModeToggle.svelte";
+	import RepositoryLink from "$lib/components/navigation/RepositoryLink.svelte";
 	import {
 		setSectionSourceContext,
 		type PageSections,
@@ -293,10 +295,19 @@
 	The palette rides in through `search` because it is the demo's: it reads this gallery's
 	catalog, which the published header cannot know. The slot is the seam — one line here, and
 	none of the 109 pages that render DocPage are aware the header stopped hardcoding it.
+
+	`controls` is the same seam for the same reason. Overriding it means rendering the GROUP, so
+	the light/dark toggle is repeated here rather than inherited: that is the slot's contract, and
+	the header's own comment says so. The repository link goes first because the toggle is the
+	control a reader reaches for repeatedly and belongs closest to the edge it always sits at.
 -->
 <PageHeader {trail}>
 	{#snippet search()}
 		<CommandPalette />
+	{/snippet}
+	{#snippet controls()}
+		<RepositoryLink />
+		<ModeToggle />
 	{/snippet}
 </PageHeader>
 

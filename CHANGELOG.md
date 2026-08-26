@@ -29,6 +29,16 @@ ships today is listed here.
   and navigates to it, so `/components/badge#sizes` can be shared and opened cold. The id is the
   heading's own title, kebab-cased, which means rewording a title moves the address — `DocSection`
   takes an explicit `id` where that is not acceptable.
+- **A link to the source, in the bar and on every copied example.** The header carries the
+  repository beside the light/dark toggle, and each copied example names both addresses it came
+  from — the page and the source. The link rides in through `PageHeader`'s `controls` snippet from
+  the demo, never through the published header, so `parallax-shell` is untouched and a consumer's
+  application does not gain a link to somebody else's repository. The URL is derived from
+  `package.json` at build time, so a fork's remote is the only place it is written down.
+- **A card header whose navigation meets the rule.** The Card page gains the shape the classic
+  theme called `.card-header-tabs`, beside the pill it already showed: the tab row spans the full
+  60px header and the active underline lands on the header's own rule instead of floating inside
+  it. Three classes over the `line` tab variant, which already ports the rest.
 - **The code of every example, on the clipboard.** A second control beside each heading copies that
   demo as a standalone Svelte component: the markup with the gallery's card frame removed, the
   imports it needs, and the page declarations it reads — carried whole, `$effect`s and types

@@ -374,7 +374,9 @@
 		is the designated giver when the bar runs out of room. It rarely has to give now — with the
 		cluster down to one button the field holds its full width at every width from `sm` up, where
 		it used to be squeezed to 18px at 780 — but the contract is unchanged, because a caller who
-		puts its own group in `controls` can spend that room again.
+		puts its own group in `controls` can spend that room again. The demo is that caller, and
+		does: its second control costs the field 45px at 768px, gone again by 815px. The numbers are
+		with the cluster comment below.
 
 		NO CLASS OF ITS OWN: the centring lives entirely in the two `flex-1` neighbours (see the
 		comment above), which is what makes it degrade instead of break. When their equal halves stop
@@ -403,6 +405,14 @@
 		the cluster's content was 377px and is 72px, and the difference came straight out of the
 		search field, which was being squeezed to 18px while the cluster still overflowed the bar by
 		41px and was clipped. The field now keeps its full 256px, at every width down to `sm`.
+
+		THAT IS THE DEFAULT'S ARITHMETIC, and a caller who fills `controls` spends the room again —
+		which is the slot working, not a regression, and is what the note below reserves. Re-derived
+		against the demo, whose group is the repository link and the toggle: its cluster is 116px,
+		and the extra 44px comes out of the field once the left group hits its 144px floor. Measured
+		at 768/780/800/815px the field is 211/223/243/256px against the default's 255/256/256/256.
+		Nothing overflows at any width, and below 768 the sidebar goes off-canvas and the bar widens
+		again — which is why the squeeze has a floor and a ceiling rather than getting worse.
 
 		Light/dark stays because it is the one appearance choice a reader makes WHILE READING — the
 		room got brighter, the screen is too bright at night — where a palette or an inverted rail is

@@ -1,4 +1,5 @@
 import { getContext, setContext } from "svelte";
+import { REPOSITORY_URL } from "$lib/data/repository.js";
 
 /**
  * The example behind one section heading, and the text the copy control puts on the clipboard.
@@ -86,7 +87,18 @@ export function sectionSourceText(source: SectionSource, url: string, title?: st
 	// The rendered title wins. A section whose heading interpolates data — `The 12 palettes` — is
 	// an expression in the page source, so the build can only key it by its `id`; the component is
 	// the only half that knows what the heading actually says.
-	const header = [`<!--`, `\t${title ?? source.title} — from the Parallax gallery`, `\t${url}`];
+	/*
+	 * BOTH ADDRESSES ARE LABELLED. They sit under one organisation name and differ only in host, so
+	 * a reader opening this file a month later could not tell the rendered page from the source by
+	 * looking. The source is worth carrying because the question a pasted example raises later is
+	 * rarely "where did I see this" but "how is it actually built".
+	 */
+	const header = [
+		`<!--`,
+		`\t${title ?? source.title} — from the Parallax gallery`,
+		`\tPage:   ${url}`,
+		`\tSource: ${REPOSITORY_URL}`,
+	];
 	if (source.missing.length > 0) {
 		header.push(
 			"",

@@ -230,7 +230,7 @@ install URL, and the post-install steps a registry item cannot perform for you.
 | `src/lib/hooks/` | The path router, sidebar persistence, `is-mobile`, file-upload state, and the sidebar/header appearance axes |
 | `src/lib/themes/` | The theme axis: generated palette data, and the state over `mode-watcher` |
 | `src/lib/hooks/route.svelte.ts` | The catalog — the ladder, and the routes derived from it |
-| `src/lib/data/dashboard.ts` | The menu's presentation: identity, workspaces, group icons |
+| `src/lib/data/` | The demo's own data: the menu's presentation, and this deployment's repository URL |
 | `src/themes.css` | The eleven alternative palettes — **generated** |
 | `tools/themes/` | The generator and its audit — the only place a palette is edited |
 | `registry.json` | The registry manifest — **generated** by `tools/registry/` |

@@ -2,9 +2,12 @@
  * The logo wall for the Marquee page's wide-plate section, drawn rather than fetched.
  *
  * WHY THIS EXISTS. Upstream's `marquee-demo.tsx` scrolls three real company logos in 192x80 and
- * 192x56 boxes. Two rules bite at once: this repository makes no network request at runtime, and it
- * ships no third-party trademark. So the brands are invented and their marks are drawn here,
- * inlined as data URIs — the same technique and the same reasoning as `cropper-sample-image.ts`.
+ * 192x56 boxes. Two rules bite at once: this repository makes no network request at runtime, and a
+ * logo WALL of real brands would be using them decoratively rather than to identify anything. So
+ * the brands are invented and their marks are drawn here, inlined as data URIs — the same technique
+ * and the same reasoning as `cropper-sample-image.ts`. The marks the project does carry are the
+ * nominative ones, listed in `THIRD-PARTY-NOTICES.md`: a GitHub link that points at GitHub, and the
+ * social buttons whose whole subject is which service they sign you in with.
  *
  * THE MARK IS COLOURED, THE WORDMARK IS NOT. A logo wall with no colour in it is not a logo wall,
  * so each mark carries its own brand hue and is rendered as a real `<img>`. The wordmark beside it

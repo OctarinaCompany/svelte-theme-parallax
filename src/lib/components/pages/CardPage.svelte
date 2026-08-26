@@ -59,6 +59,18 @@
 	const lorem =
 		"Lorem ipsum dolor sit amet, consectetur adipisicing elit. Facilis non dolore est fuga nobis ipsum illum eligendi nemo iure repellat, soluta, optio minus ut reiciendis voluptates enim impedit veritatis officiis.";
 
+	/** What the tabs above switch between — a figure and a sentence, so the demo does something. */
+	const trafficChannels = [
+		{ value: "all", label: "All", visits: "48,214", note: "Every channel combined, last 30 days." },
+		{
+			value: "direct",
+			label: "Direct",
+			visits: "19,806",
+			note: "Typed the address or used a bookmark.",
+		},
+		{ value: "search", label: "Search", visits: "21,455", note: "Arrived from an organic result." },
+	];
+
 	/**
 	 * The four stat cards the classic theme stacks in the Fill example's right column. Their combined
 	 * height is what the filling card on the left has to reach.
@@ -171,6 +183,50 @@
 			<Card.Content>
 				<Tabs.Content value="all"><p class="text-sm">Every channel combined.</p></Tabs.Content>
 				<Tabs.Content value="direct"><p class="text-sm">Direct traffic only.</p></Tabs.Content>
+			</Card.Content>
+		</Card.Root>
+	</Tabs.Root>
+{/snippet}
+{#snippet headerTabsToRule()}
+	<Tabs.Root value="all">
+		<Card.Root>
+			<!--
+				`flex`, not `flex-row`. `Card.Header` is the grid header, so `flex-row` alone sets a
+				direction nothing reads and drops the tabs onto a second row.
+			-->
+			<Card.Header class="flex items-center justify-between gap-4">
+				<Card.Title>Traffic Channels</Card.Title>
+				<!--
+					THE VARIANT DOES THE WORK. `line` is already the full `.nav-tabs` port — the row's
+					own rule, the active underline, the type — and `sm` is `.nav-tabs-sm`, whose
+					padding `app.css` scaled by exactly the ratio the type shrinks by so that a small
+					tab row still measures a card header. Nothing here restyles any of it.
+
+					What is left is `.card-header-tabs`, and it is three classes. `-my-3` cancels the
+					header's 12px padding so the row spans the full 60px. The bottom margin takes one
+					more pixel, which drops the row's rule ONTO the header's instead of leaving it
+					stacked one above — measured, the two coincide. `items-stretch` overrides the
+					list's own centring so each tab reaches the rule, which is what puts the active
+					underline on it rather than 1.3px above: the Chart page's Sales card is the same
+					measurement, and this now matches it exactly.
+				-->
+				<Tabs.List
+					variant="line"
+					size="sm"
+					class="-my-3 -mb-[calc(0.75rem+1px)] items-stretch self-stretch"
+				>
+					{#each trafficChannels as channel (channel.value)}
+						<Tabs.Trigger value={channel.value}>{channel.label}</Tabs.Trigger>
+					{/each}
+				</Tabs.List>
+			</Card.Header>
+			<Card.Content>
+				{#each trafficChannels as channel (channel.value)}
+					<Tabs.Content value={channel.value}>
+						<p class="text-2xl font-medium">{channel.visits}</p>
+						<p class="mt-1 text-sm text-muted-foreground">{channel.note}</p>
+					</Tabs.Content>
+				{/each}
 			</Card.Content>
 		</Card.Root>
 	</Tabs.Root>
@@ -308,6 +364,18 @@
 	<DocSection title="Card header navigation">
 		{#snippet blurb()}A navigation placed inside the card header.{/snippet}
 		{@render headerNav()}
+	</DocSection>
+
+	<DocSection title="Card header navigation that meets the rule">
+		{#snippet blurb()}
+			The same navigation, drawn the classic theme's way: the tabs span the header's full height and
+			their active underline lands on the header's own rule rather than floating inside it. The pill
+			above is the shadcn shape and needs nothing; this is what
+			<code class="text-[87.5%] text-primary">.card-header-tabs</code> was, and it is worth having because
+			a card whose header is a switch reads as one surface instead of two. The Chart page puts the same
+			tabs over a chart.
+		{/snippet}
+		{@render headerTabsToRule()}
 	</DocSection>
 
 	<DocSection title="Inactive">

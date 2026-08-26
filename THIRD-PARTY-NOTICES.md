@@ -17,8 +17,24 @@ under the MIT licence.
 
 ## Lucide
 
-All iconography is [Lucide](https://lucide.dev) via `@lucide/svelte`, published under the ISC
-licence.
+The interface iconography is [Lucide](https://lucide.dev) via `@lucide/svelte`, published under
+the ISC licence. The brand marks below are the named exception.
+
+## Brand marks
+
+Lucide removed brand glyphs from its set, so the few this project needs are inlined as SVG paths
+rather than fetched or packaged. They are trademarks of their owners, used nominatively — to
+identify the service they point at — and neither the trademarks nor any endorsement is claimed.
+
+- **GitHub.** The Invertocat, in the header bar's link to this repository
+  (`src/lib/components/navigation/RepositoryLink.svelte`) and in two demos on the Button and Card
+  pages. GitHub's brand guidance permits the mark as a link to GitHub; the path here is a faithful
+  redraw rather than GitHub's own asset file.
+- **Facebook, X, LinkedIn, Instagram.** Social-login button demos on the Button page
+  (`src/lib/components/pages/ButtonPage.svelte`), where the mark is what the demo is about.
+
+None of them is published by the registry: the two pages are gallery source, and the header link
+is demo chrome that `parallax-shell` does not ship.
 
 ## Hanken Grotesk
 
