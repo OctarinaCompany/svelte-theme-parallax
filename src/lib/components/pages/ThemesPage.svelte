@@ -14,6 +14,7 @@
 	import ThemeSwatch from "$lib/components/navigation/ThemeSwatch.svelte";
 	import { cn } from "$lib/utils.js";
 	import { THEMES, TOKEN_GROUPS, activeTheme, setTheme, themeById } from "$lib/themes/index.js";
+	import { href } from "$lib/hooks/route.svelte.js";
 
 	/**
 	 * The Themes page — the one page that documents the palette axis rather than a component.
@@ -75,7 +76,9 @@
 	{#snippet subtitle()}
 		{THEMES.length} palettes over one token set. Every theme defines both a light and a dark mode, so
 		the palette and the light/dark switch are independent — the picker below is the same control the
-		<a class="text-primary underline underline-offset-3" href="#/components/settings">Settings</a>
+		<a class="text-primary underline underline-offset-3" href={href("/components/settings")}
+			>Settings</a
+		>
 		page mounts, in the two forms it comes in.
 	{/snippet}
 
@@ -123,7 +126,7 @@
 			</Card.Root>
 		</DocSection>
 
-		<DocSection title="The {THEMES.length} palettes">
+		<DocSection id="palettes" title="The {THEMES.length} palettes">
 			{#snippet blurb()}
 				Both modes of each, side by side. Click a card to wear it.
 			{/snippet}

@@ -26,6 +26,7 @@
 	import ZapIcon from "@lucide/svelte/icons/zap";
 	import DocPage from "$lib/components/layout/DocPage.svelte";
 	import DocSection from "$lib/components/layout/DocSection.svelte";
+	import { href } from "$lib/hooks/route.svelte.js";
 
 	/**
 	 * The Alert component page. It has TWO upstreams, and they disagree about what an alert
@@ -537,9 +538,11 @@
 					with the base, so both would survive and CSS source order would settle it. Matching
 					the base's spelling exactly is what makes the override deterministic.
 
-					`href` is this page's own route, not `#`. The router reads `location.hash`, so a bare
-					`#` empties it and navigates to the home page — §16 of the theme notes records the
-					same trap for the classic theme's `href="#!"` demo links.
+					`href` is this page's own route, not upstream's `#`. A bare `#` costs nothing now that
+					the route lives in the path — it is a fragment naming no element, and the browser
+					keeps the reader where they are — but it still reads as a dead link, and a gallery
+					full of dead links teaches a reader the components are dead too.
+					`BreadcrumbPage.svelte` carries the standing version of this correction.
 				-->
 				<Alert.Root
 					class="flex items-center justify-between border-info text-info *:[svg]:translate-y-0"
@@ -549,7 +552,7 @@
 					<Button
 						variant="outline"
 						size="sm"
-						href="#/components/alert"
+						href={href("/components/alert")}
 						class="border-info bg-transparent text-info hover:bg-info/10 hover:text-info focus-visible:border-info focus-visible:ring-info/20 dark:border-info dark:bg-transparent dark:hover:bg-info/10"
 					>
 						Link
@@ -1395,7 +1398,7 @@
 										<Button
 											variant="link"
 											size="sm"
-											href="#/components/alert"
+											href={href("/components/alert")}
 											class="h-auto p-0 text-info underline"
 										>
 											Explore features

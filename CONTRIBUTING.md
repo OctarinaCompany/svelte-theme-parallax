@@ -14,12 +14,15 @@ npm install
 npm run dev              # http://localhost:5173 — hot reload
 ```
 
-Every page of the gallery is reachable from the sidebar; the hash router means a plain static
-server is enough — there is no backend.
+Every page of the gallery is reachable from the sidebar. There is no backend, but a plain static
+server is not quite enough either: routes are real paths, so the host has to answer an unknown one
+with `index.html`. `vite dev` and `vite preview` both do; `npm run build` also writes `404.html`
+and one file per route, which is what GitHub Pages serves from.
 
 ## The quality gates
 
-CI runs exactly these, and they all must pass before a merge:
+CI runs exactly these, and they all must pass before a merge — plus one grep, described under the
+list:
 
 ```bash
 npm run format:check     # prettier — the only formatting authority
@@ -28,6 +31,11 @@ npm run build            # the production build must succeed
 npm run themes:audit     # contrast, brand/status separation, CVD simulation
 npm run loaders:check    # loader CSS-in-markup styles svelte-check cannot see
 ```
+
+CI also greps `src/` for a hand-written gallery link before it installs anything. A route reaches
+the DOM through `href()` and nowhere else (`CONVENTIONS.md` §9), because a literal
+`/components/…` works locally and 404s under the deployed base. The grep is a backstop, not a
+proof: it catches the shapes that have actually regressed, not every one imaginable.
 
 Run them locally before opening a pull request. `npm run format` fixes formatting in place.
 

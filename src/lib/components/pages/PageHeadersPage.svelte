@@ -8,6 +8,7 @@
 	import { cn } from "$lib/utils.js";
 	import DocPage from "$lib/components/layout/DocPage.svelte";
 	import DocSection from "$lib/components/layout/DocSection.svelte";
+	import { href } from "$lib/hooks/route.svelte.js";
 
 	/**
 	 * The Page headers component page.
@@ -128,7 +129,7 @@
 		"border-primary bg-primary text-primary-foreground hover:border-[color-mix(in_srgb,var(--primary)_85%,black)] hover:bg-[color-mix(in_srgb,var(--primary)_85%,black)]",
 	);
 
-	const self = "#/components/page-headers";
+	const self = href("/components/page-headers");
 
 	/** The audience series behind the "Chart" variant, standing in for the classic theme's Chart.js demo. */
 	const audience = [

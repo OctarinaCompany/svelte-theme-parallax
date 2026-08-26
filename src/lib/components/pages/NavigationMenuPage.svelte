@@ -16,6 +16,7 @@
 	import UserIcon from "@lucide/svelte/icons/user";
 	import DocPage from "$lib/components/layout/DocPage.svelte";
 	import DocSection from "$lib/components/layout/DocSection.svelte";
+	import { href } from "$lib/hooks/route.svelte.js";
 
 	/**
 	 * The Navigation menu component page, ported from
@@ -70,6 +71,18 @@
 	 * full-width and needs no anchoring. One instance serves every demo on the page.
 	 */
 	const isMobile = new IsMobile();
+
+	/**
+	 * Where every demo link on this page points.
+	 *
+	 * Upstream writes `href="#!"`, which in a static page is an anchor that does nothing. It is
+	 * not nothing here: a fragment naming no element still writes `#!` into the address bar and
+	 * spends a history entry, so a reader who tries a menu item and then presses Back only sheds
+	 * the punctuation. Pointing at this page's own route is the gallery's standing answer —
+	 * `BreadcrumbPage.svelte` states it in full — and the router turns a link to the page you are
+	 * already on into a genuine no-op.
+	 */
+	const self = href("/components/navigation-menu");
 
 	/**
 	 * A top-level menu link — `.navbar-nav .nav-link` in an EXPANDED navbar:
@@ -184,35 +197,35 @@
 	const components: { title: string; href: string; content: string }[] = [
 		{
 			title: "Alert Dialog",
-			href: "#!",
+			href: self,
 			content:
 				"A modal dialog that interrupts the user with important content and expects a response.",
 		},
 		{
 			title: "Hover Card",
-			href: "#!",
+			href: self,
 			content: "For sighted users to preview content available behind a link.",
 		},
 		{
 			title: "Progress",
-			href: "#/components/progress",
+			href: href("/components/progress"),
 			content:
 				"Displays an indicator showing the completion progress of a task, typically displayed as a progress bar.",
 		},
 		{
 			title: "Scroll-area",
-			href: "#!",
+			href: self,
 			content: "Visually or semantically separates content.",
 		},
 		{
 			title: "Tabs",
-			href: "#!",
+			href: self,
 			content:
 				"A set of layered sections of content — known as tab panels — that are displayed one at a time.",
 		},
 		{
 			title: "Tooltip",
-			href: "#/components/tooltip",
+			href: href("/components/tooltip"),
 			content:
 				"A popup that displays information related to an element when the element receives keyboard focus or the mouse hovers over it.",
 		},
@@ -300,7 +313,7 @@
 										own to put one in, so the tokens are left as they are.
 									-->
 									<NavigationMenu.Link
-										href="#!"
+										href={self}
 										class="flex h-full w-full flex-col items-start justify-end rounded-md bg-linear-to-b from-muted/50 to-muted p-4 no-underline outline-hidden select-none focus:shadow-md md:p-6"
 									>
 										<div class="mt-4 mb-2 text-lg font-medium">shadcn-svelte</div>
@@ -310,17 +323,17 @@
 									</NavigationMenu.Link>
 								</li>
 								{@render listItem({
-									href: "#!",
+									href: self,
 									title: "Introduction",
 									content: "Re-usable components built using Bits UI and Tailwind CSS.",
 								})}
 								{@render listItem({
-									href: "#!",
+									href: self,
 									title: "Installation",
 									content: "How to install dependencies and structure your app.",
 								})}
 								{@render listItem({
-									href: "#/components/typography",
+									href: href("/components/typography"),
 									title: "Typography",
 									content: "Styles for headings, paragraphs, lists…etc",
 								})}
@@ -348,7 +361,7 @@
 							two triggers beside it.
 						-->
 						<NavigationMenu.Link
-							href="#/components/navigation-menu"
+							href={href("/components/navigation-menu")}
 							class={cn(navigationMenuTriggerStyle(), trigger)}
 						>
 							Docs
@@ -373,7 +386,7 @@
 								<ul class="grid w-[300px] gap-0">
 									{#each pages as page (page.title)}
 										<li>
-											<NavigationMenu.Link href="#!" class={stackedItem}>
+											<NavigationMenu.Link href={self} class={stackedItem}>
 												<div class="font-medium">{page.title}</div>
 												<div class="text-muted-foreground">{page.content}</div>
 											</NavigationMenu.Link>
@@ -404,7 +417,7 @@
 								<ul class="grid gap-0">
 									{#each ["Components", "Documentation", "Blocks"] as label (label)}
 										<li>
-											<NavigationMenu.Link href="#!" class={item}>{label}</NavigationMenu.Link>
+											<NavigationMenu.Link href={self} class={item}>{label}</NavigationMenu.Link>
 										</li>
 									{/each}
 								</ul>
@@ -437,7 +450,7 @@
 												`.dropdown-item`, so the component's own `size-4` stands.
 											-->
 											<NavigationMenu.Link
-												href="#!"
+												href={self}
 												class={cn(item, "flex-row items-center gap-2")}
 											>
 												<status.icon />
@@ -474,7 +487,7 @@
 								<ul class="grid w-[300px] gap-0">
 									{#each pages as page (page.title)}
 										<li>
-											<NavigationMenu.Link href="#!" class={stackedItem}>
+											<NavigationMenu.Link href={self} class={stackedItem}>
 												<div class="font-medium">{page.title}</div>
 												<div class="text-muted-foreground">{page.content}</div>
 											</NavigationMenu.Link>
@@ -490,7 +503,7 @@
 									{#each statuses as status (status.label)}
 										<li>
 											<NavigationMenu.Link
-												href="#!"
+												href={self}
 												class={cn(item, "flex-row items-center gap-2")}
 											>
 												<status.icon />
@@ -539,7 +552,7 @@
 													cap line, not the tile's centre, so the two-line description
 													hangs below it.
 												-->
-												<NavigationMenu.Link href="#!" class="items-start gap-2 p-3">
+												<NavigationMenu.Link href={self} class="items-start gap-2 p-3">
 													<industry.icon />
 													<div class="flex flex-col gap-0.5">
 														<div class="text-sm leading-none font-medium">
@@ -554,7 +567,7 @@
 										{/each}
 									</ul>
 									<div class="mt-2 px-1 pb-1">
-										<Button href="#!" class="w-full">Learn more</Button>
+										<Button href={self} class="w-full">Learn more</Button>
 									</div>
 								</div>
 							</NavigationMenu.Content>

@@ -25,6 +25,7 @@
 	import { getInitials } from "$lib/shared/get-initials.js";
 	import DocPage from "$lib/components/layout/DocPage.svelte";
 	import DocSection from "$lib/components/layout/DocSection.svelte";
+	import { href } from "$lib/hooks/route.svelte.js";
 
 	/**
 	 * The Autocomplete component page. All ten of its variants are
@@ -578,7 +579,9 @@
 	{#snippet subtitle()}
 		A text field that suggests as you type, and still accepts what the list never offered — ten
 		variants. Reach for it when the answer may be something the list never offered; for
-		<a class="text-primary underline underline-offset-3" href="#/components/combobox">Combobox</a>
+		<a class="text-primary underline underline-offset-3" href={href("/components/combobox")}
+			>Combobox</a
+		>
 		next door when it must not be — that one commits an item, and the text you type is only a search over
 		the set. Its page lays out how all six type-to-pick components divide their roles.
 	{/snippet}

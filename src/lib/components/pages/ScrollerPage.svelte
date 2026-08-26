@@ -7,6 +7,7 @@
 	import DocPage from "$lib/components/layout/DocPage.svelte";
 	import DocSection from "$lib/components/layout/DocSection.svelte";
 	import { getInitials } from "$lib/shared/get-initials.js";
+	import { href } from "$lib/hooks/route.svelte.js";
 
 	/**
 	 * The Scroller component page.
@@ -123,7 +124,7 @@
 	{#snippet subtitle()}
 		A scroll container that keeps the browser's native scrollbar and fades the edges where more
 		content hides, with optional buttons that scroll on press, hover or click. Unlike
-		<a class="text-primary underline underline-offset-3" href="#/components/scroll-area"
+		<a class="text-primary underline underline-offset-3" href={href("/components/scroll-area")}
 			>Scroll area</a
 		>, which replaces the scrollbar entirely with its own thumb, Scroller only layers affordances on
 		top of native scrolling.

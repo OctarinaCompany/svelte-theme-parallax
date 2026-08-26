@@ -76,6 +76,7 @@
 	} from "$lib/components/pages/data-grid-order-items.svelte";
 	import { getInitials } from "$lib/shared/get-initials.js";
 	import { cn } from "$lib/utils.js";
+	import { href } from "$lib/hooks/route.svelte.js";
 
 	/**
 	 * The Data table component page.
@@ -3629,10 +3630,12 @@
 	{#snippet subtitle()}
 		A powerful and flexible data table for displaying, filtering, sorting and paginating tabular
 		data, built on <code>@tanstack/table-core</code>. Reach for it over the plain
-		<a class="text-primary underline underline-offset-3" href="#/components/table">Table</a>
+		<a class="text-primary underline underline-offset-3" href={href("/components/table")}>Table</a>
 		when the rows need a toolbar, faceted filters and pagination rather than markup you write yourself,
 		and over the
-		<a class="text-primary underline underline-offset-3" href="#/components/data-grid">Data grid</a>
+		<a class="text-primary underline underline-offset-3" href={href("/components/data-grid")}
+			>Data grid</a
+		>
 		when they are only read: this one pages a dataset through the Table primitive's own cells, where the
 		grid drops pagination for windowed scrolling and edits cells in place.
 	{/snippet}

@@ -7,6 +7,7 @@
 	import * as Card from "$lib/components/ui/card/index.js";
 	import DocPage from "$lib/components/layout/DocPage.svelte";
 	import DocSection from "$lib/components/layout/DocSection.svelte";
+	import { href } from "$lib/hooks/route.svelte.js";
 
 	/**
 	 * The Badge component page.
@@ -379,7 +380,7 @@
 					renders an `<a>` whenever `href` is set, so the prop is the whole port. The
 					outline variant carries the `[a]:hover` muted wash, visible on hover here.
 				-->
-				<Badge variant="outline" href="#/components/badge">Badge</Badge>
+				<Badge variant="outline" href={href("/components/badge")}>Badge</Badge>
 			</Card.Content>
 		</Card.Root>
 	</DocSection>

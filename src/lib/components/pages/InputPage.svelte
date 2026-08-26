@@ -17,6 +17,7 @@
 	import { cn } from "$lib/utils.js";
 	import DocPage from "$lib/components/layout/DocPage.svelte";
 	import DocSection from "$lib/components/layout/DocSection.svelte";
+	import { href } from "$lib/hooks/route.svelte.js";
 
 	/**
 	 * The Input component page. The first five examples follow shadcn-svelte's own documentation
@@ -509,13 +510,16 @@
 					escape that recipe's own comment prescribes for call-site departures. Same on
 					every padding, background and height override in the sections below.
 
-					The link points at this page's own route, not upstream's `href="#"` — the
-					fragment IS the router here, the Breadcrumb page's standing correction.
+					The link points at this page's own route, not upstream's `href="#"` — a link that
+					goes nowhere reads as a dead gallery. The Breadcrumb page's standing correction.
 				-->
 				<Field.Field class="w-full max-w-xs">
 					<div class="flex items-center justify-between">
 						<Field.FieldLabel class={label} for="password-link">Password</Field.FieldLabel>
-						<a href="#/components/input" class="text-xs font-medium text-primary hover:underline">
+						<a
+							href={href("/components/input")}
+							class="text-xs font-medium text-primary hover:underline"
+						>
 							Forgot password?
 						</a>
 					</div>

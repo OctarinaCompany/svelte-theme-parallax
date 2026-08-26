@@ -85,10 +85,18 @@ npm install
 npm run dev              # http://localhost:5173 — hot reload
 npm run check            # Svelte + TypeScript
 npm run build            # production build into dist/
-npm run preview          # serve the production build
+npm run preview          # serve that build, under /svelte-theme-parallax/
 npm run themes:generate  # rewrite src/themes.css and src/lib/themes/palettes.ts
 npm run themes:audit     # contrast, brand/status separation, CVD simulation
 ```
+
+`npm run dev` serves at the root, but a build sets an **absolute** base, so `npm run preview`
+— like CI and Pages — serves the site under `/svelte-theme-parallax/`. Routes are real paths, so
+that difference is visible from the address bar down: `npm run build && npm run preview` is how
+you check a deep link and the prerendered pages in the shape they are deployed in. It does not
+reproduce the fallback: Vite's preview server rewrites an unknown path to `index.html` and answers
+200, where Pages serves `404.html` and answers 404. The two files are byte-identical, so the page
+is the same and only the status differs.
 
 ## The two-tier rule for `src/lib/components/ui/`
 
@@ -119,9 +127,12 @@ The non-obvious behaviours are deliberate and documented where they live:
   beside the rail instead of turning into a dead button. Children are real `<a href>` links, so
   middle-click and "open in new tab" work.
 - **The menu is data, not markup.** Workspaces, navigation and user live in one typed file,
-  `src/lib/data/dashboard.ts`; the sidebar's anchors ARE the route table of the small hash
+  `src/lib/data/dashboard.ts`; the sidebar's anchors ARE the route table of the small path
   router that closes `src/lib/hooks/route.svelte.ts` — the rest of that file is the catalog it
-  routes over.
+  routes over. A route is a path under the site base — `/components/badge`, never
+  `#/components/badge` — which leaves the fragment to the document, where a section anchor
+  like `/components/badge#sizes` belongs. Every link is built by that file's `href()`, the
+  one place the base is applied.
 
 ## Themes
 
@@ -216,7 +227,7 @@ install URL, and the post-install steps a registry item cannot perform for you.
 | `src/lib/components/navigation/` | The composed pieces: switcher, nav groups, user menu |
 | `src/lib/components/pages/` | The gallery — every component is rendered by at least one page |
 | `src/lib/shared/` | Shared infrastructure the components compose (form control, roving focus, …) |
-| `src/lib/hooks/` | The hash router, sidebar persistence, `is-mobile`, file-upload state, and the sidebar/header appearance axes |
+| `src/lib/hooks/` | The path router, sidebar persistence, `is-mobile`, file-upload state, and the sidebar/header appearance axes |
 | `src/lib/themes/` | The theme axis: generated palette data, and the state over `mode-watcher` |
 | `src/lib/hooks/route.svelte.ts` | The catalog — the ladder, and the routes derived from it |
 | `src/lib/data/dashboard.ts` | The menu's presentation: identity, workspaces, group icons |
@@ -226,7 +237,7 @@ install URL, and the post-install steps a registry item cannot perform for you.
 | `tools/registry/` | The manifest generator, and the `app.css` block reader it uses |
 | `skills/parallax/` | The Agent Skill published as `parallax-skill`, with its references and evals |
 | `public/llms.txt` | The machine-readable index of every item and guide — **generated** |
-| `.github/workflows/pages.yml` | Builds the registry and the gallery, and deploys both to Pages on every push to `main` |
+| `.github/workflows/pages.yml` | Builds the registry and the gallery — fallback and prerendered pages included, `npm run build` writes those — and deploys the result to Pages on every push to `main` |
 | `docs/THEME.md` | The theme system: base palette, ladder, token mapping, audit |
 | `docs/CONVENTIONS.md` | House conventions: tiers, naming, status vocabulary, imports |
 | `docs/REGISTRY.md` | Every published item and its install URL — **generated** |

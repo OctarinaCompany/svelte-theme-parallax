@@ -21,6 +21,7 @@
 	import { Label } from "$lib/components/ui/label/index.js";
 	import DocPage from "$lib/components/layout/DocPage.svelte";
 	import DocSection from "$lib/components/layout/DocSection.svelte";
+	import { href } from "$lib/hooks/route.svelte.js";
 
 	/**
 	 * The Alert dialog component page — its fourteen examples in the order
@@ -30,7 +31,7 @@
 	 * the "answer the question before you continue" surface — no close button, a Cancel that
 	 * yields to an Action — is Radix's, and the component here is the bits-ui AlertDialog wearing
 	 * the house styling (`$lib/components/ui/alert-dialog/`, which records its own decisions).
-	 * The always-dismissible sibling lives at `#/components/dialog`.
+	 * The always-dismissible sibling lives at `/components/dialog`.
 	 *
 	 * THREE STANDING HOUSE RULES apply throughout:
 	 *
@@ -243,8 +244,8 @@
 							<AlertDialog.Title>Delete chat?</AlertDialog.Title>
 							<AlertDialog.Description>
 								This will permanently delete this chat conversation. View
-								<a href="#/components/alert-dialog">Settings</a> to delete any memories saved during this
-								chat.
+								<a href={href("/components/alert-dialog")}>Settings</a> to delete any memories saved during
+								this chat.
 							</AlertDialog.Description>
 						</AlertDialog.Header>
 						<AlertDialog.Footer>

@@ -13,6 +13,7 @@
 	import PaletteIcon from "@lucide/svelte/icons/palette";
 	import ScissorsIcon from "@lucide/svelte/icons/scissors";
 	import { jsonViewerSampleData } from "./json-viewer-sample-data.js";
+	import { href } from "$lib/hooks/route.svelte.js";
 
 	/**
 	 * The JSON viewer page and its two demos.
@@ -191,7 +192,7 @@
 		A collapsible JSON tree with per-type colouring, expand and collapse, copy, and array
 		truncation. JSON viewer parses the value it is handed and colours it by runtime type; when the
 		payload is an opaque sample to read and copy rather than a tree to navigate, use
-		<a class="text-primary underline underline-offset-3" href="#/components/code-block"
+		<a class="text-primary underline underline-offset-3" href={href("/components/code-block")}
 			>Code block</a
 		>
 		instead.

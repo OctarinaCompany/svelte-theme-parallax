@@ -5,6 +5,7 @@
 	import * as Gauge from "$lib/components/ui/gauge/index.js";
 	import * as Table from "$lib/components/ui/table/index.js";
 	import { cn } from "$lib/utils.js";
+	import { href } from "$lib/hooks/route.svelte.js";
 
 	/**
 	 * The Gauge component page.
@@ -280,8 +281,9 @@
 		A circular meter that displays a value along a configurable arc, with full support for custom
 		angles, sizes and an indeterminate state. Reach for Gauge when the arc is part of the reading —
 		a dial, a segment, a sweep short of a full turn; reach for
-		<a class="text-primary underline underline-offset-3" href="#/components/circular-progress"
-			>Circular progress</a
+		<a
+			class="text-primary underline underline-offset-3"
+			href={href("/components/circular-progress")}>Circular progress</a
 		>
 		when a closed ring is all you need. The two share their arc geometry, so installing Gauge brings Circular
 		progress with it.

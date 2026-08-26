@@ -12,7 +12,7 @@
 	import * as Command from "$lib/components/ui/command/index.js";
 	import * as Kbd from "$lib/components/ui/kbd/index.js";
 	import { cn } from "$lib/utils.js";
-	import { CATEGORIES, DESTINATIONS, route } from "$lib/hooks/route.svelte.js";
+	import { CATEGORIES, DESTINATIONS, href, route } from "$lib/hooks/route.svelte.js";
 
 	/**
 	 * Jump to any page in the catalog by typing part of its name.
@@ -174,7 +174,7 @@
 			<Command.Group heading={group.heading}>
 				{#each group.items as item (item.slug)}
 					<Command.LinkItem
-						href="#{item.slug}"
+						href={href(item.slug)}
 						value={searchValue(item.title, item.slug)}
 						onSelect={() => (open = false)}
 					>

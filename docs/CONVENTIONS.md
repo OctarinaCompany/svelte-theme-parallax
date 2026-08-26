@@ -115,6 +115,21 @@ the only departures; anything new that leaves the rule should be able to name it
   `RoutePath` and the sidebar's `navMain` are all derived from it. Adding a component is three
   compiler-linked edits: a page under `components/pages/`, a line in `CATEGORIES`, and its dynamic
   import in `App.svelte`. Never write a route down anywhere else.
+- A route is a **path under the site base**, never a fragment: `/components/badge`, which leaves
+  `#sizes` to the document. It is written down only in `CATEGORIES`, and it reaches the DOM only
+  through `href()` — the single place a base and a route are concatenated, empty in development
+  and `/svelte-theme-parallax` on Pages. A hand-written `/components/…` in an `href` is the
+  worst kind of bug this repository can ship: it works locally and 404s on Pages.
+- A SECTION is an address too: every `DocSection` heading carries an `id` derived from its
+  title, and `/components/badge#sizes` is a link a reader may share. The id is **derived, never
+  declared** — 1300 hand-written ids would drift from the titles beside them within a month — and
+  the cost is stated rather than hidden: rewording a title moves the section's address, and a link
+  somebody shared stops resolving. Where that is unacceptable, `DocSection` takes an explicit
+  `id`; the one caller that needs it today is the Themes page, whose title counts the palettes. An
+  id must be unique in the DOCUMENT, not merely among the sections: the browser resolves a
+  fragment to the first element that matches, so a demo control sharing a section's id silently
+  steals the link. A dev-only assertion in `DocPage` reports every duplicate on the page you are
+  looking at.
 - `CATEGORIES` is an **ordered ladder, not a set of buckets**. A component belongs to the first
   group whose admission test it passes, and each group carries its test in its own comment.
   Reordering the groups changes what they collect, so it is a decision, not formatting.
@@ -136,7 +151,7 @@ the only departures; anything new that leaves the rule should be able to name it
 - **Every component is rendered by at least one page**, whether or not it owns a route. A component
   nothing renders is a component whose look nobody reviews, which in a theme kit is the one thing
   that must not happen. Owning a route is a separate, editorial question.
-- A retired route gets an **alias**, never a deletion. `normaliseHash` maps it to the page that
+- A retired route gets an **alias**, never a deletion. `normalisePath` maps it to the page that
   absorbed it, checked before the `HOME` fallback — without that an old bookmark silently renders
   the front door, which is worse than a 404 because it looks like a working page.
 - Two accepted costs, recorded so they are not mistaken for oversights: `gauge` sits in `Data

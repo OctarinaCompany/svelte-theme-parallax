@@ -1,11 +1,18 @@
 /**
- * The current route, derived from `location.hash` — and the catalog it is derived FROM.
+ * The current route, derived from `location.pathname` — and the catalog it is derived FROM.
  *
- * WHY HASH ROUTING — this project is a plain Vite SPA with no server. Path-based routing
- * (`/components/badge`) needs the host to rewrite unknown paths to `index.html`;
- * deep-linking to `/components/badge` on a static host returns 404 instead. The fragment
- * never reaches the server, so `#/components/badge` survives a reload and a bookmark with
- * no configuration at all.
+ * WHY PATH ROUTING — a route is an address. `#/components/badge` was one for as long as the
+ * gallery had nothing else to say about a page, and it stopped being enough the day a reader
+ * wanted to link to one SECTION of one: the fragment was already spent on the route, so the
+ * document had none left for an anchor. `/components/badge#sizes` gives each half the part of
+ * the URL it was designed for, and hands the in-page jump back to the browser.
+ *
+ * WHAT IT COSTS, written down once so nobody rediscovers it. The host must answer an unknown
+ * path with `index.html`: `vite dev` and `vite preview` do it out of the box, and GitHub Pages
+ * does it through `404.html`. `tools/site/prerender.mjs` writes that file AND a genuine one per
+ * route, so a deep link answers 200 rather than falling back at all. The second cost is the base: the site is served from
+ * `/svelte-theme-parallax/` on Pages and from `/` locally, so no link may be written by hand —
+ * every one goes through {@link href}, which is the only place a base and a route ever meet.
  *
  * WHY NOT A ROUTER LIBRARY — the whole contract is "read a string, react to a browser
  * event". `svelte-spa-router` and friends add route params, guards, nested layouts and a
@@ -14,7 +21,7 @@
  * WHY THE CATALOG LIVES HERE — it used to live in three places. `ROUTES` was the type-level
  * source of truth, `App.svelte`'s page map was checked against it, and `dashboard.ts` held a
  * third hand-maintained copy whose `url` was typed `string`. Renaming a slug and forgetting the
- * sidebar left `npm run check` clean and the link dead: it fell through {@link normaliseHash}
+ * sidebar left `npm run check` clean and the link dead: it fell through {@link normalisePath}
  * to {@link HOME} and silently rendered another page. Not a 404 — a wrong page that looks
  * right. {@link CATEGORIES} is now the single declaration; the routes, the route type and the
  * sidebar are all derived from it, so the three can no longer disagree.
@@ -415,7 +422,7 @@ export type RoutePath =
 	| (typeof CATEGORIES)[number]["items"][number]["slug"];
 
 /**
- * The same set as a value, for {@link normaliseHash}'s membership test.
+ * The same set as a value, for {@link normalisePath}'s membership test.
  *
  * `App.svelte` types its page map as `Record<RoutePath, …>`, so adding an entry to
  * {@link CATEGORIES} without adding its dynamic import there is a compile error — and removing
@@ -439,7 +446,7 @@ export function categoryByPath(path: string): (typeof CATEGORIES)[number] | unde
  *
  * Checked BEFORE the {@link HOME} fallback, so an old bookmark lands on the page that absorbed
  * its content instead of on the front door. A permanent fixture regardless of how many pages are
- * ever merged: without it an unknown fragment silently renders whatever `HOME` happens to be,
+ * ever merged: without it an unknown path silently renders whatever `HOME` happens to be,
  * which is worse than a 404 because it looks like a working page.
  *
  * `label` was retired into `field` because, once the seven demos it duplicated from the Input
@@ -455,7 +462,7 @@ const ALIASES: Readonly<Record<string, RoutePath>> = {
 };
 
 /**
- * Where an empty, unknown or malformed fragment lands — and so where the application opens.
+ * Where an empty, unknown or malformed path lands — and so where the application opens.
  *
  * THE SETTINGS PAGE IS THE FRONT DOOR. This was `/components/accordion` for as long as the
  * sidebar was one alphabetical list, on the reasoning that "the first of them is the honest
@@ -473,16 +480,88 @@ const ALIASES: Readonly<Record<string, RoutePath>> = {
 export const HOME: RoutePath = "/components/settings";
 
 /**
- * Normalise a raw `location.hash` to a known route.
+ * Where this application is served from, without its trailing slash.
  *
- * Handles the three shapes the browser produces: `''` (no fragment), `'#'` and
- * `'#/components/badge'`. Retired paths resolve through {@link ALIASES}; anything else resolves
- * to {@link HOME} rather than throwing.
+ * `''` in development and at a domain root, `'/svelte-theme-parallax'` on the GitHub Pages
+ * project site. Vite substitutes `import.meta.env.BASE_URL` at build time and only when it is
+ * spelled exactly like that, so nothing may destructure or alias it.
+ *
+ * Every ROUTE is based here and nowhere else. Two pages read `BASE_URL` directly —
+ * `MediaPlayerPage` and `CropperPage`, for the sample media they load out of `public/` — because
+ * a file in `public/` is not a route and has no business travelling through a route helper.
  */
-export function normaliseHash(hash: string): RoutePath {
-	const path = hash.replace(/^#/, "");
-	if ((ROUTES as readonly string[]).includes(path)) return path as RoutePath;
-	return ALIASES[path] ?? HOME;
+const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
+
+/**
+ * A route as an `href` — the ONE place a base and a route are concatenated.
+ *
+ * Every in-app link goes through it, because the `href` attribute is not a hint to a click
+ * handler: it is what the status bar shows on hover, what middle-click, `Open in new tab` and
+ * `Copy link address` use, and what a crawler follows. A link that only works once JavaScript
+ * has intercepted it is not a link, and the whole point of leaving the fragment was to have
+ * real ones.
+ *
+ * The return type keeps the route visible to the type checker after the base is applied, which
+ * is what lets `dashboard.ts` keep typing its nav urls against {@link RoutePath}.
+ */
+export function href<P extends RoutePath>(path: P): `${string}${P}` {
+	return `${BASE}${path}`;
+}
+
+/**
+ * Strip {@link BASE} off a pathname, or `undefined` when the path lies outside this application.
+ *
+ * The `undefined` is load-bearing for the click interceptor: `/svelte-theme-parallax/r/parallax-shell.json`
+ * is a real file on the same origin, and a router that swallowed it would break the registry the
+ * gallery documents.
+ */
+function stripBase(pathname: string): string | undefined {
+	if (!BASE) return pathname;
+	if (pathname === BASE) return "/";
+	if (pathname.startsWith(`${BASE}/`)) return pathname.slice(BASE.length);
+	return undefined;
+}
+
+/**
+ * The route a base-less path names, or `undefined` if it names none.
+ *
+ * Separate from {@link normalisePath} because the callers want opposite things from a miss:
+ * navigation falls back to {@link HOME}, while the click interceptor lets the request through to
+ * the network rather than inventing a destination for it.
+ *
+ * One trailing slash is tolerated here rather than in {@link matchRoute}, because the legacy
+ * fragment shim calls straight into this one: a fragment route carries no base to strip.
+ */
+function resolveRoute(path: string): RoutePath | undefined {
+	const trimmed = path.length > 1 && path.endsWith("/") ? path.slice(0, -1) : path;
+	if ((ROUTES as readonly string[]).includes(trimmed)) return trimmed as RoutePath;
+	return ALIASES[trimmed];
+}
+
+/**
+ * The route a full pathname names, or `undefined` for a path this application does not own.
+ *
+ * Strips the base, then hands what is left to {@link resolveRoute}.
+ *
+ * BOTH CALLERS GO THROUGH HERE, and that is the point. When the click interceptor and the
+ * address-bar reader disagreed about a shape, `/components/button/` was the result: the reader
+ * accepted it and the interceptor did not, so a link written with a trailing slash left the
+ * application, hit the network and came back through the 404 fallback — a full reload where
+ * every other link is instant.
+ */
+function matchRoute(pathname: string): RoutePath | undefined {
+	const stripped = stripBase(pathname);
+	return stripped === undefined ? undefined : resolveRoute(stripped);
+}
+
+/**
+ * Normalise a raw `location.pathname` to a known route.
+ *
+ * Anything this application does not own — an unknown path, a retired one with no alias, a path
+ * outside the base — resolves to {@link HOME} rather than throwing.
+ */
+export function normalisePath(pathname: string): RoutePath {
+	return matchRoute(pathname) ?? HOME;
 }
 
 /**
@@ -519,53 +598,298 @@ if (import.meta.env.DEV) {
 		}
 		seen.add(path);
 	}
+
+	/*
+	 * A RELATIVE base is the one configuration that breaks this router silently. `base: './'`
+	 * makes `href()` produce `./components/badge`, which resolves against the current directory
+	 * — right on the front page and wrong on every page below it. It was the correct setting
+	 * while the fragment was the route (the document path never changed), and `vite.config.ts`
+	 * says so where it now sets an absolute one.
+	 */
+	if (BASE && !BASE.startsWith("/")) {
+		throw new Error(
+			`route.svelte.ts: BASE_URL must be absolute for a path router; got ${import.meta.env.BASE_URL}.`,
+		);
+	}
 }
+
+/** What this router keeps in a history entry: where the reader stood on that page. */
+type RouteHistoryState = { scrollY?: number };
 
 /**
  * A runes-based reader over the current route.
  *
  * `current` is `$state`, so every component that reads it re-renders on navigation without
- * any subscription bookkeeping. The `hashchange` listener is registered once, at module
- * scope rather than in an `$effect`, because the route outlives any single component — it
- * must keep tracking even while no component happens to be reading it.
+ * any subscription bookkeeping. The listeners are registered once, in a constructor that runs
+ * at module scope rather than in an `$effect`, because the route outlives any single component
+ * — it must keep tracking even while no component happens to be reading it.
  */
 class RouteState {
 	/** The active path, always one of {@link ROUTES}. */
 	current: RoutePath = $state(
 		// Guard for any non-browser evaluation (prerendering, tests, SSR added later),
 		// mirroring `getStoredSidebarState`.
-		typeof window === "undefined" ? HOME : normaliseHash(window.location.hash),
+		typeof window === "undefined" ? HOME : normalisePath(window.location.pathname),
 	);
+
+	/**
+	 * Where the page about to mount should be scrolled to, or `null` for "do not touch it".
+	 *
+	 * NOT `$state`: it is a message with exactly one reader — `App.svelte`, once the page's
+	 * chunk has resolved — and {@link takePendingScroll} clears it as it hands it over, so a
+	 * second read can never re-apply a scroll the reader has since moved away from.
+	 *
+	 * `null` rather than `0` is the whole design. A URL that carries a fragment belongs to the
+	 * page, which scrolls to its own heading; a router that also scrolled to the top would race
+	 * it, and which one won would depend on effect ordering. So the router declines the job
+	 * whenever a fragment is present, and there is nothing to arbitrate.
+	 */
+	#pendingScroll: number | null = null;
+
+	/**
+	 * The pathname the last navigation left behind.
+	 *
+	 * `popstate` fires for a fragment traversal as well as a page one, and the two want opposite
+	 * treatment: moving between `#sizes` and `#icon` on one page is the page's business, while
+	 * moving between two pages is the router's. The event itself does not say which happened,
+	 * so this remembers.
+	 */
+	#lastPathname = typeof window === "undefined" ? "" : window.location.pathname;
 
 	constructor() {
 		if (typeof window === "undefined") return;
 
+		/*
+		 * The browser's own restoration is worse than useless here. It runs the instant the
+		 * history entry is activated, which on this application is while the page is still a
+		 * `Skeleton` — the document is a few hundred pixels tall, the restore clamps to that,
+		 * and the reader lands somewhere arbitrary once the real page mounts. `manual` hands
+		 * the job to `App.svelte`, which does it after the chunk resolves.
+		 */
+		history.scrollRestoration = "manual";
 		this.#canonicalise();
+		/*
+		 * Re-seed AFTER canonicalising. The field initialiser above runs before this constructor
+		 * body, so on an alias or a trailing-slash arrival it captured the address as the reader
+		 * typed it while `#canonicalise` has since rewritten the real one — and the first
+		 * `popstate` would then compare against a string the address bar no longer holds and
+		 * misjudge whether the reader stayed on the page.
+		 */
+		this.#lastPathname = window.location.pathname;
 
-		window.addEventListener("hashchange", () => {
-			this.current = normaliseHash(window.location.hash);
+		/*
+		 * Chrome dispatches `popstate` for a same-document fragment navigation too, so this runs
+		 * on every section-anchor click as well as on Back and Forward. That is why the first
+		 * thing it does is work out which of the two it was.
+		 */
+		window.addEventListener("popstate", (event) => {
+			const samePage = window.location.pathname === this.#lastPathname;
+			const stored = (event.state as RouteHistoryState | null)?.scrollY;
+
+			this.#lastPathname = window.location.pathname;
+			this.current = normalisePath(window.location.pathname);
 			this.#canonicalise();
+
+			if (window.location.hash) {
+				// The page scrolls to its own heading; anything here would race it.
+				this.#pendingScroll = null;
+			} else if (samePage) {
+				/*
+				 * Back out of a section, onto the same page with no fragment. Nothing else will
+				 * move the viewport — the browser's own restoration is off and there is no heading
+				 * to scroll to — so without this the address bar loses `#sizes` while the reader
+				 * stays parked on Sizes, and the two disagree with no way back but scrolling.
+				 *
+				 * Applied HERE rather than handed to the shell: the page is already mounted, so
+				 * there is nothing to wait for — and `current` is about to be assigned the string
+				 * it already holds, which is not a change, so no effect downstream would re-run to
+				 * collect it. The position is the one stamped when the anchor was clicked; with
+				 * none, the scroll is left alone rather than guessed at.
+				 */
+				this.#pendingScroll = null;
+				if (stored !== undefined) window.scrollTo({ top: stored, behavior: "instant" });
+			} else {
+				/*
+				 * A different page. `0` rather than `null` for an entry nobody stamped: only a
+				 * link click stamps one, so Forward into a page you had scrolled and left by Back
+				 * opens it at the top. Predictable, and the alternative — leaving the scroll where
+				 * the previous page had it — shows one page at another page's offset.
+				 */
+				this.#pendingScroll = stored ?? 0;
+			}
 		});
+
+		/*
+		 * ONE listener, on `document`, rather than an `onclick` on every anchor.
+		 *
+		 * The gallery's links are rendered by eight different primitives — a bare `<a>`, `Button
+		 * href`, `Badge href`, `Command.LinkItem`, two `Sidebar.MenuButton` child snippets,
+		 * `DropdownMenu.Item`, `Breadcrumb.Link`, `NavigationMenu.Link` — and four of those live
+		 * in components the registry publishes, which `shared/nav.ts` forbids from knowing a
+		 * router at all. Threading a handler through their props would be a prop per primitive;
+		 * delegation costs one listener and covers every page written after this one.
+		 */
+		document.addEventListener("click", (event) => this.#onClick(event));
 	}
 
 	/**
-	 * Rewrite the address bar when the fragment resolved to something else.
+	 * Take the scroll position the page that just mounted should adopt.
+	 *
+	 * Returns `null` — meaning "leave the scroll alone" — for a fragment landing and for every
+	 * read after the first.
+	 */
+	takePendingScroll(): number | null {
+		const target = this.#pendingScroll;
+		this.#pendingScroll = null;
+		return target;
+	}
+
+	/**
+	 * Turn a left click on an in-app link into a `pushState`, and leave every other click alone.
+	 *
+	 * The bail-outs are not defensive noise: each one is a gesture a reader makes on purpose.
+	 * A modified click opens a tab or a window, `download` saves a file, a `target` names another
+	 * browsing context, and a cross-origin link leaves the site. Swallowing any of them would be
+	 * the router deciding it knows better than the person clicking.
+	 */
+	#onClick(event: MouseEvent): void {
+		if (event.defaultPrevented || event.button !== 0) return;
+		if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+
+		const target = event.target;
+		const anchor = target instanceof Element ? target.closest("a[href]") : null;
+		if (!(anchor instanceof HTMLAnchorElement)) return;
+		if (anchor.hasAttribute("download")) return;
+		if (anchor.target && anchor.target !== "_self") return;
+		if (anchor.relList.contains("external")) return;
+
+		const url = new URL(anchor.href, window.location.href);
+		if (url.origin !== window.location.origin) return;
+
+		/*
+		 * A fragment on the page already on screen is the BROWSER's navigation, and it does it
+		 * better than this router could: it scrolls honouring `scroll-padding-top`, sets
+		 * `:target`, writes one history entry, and turns a repeat click into a replace. This is
+		 * the line that makes `#section` links work, and it is also what finally makes the
+		 * placeholders the upstream themes write as `href="#!"` stop navigating to the front door —
+		 * though not inert: the browser still writes the fragment and spends a history entry on it,
+		 * which is why the gallery's own demos point at their page instead.
+		 */
+		if (url.pathname === window.location.pathname && url.hash) {
+			// Stamp first, though: the browser is about to push an entry, and the position the
+			// reader is leaving can only be written onto the entry while it is still the current
+			// one. Without this, Back out of a section has nowhere to return to.
+			this.#rememberScroll();
+			return;
+		}
+
+		const destination = matchRoute(url.pathname);
+		if (!destination) return;
+
+		event.preventDefault();
+
+		/*
+		 * A self-link — the demos are full of them, pointing at their own page rather than at
+		 * upstream's `href="#"` — should do nothing at all, not push a duplicate entry.
+		 *
+		 * The `!url.hash` lets a same-route link that CARRIES a fragment through to `#navigate`,
+		 * which has no way to honour it: `pushState` fires no event, and assigning `current` the
+		 * string it already holds is not a change, so nothing downstream would move the reader.
+		 * Nothing can reach that today — a same-page fragment is handed to the browser above, and
+		 * only a NON-canonical spelling of this page's own path (a trailing slash, an alias) would
+		 * arrive here instead, which `href()` cannot emit. Written down because the day something
+		 * does, the symptom is an address bar that moves and a page that does not.
+		 */
+		if (destination === this.current && !url.hash) return;
+
+		this.#navigate(destination, url);
+	}
+
+	/**
+	 * Write the current scroll position onto the current history entry.
+	 *
+	 * Called immediately before anything that pushes a new entry — this router's own
+	 * `pushState`, and the browser's when a same-page fragment link is left to it. A history
+	 * entry's state can only be written while that entry is the current one, so the position of
+	 * the page being left has to be stamped now or never.
+	 */
+	#rememberScroll(): void {
+		const state: RouteHistoryState = { ...history.state, scrollY: window.scrollY };
+		history.replaceState(state, "");
+	}
+
+	/**
+	 * Push one history entry, remembering where the reader was on the page being left.
+	 *
+	 * No canonicalisation is needed afterwards — {@link matchRoute} has already mapped an alias
+	 * to the page that absorbed it, so the pushed address is the canonical one.
+	 */
+	#navigate(path: RoutePath, url: URL): void {
+		this.#rememberScroll();
+
+		history.pushState(null, "", href(path) + url.search + url.hash);
+		this.#lastPathname = window.location.pathname;
+		this.current = path;
+		this.#pendingScroll = url.hash ? null : 0;
+	}
+
+	/**
+	 * Rewrite the address bar when the path resolved to something else.
 	 *
 	 * An alias or an unknown path renders the right page either way — but leaves the reader
-	 * looking at `#/components/range-calendar` above a heading that says Calendar, and copying
-	 * a URL that only works because the alias table still exists. Replacing it makes the
-	 * fragment agree with the page.
+	 * looking at `/components/range-calendar` above a heading that says Calendar, and copying a
+	 * URL that only works because the alias table still exists. Replacing it makes the address
+	 * agree with the page.
 	 *
-	 * `history.replaceState` rather than assigning `location.hash`: it does not fire a second
-	 * `hashchange`, and it does not add a history entry, so the reader's Back button still goes
-	 * back to where they came from rather than to the stale fragment.
+	 * The search and the fragment are carried over deliberately: `/components/label#sizes` must
+	 * canonicalise to `/components/field#sizes`, not lose the anchor the reader arrived for.
+	 *
+	 * `history.replaceState` rather than assigning `location.pathname`: it does not reload, it
+	 * does not fire a second `popstate`, and it does not add a history entry, so the reader's
+	 * Back button still goes back to where they came from rather than to the stale address.
 	 */
 	#canonicalise() {
-		const canonical = `#${this.current}`;
-		if (window.location.hash === canonical) return;
-		history.replaceState(history.state, "", canonical);
+		const canonical = href(this.current);
+		if (window.location.pathname === canonical) return;
+		history.replaceState(
+			history.state,
+			"",
+			canonical + window.location.search + window.location.hash,
+		);
 	}
 }
+
+/**
+ * Rewrite a legacy `#/components/…` address before anything reads the location.
+ *
+ * Every URL this gallery published before the router moved to paths has the route in the
+ * fragment, and those are exactly the links people keep — a bookmark, a message, an issue. The
+ * rewrite is one `replaceState`: no reload, no history entry, and the reader lands on the page
+ * they asked for at the address it now has.
+ *
+ * The leading slash is what tells the two shapes apart and always will: a route fragment is
+ * `#/components/badge`, a section fragment is `#sizes`, and no section id starts with a slash.
+ *
+ * It runs at module scope rather than inside {@link RouteState}, because a class field
+ * initialiser — `current`, reading `location.pathname` — runs before the constructor body would
+ * get the chance.
+ */
+function migrateLegacyHash(): void {
+	if (typeof window === "undefined") return;
+	const legacy = window.location.hash;
+	if (!legacy.startsWith("#/")) return;
+	/*
+	 * `resolveRoute`, NOT `normalisePath`. The route inside a fragment was written before the base
+	 * existed and carries none, so putting it through the base-stripping path would reject every
+	 * one of them on the deployed site — where `stripBase` requires the prefix — and send every
+	 * old link ever published to the front door. It is right in development, where the base is
+	 * empty, which is exactly how it would have shipped.
+	 */
+	const path = resolveRoute(legacy.slice(1)) ?? HOME;
+	history.replaceState(history.state, "", href(path) + window.location.search);
+}
+
+migrateLegacyHash();
 
 /**
  * The shared route instance.

@@ -26,6 +26,7 @@
 	import { getInitials } from "$lib/shared/get-initials.js";
 	import DocPage from "$lib/components/layout/DocPage.svelte";
 	import DocSection from "$lib/components/layout/DocSection.svelte";
+	import { href } from "$lib/hooks/route.svelte.js";
 
 	/**
 	 * The Table component page, ported from the shadcn-svelte documentation
@@ -880,11 +881,13 @@
 		>
 		for a full list of options. This is the bare markup — you write the rows, and nothing sorts, filters
 		or pages them. Reach for the
-		<a class="text-primary underline underline-offset-3" href="#/components/data-table"
+		<a class="text-primary underline underline-offset-3" href={href("/components/data-table")}
 			>Data table</a
 		>
 		when they need a filter toolbar and pagination, which it builds out of these same cells, and for the
-		<a class="text-primary underline underline-offset-3" href="#/components/data-grid">Data grid</a>
+		<a class="text-primary underline underline-offset-3" href={href("/components/data-grid")}
+			>Data grid</a
+		>
 		when cells are edited in place, which it draws as a virtualized grid of its own instead.
 	{/snippet}
 

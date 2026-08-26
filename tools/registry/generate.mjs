@@ -33,6 +33,7 @@ import {
 import { walkItem, uiSeeds } from "./import-graph.mjs";
 import { CSS_CLAIMS, RESTYLE_SELECTORS } from "./css-claims.mjs";
 import { fingerprint, SNAPSHOT_PATH } from "./official-snapshot-lib.mjs";
+import { parseCatalog } from "../shared/catalog.mjs";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 
@@ -1047,38 +1048,12 @@ writeFileSync(resolve(root, "docs/REGISTRY.md"), `${docsPage}`, "utf8");
 
 /*
  * The gallery index — `references/components.md` in the skill, and the catalog half of
- * `public/llms.txt`. Parsed out of `route.svelte.ts`'s CATEGORIES/DESTINATIONS literals the
- * same way the CSS is read out of app.css: the catalog is already the single place a route is
- * written down (CONVENTIONS §9), so the index cannot drift from it. The parser is a text walk,
- * not an import — the module is TypeScript and drags Svelte runes with it.
+ * `public/llms.txt`. Parsed out of `route.svelte.ts`'s CATEGORIES/DESTINATIONS literals by
+ * `tools/shared/catalog.mjs` the same way the CSS is read out of app.css: the catalog is
+ * already the single place a route is written down (CONVENTIONS §9), so the index cannot drift
+ * from it. The parser lives in a shared module rather than here because the prerender step
+ * (`tools/site/prerender.mjs`) reads the same list to emit one HTML file per route.
  */
-function parseCatalog(exportName) {
-	const source = readFileSync(resolve(root, "src/lib/hooks/route.svelte.ts"), "utf8");
-	const start = source.indexOf(`export const ${exportName} = [`);
-	const end = source.indexOf("] as const", start);
-	if (start === -1 || end === -1) {
-		throw new Error(`route.svelte.ts: could not find the ${exportName} literal`);
-	}
-	const block = source.slice(start, end);
-	// Pair every `title:` with the `slug:` that follows it, in order. A slug that does not
-	// start with "/components/" is a GROUP header; everything after it belongs to that group.
-	const pairs = [...block.matchAll(/title: "([^"]+)",\s*slug: "([^"]+)"/g)].map((m) => ({
-		title: m[1],
-		slug: m[2],
-	}));
-	const groups = [];
-	for (const pair of pairs) {
-		if (!pair.slug.startsWith("/components/")) {
-			groups.push({ title: pair.title, items: [] });
-		} else if (groups.length === 0) {
-			// DESTINATIONS: a flat list with no group headers.
-			groups.push({ title: null, items: [pair] });
-		} else {
-			groups.at(-1).items.push(pair);
-		}
-	}
-	return groups;
-}
 
 /**
  * The page file for a catalog slug. Names are PascalCase with unpredictable acronym casing

@@ -670,11 +670,11 @@
 					<Field.FieldGroup class="grid gap-6 md:grid-cols-2">
 						{#each personalFields as personalField (personalField.name)}
 							<Field.Field data-invalid={personalErrors[personalField.name] ? "" : undefined}>
-								<Field.FieldLabel for="mask-input-{personalField.name}">
+								<Field.FieldLabel for="mask-input-personal-{personalField.name}">
 									{personalField.label}
 								</Field.FieldLabel>
 								<MaskInput
-									id="mask-input-{personalField.name}"
+									id="mask-input-personal-{personalField.name}"
 									mask={personalField.mask}
 									placeholder={personalField.placeholder}
 									value={personal[personalField.name]}

@@ -4,15 +4,32 @@ import { defineConfig } from "vite";
 import { svelte } from "@sveltejs/vite-plugin-svelte";
 
 // https://vite.dev/config/
-export default defineConfig({
+export default defineConfig(({ command, isPreview }) => ({
 	/*
-	 * RELATIVE, so the same build works at a domain root and under a GitHub Pages project path
-	 * (`/svelte-theme-parallax/`) without a second configuration. It is safe here precisely
-	 * because the router is hash-based: the document's own path never changes as you navigate,
-	 * so `./` keeps resolving against the page that loaded. A history router would need the
-	 * absolute base instead.
+	 * ABSOLUTE, and different between serving and building.
+	 *
+	 * This was `./` for as long as the router lived in the fragment: the document's own path
+	 * never changed, so a relative asset URL always resolved against the page that loaded, and
+	 * one build worked at a domain root and under a project path alike. A path router ends
+	 * that — at `/svelte-theme-parallax/components/button`, `./assets/index.js` resolves to
+	 * `/svelte-theme-parallax/components/assets/index.js`, which does not exist, and the deep
+	 * link renders a blank page with no error to explain it.
+	 *
+	 * Keying on the environment rather than on an environment VARIABLE keeps one truth: `npm run
+	 * build` produces the artefact that deploys, in CI and on a laptop alike, with no flag anyone
+	 * can forget to pass.
+	 *
+	 * `isPreview` is not redundant beside `command`. `vite preview` resolves its config as
+	 * `command === "serve"` even though every byte it serves came out of a build, so keying on
+	 * `command` alone mounts `dist/` at `/` while the HTML inside it asks for
+	 * `/svelte-theme-parallax/assets/…`: every module 404s and the page renders blank. Measured,
+	 * not theorised — and it matters because `npm run build && npm run preview` is the one local
+	 * check that would catch a base mistake before it reaches the deploy.
+	 *
+	 * The repository name is written here because that is what GitHub Pages serves a project site
+	 * from; a fork under another name changes this line.
 	 */
-	base: "./",
+	base: command === "build" || isPreview ? "/svelte-theme-parallax/" : "/",
 	plugins: [tailwindcss(), svelte()],
 	resolve: {
 		// `$lib` is a SvelteKit convention, not a Svelte one. shadcn-svelte generates
@@ -23,4 +40,4 @@ export default defineConfig({
 			$lib: path.resolve("./src/lib"),
 		},
 	},
-});
+}));

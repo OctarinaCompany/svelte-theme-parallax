@@ -3,7 +3,7 @@
 	import DocPage from "$lib/components/layout/DocPage.svelte";
 	import DocSection from "$lib/components/layout/DocSection.svelte";
 	import { Badge } from "$lib/components/ui/badge/index.js";
-	import { CATEGORIES, categoryByPath, groupPath, route } from "$lib/hooks/route.svelte.js";
+	import { CATEGORIES, categoryByPath, groupPath, href, route } from "$lib/hooks/route.svelte.js";
 
 	/**
 	 * One group of the ladder: what it admits, what it excludes, and everything filed under it.
@@ -67,7 +67,7 @@
 					{#each category.items as item (item.slug)}
 						<a
 							class="flex items-baseline gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground"
-							href="#{item.slug}"
+							href={href(item.slug)}
 						>
 							<span class="font-medium">{item.title}</span>
 							<span class="font-mono text-xs text-muted-foreground">{item.slug}</span>
@@ -84,7 +84,7 @@
 			{/snippet}
 			<div class="flex flex-wrap gap-3">
 				{#if previous}
-					<a href="#{groupPath(previous.slug)}" class="flex-1">
+					<a href={href(groupPath(previous.slug))} class="flex-1">
 						<Card.Root class="h-full transition-colors hover:border-primary">
 							<Card.Content class="flex flex-col gap-1">
 								<span class="text-xs text-muted-foreground">Asked before this one</span>
@@ -95,7 +95,7 @@
 					</a>
 				{/if}
 				{#if next}
-					<a href="#{groupPath(next.slug)}" class="flex-1">
+					<a href={href(groupPath(next.slug))} class="flex-1">
 						<Card.Root class="h-full transition-colors hover:border-primary">
 							<Card.Content class="flex flex-col gap-1">
 								<span class="text-xs text-muted-foreground">Asked after this one</span>
@@ -115,7 +115,10 @@
 						{#if other.slug === category.slug}
 							<Badge variant="secondary">{other.title}</Badge>
 						{:else}
-							<a class="text-sm hover:text-primary hover:underline" href="#{groupPath(other.slug)}">
+							<a
+								class="text-sm hover:text-primary hover:underline"
+								href={href(groupPath(other.slug))}
+							>
 								{other.title}
 							</a>
 						{/if}

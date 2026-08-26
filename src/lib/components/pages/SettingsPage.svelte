@@ -26,6 +26,7 @@
 	import { setSidebarFloating, sidebarFloating } from "$lib/hooks/sidebar-behaviour.svelte.js";
 	import { headerMode, setHeaderMode, type HeaderMode } from "$lib/hooks/header-mode.svelte.js";
 	import { setSidebarMode, sidebarMode, type SidebarMode } from "$lib/hooks/sidebar-mode.svelte.js";
+	import { href } from "$lib/hooks/route.svelte.js";
 
 	/**
 	 * The Settings page: every look-and-feel control the theme has, on one page, driving the
@@ -182,7 +183,9 @@
 		<DocSection title="Theme">
 			{#snippet blurb()}
 				{THEMES.length} palettes over one token set, applied live. The
-				<a class="text-primary underline underline-offset-3" href="#/components/themes">Themes</a>
+				<a class="text-primary underline underline-offset-3" href={href("/components/themes")}
+					>Themes</a
+				>
 				page is the gallery — descriptions, token detail and how they are built; this is just the switch.
 			{/snippet}
 			<Card.Root>

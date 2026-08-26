@@ -855,7 +855,7 @@
 			<Card.Content>
 				<Timeline.Root {activeIndex} class="max-w-md">
 					{#each projectItems as item (item.id)}
-						<Timeline.Item id={item.id}>
+						<Timeline.Item id="default-{item.id}">
 							<Timeline.Dot />
 							<Timeline.Connector />
 							<Timeline.Content>
@@ -935,7 +935,7 @@
 			<Card.Content>
 				<Timeline.Root variant="alternate" activeIndex={1} class="max-w-lg">
 					{#each projectItems as item (item.id)}
-						<Timeline.Item id={item.id}>
+						<Timeline.Item id="alternate-{item.id}">
 							<Timeline.Dot />
 							<Timeline.Connector />
 							<Timeline.Content>
@@ -979,7 +979,7 @@
 			<Card.Content>
 				<Timeline.Root activeIndex={1} class="max-w-md [--timeline-dot-size:2rem]">
 					{#each projectItems as item (item.id)}
-						<Timeline.Item id={item.id}>
+						<Timeline.Item id="custom-dot-{item.id}">
 							<Timeline.Dot>
 								<span class="size-3.5 rounded-full bg-current"></span>
 							</Timeline.Dot>
@@ -1218,7 +1218,7 @@
 				-->
 				<Timeline.Root activeIndex={2} class="max-w-xs [--timeline-dot-size:0.5rem]">
 					{#each roadmapPhases as phase (phase.id)}
-						<Timeline.Item id={phase.id} class="gap-2.5 pb-5 last:pb-0">
+						<Timeline.Item id="roadmap-{phase.id}" class="gap-2.5 pb-5 last:pb-0">
 							<Timeline.Dot
 								class="mt-1.5 border-none bg-primary data-[status=pending]:bg-muted-foreground/40"
 							/>

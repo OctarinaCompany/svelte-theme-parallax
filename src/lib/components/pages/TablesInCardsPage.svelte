@@ -38,6 +38,7 @@
 	import TablesInCardsTable from "$lib/components/pages/tables-in-cards-table.svelte";
 	import { getInitials } from "$lib/shared/get-initials.js";
 	import { cn } from "$lib/utils.js";
+	import { href } from "$lib/hooks/route.svelte.js";
 
 	/**
 	 * Tables in cards — the classic theme's list pages stated as a pattern, skinned against
@@ -69,7 +70,7 @@
 	 *        them looking like live links whose clicks do nothing on the first and last page;
 	 *        the house disabled treatment says so instead.
 	 */
-	const self = "#/components/tables-in-cards";
+	const self = href("/components/tables-in-cards");
 
 	// --- CRM companies -------------------------------------------------------------------------
 
@@ -1022,10 +1023,11 @@
 		A list page is never a bare table: the table lives in a card, with the search field and filters
 		in the card header, the rows flush to the card's edges, and the pager in the card footer. This
 		page states that pattern with the house engines: the
-		<a class="text-primary underline underline-offset-3" href="#/components/data-table"
+		<a class="text-primary underline underline-offset-3" href={href("/components/data-table")}
 			>Data table</a
 		>'s toolbar demo and the
-		<a class="text-primary underline underline-offset-3" href="#/components/data-grid">Data grid</a
+		<a class="text-primary underline underline-offset-3" href={href("/components/data-grid")}
+			>Data grid</a
 		>'s movable-columns demo, each re-housed between a card header and a card footer.
 	{/snippet}
 

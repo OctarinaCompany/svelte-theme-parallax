@@ -39,12 +39,15 @@
 	// whose media 404s teaches nothing, and third-party sample URLs rot. Upstream's own Mux and
 	// media-chrome URLs are kept for the chaptered/HLS demos because the credits section names them.
 	//
-	// Root-relative rather than through SvelteKit's `asset()`, which this app has no equivalent
-	// of. Vite serves `public/` from the site root, and this app is served from a root itself —
-	// deploying it under a subdirectory means setting Vite's `base`, and these two strings are
-	// what would have to change with it.
-	const VIDEO_SRC = "/assets/cloud.mp4";
-	const AUDIO_SRC = "/assets/lofi.mp3";
+	// Prefixed with Vite's base rather than left root-absolute. This app has no equivalent of
+	// SvelteKit's `asset()`, and it is deployed under a subdirectory (`vite.config.ts` sets a
+	// build `base`), where a root-absolute `/assets/…` resolves against the domain root rather
+	// than the deployed site — on a GitHub Pages project site that is the owner root, and it 404s.
+	// `import.meta.env.BASE_URL` has to be spelled exactly like that: Vite substitutes the literal
+	// member expression at build time and sees neither an alias nor a `["BASE_URL"]` lookup. It
+	// already ends in a slash, so the tail carries none.
+	const VIDEO_SRC = `${import.meta.env.BASE_URL}assets/cloud.mp4`;
+	const AUDIO_SRC = `${import.meta.env.BASE_URL}assets/lofi.mp3`;
 	const CHAPTERED_SRC =
 		"https://stream.mux.com/Sc89iWAyNkhJ3P1rQ02nrEdCFTnfT01CZ2KmaEcxXfB008/low.mp4";
 	const VTT_BASE = "https://media-chrome.mux.dev/examples/vanilla/vtt/elephantsdream";

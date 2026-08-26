@@ -17,6 +17,7 @@
 	import { cn } from "$lib/utils.js";
 	import DocPage from "$lib/components/layout/DocPage.svelte";
 	import DocSection from "$lib/components/layout/DocSection.svelte";
+	import { href } from "$lib/hooks/route.svelte.js";
 
 	/**
 	 * The Select component page. The first half follows shadcn-svelte's documented demos
@@ -598,7 +599,7 @@
 			rel="noreferrer">official shadcn-svelte documentation</a
 		>
 		for a full list of options, and the
-		<a class="text-primary underline underline-offset-3" href="#/components/combobox"
+		<a class="text-primary underline underline-offset-3" href={href("/components/combobox")}
 			>Combobox page</a
 		> for how the type-to-pick components divide their roles.
 	{/snippet}

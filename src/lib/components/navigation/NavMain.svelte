@@ -10,10 +10,10 @@
 
 	/**
 	 * ACTIVE-STATE ARRIVES AS DATA, NEVER AS A ROUTER. This component used to import the demo's
-	 * hash router and compare `normaliseHash(url) === route.current` itself, which published fine
-	 * as a gallery component and not at all as a registry one — a consumer has their own router,
-	 * and this file cannot know it. So the caller answers instead: `isActive` for full control
-	 * (the demo passes the normalised comparison, and reactivity flows through the closure into
+	 * router and compare the item's url against the current route itself, which published fine as
+	 * a gallery component and not at all as a registry one — a consumer has their own router, and
+	 * this file cannot know it. So the caller answers instead: `isActive` for full control (the
+	 * demo passes a normalised pathname comparison, and reactivity flows through the closure into
 	 * every `$derived` below), or `activePath` for the plain-string case. `isActive` wins when
 	 * both are given, because a predicate subsumes a comparison.
 	 *

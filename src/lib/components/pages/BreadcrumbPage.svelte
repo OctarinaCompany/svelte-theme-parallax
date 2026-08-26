@@ -19,6 +19,7 @@
 	import DocPage from "$lib/components/layout/DocPage.svelte";
 	import DocSection from "$lib/components/layout/DocSection.svelte";
 	import { cn } from "$lib/utils.js";
+	import { href } from "$lib/hooks/route.svelte.js";
 
 	/**
 	 * The Breadcrumb component page.
@@ -55,11 +56,22 @@
 	const divider = "text-input dark:text-muted-foreground [&>svg]:size-[0.8rem]";
 
 	/**
-	 * The classic theme's demo links are `href="#!"`, a no-op anchor in a static page. Here the fragment
-	 * IS the router, so `#!` would resolve to the home route and navigate away from the
-	 * example. Every demo link on these pages points at its own route instead.
+	 * The classic theme's demo links are `href="#!"`, a no-op anchor in a static page. This gallery
+	 * keeps the no-op and drops the spelling: every demo link on these pages points at the page's
+	 * own route instead, which lands the reader exactly where they already are. A link that
+	 * visibly goes nowhere teaches a reader the gallery is dead, and in a kit meant to be clicked
+	 * through that is the wrong lesson.
+	 *
+	 * WORTH RECORDING ONCE, HERE, because the reason changed. While the route lived in the
+	 * fragment, `#!` was not a no-op at all: it named no route, so it fell through to `HOME` and a
+	 * demo link quietly walked the reader to the front door. That was a bug, and it is fixed —
+	 * but `#!` did not become harmless in the process. `route.svelte.ts` hands a same-page
+	 * fragment to the browser on purpose, and the browser duly writes `#!` into the address bar
+	 * and spends a history entry on it, so a reader who tries a demo link and presses Back only
+	 * sheds the punctuation. The rule above therefore still holds, now on its own merits: a demo
+	 * link points at its own route, where the router turns it into a genuine no-op.
 	 */
-	const self = "#/components/breadcrumb";
+	const self = href("/components/breadcrumb");
 
 	/**
 	 * ADDENDUM — the fifteen sections below are the breadcrumb demo set, in

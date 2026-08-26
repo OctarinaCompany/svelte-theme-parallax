@@ -269,8 +269,8 @@
 									{#each hiddenSteps as crumb (crumb.label)}
 										{#if crumb.href}
 											<!--
-												The drawer closes as the step navigates. A hash change re-renders the
-												header without unmounting this component, so nothing else would close it.
+												The drawer closes as the step navigates. Navigating re-renders the header
+												without unmounting this component, so nothing else would close it.
 											-->
 											<a
 												href={crumb.href}

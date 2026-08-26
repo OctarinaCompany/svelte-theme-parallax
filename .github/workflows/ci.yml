@@ -30,6 +30,25 @@ jobs:
           # The floor `engines` declares, so CI fails on anything that needs more than it.
           node-version: 20
           cache: npm
+      # A gallery link is written `href={href("/components/...")}`; `href()` in
+      # `src/lib/hooks/route.svelte.ts` is the single place the deployed base path is prepended.
+      # A hand-written `href="/components/..."` therefore points outside the project site once
+      # published, and a leftover `href="#/..."` is the retired hash spelling. Both look like
+      # working links in review and both break only in production, so a grep is worth its second.
+      # ASYMMETRIC ON PURPOSE. The retired spelling is caught as a quoted STRING, because the
+      # sweep that removed it found the last eight hiding as `const self = "#/..."` and
+      # `href: "#/..."`, which no attribute pattern sees; prose survives that width because a
+      # comment spells a route in backticks, never in double quotes. The path half cannot be
+      # widened the same way — the catalog in `route.svelte.ts` legitimately declares every slug
+      # as `slug: "/components/..."`. So this is a backstop for the shapes that have actually
+      # regressed, not a proof that none can.
+      # Runs before `npm ci` because it needs nothing installed.
+      - name: No hand-written gallery links
+        run: |
+          if grep -rEn '"#/components|href="/components' src; then
+            echo "::error::hand-written gallery link - use href() from src/lib/hooks/route.svelte.ts"
+            exit 1
+          fi
       - run: npm ci
       - run: npm run format:check
       - run: npm run check

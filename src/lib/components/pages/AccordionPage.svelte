@@ -20,6 +20,7 @@
 	import { Spinner } from "$lib/components/ui/spinner/index.js";
 	import DocPage from "$lib/components/layout/DocPage.svelte";
 	import DocSection from "$lib/components/layout/DocSection.svelte";
+	import { href } from "$lib/hooks/route.svelte.js";
 
 	/**
 	 * The Accordion component page.
@@ -455,7 +456,8 @@
 						<Accordion.Trigger>What subscription plans do you offer?</Accordion.Trigger>
 						<Accordion.Content>
 							<p>
-								<a class="text-primary" href="#/components/accordion">Annual billing is available</a
+								<a class="text-primary" href={href("/components/accordion")}
+									>Annual billing is available</a
 								>
 								with a 20% discount. All plans include a 14-day free trial with no credit card required.
 							</p>

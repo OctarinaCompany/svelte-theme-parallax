@@ -8,6 +8,7 @@
 	import { Button } from "$lib/components/ui/button/index.js";
 	import * as Table from "$lib/components/ui/table/index.js";
 	import * as TagsInput from "$lib/components/ui/tags-input/index.js";
+	import { href } from "$lib/hooks/route.svelte.js";
 
 	/**
 	 * The Tags input component page.
@@ -395,7 +396,7 @@
 <DocPage title="Tags Input">
 	{#snippet subtitle()}
 		Display a list of tags in an input field with the ability to add, edit, and remove them. See the
-		<a class="text-primary underline underline-offset-3" href="#/components/combobox"
+		<a class="text-primary underline underline-offset-3" href={href("/components/combobox")}
 			>Combobox page</a
 		> for how the type-to-pick components divide their roles.
 	{/snippet}

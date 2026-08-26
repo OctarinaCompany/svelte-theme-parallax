@@ -23,6 +23,7 @@
 	import { Button } from "$lib/components/ui/button/index.js";
 	import { Separator } from "$lib/components/ui/separator/index.js";
 	import DocSection from "$lib/components/layout/DocSection.svelte";
+	import { href } from "$lib/hooks/route.svelte.js";
 
 	/**
 	 * The Tooltip component page.
@@ -194,7 +195,7 @@
 									same substitution the Input page documents for its demo links.
 								-->
 								<a
-									href="#/components/tooltip"
+									href={href("/components/tooltip")}
 									class="flex items-center gap-1 font-medium underline underline-offset-2"
 								>
 									View all
@@ -552,8 +553,9 @@
 						<Tooltip.Content>
 							<div class="flex flex-col gap-1.5">
 								<p class="font-medium">3 new notifications</p>
-								<a href="#/components/tooltip" class="font-medium underline underline-offset-2"
-									>View all &rarr;</a
+								<a
+									href={href("/components/tooltip")}
+									class="font-medium underline underline-offset-2">View all &rarr;</a
 								>
 							</div>
 						</Tooltip.Content>

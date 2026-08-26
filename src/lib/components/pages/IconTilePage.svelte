@@ -22,6 +22,7 @@
 	import StarIcon from "@lucide/svelte/icons/star";
 	import DocPage from "$lib/components/layout/DocPage.svelte";
 	import DocSection from "$lib/components/layout/DocSection.svelte";
+	import { href } from "$lib/hooks/route.svelte.js";
 
 	/**
 	 * The Icon tile component page — its seventeen examples in the order
@@ -400,10 +401,10 @@
 					>
 						{#snippet child({ props })}
 							<!--
-								The link points at this page's own route, not upstream's `href="#"` — the
-								fragment IS the router here, the Breadcrumb page's standing correction.
+								The link points at this page's own route, not upstream's `href="#"` — a link that
+								goes nowhere reads as a dead gallery. The Breadcrumb page's standing correction.
 							-->
-							<a href="#/components/icon-tile" aria-label="Open settings" {...props}>
+							<a href={href("/components/icon-tile")} aria-label="Open settings" {...props}>
 								<Settings2Icon aria-hidden="true" />
 							</a>
 						{/snippet}

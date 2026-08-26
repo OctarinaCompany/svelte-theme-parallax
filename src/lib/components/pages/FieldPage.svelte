@@ -23,6 +23,7 @@
 	import { Textarea } from "$lib/components/ui/textarea/index.js";
 	import DocPage from "$lib/components/layout/DocPage.svelte";
 	import DocSection from "$lib/components/layout/DocSection.svelte";
+	import { href } from "$lib/hooks/route.svelte.js";
 
 	/**
 	 * The Field component page, from shadcn-svelte's own documentation
@@ -902,16 +903,22 @@
 								<Field.FieldTitle>Terms of Service</Field.FieldTitle>
 								<Field.FieldDescription>
 									<!--
-										Upstream's placeholder `href="#"` points at this route instead: a bare
-										hash is not a valid href, and every demo link in this gallery is
-										self-referential for the same reason.
+										Upstream's placeholder `href="#"` points at this route instead, for the
+										reason `BreadcrumbPage.svelte` states once: a link that visibly goes
+										nowhere teaches a reader the gallery is dead.
 									-->
 									I agree to the
-									<a class="text-primary underline underline-offset-3" href="#/components/field">
+									<a
+										class="text-primary underline underline-offset-3"
+										href={href("/components/field")}
+									>
 										Terms of Service
 									</a>
 									and
-									<a class="text-primary underline underline-offset-3" href="#/components/field">
+									<a
+										class="text-primary underline underline-offset-3"
+										href={href("/components/field")}
+									>
 										Privacy Policy
 									</a>.
 								</Field.FieldDescription>

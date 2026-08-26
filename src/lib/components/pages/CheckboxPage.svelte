@@ -864,12 +864,12 @@
 			<Card.Content>
 				<div class="flex items-center gap-2">
 					<Checkbox
-						id="indeterminate"
+						id="checkbox-indeterminate"
 						bind:checked={() => mixedChecked, () => cycleMixed()}
 						bind:indeterminate={() => mixed, () => {}}
 						class={control}
 					/>
-					<Label for="indeterminate" class={checkLabel}>Indeterminate checkbox</Label>
+					<Label for="checkbox-indeterminate" class={checkLabel}>Indeterminate checkbox</Label>
 				</div>
 			</Card.Content>
 		</Card.Root>
@@ -893,11 +893,11 @@
 						width that makes them visible.
 					-->
 					<Checkbox
-						id="dashed"
+						id="checkbox-dashed"
 						bind:checked={dashed}
 						class={cn(control, "border! border-dashed border-primary")}
 					/>
-					<Label for="dashed" class={checkLabel}>Accept terms and conditions</Label>
+					<Label for="checkbox-dashed" class={checkLabel}>Accept terms and conditions</Label>
 				</div>
 			</Card.Content>
 		</Card.Root>
@@ -1350,7 +1350,7 @@
 						transition switched off is still movement, and the point is to have none.
 					-->
 					<CheckboxPrimitive.Root
-						id="animated"
+						id="checkbox-animated"
 						bind:checked={animated}
 						data-slot="checkbox"
 						class={cn(
@@ -1391,7 +1391,7 @@
 							</svg>
 						{/snippet}
 					</CheckboxPrimitive.Root>
-					<Label for="animated" class={checkLabel}>Animated checkbox</Label>
+					<Label for="checkbox-animated" class={checkLabel}>Animated checkbox</Label>
 				</div>
 			</Card.Content>
 		</Card.Root>
@@ -1468,12 +1468,12 @@
 				-->
 				<div class="relative flex w-fit items-center gap-2">
 					<Checkbox
-						id="confetti"
+						id="checkbox-confetti"
 						bind:checked={confetti}
 						onCheckedChange={onConfettiChange}
 						class={control}
 					/>
-					<Label for="confetti" class={checkLabel}>Check to see magic</Label>
+					<Label for="checkbox-confetti" class={checkLabel}>Check to see magic</Label>
 					<!--
 						`{#key burst}` remounts the layer on every check, which is what restarts the
 						animation — a CSS animation does not replay because its element's custom

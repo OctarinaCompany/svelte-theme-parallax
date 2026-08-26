@@ -13,6 +13,7 @@
 	import MicIcon from "@lucide/svelte/icons/mic";
 	import Settings2Icon from "@lucide/svelte/icons/settings-2";
 	import SlidersHorizontalIcon from "@lucide/svelte/icons/sliders-horizontal";
+	import { href } from "$lib/hooks/route.svelte.js";
 
 	/**
 	 * The Sizing page — not ported from any classic surface. It documents this theme's own
@@ -72,7 +73,7 @@
 		>), size names stay shadcn's API, and
 		<code class="text-[87.5%] text-primary">docs/CONVENTIONS.md</code> §3 states the rules. Tables
 		add a second axis — three density tiers on the
-		<a class="text-primary underline underline-offset-3" href="#/components/table">Table</a> primitive
+		<a class="text-primary underline underline-offset-3" href={href("/components/table")}>Table</a> primitive
 		— built on the same grammar. Everything on this page is a live component at its real size.
 	{/snippet}
 
@@ -224,10 +225,13 @@
 			<code>Card</code>'s <code>size</code> retunes <code>--card-spacing</code>:
 			<code>density</code> stamps <code>data-density</code>, tier rows in <code>app.css</code>
 			set <code>--table-row-h</code>, and each tier is a floor, not a clamp. The
-			<a class="text-primary underline underline-offset-3" href="#/components/table">Table page</a>
+			<a class="text-primary underline underline-offset-3" href={href("/components/table")}
+				>Table page</a
+			>
 			carries the full section; the
-			<a class="text-primary underline underline-offset-3" href="#/components/tables-in-cards"
-				>Tables in cards page</a
+			<a
+				class="text-primary underline underline-offset-3"
+				href={href("/components/tables-in-cards")}>Tables in cards page</a
 			> puts the switcher in a card header, Airtable-style.
 		{/snippet}
 		<Card.Root>

@@ -11,10 +11,10 @@
  * file of its own, and `dashboard.ts` imports it like any other caller.
  *
  * GENERIC OVER THE URL. `NavItem<U extends string = string>` gives a consumer plain strings
- * while the demo instantiates `NavItem<NavUrl>` — its `#${RoutePath}` union — and keeps the
- * property this split must not lose: renaming a route still fails the demo's compile until
- * the sidebar answers. `NavItem<NavUrl>` is assignable to `NavItem<string>`, so the
- * components stay ignorant of the narrowing.
+ * while the demo instantiates `NavItem<NavUrl>` — its `${string}${RoutePath}` union, the site
+ * base followed by a literal route — and keeps the property this split must not lose: renaming
+ * a route still fails the demo's compile until the sidebar answers. `NavItem<NavUrl>` is
+ * assignable to `NavItem<string>`, so the components stay ignorant of the narrowing.
  */
 
 import type { LucideIcon } from "@lucide/svelte";
@@ -93,9 +93,12 @@ export type NavItem<U extends string = string> = {
 /**
  * How active-state reaches the sidebar: a predicate over an item's raw `url`, never a router.
  *
- * The components cannot import a router — the demo's is a hash router private to the gallery,
- * and a consumer's is theirs. So the caller answers "is this url the page on screen?" and the
- * components ask. The demo passes `(url) => normaliseHash(url) === route.current`; a SvelteKit
- * consumer compares against `page.url.pathname`.
+ * The components cannot import a router — the demo's is private to the gallery, and a
+ * consumer's is theirs. So the caller answers "is this url the page on screen?" and the
+ * components ask. Both answers are the same shape now that the demo routes on the path: it
+ * passes `(url) => normalisePath(new URL(url, location.href).pathname) === route.current`, and
+ * a SvelteKit consumer passes `(url) => url === page.url.pathname`. The only difference is the
+ * normalising, which the demo needs because its urls carry the site base and because a retired
+ * route resolves to the page that absorbed it.
  */
 export type NavIsActive = (url: string) => boolean;

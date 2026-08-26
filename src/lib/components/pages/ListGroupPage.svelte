@@ -6,6 +6,7 @@
 	import ClockIcon from "@lucide/svelte/icons/clock";
 	import DocPage from "$lib/components/layout/DocPage.svelte";
 	import DocSection from "$lib/components/layout/DocSection.svelte";
+	import { href } from "$lib/hooks/route.svelte.js";
 
 	/**
 	 * The List group component page.
@@ -118,7 +119,7 @@
 		{ name: "Homepage Redesign", initials: "HR", updated: "Updated 4hr ago", wide: true },
 	];
 
-	const self = "#/components/list-group";
+	const self = href("/components/list-group");
 </script>
 
 <DocPage title="List group">
@@ -130,9 +131,9 @@
 		is a set of classes rather than a component, so what this page ports is the container: the rounded
 		box, the hairline between rows, the active fill, and the classic theme's focus recolour. The row inside
 		it is
-		<a class="text-primary underline underline-offset-3" href="#/components/item">Item</a>, which
-		carries named media, content and action slots and whose default row is skinned to this same
-		padding.
+		<a class="text-primary underline underline-offset-3" href={href("/components/item")}>Item</a>,
+		which carries named media, content and action slots and whose default row is skinned to this
+		same padding.
 	{/snippet}
 
 	<Card.Root>

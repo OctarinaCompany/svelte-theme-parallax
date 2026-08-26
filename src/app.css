@@ -1139,7 +1139,7 @@
  *
  * A SCROLL CONTAINER DOES NOT STOP THIS. `Table.Root` already wraps every table in
  * `overflow-x-auto`; that isolates the OVERFLOW, not the min-content contribution, which travels
- * up through it to the flex item regardless. Measured at 1280px on `#/components/data-table`:
+ * up through it to the flex item regardless. Measured at 1280px on `/components/data-table`:
  * `documentElement.scrollWidth` 1530 against `clientWidth` 1280 — the 250px difference is exactly
  * `--sidebar-width`, the inset being asked to be viewport-wide AND content-wide at once. With
  * `min-width: 0` the inset lands at 1030 and the document stops overflowing. Nine gallery pages

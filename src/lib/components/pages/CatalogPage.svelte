@@ -3,7 +3,7 @@
 	import DocPage from "$lib/components/layout/DocPage.svelte";
 	import DocSection from "$lib/components/layout/DocSection.svelte";
 	import { Badge } from "$lib/components/ui/badge/index.js";
-	import { CATEGORIES, DESTINATIONS, groupPath } from "$lib/hooks/route.svelte.js";
+	import { CATEGORIES, DESTINATIONS, groupPath, href } from "$lib/hooks/route.svelte.js";
 
 	/**
 	 * The catalog index: every group, in ladder order, with what each one admits.
@@ -54,7 +54,7 @@
 							</span>
 							<a
 								class="text-base font-medium text-primary underline underline-offset-3"
-								href="#{groupPath(category.slug)}"
+								href={href(groupPath(category.slug))}
 							>
 								{category.title}
 							</a>
@@ -71,7 +71,7 @@
 						-->
 						<div class="flex flex-wrap gap-x-3 gap-y-1">
 							{#each category.items as item (item.slug)}
-								<a class="text-sm hover:text-primary hover:underline" href="#{item.slug}">
+								<a class="text-sm hover:text-primary hover:underline" href={href(item.slug)}>
 									{item.title}
 								</a>
 							{/each}
@@ -90,7 +90,7 @@
 		<Card.Root>
 			<Card.Content class="flex flex-wrap gap-x-3 gap-y-1">
 				{#each DESTINATIONS as destination (destination.slug)}
-					<a class="text-sm hover:text-primary hover:underline" href="#{destination.slug}">
+					<a class="text-sm hover:text-primary hover:underline" href={href(destination.slug)}>
 						{destination.title}
 					</a>
 				{/each}

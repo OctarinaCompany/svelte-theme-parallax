@@ -8,6 +8,7 @@
 	import { getInitials } from "$lib/shared/get-initials.js";
 	import DocPage from "$lib/components/layout/DocPage.svelte";
 	import DocSection from "$lib/components/layout/DocSection.svelte";
+	import { href } from "$lib/hooks/route.svelte.js";
 
 	/**
 	 * The Scroll Area component page, ported from the shadcn-svelte documentation
@@ -160,7 +161,9 @@
 		>
 		for a full list of options. Scroll area replaces the scrollbar with an overlay it paints; when you
 		want to keep native scrolling and only add edge fade cues or press-to-scroll buttons, use
-		<a class="text-primary underline underline-offset-3" href="#/components/scroller">Scroller</a>
+		<a class="text-primary underline underline-offset-3" href={href("/components/scroller")}
+			>Scroller</a
+		>
 		instead.
 	{/snippet}
 

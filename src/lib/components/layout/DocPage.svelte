@@ -10,6 +10,7 @@
 		categoryByPath,
 		categoryOf,
 		groupPath,
+		href,
 		route,
 	} from "$lib/hooks/route.svelte.js";
 
@@ -63,13 +64,152 @@
 	const ownGroup = $derived(categoryByPath(route.current));
 
 	const trail = $derived.by(() => {
-		const root = { label: "Components", href: `#${CATALOG_PATH}` };
+		const root = { label: "Components", href: href(CATALOG_PATH) };
 
 		if (onCatalog) return [{ label: "Components" }];
 		if (ownGroup) return [root, { label: ownGroup.title }];
 		if (group)
-			return [root, { label: group.title, href: `#${groupPath(group.slug)}` }, { label: title }];
+			return [root, { label: group.title, href: href(groupPath(group.slug)) }, { label: title }];
 		return [root, { label: title }];
+	});
+
+	/**
+	 * How long a landing keeps correcting itself, in ms.
+	 *
+	 * Long enough for a `<video>` to report its dimensions and for an accordion to finish opening
+	 * — the two things on this site that add height ABOVE a target after it has been scrolled to,
+	 * and which without this leave the reader looking at whatever happens to be a screen further
+	 * down. Short enough that it is over before anyone would want to scroll away from it.
+	 */
+	const SETTLE_MS = 1000;
+
+	/**
+	 * The heading the address bar's fragment names, or `null`.
+	 *
+	 * `getElementById` and not `querySelector("#" + id)`: a section id may begin with a digit
+	 * (`4-5-social-media-portrait-aspect-ratio`), which is a perfectly good id and an invalid CSS
+	 * selector. This is also exactly how the browser resolves the fragment itself, so a link
+	 * followed inside the page and a link opened cold can never disagree about the target.
+	 */
+	function fragmentHeading(): HTMLElement | null {
+		const raw = window.location.hash.slice(1);
+		if (!raw) return null;
+		let id = raw;
+		try {
+			id = decodeURIComponent(raw);
+		} catch {
+			/* A mangled escape — take the fragment literally rather than throwing on the way in. */
+		}
+		return document.getElementById(id);
+	}
+
+	function scrollToHeading(heading: HTMLElement): void {
+		// `scrollIntoView`, never `window.scrollTo`: only the former honours the
+		// `scroll-padding-top` `src/app.css` sets on `:root` to keep the sticky header off it.
+		heading.scrollIntoView({ block: "start", behavior: "instant" });
+	}
+
+	/**
+	 * Land on the section a deep link names, once the page is really on screen.
+	 *
+	 * WHY THE BROWSER CANNOT DO THIS ONE. Chrome scrolls to a fragment exactly once, when parsing
+	 * ends; an element that appears later is never scrolled to, and `:target` never matches it
+	 * (measured — it does not retry at `load`, whatever the specification allows). Every page here
+	 * arrives through a dynamic `import()` in `App.svelte`, which resolves well after that moment,
+	 * so a cold visit to `/components/button#icon` would otherwise open at the top of the page.
+	 * A click on a link INSIDE the page is a different story and stays the browser's: it happens
+	 * long after parsing, on an element that already exists.
+	 *
+	 * `route.current` is read so this survives a page swap that does not remount `DocPage`. Today
+	 * `GroupPage` does remount — it keys its own body on the route — but nothing enforces that, and
+	 * a mount-only effect would fail silently the day a page decided to stay put.
+	 *
+	 * The focus is what makes the landing exist for a screen reader, which has no viewport to
+	 * notice moved; `preventScroll` keeps it from undoing the scroll that was just made.
+	 */
+	$effect(() => {
+		route.current;
+
+		const heading = fragmentHeading();
+		if (!heading) return;
+
+		scrollToHeading(heading);
+		heading.focus({ preventScroll: true });
+
+		/*
+		 * Then keep it there while the page settles. A bounded window, and any gesture ends it
+		 * early: correcting the scroll under a reader who has started scrolling themselves would
+		 * be the page fighting them, which is worse than landing slightly wrong.
+		 *
+		 * `pointerdown` is in the list for the scrollbar, which emits none of the other three —
+		 * a reader who grabs it during the window would otherwise be snapped back to the heading
+		 * every time something above the target finished laying itself out.
+		 */
+		const controller = new AbortController();
+		const observer = new ResizeObserver(() => scrollToHeading(heading));
+		const stop = () => {
+			observer.disconnect();
+			controller.abort();
+			clearTimeout(timer);
+		};
+		const timer = setTimeout(stop, SETTLE_MS);
+
+		observer.observe(document.body);
+		for (const type of ["wheel", "touchstart", "keydown", "pointerdown"] as const) {
+			window.addEventListener(type, stop, { signal: controller.signal, passive: true });
+		}
+
+		return stop;
+	});
+
+	/**
+	 * Scroll for the one fragment move the browser declines to make.
+	 *
+	 * Back and Forward between two sections of one page fire `hashchange`, but with
+	 * `history.scrollRestoration` set to `manual` — which the router sets, because the automatic
+	 * kind restores onto the loading skeleton — nothing moves. A click inside the page reaches
+	 * here too, after the browser has already scrolled, where this is a second instant scroll to
+	 * the position already reached and therefore invisible.
+	 *
+	 * No focus move here, deliberately. The reader is already on the page, the browser has set the
+	 * sequential focus starting point for them, and pulling focus onto the heading would take it
+	 * off the control they just activated.
+	 */
+	$effect(() => {
+		const onHashChange = () => {
+			const heading = fragmentHeading();
+			if (heading) scrollToHeading(heading);
+		};
+
+		window.addEventListener("hashchange", onHashChange);
+		return () => window.removeEventListener("hashchange", onHashChange);
+	});
+
+	/**
+	 * One element per id, checked while developing.
+	 *
+	 * A section's id is derived from its title, and a demo on the same page is free to use any id
+	 * it likes for its own controls. When the two collide, the browser resolves the fragment to
+	 * whichever comes FIRST in the document — so a section link silently lands on a checkbox — and
+	 * a `<label for>` in that demo can end up naming the heading instead of its own control.
+	 * Neither failure announces itself, so it is asserted here rather than discovered later.
+	 */
+	$effect(() => {
+		if (!import.meta.env.DEV) return;
+		route.current;
+
+		const counts = new Map<string, number>();
+		for (const element of document.querySelectorAll<HTMLElement>("[id]")) {
+			counts.set(element.id, (counts.get(element.id) ?? 0) + 1);
+		}
+
+		for (const [id, count] of counts) {
+			if (count > 1) {
+				console.error(
+					`DocPage: id "${id}" is used by ${count} elements on ${route.current}. A section link resolves to the first of them.`,
+				);
+			}
+		}
 	});
 </script>
 

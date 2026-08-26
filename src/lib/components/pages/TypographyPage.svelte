@@ -1,6 +1,7 @@
 <script lang="ts">
 	import * as Card from "$lib/components/ui/card/index.js";
 	import DocPage from "$lib/components/layout/DocPage.svelte";
+	import { href } from "$lib/hooks/route.svelte.js";
 
 	/**
 	 * The Typography component page.
@@ -94,7 +95,7 @@
 					-->
 					<p class={paragraph}>
 						<a
-							href="#/components/typography"
+							href={href("/components/typography")}
 							class="text-primary no-underline transition-colors hover:text-[color-mix(in_srgb,var(--primary)_70%,black)]"
 						>
 							Link example

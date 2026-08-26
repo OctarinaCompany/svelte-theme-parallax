@@ -32,6 +32,7 @@ import WrenchIcon from "@lucide/svelte/icons/wrench";
 import {
 	CATEGORIES,
 	DESTINATIONS,
+	href,
 	type CategoryTitle,
 	type RoutePath,
 } from "$lib/hooks/route.svelte.js";
@@ -42,7 +43,7 @@ import type { NavIcon, NavItem, User, Workspace } from "$lib/shared/nav.js";
  *
  * NOT `string`. The nav `url` fields were typed `string` for as long as this list was
  * hand-maintained, which meant renaming a slug and forgetting the sidebar left `npm run check`
- * clean and the link dead — it fell through `normaliseHash` to `HOME` and rendered another page.
+ * clean and the link dead — it fell through `normalisePath` to `HOME` and rendered another page.
  * Tying the type to `RoutePath` makes that a compile error. Nothing is generated from a
  * `NavUrl` today except through {@link CATEGORIES}, but the entries in {@link dashboardData}
  * that are still written by hand are checked by it.
@@ -52,7 +53,12 @@ import type { NavIcon, NavItem, User, Workspace } from "$lib/shared/nav.js";
  * at `NavUrl` while a registry consumer gets plain strings. This alias is the demo's half of
  * that bargain, which is why it stays here rather than moving with the types.
  */
-export type NavUrl = `#${RoutePath}`;
+/*
+ * The leading `${string}` is the site base, which only exists at build time — `''` locally and
+ * `/svelte-theme-parallax` on Pages — so it cannot be written into the type. The tail still has
+ * to be a literal {@link RoutePath}, which is the half that catches a renamed slug.
+ */
+export type NavUrl = `${string}${RoutePath}`;
 
 export type DashboardData = {
 	user: User;
@@ -129,7 +135,7 @@ export const dashboardData: DashboardData = {
 	navMain: [
 		...DESTINATIONS.map((destination) => ({
 			title: destination.title,
-			url: `#${destination.slug}` as NavUrl,
+			url: href(destination.slug),
 			icon: DESTINATION_ICONS[destination.title],
 		})),
 		...CATEGORIES.map((category) => ({
@@ -137,7 +143,7 @@ export const dashboardData: DashboardData = {
 			icon: CATEGORY_ICONS[category.title],
 			items: category.items.map((item) => ({
 				title: item.title,
-				url: `#${item.slug}` as NavUrl,
+				url: href(item.slug),
 			})),
 		})),
 	],

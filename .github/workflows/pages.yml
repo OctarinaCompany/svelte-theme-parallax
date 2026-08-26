@@ -44,10 +44,12 @@ jobs:
       # that folder. Running it here rather than trusting a committed artefact means the
       # published JSON cannot lag the source it is generated from.
       - run: npm run registry:build
+      # `build` is `vite build` followed by `tools/site/prerender.mjs`, which copies the built
+      # index.html to one file per route and to `404.html`. The per-route files are what make a
+      # deep link such as `/components/button` answer 200 rather than render out of the fallback;
+      # the fallback still catches the two retired routes and every path that is not a route at
+      # all. The script states what GitHub Pages was measured to do with an extensionless path.
       - run: npm run build
-      # SPA fallback: a visitor landing on a deep link gets index.html rather than the 404 page,
-      # after which the hash router takes over.
-      - run: cp dist/index.html dist/404.html
       - uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b # v5.0.0
       - uses: actions/upload-pages-artifact@7b1f4a764d45c48632c6b24a0339c27f5614fb0b # v4.0.0
         with:

@@ -16,6 +16,7 @@
 	import { Textarea } from "$lib/components/ui/textarea/index.js";
 	import DocPage from "$lib/components/layout/DocPage.svelte";
 	import DocSection from "$lib/components/layout/DocSection.svelte";
+	import { href } from "$lib/hooks/route.svelte.js";
 
 	/**
 	 * The Dialog component page, ported from the shadcn-svelte documentation
@@ -27,7 +28,7 @@
 	 * ships on `Dialog.Content` itself, so every demo composes the parts as they come.
 	 *
 	 * The adaptive sibling that swaps to a bottom drawer under 768px is a separate component
-	 * with a page of its own (`#/components/responsive-dialog`); this page documents the
+	 * with a page of its own (`/components/responsive-dialog`); this page documents the
 	 * always-modal primitive it builds on.
 	 */
 
@@ -189,8 +190,9 @@
 			A dialog is the right container for a focused task that needs input; on submit the page closes
 			it through <code class="text-[87.5%] text-primary">bind:open</code>. For a form that should
 			become a bottom drawer on mobile, use the
-			<a class="text-primary underline underline-offset-3" href="#/components/responsive-dialog"
-				>Responsive dialog</a
+			<a
+				class="text-primary underline underline-offset-3"
+				href={href("/components/responsive-dialog")}>Responsive dialog</a
 			> instead.
 		{/snippet}
 		<Card.Root>

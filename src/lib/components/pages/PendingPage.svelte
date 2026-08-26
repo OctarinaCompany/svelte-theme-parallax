@@ -10,6 +10,7 @@
 	import { Spinner } from "$lib/components/ui/spinner/index.js";
 	import { Switch } from "$lib/components/ui/switch/index.js";
 	import * as Table from "$lib/components/ui/table/index.js";
+	import { href } from "$lib/hooks/route.svelte.js";
 
 	/**
 	 * The Pending component page.
@@ -298,7 +299,7 @@
 					<Pending.Root isPending={isNavigating}>
 						{#snippet child({ props })}
 							<a
-								href="#/components/pending"
+								href={href("/components/pending")}
 								onclick={onNavigate}
 								class="text-primary underline-offset-4 hover:underline"
 								{...props}

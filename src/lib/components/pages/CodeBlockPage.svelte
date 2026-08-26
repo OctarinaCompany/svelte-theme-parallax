@@ -5,6 +5,7 @@
 	import DocSection from "$lib/components/layout/DocSection.svelte";
 	import * as Table from "$lib/components/ui/table/index.js";
 	import * as ToggleGroup from "$lib/components/ui/toggle-group/index.js";
+	import { href } from "$lib/hooks/route.svelte.js";
 	import {
 		CODE_BLOCK_LANGUAGES,
 		CODE_BLOCK_TOKEN_KINDS,
@@ -255,7 +256,7 @@
 	{#snippet subtitle()}
 		A copyable code sample with a line-number gutter, a language selector and lightweight
 		language-aware highlighting. Unlike
-		<a class="text-primary underline underline-offset-3" href="#/components/json-viewer"
+		<a class="text-primary underline underline-offset-3" href={href("/components/json-viewer")}
 			>JSON viewer</a
 		>, which parses a live value and lets the reader collapse it, this takes an opaque string and
 		colours what a regular expression can recognise.

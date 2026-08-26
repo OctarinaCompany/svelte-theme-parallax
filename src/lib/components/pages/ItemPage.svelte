@@ -35,6 +35,7 @@
 	import WebhookIcon from "@lucide/svelte/icons/webhook";
 	import DocPage from "$lib/components/layout/DocPage.svelte";
 	import DocSection from "$lib/components/layout/DocSection.svelte";
+	import { href } from "$lib/hooks/route.svelte.js";
 
 	/**
 	 * The Item component page, following shadcn-svelte's documentation
@@ -200,7 +201,7 @@
 	const nonModal = false;
 
 	/** This page's own route, so the link demos go somewhere real instead of nowhere. */
-	const self = "#/components/item";
+	const self = href("/components/item");
 
 	const people = [
 		{ username: "shadcn", initials: "CN", email: "shadcn@vercel.com" },
@@ -407,7 +408,7 @@
 		<code class="text-[87.5%] text-primary">Item.Group</code> only stacks rows with a gap. For the
 		container the classic framework draws around them — one rounded box, a hairline per seam, and an
 		active fill on the chosen row — see
-		<a class="text-primary underline underline-offset-3" href="#/components/list-group"
+		<a class="text-primary underline underline-offset-3" href={href("/components/list-group")}
 			>List group</a
 		>, which ports that as plain classes rather than as a component.
 	{/snippet}

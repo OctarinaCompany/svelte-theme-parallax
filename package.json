@@ -30,7 +30,7 @@
 	"packageManager": "npm@11.19.0",
 	"scripts": {
 		"dev": "vite",
-		"build": "vite build",
+		"build": "vite build && npm run site:prerender",
 		"preview": "vite preview",
 		"check": "svelte-check --tsconfig ./tsconfig.app.json && tsc -p tsconfig.node.json",
 		"format": "prettier --write .",
@@ -40,7 +40,8 @@
 		"loaders:check": "node tools/loaders/check-styles.mjs",
 		"registry:generate": "node tools/registry/generate.mjs",
 		"registry:build": "npm run registry:generate && shadcn-svelte registry build --output ./public/r",
-		"registry:sync": "node tools/registry/sync-official.mjs"
+		"registry:sync": "node tools/registry/sync-official.mjs",
+		"site:prerender": "node tools/site/prerender.mjs"
 	},
 	"devDependencies": {
 		"@date-fns/tz": "^1.5.0",

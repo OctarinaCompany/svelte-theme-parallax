@@ -27,7 +27,7 @@
 	let verticalContainer = $state<HTMLDivElement | null>(null);
 	let controlledContainer = $state<HTMLDivElement | null>(null);
 
-	let controlledValue = $state("getting-started");
+	let controlledValue = $state("controlled-getting-started");
 
 	const guideSections = [
 		{
@@ -326,12 +326,12 @@
 				>
 					<ScrollSpy.Nav aria-label="Default example sections" class="w-40 border-r p-4">
 						{#each guideSections as section (section.value)}
-							<ScrollSpy.Link value={section.value}>{section.title}</ScrollSpy.Link>
+							<ScrollSpy.Link value={`default-${section.value}`}>{section.title}</ScrollSpy.Link>
 						{/each}
 					</ScrollSpy.Nav>
 					<ScrollSpy.Viewport bind:ref={defaultContainer} class="overflow-y-auto p-4">
 						{#each guideSections as section (section.value)}
-							<ScrollSpy.Section value={section.value}>
+							<ScrollSpy.Section value={`default-${section.value}`}>
 								<h2 class="text-2xl font-bold">{section.title}</h2>
 								<p class="mt-2 text-muted-foreground">{section.body}</p>
 								<div class="mt-4 h-64 rounded-lg bg-accent"></div>
@@ -391,12 +391,12 @@
 				>
 					<ScrollSpy.Nav aria-label="Controlled example sections" class="w-40 border-r p-4">
 						{#each guideSections as section (section.value)}
-							<ScrollSpy.Link value={section.value}>{section.title}</ScrollSpy.Link>
+							<ScrollSpy.Link value={`controlled-${section.value}`}>{section.title}</ScrollSpy.Link>
 						{/each}
 					</ScrollSpy.Nav>
 					<ScrollSpy.Viewport bind:ref={controlledContainer} class="overflow-y-auto p-4">
 						{#each guideSections as section (section.value)}
-							<ScrollSpy.Section value={section.value}>
+							<ScrollSpy.Section value={`controlled-${section.value}`}>
 								<h2 class="text-2xl font-bold">{section.title}</h2>
 								<p class="mt-2 text-muted-foreground">{section.body}</p>
 								<div class="mt-4 h-64 rounded-lg bg-accent"></div>

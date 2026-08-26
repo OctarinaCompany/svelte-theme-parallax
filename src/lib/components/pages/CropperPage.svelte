@@ -310,7 +310,15 @@
 		<Card.Root>
 			<Card.Content>
 				<Cropper.Root aspectRatio={1} class="min-h-72">
-					<Cropper.Video src="/assets/cloud.mp4" muted loop autoplay playsinline />
+					<!-- Through Vite's base, for the reason spelled out in `MediaPlayerPage.svelte`: a
+					root-absolute public path is the domain root, not the deployed site's. -->
+					<Cropper.Video
+						src={`${import.meta.env.BASE_URL}assets/cloud.mp4`}
+						muted
+						loop
+						autoplay
+						playsinline
+					/>
 					<Cropper.Area />
 				</Cropper.Root>
 			</Card.Content>

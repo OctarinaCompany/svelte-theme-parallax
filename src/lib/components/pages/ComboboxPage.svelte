@@ -63,6 +63,7 @@
 	import { keepPageScroll } from "./combobox-keep-scroll.svelte.js";
 	import DocPage from "$lib/components/layout/DocPage.svelte";
 	import DocSection from "$lib/components/layout/DocSection.svelte";
+	import { href } from "$lib/hooks/route.svelte.js";
 
 	/**
 	 * The Combobox page: FOURTEEN variants, in a fixed order and under the
@@ -1548,7 +1549,7 @@
 		<code class="text-[87.5%] text-primary">Popover</code>, and skinned as the boxed-select the
 		classic select skin this theme already ships. Fourteen arrangements of the two. What it commits
 		is always one of the items, never the text typed to find them — reach for
-		<a class="text-primary underline underline-offset-3" href="#/components/autocomplete"
+		<a class="text-primary underline underline-offset-3" href={href("/components/autocomplete")}
 			>Autocomplete</a
 		>
 		next door when the answer may be one the list never offered.

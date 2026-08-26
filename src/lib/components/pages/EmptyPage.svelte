@@ -23,6 +23,7 @@
 	import UsersIcon from "@lucide/svelte/icons/users";
 	import DocPage from "$lib/components/layout/DocPage.svelte";
 	import DocSection from "$lib/components/layout/DocSection.svelte";
+	import { href } from "$lib/hooks/route.svelte.js";
 
 	/**
 	 * The Empty component page, ported from shadcn-svelte's own documentation
@@ -289,7 +290,7 @@
 					`text-muted-foreground` from the docs is dropped: `.btn-link` is `link-color` =
 					`primary`, and a muted link is not a treatment the classic theme has.
 				-->
-				<Button href="#/components/empty" variant="link" class="{btn.sm} {link}">
+				<Button href={href("/components/empty")} variant="link" class="{btn.sm} {link}">
 					Learn More
 					<ArrowUpRightIcon data-icon="inline-end" />
 				</Button>
@@ -542,7 +543,7 @@
 						<Empty.Description
 							class="{description} [&>a]:text-primary [&>a]:no-underline [&>a:hover]:text-[color-mix(in_srgb,var(--primary)_70%,black)]"
 						>
-							Need help? <a href="#/components/empty">Contact support</a>
+							Need help? <a href={href("/components/empty")}>Contact support</a>
 						</Empty.Description>
 					</Empty.Content>
 				</Empty.Root>
@@ -591,7 +592,7 @@
 					</Empty.Header>
 					<Empty.Content>
 						<Button class="{btn.base} {primary}">Try again</Button>
-						<Button href="#/components/empty" variant="link" class="{btn.sm} {link}">
+						<Button href={href("/components/empty")} variant="link" class="{btn.sm} {link}">
 							Learn more
 							<ArrowUpRightIcon data-icon="inline-end" />
 						</Button>
@@ -624,7 +625,7 @@
 							class="{description} [&>a]:text-primary [&>a]:no-underline [&>a:hover]:text-[color-mix(in_srgb,var(--primary)_70%,black)]"
 						>
 							No posts have been created yet. Get started by
-							<a href="#/components/empty">creating your first post</a>.
+							<a href={href("/components/empty")}>creating your first post</a>.
 						</Empty.Description>
 					</Empty.Header>
 					<Empty.Content>

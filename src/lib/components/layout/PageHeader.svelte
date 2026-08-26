@@ -122,10 +122,12 @@
 	/**
 	 * Seed from the CURRENT position, not from zero.
 	 *
-	 * Nothing resets the scroll on a route change — `route.svelte.ts` listens for `hashchange` and
-	 * never calls `scrollTo`, and a `#/route` fragment names no element so the browser does not
-	 * scroll either. A component mounting at y=1200 with `lastY = 0` would read its first event as
-	 * a 1200px scroll up.
+	 * A page change does reset the scroll — the demo's router hands a target to its shell, which
+	 * applies it once the page's chunk has mounted — but this component cannot assume it has
+	 * happened yet, or at all: a landing on a `#section` deliberately leaves the position to the
+	 * page, and this bar has no way to tell the two apart. A component mounting at y=1200 with
+	 * `lastY = 0` would read its first event as a 1200px scroll up, so the seed is measured
+	 * rather than assumed. The jump guard in `onscroll` covers what happens next.
 	 */
 	$effect(() => {
 		lastY = window.scrollY;
@@ -164,6 +166,30 @@
 		}
 
 		const delta = y - lastY;
+
+		/*
+		 * A jump further than the viewport is an ARRIVAL, not a gesture — and this bar answers
+		 * gestures.
+		 *
+		 * A movement that large came from code: `scrollIntoView` when a reader opens a link to a
+		 * section, or a router returning to a stored position. Measuring it as a downward gesture
+		 * hides the bar the instant somebody arrives somewhere they did not scroll to, which is
+		 * precisely when they most need the trail that says where they are. So the bar is shown
+		 * and the measurement restarts from the landing.
+		 *
+		 * SHOWING IT, not merely re-seeding, is the half that matters: a reader who scrolled down
+		 * (bar hidden) and then followed a section link would otherwise arrive at a page whose
+		 * chrome is still tucked away, with nothing on screen naming where they now are.
+		 *
+		 * A very fast drag of the scrollbar can also clear a viewport between two events and will
+		 * be read as an arrival. Revealing the bar is the harmless outcome of the two.
+		 */
+		if (Math.abs(delta) > window.innerHeight) {
+			hidden = false;
+			lastY = y;
+			return;
+		}
+
 		if (delta > DOWN) hidden = true;
 		else if (-delta > UP) hidden = false;
 		lastY = y;

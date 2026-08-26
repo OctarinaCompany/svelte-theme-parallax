@@ -247,9 +247,9 @@
 	/**
 	 * The docs example binds the shortcut with `<svelte:document onkeydown={…} />`. An
 	 * `$effect` is used instead so the listener is added and removed in one place, and so the
-	 * teardown is visible rather than implied — the page is mounted and unmounted by the hash
-	 * router on every navigation, and a listener left on `document` would keep firing from a
-	 * page that is no longer on screen.
+	 * teardown is visible rather than implied — the router mounts and unmounts the page on every
+	 * navigation, and a listener left on `document` would keep firing from a page that is no
+	 * longer on screen.
 	 *
 	 * `metaKey || ctrlKey` covers ⌘J and Ctrl+J with one branch, as the docs example does.
 	 */

@@ -6,6 +6,7 @@
 	import CircularProgressColorTile from "./circular-progress-color-tile.svelte";
 	import * as Table from "$lib/components/ui/table/index.js";
 	import { Button } from "$lib/components/ui/button/index.js";
+	import { href } from "$lib/hooks/route.svelte.js";
 
 	/**
 	 * The Circular progress component page.
@@ -255,8 +256,8 @@
 		support for indeterminate states. This is the closed-ring preset — a small loader, 48px on a 4px
 		stroke, labelled as a percentage. When the arc itself carries meaning, and you need to set where
 		it starts and ends, use
-		<a class="text-primary underline underline-offset-3" href="#/components/gauge">Gauge</a>, which
-		builds on the geometry defined here.
+		<a class="text-primary underline underline-offset-3" href={href("/components/gauge")}>Gauge</a>,
+		which builds on the geometry defined here.
 	{/snippet}
 
 	<DocSection title="Default">

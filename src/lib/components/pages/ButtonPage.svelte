@@ -255,6 +255,7 @@
 	import * as Avatar from "$lib/components/ui/avatar/index.js";
 	import MoonIcon from "@lucide/svelte/icons/moon";
 	import SunIcon from "@lucide/svelte/icons/sun";
+	import { href } from "$lib/hooks/route.svelte.js";
 
 	/**
 	 * demo 59 — the labelled "Login with" stack. Upstream paints each Remix brand mark
@@ -700,10 +701,10 @@
 				<!--
 					demo 27 wraps a Next.js `<Link>` via Radix's `asChild`. This registry
 					button has no `asChild`; passing `href` makes it render an `<a>` instead, which
-					is the same demo. Here the fragment IS the router, so a bare `#` or `#!` would
-					navigate away; the demo link points at this page's own route instead.
+					is the same demo. The link points at this page's own route rather than at
+					upstream's `href="#"` — `BreadcrumbPage.svelte` states the gallery's rule.
 				-->
-				<Button href="#/components/button">Back to Home</Button>
+				<Button href={href("/components/button")}>Back to Home</Button>
 			</Card.Content>
 		</Card.Root>
 	</DocSection>
@@ -1108,7 +1109,7 @@
 			<Card.Content>
 				<!-- demo 49 — upstream wraps an `<a>` via `asChild`; here `href` renders
 					the anchor, as the Next.js Link section already established. -->
-				<Button variant="link" href="#/components/button">
+				<Button variant="link" href={href("/components/button")}>
 					<ChevronLeftIcon data-icon="inline-start" />
 					Go back
 				</Button>
@@ -1121,7 +1122,7 @@
 			<Card.Content>
 				<!-- demo 50 — upstream adds a `group/back-button` scope for the hover
 					slide; the registry button's own `group/button` already provides one. -->
-				<Button variant="link" href="#/components/button">
+				<Button variant="link" href={href("/components/button")}>
 					<ChevronLeftIcon
 						data-icon="inline-start"
 						class="transition-transform duration-200 group-hover/button:-translate-x-1"
@@ -1298,7 +1299,7 @@
 		</Card.Root>
 	</DocSection>
 
-	<DocSection title="Social login buttons with Remix icons">
+	<DocSection title="Labelled social login buttons with Remix icons">
 		{#snippet blurb()}
 			The labelled counterpart of the icon-only stack above — a muted "Login with" lead-in before
 			each provider's name.

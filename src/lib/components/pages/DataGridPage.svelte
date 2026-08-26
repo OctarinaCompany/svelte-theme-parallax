@@ -3,6 +3,7 @@
 	import DocPage from "$lib/components/layout/DocPage.svelte";
 	import DocSection from "$lib/components/layout/DocSection.svelte";
 	import * as DataGrid from "$lib/components/ui/data-grid/index.js";
+	import { href } from "$lib/hooks/route.svelte.js";
 	import {
 		/**
 		 * The Data grid component page.
@@ -467,16 +468,16 @@
 	{#snippet subtitle()}
 		A virtualized, spreadsheet-like editable grid: keyboard navigation, rectangular cell selection,
 		clipboard support and nine cell variants. Reach for it over the
-		<a class="text-primary underline underline-offset-3" href="#/components/data-table"
+		<a class="text-primary underline underline-offset-3" href={href("/components/data-table")}
 			>Data table</a
 		>
 		when cells are edited in place, or when the list is too long to page — it windows its rows instead
 		of paginating them, and draws its own ARIA grid rather than the table markup the
-		<a class="text-primary underline underline-offset-3" href="#/components/table">Table</a>
+		<a class="text-primary underline underline-offset-3" href={href("/components/table")}>Table</a>
 		primitive and the Data table share. The trade is the Data table's furniture: no pagination, and a
 		toolbar and filter controls the caller builds. Elsewhere "data grid" names that table pattern rather
 		than this spreadsheet, so its demos live with the
-		<a class="text-primary underline underline-offset-3" href="#/components/data-table"
+		<a class="text-primary underline underline-offset-3" href={href("/components/data-table")}
 			>Data table</a
 		>.
 	{/snippet}

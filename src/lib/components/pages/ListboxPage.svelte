@@ -4,6 +4,7 @@
 	import DocSection from "$lib/components/layout/DocSection.svelte";
 	import * as Listbox from "$lib/components/ui/listbox/index.js";
 	import * as Table from "$lib/components/ui/table/index.js";
+	import { href } from "$lib/hooks/route.svelte.js";
 
 	/**
 	 * The Listbox component page.
@@ -233,7 +234,7 @@
 	{#snippet subtitle()}
 		A component for creating keyboard-navigable selection lists and grids. See the API reference
 		below for the full API, and the
-		<a class="text-primary underline underline-offset-3" href="#/components/combobox"
+		<a class="text-primary underline underline-offset-3" href={href("/components/combobox")}
 			>Combobox page</a
 		> for how the type-to-pick components divide their roles.
 	{/snippet}

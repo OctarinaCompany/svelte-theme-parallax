@@ -8,7 +8,7 @@
 	import { Button } from "$lib/components/ui/button/index.js";
 	import { Skeleton } from "$lib/components/ui/skeleton/index.js";
 	import { dashboardData } from "$lib/data/dashboard.js";
-	import { normaliseHash, route, type RoutePath } from "$lib/hooks/route.svelte.js";
+	import { normalisePath, route, type RoutePath } from "$lib/hooks/route.svelte.js";
 	import { DEFAULT_THEME } from "$lib/themes/index.js";
 
 	/**
@@ -259,6 +259,32 @@
 			cancelled = true;
 		};
 	});
+
+	/**
+	 * Put the reader where the navigation says they should be — once the page is really there.
+	 *
+	 * THE ROUTER CANNOT DO THIS ITSELF. It knows the destination the moment the link is clicked,
+	 * but the page behind it is a dynamic import: for a few hundred milliseconds the document is
+	 * a `Skeleton` a few hundred pixels tall, and a scroll issued then is clamped to that height
+	 * and silently wrong. This effect waits for `loaded` to hold the chunk, which is the same
+	 * condition that renders `<Page />`, so by the time it runs the real page is in the DOM.
+	 *
+	 * It reads `route.current` as well as `loaded`, because the twelve group routes share ONE
+	 * component: navigating between them leaves `current` identical and would never re-run an
+	 * effect that only watched the component.
+	 *
+	 * `takePendingScroll` returns `null` for a landing this effect must not touch — a URL with a
+	 * fragment, which belongs to the page's own heading scroll, and every read after the first.
+	 */
+	$effect(() => {
+		const path = route.current;
+		if (!loaded.has(path)) return;
+
+		const target = route.takePendingScroll();
+		if (target === null) return;
+
+		window.scrollTo({ top: target, behavior: "instant" });
+	});
 </script>
 
 <!--
@@ -273,7 +299,11 @@
 	The demo's data and its router meet HERE, and nowhere below. `AppSidebar` takes both as
 	props since the shell published: the identity/workspaces/nav content, and the one predicate
 	that answers "is this url the page on screen?" — which is the entire coupling between the
-	sidebar and this application's hash router.
+	sidebar and this application's router.
+
+	The url the sidebar holds already carries the site base, so the predicate resolves it against
+	the document before comparing: `new URL` turns both an absolute and a relative href into the
+	same pathname, and `normalisePath` takes the base back off.
 -->
 <AppShell>
 	{#snippet sidebar()}
@@ -282,7 +312,7 @@
 			workspaces={dashboardData.workspaces}
 			items={dashboardData.navMain}
 			label="Components"
-			isActive={(url) => normaliseHash(url) === route.current}
+			isActive={(url) => normalisePath(new URL(url, location.href).pathname) === route.current}
 		/>
 	{/snippet}
 	{#if current}

@@ -40,6 +40,7 @@
 	import { Progress } from "$lib/components/ui/progress/index.js";
 	import { Separator } from "$lib/components/ui/separator/index.js";
 	import { cn } from "$lib/utils.js";
+	import { href } from "$lib/hooks/route.svelte.js";
 
 	/**
 	 * The Card component page.
@@ -136,7 +137,9 @@
 		-->
 			<h3 class="mb-2 text-lg font-medium">Card title</h3>
 			<p class="mb-4 text-sm">{lorem}</p>
-			<a href="#/components/card" class={buttonVariants({ variant: "default" })}> Go somewhere </a>
+			<a href={href("/components/card")} class={buttonVariants({ variant: "default" })}>
+				Go somewhere
+			</a>
 		</Card.Content>
 	</Card.Root>
 {/snippet}
@@ -636,7 +639,8 @@
 							</span>
 						</div>
 						<div class="flex flex-1 flex-col gap-px">
-							<a href="#/components/card" class="font-medium text-background">Nick Johnson</a>
+							<a href={href("/components/card")} class="font-medium text-background">Nick Johnson</a
+							>
 							<div class="text-background/80">nick@example.com</div>
 						</div>
 
@@ -707,7 +711,7 @@
 							<div class="flex items-center justify-between">
 								<Field.Label for="card-login-password">Password</Field.Label>
 								<a
-									href="#/components/card"
+									href={href("/components/card")}
 									class="text-xs text-muted-foreground underline-offset-4 hover:underline"
 								>
 									Forgot password?
@@ -756,7 +760,10 @@
 			<Card.Footer>
 				<p class="w-full text-center text-xs text-muted-foreground">
 					By clicking continue, you agree to our
-					<a href="#/components/card" class="underline underline-offset-4 hover:text-primary">
+					<a
+						href={href("/components/card")}
+						class="underline underline-offset-4 hover:text-primary"
+					>
 						Terms of Service
 					</a>
 				</p>
@@ -1028,7 +1035,7 @@
 					<ShoppingBagIcon class="size-5 text-primary-foreground" aria-hidden="true" />
 				</div>
 				<a
-					href="#/components/card"
+					href={href("/components/card")}
 					class="block text-sm leading-tight font-medium text-foreground hover:text-primary"
 				>
 					Recent Orders Overview
@@ -1037,7 +1044,7 @@
 					Track and review all recent purchases, updates, and status changes in one place.
 				</p>
 				<a
-					href="#/components/card"
+					href={href("/components/card")}
 					class="inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline"
 				>
 					View Orders
@@ -1062,7 +1069,7 @@
 						Find guides, API references, and examples to integrate with our platform.
 					</p>
 					<a
-						href="#/components/card"
+						href={href("/components/card")}
 						class="inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline"
 					>
 						<LinkIcon class="size-2.5 shrink-0" aria-hidden="true" />

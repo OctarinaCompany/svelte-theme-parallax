@@ -7,6 +7,7 @@
 	import { Button } from "$lib/components/ui/button/index.js";
 	import DocPage from "$lib/components/layout/DocPage.svelte";
 	import DocSection from "$lib/components/layout/DocSection.svelte";
+	import { href } from "$lib/hooks/route.svelte.js";
 
 	/**
 	 * The Input OTP component page — its six examples in the order that
@@ -230,7 +231,7 @@
 					<div class="text-sm text-muted-foreground">
 						Having trouble signing in?
 						<a
-							href="#/components/input-otp"
+							href={href("/components/input-otp")}
 							class="text-primary underline-offset-4 transition-colors hover:underline"
 							>Contact support</a
 						>
