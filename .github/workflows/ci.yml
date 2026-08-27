@@ -1,8 +1,8 @@
 # The whole quality gate this repository has: formatting, types, a production build, the theme
-# audit and the loader-style check. The audit exits non-zero on any unexplained contrast
-# regression, so a palette edit that silently loses to the base palette's own numbers fails the
-# build instead of shipping; the loader check covers the CSS-in-markup mismatches svelte-check
-# cannot see.
+# audit, the loader-style check and a drift check on the generated files. The audit exits
+# non-zero on any unexplained contrast regression, so a palette edit that silently loses to the
+# base palette's own numbers fails the build instead of shipping; the loader check covers the
+# CSS-in-markup mismatches svelte-check cannot see.
 name: CI
 
 on:
@@ -10,14 +10,37 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+  # `Pages` calls this workflow and deploys only if it passes, so the gate is written once. A
+  # second copy of these commands in the deploy workflow would drift from this one, and the copy
+  # that matters is whichever guards what a consumer fetches.
+  workflow_call:
 
 # Nothing here pushes or calls the API; the token needs read access and no more.
 permissions:
   contents: read
 
+# A second push to a pull request supersedes the first: the older run answers a question nobody is
+# asking any more. Cancellation stops there — a run on `main` is also the gate `Pages` calls
+# before it deploys, and a cancelled gate is a cancelled deployment. `github.workflow` is part of
+# the group because a called workflow sees the CALLER's `github` context: the gate reads `Pages`
+# and the run the README badge reads is `CI`, so the two land in different groups instead of one
+# queueing behind the other.
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   build:
     runs-on: ubuntu-latest
+    # A full run takes about two minutes, so a step still going at fifteen is hung; without a cap
+    # it would hold a runner for GitHub's six-hour default.
+    timeout-minutes: 15
+    strategy:
+      matrix:
+        # The floor `engines` declares and the current LTS: the floor so CI fails on anything
+        # that needs more than the project claims to, the LTS because it is the line contributors
+        # actually run, and a build that works on only one of the two is a bug either way.
+        node: [22, 24]
     steps:
       # Pinned to a commit, not a tag: a tag is mutable, and a compromised action would run
       # with this workflow's token. Dependabot bumps the pins. The v7 line is what runs on the
@@ -27,8 +50,7 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
-          # The floor `engines` declares, so CI fails on anything that needs more than it.
-          node-version: 20
+          node-version: ${{ matrix.node }}
           cache: npm
       # A gallery link is written `href={href("/components/...")}`; `href()` in
       # `src/lib/hooks/route.svelte.ts` is the single place the deployed base path is prepended.
@@ -55,3 +77,29 @@ jobs:
       - run: npm run build
       - run: npm run themes:audit
       - run: npm run loaders:check
+      # Six tracked files are written by the generators in `tools/` — `registry.json`,
+      # `docs/REGISTRY.md`, `public/llms.txt`, `skills/parallax/references/components.md`,
+      # `src/themes.css` and `src/lib/themes/palettes.ts` — and nothing above regenerates them.
+      # A component added without running the generators, or a dependency bump that changes what
+      # they emit, therefore merges a `registry.json` describing a tree that no longer exists,
+      # and `registry.json` is what a consumer installs from. Regenerating and demanding an empty
+      # diff is the only thing that proves the committed copies are what the source produces
+      # today. The check reads the whole worktree rather than that list of paths, so a seventh
+      # generated file is covered the day it is added. It runs last so every gate above judges
+      # the committed files rather than these fresh ones.
+      - name: Generated files match their generators
+        run: |
+          npm run registry:generate
+          npm run themes:generate
+          drift="$(git status --porcelain)"
+          if [ -n "$drift" ]; then
+            echo "::error::regenerating changed the worktree - see the paths below"
+            echo "stale generated file: run registry:generate and themes:generate, then commit"
+            echo "unexpected untracked path: a step left something that belongs in .gitignore"
+            echo "$drift"
+            # Summary first, then a capped patch: a whole regenerated `registry.json` would
+            # bury the log it is supposed to explain.
+            git --no-pager diff --stat
+            git --no-pager diff | head -n 200
+            exit 1
+          fi

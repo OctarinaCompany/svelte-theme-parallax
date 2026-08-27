@@ -27,4 +27,6 @@
 - [ ] `npm run themes:audit` passes (CI runs it on every PR; it can only move if `src/app.css`,
       `tools/themes/` or a token changed)
 - [ ] `npm run loaders:check` passes (CI runs it on every PR)
+- [ ] Generated files re-generated if `tools/`, `src/lib/components/ui/` or the pages changed
+      — CI re-runs both generators and fails on any diff
 - [ ] Visual changes: screenshots attached in **both light and dark mode**

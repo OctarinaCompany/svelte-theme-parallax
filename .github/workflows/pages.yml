@@ -15,11 +15,13 @@ on:
     branches: [main]
   workflow_dispatch:
 
-# The deploy job needs to mint an id-token for the Pages deployment; nothing else does.
+# Read-only by default, and every job that needs more says so itself. Only `deploy` mints the
+# OIDC id-token Pages exchanges for a deployment, so only `deploy` is granted it: a workflow-level
+# grant would hand the same token to `build`, which runs `npm ci` and therefore executes third-party
+# install scripts. `build` needs `pages: read` for `configure-pages`, which reads the site's
+# settings and never writes them (`enablement` is left at its default of `false`).
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
 # One deploy at a time, and never cancel one midway: a half-finished deployment would leave the
 # registry answering some items and 404-ing others.
@@ -28,8 +30,23 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  # The whole of CI, called rather than copied. Nothing else here would notice a red commit —
+  # `vite build` does not typecheck — and `Pages` answers the same push as `CI`, so without this
+  # the deploy would race the check and the site could go out while the run beside it turned red.
+  # A manual redeploy passes through the same gate. The cost is stated rather than hidden: on a
+  # push to `main` the gate runs twice, once here and once as the `CI` run the badge reads.
+  gate:
+    uses: ./.github/workflows/ci.yml
+
   build:
+    needs: gate
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: read
+    # The build takes about a minute; a step still going at fifteen is hung, and the default cap
+    # is six hours of a runner.
+    timeout-minutes: 15
     steps:
       # Pinned to commits for the same reason CI is — a tag is mutable.
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -37,7 +54,9 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
-          node-version: 20
+          # The current LTS rather than the floor `engines` declares. The gate above has just
+          # proven the build on both, and what ships should be built on the newer of the two.
+          node-version: 24
           cache: npm
       - run: npm ci
       # Regenerates registry.json and compiles it into public/r/ before the site build copies
@@ -50,17 +69,23 @@ jobs:
       # the fallback still catches the two retired routes and every path that is not a route at
       # all. The script states what GitHub Pages was measured to do with an extensionless path.
       - run: npm run build
-      - uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b # v5.0.0
-      - uses: actions/upload-pages-artifact@7b1f4a764d45c48632c6b24a0339c27f5614fb0b # v4.0.0
+      - uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0
+      - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
         with:
           path: dist
 
   deploy:
     needs: build
     runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    # This job only hands GitHub the artefact the build already produced; ten minutes is well
+    # past the point where it is waiting on something that will not arrive.
+    timeout-minutes: 10
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - id: deployment
-        uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e # v4.0.5
+        uses: actions/deploy-pages@cd2ce8fcbc39b97be8ca5fce6e763baed58fa128 # v5.0.0
