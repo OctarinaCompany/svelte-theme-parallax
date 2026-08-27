@@ -4,26 +4,44 @@
 		<meta charset="UTF-8" />
 		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-		<title>Parallax theme kit for shadcn-svelte</title>
+		<title>Parallax — a dashboard theme kit for shadcn-svelte</title>
 		<meta
 			name="description"
-			content="Parallax-themed component library and demo gallery built on shadcn-svelte, Svelte 5 and Tailwind CSS v4."
+			content="A dashboard theme kit for shadcn-svelte — twelve palettes over one token set, an installable app shell, and 115 components, each documented by a live page."
 		/>
 
-		<!-- Link-preview metadata. og:image is deliberately absent until a real 1200x630 still
-		     of the gallery exists — scrapers fall back to title + description, which is honest;
-		     a wrong-ratio placeholder would be worse. The theme-color pair mirrors the DEFAULT
-		     palette's `--background` — Amethyst, in src/themes.css, not the `:root` base in
-		     src/app.css — because that is what a first visit actually paints. -->
-		<meta property="og:title" content="Parallax theme kit for shadcn-svelte" />
+		<!-- Link-preview metadata.
+		     `og:image` is a real 1200x630 still of the gallery at `/components/chart`, captured
+		     from a production build in the default palette and dark mode — not a logo card, so
+		     the preview shows what the link actually opens. It is shot at deviceScaleFactor 2
+		     (2400x1260) because scrapers downscale and never upscale.
+		     BOTH URLS ARE ABSOLUTE, and have to be: a scraper resolves them against nothing, so
+		     the site base is spelled out rather than taken from `import.meta.env.BASE_URL` —
+		     which this file, served verbatim, cannot read anyway.
+		     The theme-color pair mirrors the DEFAULT palette's `--background`, which is the
+		     `:root` / `.dark` base in src/app.css: the default palette is `parallax`, the one id
+		     with no block of its own in src/themes.css, so a first visit paints the base and
+		     nothing overrides it. -->
+		<meta property="og:title" content="Parallax — a dashboard theme kit for shadcn-svelte" />
 		<meta
 			property="og:description"
-			content="Parallax-themed component library and demo gallery built on shadcn-svelte, Svelte 5 and Tailwind CSS v4."
+			content="A dashboard theme kit for shadcn-svelte — twelve palettes over one token set, an installable app shell, and 115 components, each documented by a live page."
 		/>
 		<meta property="og:type" content="website" />
-		<meta name="twitter:card" content="summary" />
-		<meta name="theme-color" media="(prefers-color-scheme: light)" content="#fbfafc" />
-		<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#282232" />
+		<meta property="og:url" content="https://octarinacompany.github.io/svelte-theme-parallax/" />
+		<meta
+			property="og:image"
+			content="https://octarinacompany.github.io/svelte-theme-parallax/og.png"
+		/>
+		<meta property="og:image:width" content="2400" />
+		<meta property="og:image:height" content="1260" />
+		<meta
+			property="og:image:alt"
+			content="The Parallax gallery in dark mode: a collapsible sidebar, a breadcrumb header and a line chart."
+		/>
+		<meta name="twitter:card" content="summary_large_image" />
+		<meta name="theme-color" media="(prefers-color-scheme: light)" content="#f4f6f8" />
+		<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0f263f" />
 
 		<!--
       Paint the right theme on the FIRST frame.
@@ -43,7 +61,7 @@
       defaults; `mode-watcher-theme` is also stated as `THEME_STORAGE_KEY` in
       `src/lib/themes/index.ts`, `sidebar-mode` as `SIDEBAR_MODE_STORAGE_KEY` in
       `src/lib/hooks/sidebar-mode.svelte.ts`, `header-mode` as `HEADER_MODE_STORAGE_KEY` in
-      `src/lib/hooks/header-mode.svelte.ts`, and `amethyst` is `DEFAULT_THEME`, the `defaultTheme`
+      `src/lib/hooks/header-mode.svelte.ts`, and `parallax` is `DEFAULT_THEME`, the `defaultTheme`
       passed to `ModeWatcher` in `App.svelte`. Nothing enforces the agreement across a plain HTML
       file, so it is written down on both ends.
 
@@ -69,7 +87,7 @@
 					(mode === "system" && window.matchMedia("(prefers-color-scheme: light)").matches);
 				root.classList.toggle("dark", !light);
 				root.style.colorScheme = light ? "light" : "dark";
-				root.setAttribute("data-theme", localStorage.getItem("mode-watcher-theme") || "amethyst");
+				root.setAttribute("data-theme", localStorage.getItem("mode-watcher-theme") || "parallax");
 				/*
 				 * The two chrome axes are RELATIVE TO THE PAGE ("inverted" = the opposite half) and
 				 * independent of each other, but the stylesheets key on absolute light/dark

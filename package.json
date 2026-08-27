@@ -1,6 +1,6 @@
 {
 	"name": "svelte-theme-parallax",
-	"description": "Parallax — a dashboard theme kit built on shadcn-svelte.",
+	"description": "Parallax — a dashboard theme kit for shadcn-svelte.",
 	"keywords": [
 		"svelte",
 		"shadcn-svelte",
@@ -19,15 +19,14 @@
 		"type": "git",
 		"url": "git+https://github.com/OctarinaCompany/svelte-theme-parallax.git"
 	},
-	"homepage": "https://github.com/OctarinaCompany/svelte-theme-parallax#readme",
+	"homepage": "https://octarinacompany.github.io/svelte-theme-parallax",
 	"bugs": {
 		"url": "https://github.com/OctarinaCompany/svelte-theme-parallax/issues"
 	},
 	"type": "module",
 	"engines": {
-		"node": "^20.19.0 || >=22.12.0"
+		"node": "^22.12.0 || >=24"
 	},
-	"packageManager": "npm@11.19.0",
 	"scripts": {
 		"dev": "vite",
 		"build": "vite build && npm run site:prerender",
