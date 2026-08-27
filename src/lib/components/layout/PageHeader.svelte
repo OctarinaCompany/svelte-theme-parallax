@@ -313,14 +313,21 @@
 			BOTH FLOORS ARE MEASURED VALUES, not round numbers. The group's fixed furniture is ~85px
 			(32px of padding, the 32px trigger, the rule and three gaps).
 
-			`sm:min-w-36` — 144px, i.e. the furniture plus ~59px, which is the ellipsis and its
-			separator. It was once the LARGEST floor that fitted: at a 780px viewport with the sidebar
-			open the bar is 514px, and the appearance cluster alone claimed 377px of it, so 144 was
-			exactly what remained. The cluster is one button now — 72px — and the same case has 442px
-			to deal out, so this floor is no longer the ceiling it was. It stays where it is anyway:
-			the floor only decides anything once the bar is over-subscribed, which now happens well
-			below `sm`, and a larger number would only take the search field's width in the band where
-			both still fit.
+			`sm:min-w-56` — 224px, and every part of it is measured: the 85px of furniture, plus the
+			66px `leadWidth` charges for the trail's last rung (the 32px ellipsis, one 14px separator
+			and its two 10px gaps), plus ~72px of label — nine or ten characters, which is a word
+			rather than a smear.
+
+			IT WAS 144px, AND 144 STARVED THE PAGE. That was the largest floor that fitted while the
+			appearance cluster claimed 377px, and it was left where it was afterwards on the reasoning
+			that "a larger number would only take the search field's width in the band where both still
+			fit". Measured, both did not fit: at a 768px viewport with the rail expanded the bar is
+			487px, the field held 211px of it, and the floor held the WHOLE trail to 59px — of which
+			the ellipsis and its gap take 42 — so every page in that band read `⋯ › R…`. The trail's
+			own rule decides the tie: a collapsed step is still reachable, a truncated label is gone.
+			So the field is what gives. On `/components/relative-time-card`, whose label wants 127px,
+			the page's box measured 17px at 768 and 820, 47px at 900 and 73px at 1000; it is now 73px
+			at every width from 640 through 1000, 123px at 1100 and whole from 1200.
 
 			`min-w-16` below `sm` — 64px, which is the trigger and its padding and nothing else. Under
 			640px the bar is still over-subscribed by the search field, and the trail is the honest thing
@@ -330,18 +337,18 @@
 			the 72px one toggle costs now.)
 
 			So the order in which this bar gives, narrowest first: the trail collapses its steps into the
-			menu, the current page truncates, the search field gives up its label and its width, and
-			below `sm` the trail goes entirely. The cluster never gives — an icon button has no
-			compressible axis — but it no longer decides the numbers above either, now that it is one
-			button rather than four. Centring moved
-			the FIRST of those earlier: the trail's slot is now half the bar rather than all of it, so a
+			menu, the search field gives up its label and then its width, the current page truncates
+			inside the floor this group holds for it, and below `sm` the trail goes entirely. The
+			cluster never gives — an icon button has no compressible axis — but it no longer decides
+			the numbers above either, now that it is one button rather than four. Centring moved the
+			FIRST of those earlier: the trail's slot is now half the bar rather than all of it, so a
 			long trail starts collapsing at widths where it used to fit whole. That is the price of a
 			centred field, and it is paid by the one group that was built to give.
 
 			`overflow-hidden` because the mirror `BreadcrumbTrail` measures itself against is wider than
 			this box by design.
 		-->
-		<div class="flex min-w-16 flex-1 items-center gap-2 overflow-hidden px-4 sm:min-w-36">
+		<div class="flex min-w-16 flex-1 items-center gap-2 overflow-hidden px-4 sm:min-w-56">
 			{#if sidebarTrigger}
 				{@render sidebarTrigger()}
 			{:else}
@@ -404,15 +411,18 @@
 		WHAT THAT BOUGHT, measured at 780px with the sidebar open, the tightest case in the range:
 		the cluster's content was 377px and is 72px, and the difference came straight out of the
 		search field, which was being squeezed to 18px while the cluster still overflowed the bar by
-		41px and was clipped. The field now keeps its full 256px, at every width down to `sm`.
+		41px and was clipped. Nothing overflows at any width now.
 
-		THAT IS THE DEFAULT'S ARITHMETIC, and a caller who fills `controls` spends the room again —
-		which is the slot working, not a regression, and is what the note below reserves. Re-derived
-		against the demo, whose group is the repository link and the toggle: its cluster is 116px,
-		and the extra 44px comes out of the field once the left group hits its 144px floor. Measured
-		at 768/780/800/815px the field is 211/223/243/256px against the default's 255/256/256/256.
-		Nothing overflows at any width, and below 768 the sidebar goes off-canvas and the bar widens
-		again — which is why the squeeze has a floor and a ceiling rather than getting worse.
+		THE ROOM IT FREED IS SPENT ON THE TRAIL, NOT ON THE FIELD. It was spent on the field first,
+		and that is what starved the breadcrumb — the note on the left group's floor has the numbers.
+		The floor is 224px now, so the current page always has a word to show, and the field is what
+		pays for it in the band where the bar is over-subscribed. Measured on the demo, whose cluster
+		is the repository link and the toggle at 116px: at 768/780/800/815px the field is
+		131/143/163/178px, it is back to its full 256px from an 893px viewport up, and the floor
+		stops binding at all once the bar reaches 720px — a 1001px viewport with the rail expanded.
+		A caller who fills `controls` spends that room again, which is the slot working rather than a
+		regression. Below 768 the sidebar goes off-canvas and the bar widens again, which is why the
+		squeeze has a floor and a ceiling rather than getting worse.
 
 		Light/dark stays because it is the one appearance choice a reader makes WHILE READING — the
 		room got brighter, the screen is too bright at night — where a palette or an inverted rail is

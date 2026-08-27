@@ -11,6 +11,17 @@
 	 * where the picker stops being a list of names: the difference between Sandstone and Ember
 	 * is visible before you read either word.
 	 *
+	 * THE BRAND TAKES HALF THE STRIP and the four statuses share the other half, which is a
+	 * correction of the equal fifths this started with. Across the twelve palettes the brand slot
+	 * holds twelve distinct values while the four status slots hold six, six, five and seven — five
+	 * of the twelve carry the very same success/warning/destructive triple. That is the brand/status
+	 * separation working, not a fault in the data (`npm run themes:audit` is what enforces it), so
+	 * the repair is the proportion rather than the colours: at equal fifths four of the five chips
+	 * were near-constant and the one chip that actually separates two palettes was a 13px sliver,
+	 * which is what made Graphite and Sepia, or Sandstone and Ember, read as the same swatch. At
+	 * half the strip they no longer do, and the statuses still say the two palettes agree about
+	 * meaning.
+	 *
 	 * IT FOLLOWS THE CURRENT MODE, on purpose. Every theme defines both, and the two halves are
 	 * not tints of each other — a brand is lifted for the dark page, and the statuses with it.
 	 * Showing the light strip while the app is dark would advertise colours the click does not
@@ -58,6 +69,6 @@
 	<!-- Keyed by position, not by value: two of the five can coincide when a brand sits on a
 	     status hue, and a duplicate key is a runtime error. -->
 	{#each colours as colour, index (index)}
-		<span class="flex-1" style="background-color: {colour}"></span>
+		<span class={index === 0 ? "flex-[4]" : "flex-1"} style="background-color: {colour}"></span>
 	{/each}
 </span>

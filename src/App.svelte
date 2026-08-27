@@ -5,10 +5,16 @@
 	import { Toaster } from "$lib/components/ui/sonner/index.js";
 	import AppShell from "$lib/components/layout/AppShell.svelte";
 	import AppSidebar from "$lib/components/layout/AppSidebar.svelte";
-	import { Button } from "$lib/components/ui/button/index.js";
+	import { Button, buttonVariants } from "$lib/components/ui/button/index.js";
 	import { Skeleton } from "$lib/components/ui/skeleton/index.js";
 	import { dashboardData } from "$lib/data/dashboard.js";
-	import { normalisePath, route, type RoutePath } from "$lib/hooks/route.svelte.js";
+	import {
+		CATALOG_PATH,
+		href,
+		normalisePath,
+		route,
+		type RoutePath,
+	} from "$lib/hooks/route.svelte.js";
 	import { DEFAULT_THEME } from "$lib/themes/index.js";
 
 	/**
@@ -315,7 +321,31 @@
 			isActive={(url) => normalisePath(new URL(url, location.href).pathname) === route.current}
 		/>
 	{/snippet}
-	{#if current}
+	{#if route.notFound}
+		<!--
+			An address that names nothing gets said so, rather than the front door rendered under a
+			rewritten URL. `route.svelte.ts`'s own header calls that outcome "worse than a 404 because
+			it looks like a working page"; the `ALIASES` table answers it for a route that was retired,
+			and this answers it for one that never existed. The path the reader typed is still in the
+			address bar — the router skips canonicalisation here — so they can see what was asked for.
+		-->
+		<div class="flex flex-1 flex-col items-center justify-center gap-3 p-4 text-center">
+			<p class="text-sm font-medium">This page does not exist.</p>
+			<p class="max-w-prose text-sm text-muted-foreground">
+				Nothing in the gallery answers to that address. The index lists every component, and
+				<kbd class="rounded border bg-muted px-1.5 py-0.5 font-mono text-xs text-muted-foreground"
+					>Ctrl</kbd
+				>
+				+
+				<kbd class="rounded border bg-muted px-1.5 py-0.5 font-mono text-xs text-muted-foreground"
+					>K</kbd
+				> searches it.
+			</p>
+			<a href={href(CATALOG_PATH)} class={buttonVariants({ variant: "outline" })}>
+				Browse the components
+			</a>
+		</div>
+	{:else if current}
 		{@const Page = current}
 		<Page />
 	{:else if loadFailed}

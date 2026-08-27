@@ -83,7 +83,7 @@
 	/**
 	 * Every page's examples, extracted at build time and fetched on demand.
 	 *
-	 * LAZY, and that is the whole design. Eagerly, 1295 examples — nearly 2 MB of text nobody has
+	 * LAZY, and that is the whole design. Eagerly, 1307 examples — nearly 2 MB of text nobody has
 	 * asked for — would land in this component's chunk and be downloaded by every visitor. Lazily,
 	 * each page's set is its own small chunk, fetched by the first press of a code control on that
 	 * page and by nothing else. The same shape `LoaderPage` uses for its 128 loader sources.

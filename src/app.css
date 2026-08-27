@@ -837,9 +837,11 @@
  * and Tailwind v4 dropped that default, so every control in the app would show an arrow where
  * this theme wants a hand. Restored here rather than per call site because NONE of the 55
  * official ports under `ui/` sets `cursor-pointer` itself — they are generated and not edited,
- * so patching them would be endless and would drift. (The ten house components that do set it
- * are the ones with no `<button>` underneath: a json-viewer branch, a calendar event, a rating
- * star.)
+ * so patching them would be endless and would drift. (Exactly two house components set it
+ * themselves, and both name the element this rule cannot reach: `rating` paints its star as a
+ * `role="presentation"` div, and `media-player` widens the seek bar's hit area with a `::before`
+ * pseudo-element. Everything else that once carried the class was a real `<button>` already
+ * covered by the rule above, and has had it removed.)
  *
  * WHAT WAS ADDED to the classic list, each because a gallery sweep measured it wrong. `select`:
  * a native select opens a menu on click and the browser gives it an arrow. `label[for]` and a

@@ -6,7 +6,8 @@
  * entry, a workspace or a sub-item is a DATA edit — no `.svelte` file is touched.
  * That is the practice this repository exists to demonstrate.
  *
- * Everything below is fictional.
+ * Everything below is fictional except the first workspace, which is this project — see the
+ * note on `workspaces`.
  */
 
 import AudioWaveformIcon from "@lucide/svelte/icons/audio-waveform";
@@ -15,7 +16,6 @@ import CalendarDaysIcon from "@lucide/svelte/icons/calendar-days";
 import CircleAlertIcon from "@lucide/svelte/icons/circle-alert";
 import CommandIcon from "@lucide/svelte/icons/command";
 import CompassIcon from "@lucide/svelte/icons/compass";
-import GalleryVerticalEndIcon from "@lucide/svelte/icons/gallery-vertical-end";
 import GroupIcon from "@lucide/svelte/icons/group";
 import LayersIcon from "@lucide/svelte/icons/layers";
 import LayoutGridIcon from "@lucide/svelte/icons/layout-grid";
@@ -28,6 +28,7 @@ import SettingsIcon from "@lucide/svelte/icons/settings";
 import SlidersHorizontalIcon from "@lucide/svelte/icons/sliders-horizontal";
 import TableIcon from "@lucide/svelte/icons/table";
 import WrenchIcon from "@lucide/svelte/icons/wrench";
+import ZapIcon from "@lucide/svelte/icons/zap";
 
 import {
 	CATEGORIES,
@@ -109,8 +110,20 @@ export const dashboardData: DashboardData = {
 		name: "Ada Lovelace",
 		email: "ada@example.com",
 	},
+	/**
+	 * THE FIRST ONE IS THE PROJECT, and the other two are the demo.
+	 *
+	 * The switcher is the first thing in the sidebar and therefore the first thing a visitor reads.
+	 * With three invented companies in it the gallery presented as somebody's Acme dashboard and
+	 * never said its own name anywhere a human looks — the word appeared once in the whole shell,
+	 * inside a comment. Naming the project here costs nothing the switcher was doing: it still
+	 * demonstrates itself, with two entries to switch between.
+	 *
+	 * `ZapIcon` because the project's own mark is a bolt (`public/favicon.svg`); the mark itself is
+	 * a filtered, masked gradient built for 48px and would be mud in a 16px slot.
+	 */
 	workspaces: [
-		{ name: "Acme Inc", plan: "Enterprise", logo: GalleryVerticalEndIcon },
+		{ name: "Parallax", plan: "Theme kit", logo: ZapIcon },
 		{ name: "Acme Corp.", plan: "Startup", logo: AudioWaveformIcon },
 		{ name: "Evil Corp.", plan: "Free", logo: CommandIcon },
 	],

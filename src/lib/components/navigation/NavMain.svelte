@@ -115,153 +115,174 @@
 </script>
 
 <!--
-	The destinations, unlabelled. A heading over a list whose every entry names itself would be
-	furniture — the same reason the group below carried no label while it held one entry.
--->
-<Sidebar.Group>
-	<Sidebar.Menu>
-		{#each destinations as item (item.title)}
-			<!-- No children: a destination, so a plain link. The only case that reads `item.url`. -->
-			<Sidebar.MenuItem>
-				<Sidebar.MenuButton tooltipContent={item.title} isActive={isCurrent(item.url)}>
-					{#snippet child({ props })}
-						<a href={item.url} {...props}>
-							{#if item.icon}
-								<item.icon />
-							{/if}
-							<span>{item.title}</span>
-						</a>
-					{/snippet}
-				</Sidebar.MenuButton>
-			</Sidebar.MenuItem>
-		{/each}
-	</Sidebar.Menu>
-</Sidebar.Group>
+	THE PRIMARY NAVIGATION IS A LANDMARK, and it was not one before: the rail rendered as `div`s
+	and `ul`s, so a screen reader's landmark list offered no way into it and no way past it. One
+	`<nav>` around both groups rather than one each — the destinations and the ladder are two
+	shelves of the same navigation, and a landmark per shelf is landmark noise.
 
-<!--
-	THE LABEL IS BACK. It was removed with the line "if a second group ever returns, the label
-	comes back with it", when four collapsibles became one and a heading naming something other
-	than that single entry stopped earning its keep. Twelve return, so it does too — and it now
-	names exactly what is under it, which the old "Platform" never did. The word itself comes in
-	through `label` (the demo passes "Components"), because a heading is the caller's content.
+	`aria-label` because there is no visible heading over the whole of it: `label` names the
+	ladder below, not the destinations above it. "Main" is the name for this landmark rather than
+	the caller's word, since a consumer's `label` describes a group inside it — and the breadcrumb
+	is already `aria-label="breadcrumb"`, so the two navigation landmarks on a page stay distinct.
+
+	`flex flex-col gap-2` because `Sidebar.Content` is a flex column with that gap and the two
+	groups were its direct children: the wrapper has to restate the gap it just took over.
 -->
-<Sidebar.Group>
-	{#if label}
-		<Sidebar.GroupLabel>{label}</Sidebar.GroupLabel>
-	{/if}
-	<Sidebar.Menu>
-		{#each categories as item (item.title)}
-			{#if useFlyout}
+<nav aria-label="Main" class="flex min-w-0 flex-col gap-2">
+	<!--
+		The destinations, unlabelled. A heading over a list whose every entry names itself would be
+		furniture — the same reason the group below carried no label while it held one entry.
+	-->
+	<Sidebar.Group>
+		<Sidebar.Menu>
+			{#each destinations as item (item.title)}
+				<!-- No children: a destination, so a plain link. The only case that reads `item.url`. -->
 				<Sidebar.MenuItem>
-					<DropdownMenu.Root>
-						<DropdownMenu.Trigger>
-							<!--
-								Same `child` pattern as everywhere else: the trigger hands its behaviour and
-								ARIA attributes to the MenuButton rather than wrapping it in a second button.
-								No `tooltipContent` here — the menu's own label carries the title, and a
-								tooltip would compete with the menu for the same trigger.
-							-->
-							{#snippet child({ props })}
-								<!--
-									Active when a CHILD is the current page, not the entry itself — a category
-									has no destination of its own, and in the rail its children are not
-									rendered, so the parent is the only thing left to carry the mark.
-								-->
-								<Sidebar.MenuButton
-									{...props}
-									isActive={(item.items ?? []).some((subItem) => isCurrent(subItem.url))}
-									class="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
-								>
-									{#if item.icon}
-										<item.icon />
-									{/if}
-									<span>{item.title}</span>
-								</Sidebar.MenuButton>
-							{/snippet}
-						</DropdownMenu.Trigger>
-						<!--
-							`side="right"` is what keeps the menu BESIDE the rail instead of over it — the
-							same anchoring the header and footer menus use. Unconditional here, unlike
-							theirs, because this branch never renders on mobile.
-
-							Fixed `w-48` rather than the header's `w-(--bits-dropdown-menu-anchor-width)`:
-							the anchor is a 32px icon, so matching its width would mean nothing.
-						-->
-						<DropdownMenu.Content class="w-48 rounded-lg" side="right" align="start" sideOffset={4}>
-							<!-- A heading, not a link: an entry with children is a category, not a place. -->
-							<DropdownMenu.Label>{item.title}</DropdownMenu.Label>
-							{#each item.items ?? [] as subItem (subItem.title)}
-								<!--
-									A weight change rather than `isActive`: `DropdownMenu.Item` has no active
-									variant. Its only state styling is `data-highlighted`, which is keyboard
-									focus — reusing that would make the current page look permanently focused
-									and fight the user's own navigation of the menu.
-								-->
-								<DropdownMenu.Item class={isCurrent(subItem.url) ? "font-medium" : undefined}>
-									<!-- A real anchor, so middle-click and "open in new tab" keep working. -->
-									{#snippet child({ props })}
-										<a href={subItem.url} {...props}>{subItem.title}</a>
-									{/snippet}
-								</DropdownMenu.Item>
-							{/each}
-						</DropdownMenu.Content>
-					</DropdownMenu.Root>
+					<Sidebar.MenuButton tooltipContent={item.title} isActive={isCurrent(item.url)}>
+						{#snippet child({ props })}
+							<a href={item.url} {...props}>
+								{#if item.icon}
+									<item.icon />
+								{/if}
+								<span>{item.title}</span>
+							</a>
+						{/snippet}
+					</Sidebar.MenuButton>
 				</Sidebar.MenuItem>
-			{:else}
-				<!--
-					`group/collapsible` names this group so the chevron below can react to the
-					open state with `group-data-[state=open]/collapsible:`.
-				-->
-				<Collapsible.Root
-					bind:open={
-						() => openCategories.has(item.title),
-						(value) => {
-							if (value) openCategories.add(item.title);
-							else openCategories.delete(item.title);
-						}
-					}
-					class="group/collapsible"
-				>
-					{#snippet child({ props })}
-						<Sidebar.MenuItem {...props}>
-							<Collapsible.Trigger>
+			{/each}
+		</Sidebar.Menu>
+	</Sidebar.Group>
+
+	<!--
+		THE LABEL IS BACK. It was removed with the line "if a second group ever returns, the label
+		comes back with it", when four collapsibles became one and a heading naming something other
+		than that single entry stopped earning its keep. Twelve return, so it does too — and it now
+		names exactly what is under it, which the old "Platform" never did. The word itself comes in
+		through `label` (the demo passes "Components"), because a heading is the caller's content.
+	-->
+	<Sidebar.Group>
+		{#if label}
+			<Sidebar.GroupLabel>{label}</Sidebar.GroupLabel>
+		{/if}
+		<Sidebar.Menu>
+			{#each categories as item (item.title)}
+				{#if useFlyout}
+					<Sidebar.MenuItem>
+						<DropdownMenu.Root>
+							<DropdownMenu.Trigger>
 								<!--
-									The `child` snippet hands the trigger's behaviour and ARIA
-									attributes to the MenuButton instead of wrapping it in a second
-									button. Remove it and you get a <button> inside a <button>.
+									Same `child` pattern as everywhere else: the trigger hands its behaviour and
+									ARIA attributes to the MenuButton rather than wrapping it in a second button.
+									No `tooltipContent` here — the menu's own label carries the title, and a
+									tooltip would compete with the menu for the same trigger.
 								-->
 								{#snippet child({ props })}
-									<Sidebar.MenuButton {...props}>
+									<!--
+										Active when a CHILD is the current page, not the entry itself — a category
+										has no destination of its own, and in the rail its children are not
+										rendered, so the parent is the only thing left to carry the mark.
+									-->
+									<Sidebar.MenuButton
+										{...props}
+										isActive={(item.items ?? []).some((subItem) => isCurrent(subItem.url))}
+										class="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+									>
 										{#if item.icon}
 											<item.icon />
 										{/if}
 										<span>{item.title}</span>
-										<ChevronRightIcon
-											class="ms-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90"
-										/>
 									</Sidebar.MenuButton>
 								{/snippet}
-							</Collapsible.Trigger>
-							<Collapsible.Content>
-								<Sidebar.MenuSub>
-									{#each item.items ?? [] as subItem (subItem.title)}
-										<Sidebar.MenuSubItem>
-											<Sidebar.MenuSubButton isActive={isCurrent(subItem.url)}>
-												<!-- Same pattern, so the sub-item is a real link and stays keyboard-operable. -->
-												{#snippet child({ props })}
-													<a href={subItem.url} {...props}>
-														<span>{subItem.title}</span>
-													</a>
-												{/snippet}
-											</Sidebar.MenuSubButton>
-										</Sidebar.MenuSubItem>
-									{/each}
-								</Sidebar.MenuSub>
-							</Collapsible.Content>
-						</Sidebar.MenuItem>
-					{/snippet}
-				</Collapsible.Root>
-			{/if}
-		{/each}
-	</Sidebar.Menu>
-</Sidebar.Group>
+							</DropdownMenu.Trigger>
+							<!--
+								`side="right"` is what keeps the menu BESIDE the rail instead of over it — the
+								same anchoring the header and footer menus use. Unconditional here, unlike
+								theirs, because this branch never renders on mobile.
+
+								Fixed `w-48` rather than the header's `w-(--bits-dropdown-menu-anchor-width)`:
+								the anchor is a 32px icon, so matching its width would mean nothing.
+							-->
+							<DropdownMenu.Content
+								class="w-48 rounded-lg"
+								side="right"
+								align="start"
+								sideOffset={4}
+							>
+								<!-- A heading, not a link: an entry with children is a category, not a place. -->
+								<DropdownMenu.Label>{item.title}</DropdownMenu.Label>
+								{#each item.items ?? [] as subItem (subItem.title)}
+									<!--
+										A weight change rather than `isActive`: `DropdownMenu.Item` has no active
+										variant. Its only state styling is `data-highlighted`, which is keyboard
+										focus — reusing that would make the current page look permanently focused
+										and fight the user's own navigation of the menu.
+									-->
+									<DropdownMenu.Item class={isCurrent(subItem.url) ? "font-medium" : undefined}>
+										<!-- A real anchor, so middle-click and "open in new tab" keep working. -->
+										{#snippet child({ props })}
+											<a href={subItem.url} {...props}>{subItem.title}</a>
+										{/snippet}
+									</DropdownMenu.Item>
+								{/each}
+							</DropdownMenu.Content>
+						</DropdownMenu.Root>
+					</Sidebar.MenuItem>
+				{:else}
+					<!--
+						`group/collapsible` names this group so the chevron below can react to the
+						open state with `group-data-[state=open]/collapsible:`.
+					-->
+					<Collapsible.Root
+						bind:open={
+							() => openCategories.has(item.title),
+							(value) => {
+								if (value) openCategories.add(item.title);
+								else openCategories.delete(item.title);
+							}
+						}
+						class="group/collapsible"
+					>
+						{#snippet child({ props })}
+							<Sidebar.MenuItem {...props}>
+								<Collapsible.Trigger>
+									<!--
+										The `child` snippet hands the trigger's behaviour and ARIA
+										attributes to the MenuButton instead of wrapping it in a second
+										button. Remove it and you get a <button> inside a <button>.
+									-->
+									{#snippet child({ props })}
+										<Sidebar.MenuButton {...props}>
+											{#if item.icon}
+												<item.icon />
+											{/if}
+											<span>{item.title}</span>
+											<ChevronRightIcon
+												class="ms-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90"
+											/>
+										</Sidebar.MenuButton>
+									{/snippet}
+								</Collapsible.Trigger>
+								<Collapsible.Content>
+									<Sidebar.MenuSub>
+										{#each item.items ?? [] as subItem (subItem.title)}
+											<Sidebar.MenuSubItem>
+												<Sidebar.MenuSubButton isActive={isCurrent(subItem.url)}>
+													<!-- Same pattern, so the sub-item is a real link and stays keyboard-operable. -->
+													{#snippet child({ props })}
+														<a href={subItem.url} {...props}>
+															<span>{subItem.title}</span>
+														</a>
+													{/snippet}
+												</Sidebar.MenuSubButton>
+											</Sidebar.MenuSubItem>
+										{/each}
+									</Sidebar.MenuSub>
+								</Collapsible.Content>
+							</Sidebar.MenuItem>
+						{/snippet}
+					</Collapsible.Root>
+				{/if}
+			{/each}
+		</Sidebar.Menu>
+	</Sidebar.Group>
+</nav>

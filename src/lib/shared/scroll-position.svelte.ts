@@ -191,9 +191,11 @@ export type ScrollPositionStateOptions = {
  * wire {@link observeScrollPosition} to `.setMetrics`), then read `.metrics` / `.vertical` /
  * `.horizontal` reactively.
  *
- * `Scroller` does not use this class — it needs the mask-specific derivations in `ScrollerState`
- * instead — but the wave-3 ports whose only need is "is this element scrolled, and how far" can use
- * it without repeating the plumbing.
+ * NOTHING IN THIS REPOSITORY USES IT, and that is deliberate rather than an oversight: `Scroller`
+ * needs the mask-specific derivations in `ScrollerState`, and `ScrollSpy` needs its own section
+ * bookkeeping, so both reach for the three functions above instead. The class is kept because the
+ * module is published as `registry:lib` and a consumer whose only question is "is this element
+ * scrolled, and how far" should not have to rewrite the plumbing to ask it.
  */
 export class ScrollPositionState {
 	// $derived below is lazy at runtime (evaluated only when a member is read), but svelte-check's

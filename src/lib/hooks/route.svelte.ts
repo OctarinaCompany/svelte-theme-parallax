@@ -81,8 +81,8 @@ export const CATEGORIES = [
 		 * the fact that it ships no component at all — its implementation is
 		 * `src/lib/hooks/file-upload.svelte.ts`.
 		 *
-		 * Of the routes that reach the ladder. `settings`, `themes` and `sizing` also have no
-		 * folders and are hoisted into {@link DESTINATIONS} above, by name.
+		 * Of the routes that reach the ladder. `quickstart`, `settings`, `themes` and `sizing`
+		 * also have no folders and are hoisted into {@link DESTINATIONS} above, by name.
 		 */
 		title: "Patterns",
 		slug: "patterns",
@@ -558,10 +558,33 @@ function matchRoute(pathname: string): RoutePath | undefined {
  * Normalise a raw `location.pathname` to a known route.
  *
  * Anything this application does not own — an unknown path, a retired one with no alias, a path
- * outside the base — resolves to {@link HOME} rather than throwing.
+ * outside the base — resolves to {@link HOME} rather than throwing. Callers that need to tell an
+ * unknown path APART from the front door read {@link RouteState.notFound} instead; this is the
+ * comparison helper, and a predicate that answered `undefined` would push that branch into every
+ * one of its call sites.
  */
 export function normalisePath(pathname: string): RoutePath {
 	return matchRoute(pathname) ?? HOME;
+}
+
+/**
+ * The document title for a route, as the browser tab and a bookmark will read it.
+ *
+ * The catalog already holds every label — the sidebar, the command palette and the breadcrumb all
+ * render it — so nothing new is declared here and nothing can drift. A group page is named by its
+ * group, and the index by what it indexes.
+ */
+export function routeTitle(path: RoutePath): string {
+	if (path === CATALOG_PATH) return "Components";
+	const group = categoryByPath(path);
+	if (group) return group.title;
+	const destination = DESTINATIONS.find((entry) => entry.slug === path);
+	if (destination) return destination.title;
+	for (const category of CATEGORIES) {
+		const item = category.items.find((entry) => entry.slug === path);
+		if (item) return item.title;
+	}
+	return "Components";
 }
 
 /**
@@ -625,6 +648,20 @@ type RouteHistoryState = { scrollY?: number };
  * — it must keep tracking even while no component happens to be reading it.
  */
 class RouteState {
+	/**
+	 * Whether the address names nothing this application owns.
+	 *
+	 * THE FILE'S OWN HEADER CALLS THIS OUT: an unknown path that silently renders whatever `HOME`
+	 * happens to be is "worse than a 404 because it looks like a working page". `ALIASES` answers
+	 * that for a RETIRED route; this answers it for a path that never existed. `current` still
+	 * resolves to `HOME` so every reader of it keeps working, and the shell renders a not-found
+	 * message instead of the front door — with the address the reader typed left alone, because
+	 * rewriting it would take away the one piece of evidence they have.
+	 */
+	notFound: boolean = $state(
+		typeof window === "undefined" ? false : matchRoute(window.location.pathname) === undefined,
+	);
+
 	/** The active path, always one of {@link ROUTES}. */
 	current: RoutePath = $state(
 		// Guard for any non-browser evaluation (prerendering, tests, SSR added later),
@@ -668,6 +705,7 @@ class RouteState {
 		 */
 		history.scrollRestoration = "manual";
 		this.#canonicalise();
+		this.#retitle();
 		/*
 		 * Re-seed AFTER canonicalising. The field initialiser above runs before this constructor
 		 * body, so on an alias or a trailing-slash arrival it captured the address as the reader
@@ -687,8 +725,10 @@ class RouteState {
 			const stored = (event.state as RouteHistoryState | null)?.scrollY;
 
 			this.#lastPathname = window.location.pathname;
+			this.notFound = matchRoute(window.location.pathname) === undefined;
 			this.current = normalisePath(window.location.pathname);
 			this.#canonicalise();
+			this.#retitle();
 
 			if (window.location.hash) {
 				// The page scrolls to its own heading; anything here would race it.
@@ -730,6 +770,24 @@ class RouteState {
 		 * delegation costs one listener and covers every page written after this one.
 		 */
 		document.addEventListener("click", (event) => this.#onClick(event));
+	}
+
+	/**
+	 * Name the document after the page on screen.
+	 *
+	 * ONE TITLE FOR EVERY ROUTE was the state until the routes became addresses: four tabs open on
+	 * four components all read the same words, a bookmark filed the gallery's name rather than the
+	 * page's, and history was unusable for going back to something seen ten minutes ago. The label
+	 * comes from the catalog, so it cannot disagree with the sidebar, the palette or the trail.
+	 *
+	 * `tools/site/prerender.mjs` writes the same title into each prerendered document, which is
+	 * what a crawler and a link unfurler read; this is what the reader's tab reads once the page
+	 * has mounted. The two must agree, and both derive from {@link routeTitle}.
+	 */
+	#retitle(): void {
+		document.title = this.notFound
+			? "Page not found · Parallax"
+			: `${routeTitle(this.current)} · Parallax`;
 	}
 
 	/**
@@ -829,7 +887,11 @@ class RouteState {
 
 		history.pushState(null, "", href(path) + url.search + url.hash);
 		this.#lastPathname = window.location.pathname;
+		// Only a resolved route reaches here — the click interceptor lets an unknown path through
+		// to the network rather than pushing it — so arriving by link always clears the flag.
+		this.notFound = false;
 		this.current = path;
+		this.#retitle();
 		this.#pendingScroll = url.hash ? null : 0;
 	}
 
@@ -849,6 +911,9 @@ class RouteState {
 	 * Back button still goes back to where they came from rather than to the stale address.
 	 */
 	#canonicalise() {
+		// An address that names nothing is left exactly as the reader typed it: rewriting it to the
+		// front door would remove the only evidence of what they actually asked for.
+		if (this.notFound) return;
 		const canonical = href(this.current);
 		if (window.location.pathname === canonical) return;
 		history.replaceState(

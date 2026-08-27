@@ -89,8 +89,8 @@ export class TanstackTableBridge<TData extends RowData> {
 	/**
 	 * A change handler for one slice, for the owner's `on<Slice>Change` table option: resolves the
 	 * `Updater<T>` table-core hands it against the current slice, assigns the slice, then calls
-	 * `onChange` with the **resolved next value** — never the updater function (data-model.md
-	 * § State transitions).
+	 * `onChange` with the **resolved next value** — never the updater function, so an owner's
+	 * handler receives a value it can store rather than one it must first apply.
 	 *
 	 * Slices whose change must do more than assign-and-notify (data-grid's `rowSelection` projects
 	 * onto the cell selection) keep their own bespoke handler in the owner and use the bridge only
