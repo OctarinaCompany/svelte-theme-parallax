@@ -118,7 +118,7 @@ it does three separate things:
 the ranges the components were built against, `@tanstack/table-core@^8.21.3` and
 `vaul-svelte@^1.0.0-next.7` among them, and both have a newer release that does not
 compile against this code. Installing those by bare name afterwards is how you earn
-twenty-odd `svelte-check` errors in files you never touched.
+`svelte-check` errors in files you never touched.
 
 If a run did end early, re-run the same command: the merge is the last step, so an
 interrupted install is one that wrote every file and themed nothing.
@@ -317,9 +317,11 @@ puts the whole group back in the bar.
 - **`--yes` does not cover the stylesheet confirmation.** The one prompt that matters has
   its own flag, `--overwrite`. A run missing it hangs silently at the very end.
 - **Installing dependencies by bare name** after `--no-deps` picks wrong majors. Two bite
-  in practice: `@tanstack/table-core` must be `^8.21.3` (the 9.x generics take different
-  arity, ~10 errors), and `vaul-svelte` must be `^1.0.0-next.7` (the stable 0.x is
-  Svelte-4 era, ~15 errors). Let the CLI do it, or copy its ranges verbatim.
+  in practice: `@tanstack/table-core` must be `^8.21.3` (v9 is a rewrite — `createTable`
+  and the row-model options are gone, every core type takes a features parameter first, and
+  state moves into store atoms, so the errors start inside the reactivity bridge and fan out
+  from there), and `vaul-svelte` must be `^1.0.0-next.7` (the stable 0.x is Svelte-4 era).
+  Let the CLI do it, or copy its ranges verbatim.
 - **Restart the dev server after any dependency install.** Vite caches a failed module
   resolution for the process lifetime, so a correct fix keeps showing the old error.
 - **A stylesheet with no `@layer base` block is the silent one.** Nothing errors, nothing
