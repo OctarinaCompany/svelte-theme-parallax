@@ -20,12 +20,18 @@ export type ThemeId = (typeof THEME_IDS)[number];
 /**
  * The default, and what an unknown or missing stored value falls back to.
  *
- * Not the same notion as the base above: the base is the palette `:root` already wears, while
- * this is the one a first visit is dressed in. They were the same id until Amethyst took over,
- * so `data-theme` is now written on the first frame rather than left absent — `index.html`'s
- * first-paint script carries the same spelling, and nothing across a plain HTML file enforces it.
+ * THE SAME ID AS THE BASE, and that is the point. The base is the palette `:root` already
+ * wears — so a consumer who installs `parallax-theme` and never writes a `data-theme` gets
+ * Parallax. This value is what a first visit to the GALLERY is dressed in, and while it was
+ * Amethyst the gallery was demonstrating a palette no installation produces by default: the one
+ * page a visitor judges the kit by was not showing the kit's own colours.
+ *
+ * `parallax` is the one id with no CSS block, so writing it as `data-theme` matches nothing
+ * and leaves `:root` standing, which is exactly the intended result. `index.html`'s
+ * first-paint script carries the same spelling and the matching `theme-color` pair; nothing
+ * across a plain HTML file enforces that agreement, so it is stated on both ends.
  */
-export const DEFAULT_THEME: ThemeId = 'amethyst';
+export const DEFAULT_THEME: ThemeId = 'parallax';
 
 export type Theme = {
 	id: ThemeId;
@@ -272,7 +278,7 @@ export const THEMES: Theme[] = [
 		name: 'Nordic',
 		blurb: "Quiet arctic greys under a frost-blue primary.",
 		swatch: {
-			light: ['#2f7bb4', '#00c683', '#f9c144', '#d63d3e', '#00b8cf'],
+			light: ['#2d78b1', '#00c683', '#f9c144', '#d63d3e', '#00b8cf'],
 			dark: ['#64aeea', '#00c683', '#f9c144', '#ff837b', '#00b8cf']
 		},
 		tokens: {
@@ -283,7 +289,7 @@ export const THEMES: Theme[] = [
 				'card-foreground': '#1f2531',
 				'popover': '#ffffff',
 				'popover-foreground': '#1f2531',
-				'primary': '#2f7bb4',
+				'primary': '#2d78b1',
 				'primary-foreground': '#ffffff',
 				'secondary': '#f0f1f5',
 				'secondary-foreground': '#1f2531',
@@ -291,7 +297,7 @@ export const THEMES: Theme[] = [
 				'muted-foreground': '#666e7c',
 				'accent': '#fafbfc',
 				'accent-foreground': '#1f2531',
-				'primary-subtle': '#d5e5f0',
+				'primary-subtle': '#d5e4ef',
 				'primary-subtle-foreground': '#004c7b',
 				'destructive': '#d63d3e',
 				'destructive-foreground': '#ffffff',
@@ -311,7 +317,7 @@ export const THEMES: Theme[] = [
 				'info-subtle-foreground': '#005460',
 				'border': '#f0f1f5',
 				'input': '#d8dce3',
-				'ring': '#2f7bb4',
+				'ring': '#2d78b1',
 				'chart-1': '#327db6',
 				'chart-2': '#99c9f3',
 				'chart-3': '#d8dce3',
@@ -320,13 +326,13 @@ export const THEMES: Theme[] = [
 				'scrim': '#1f2531',
 				'sidebar': '#ffffff',
 				'sidebar-foreground': '#666e7c',
-				'sidebar-primary': '#2f7bb4',
+				'sidebar-primary': '#2d78b1',
 				'sidebar-primary-foreground': '#ffffff',
 				'sidebar-accent': '#fafbfc',
 				'sidebar-accent-foreground': '#1f2531',
 				'sidebar-border': '#e7eaef',
 				'sidebar-outline': '#e7eaef',
-				'sidebar-ring': '#2f7bb4'
+				'sidebar-ring': '#2d78b1'
 			},
 			dark: {
 				'background': '#1f2531',
@@ -386,7 +392,7 @@ export const THEMES: Theme[] = [
 		name: 'Harbor',
 		blurb: "Steel greys under a teal primary.",
 		swatch: {
-			light: ['#008385', '#42c562', '#f9c144', '#d63d3e', '#68aef4'],
+			light: ['#008081', '#42c562', '#f9c144', '#d63d3e', '#68aef4'],
 			dark: ['#29bbbc', '#42c562', '#f9c144', '#ff857e', '#68aef4']
 		},
 		tokens: {
@@ -397,7 +403,7 @@ export const THEMES: Theme[] = [
 				'card-foreground': '#022b33',
 				'popover': '#ffffff',
 				'popover-foreground': '#022b33',
-				'primary': '#008385',
+				'primary': '#008081',
 				'primary-foreground': '#ffffff',
 				'secondary': '#ebf3f5',
 				'secondary-foreground': '#022b33',
@@ -405,8 +411,8 @@ export const THEMES: Theme[] = [
 				'muted-foreground': '#4d737d',
 				'accent': '#f9fbfc',
 				'accent-foreground': '#022b33',
-				'primary-subtle': '#cce6e7',
-				'primary-subtle-foreground': '#004f51',
+				'primary-subtle': '#cce6e6',
+				'primary-subtle-foreground': '#005051',
 				'destructive': '#d63d3e',
 				'destructive-foreground': '#ffffff',
 				'destructive-subtle': '#f7d8d8',
@@ -425,7 +431,7 @@ export const THEMES: Theme[] = [
 				'info-subtle-foreground': '#00508d',
 				'border': '#ebf3f5',
 				'input': '#cee0e4',
-				'ring': '#008385',
+				'ring': '#008081',
 				'chart-1': '#008889',
 				'chart-2': '#84d4d4',
 				'chart-3': '#cee0e4',
@@ -434,13 +440,13 @@ export const THEMES: Theme[] = [
 				'scrim': '#022b33',
 				'sidebar': '#ffffff',
 				'sidebar-foreground': '#4d737d',
-				'sidebar-primary': '#008385',
+				'sidebar-primary': '#008081',
 				'sidebar-primary-foreground': '#ffffff',
 				'sidebar-accent': '#f9fbfc',
 				'sidebar-accent-foreground': '#022b33',
 				'sidebar-border': '#e0edf0',
 				'sidebar-outline': '#e0edf0',
-				'sidebar-ring': '#008385'
+				'sidebar-ring': '#008081'
 			},
 			dark: {
 				'background': '#022b33',
@@ -500,7 +506,7 @@ export const THEMES: Theme[] = [
 		name: 'Evergreen',
 		blurb: "Warm green-greys under a pine primary, with success moved clear of it.",
 		swatch: {
-			light: ['#08856a', '#50c45a', '#ffbd5a', '#d63d3e', '#42b4e8'],
+			light: ['#008368', '#50c45a', '#ffbd5a', '#d63d3e', '#42b4e8'],
 			dark: ['#54ba9d', '#50c45a', '#ffbd5a', '#ff857e', '#42b4e8']
 		},
 		tokens: {
@@ -511,7 +517,7 @@ export const THEMES: Theme[] = [
 				'card-foreground': '#192a1c',
 				'popover': '#ffffff',
 				'popover-foreground': '#192a1c',
-				'primary': '#08856a',
+				'primary': '#008368',
 				'primary-foreground': '#ffffff',
 				'secondary': '#eef3ef',
 				'secondary-foreground': '#192a1c',
@@ -519,8 +525,8 @@ export const THEMES: Theme[] = [
 				'muted-foreground': '#5e7262',
 				'accent': '#fafbfa',
 				'accent-foreground': '#192a1c',
-				'primary-subtle': '#cee7e1',
-				'primary-subtle-foreground': '#005240',
+				'primary-subtle': '#cce6e1',
+				'primary-subtle-foreground': '#00513f',
 				'destructive': '#d63d3e',
 				'destructive-foreground': '#ffffff',
 				'destructive-subtle': '#f7d8d8',
@@ -539,7 +545,7 @@ export const THEMES: Theme[] = [
 				'info-subtle-foreground': '#005474',
 				'border': '#eef3ef',
 				'input': '#d5dfd7',
-				'ring': '#08856a',
+				'ring': '#008368',
 				'chart-1': '#12896e',
 				'chart-2': '#8ed4be',
 				'chart-3': '#d5dfd7',
@@ -548,13 +554,13 @@ export const THEMES: Theme[] = [
 				'scrim': '#192a1c',
 				'sidebar': '#ffffff',
 				'sidebar-foreground': '#5e7262',
-				'sidebar-primary': '#08856a',
+				'sidebar-primary': '#008368',
 				'sidebar-primary-foreground': '#ffffff',
 				'sidebar-accent': '#fafbfa',
 				'sidebar-accent-foreground': '#192a1c',
 				'sidebar-border': '#e5ece6',
 				'sidebar-outline': '#e5ece6',
-				'sidebar-ring': '#08856a'
+				'sidebar-ring': '#008368'
 			},
 			dark: {
 				'background': '#192a1c',
@@ -614,7 +620,7 @@ export const THEMES: Theme[] = [
 		name: 'Sandstone',
 		blurb: "Desert neutrals under an ochre primary, with warning moved clear of it.",
 		swatch: {
-			light: ['#a16922', '#00c596', '#e2cc47', '#d53b55', '#41b3e6'],
+			light: ['#9f671f', '#00c596', '#e2cc47', '#d53b55', '#41b3e6'],
 			dark: ['#d79c59', '#00c596', '#e2cc47', '#ff818c', '#41b3e6']
 		},
 		tokens: {
@@ -625,7 +631,7 @@ export const THEMES: Theme[] = [
 				'card-foreground': '#30230d',
 				'popover': '#ffffff',
 				'popover-foreground': '#30230d',
-				'primary': '#a16922',
+				'primary': '#9f671f',
 				'primary-foreground': '#ffffff',
 				'secondary': '#f4f1eb',
 				'secondary-foreground': '#30230d',
@@ -633,8 +639,8 @@ export const THEMES: Theme[] = [
 				'muted-foreground': '#7a6b53',
 				'accent': '#fcfbf9',
 				'accent-foreground': '#30230d',
-				'primary-subtle': '#ece1d3',
-				'primary-subtle-foreground': '#663d00',
+				'primary-subtle': '#ece1d2',
+				'primary-subtle-foreground': '#673d00',
 				'destructive': '#d53b55',
 				'destructive-foreground': '#ffffff',
 				'destructive-subtle': '#f7d8dd',
@@ -653,7 +659,7 @@ export const THEMES: Theme[] = [
 				'info-subtle-foreground': '#005473',
 				'border': '#f4f1eb',
 				'input': '#e2dbcf',
-				'ring': '#a16922',
+				'ring': '#9f671f',
 				'chart-1': '#a46c25',
 				'chart-2': '#e6ba8d',
 				'chart-3': '#e2dbcf',
@@ -662,13 +668,13 @@ export const THEMES: Theme[] = [
 				'scrim': '#30230d',
 				'sidebar': '#ffffff',
 				'sidebar-foreground': '#7a6b53',
-				'sidebar-primary': '#a16922',
+				'sidebar-primary': '#9f671f',
 				'sidebar-primary-foreground': '#ffffff',
 				'sidebar-accent': '#fcfbf9',
 				'sidebar-accent-foreground': '#30230d',
 				'sidebar-border': '#efe9e1',
 				'sidebar-outline': '#efe9e1',
-				'sidebar-ring': '#a16922'
+				'sidebar-ring': '#9f671f'
 			},
 			dark: {
 				'background': '#30230d',
@@ -728,7 +734,7 @@ export const THEMES: Theme[] = [
 		name: 'Ember',
 		blurb: "Warm taupe under a burnt-orange primary, sitting between the destructive and warning bands.",
 		swatch: {
-			light: ['#b65d21', '#00c591', '#e8ca45', '#d43a5e', '#3fb2e5'],
+			light: ['#b35a1d', '#00c591', '#e8ca45', '#d43a5e', '#3fb2e5'],
 			dark: ['#ee8f58', '#00c591', '#e8ca45', '#ff7f93', '#3fb2e5']
 		},
 		tokens: {
@@ -739,7 +745,7 @@ export const THEMES: Theme[] = [
 				'card-foreground': '#342013',
 				'popover': '#ffffff',
 				'popover-foreground': '#342013',
-				'primary': '#b65d21',
+				'primary': '#b35a1d',
 				'primary-foreground': '#ffffff',
 				'secondary': '#f6f0ed',
 				'secondary-foreground': '#342013',
@@ -747,8 +753,8 @@ export const THEMES: Theme[] = [
 				'muted-foreground': '#806959',
 				'accent': '#fcfaf9',
 				'accent-foreground': '#342013',
-				'primary-subtle': '#f0dfd3',
-				'primary-subtle-foreground': '#773500',
+				'primary-subtle': '#f0ded2',
+				'primary-subtle-foreground': '#773400',
 				'destructive': '#d43a5e',
 				'destructive-foreground': '#ffffff',
 				'destructive-subtle': '#f6d8df',
@@ -767,7 +773,7 @@ export const THEMES: Theme[] = [
 				'info-subtle-foreground': '#005472',
 				'border': '#f6f0ed',
 				'input': '#e5d9d2',
-				'ring': '#b65d21',
+				'ring': '#b35a1d',
 				'chart-1': '#b85f24',
 				'chart-2': '#eeb596',
 				'chart-3': '#e5d9d2',
@@ -776,13 +782,13 @@ export const THEMES: Theme[] = [
 				'scrim': '#342013',
 				'sidebar': '#ffffff',
 				'sidebar-foreground': '#806959',
-				'sidebar-primary': '#b65d21',
+				'sidebar-primary': '#b35a1d',
 				'sidebar-primary-foreground': '#ffffff',
 				'sidebar-accent': '#fcfaf9',
 				'sidebar-accent-foreground': '#342013',
 				'sidebar-border': '#f1e8e3',
 				'sidebar-outline': '#f1e8e3',
-				'sidebar-ring': '#b65d21'
+				'sidebar-ring': '#b35a1d'
 			},
 			dark: {
 				'background': '#342013',
@@ -956,7 +962,7 @@ export const THEMES: Theme[] = [
 		name: 'Orchid',
 		blurb: "Mauve greys under a magenta primary.",
 		swatch: {
-			light: ['#c0459e', '#00c683', '#f9c144', '#d63d3e', '#3fb1e4'],
+			light: ['#bd429c', '#00c683', '#f9c144', '#d63d3e', '#3fb1e4'],
 			dark: ['#f879d2', '#00c683', '#f9c144', '#ff8179', '#3fb1e4']
 		},
 		tokens: {
@@ -967,7 +973,7 @@ export const THEMES: Theme[] = [
 				'card-foreground': '#2d202f',
 				'popover': '#ffffff',
 				'popover-foreground': '#2d202f',
-				'primary': '#c0459e',
+				'primary': '#bd429c',
 				'primary-foreground': '#ffffff',
 				'secondary': '#f3f0f4',
 				'secondary-foreground': '#2d202f',
@@ -975,8 +981,8 @@ export const THEMES: Theme[] = [
 				'muted-foreground': '#77687a',
 				'accent': '#fbfafc',
 				'accent-foreground': '#2d202f',
-				'primary-subtle': '#f2daec',
-				'primary-subtle-foreground': '#910f73',
+				'primary-subtle': '#f2d9eb',
+				'primary-subtle-foreground': '#910e74',
 				'destructive': '#d63d3e',
 				'destructive-foreground': '#ffffff',
 				'destructive-subtle': '#f7d8d8',
@@ -995,7 +1001,7 @@ export const THEMES: Theme[] = [
 				'info-subtle-foreground': '#005371',
 				'border': '#f3f0f4',
 				'input': '#e0d9e2',
-				'ring': '#c0459e',
+				'ring': '#bd429c',
 				'chart-1': '#c247a0',
 				'chart-2': '#e7b0d4',
 				'chart-3': '#e0d9e2',
@@ -1004,13 +1010,13 @@ export const THEMES: Theme[] = [
 				'scrim': '#2d202f',
 				'sidebar': '#ffffff',
 				'sidebar-foreground': '#77687a',
-				'sidebar-primary': '#c0459e',
+				'sidebar-primary': '#bd429c',
 				'sidebar-primary-foreground': '#ffffff',
 				'sidebar-accent': '#fbfafc',
 				'sidebar-accent-foreground': '#2d202f',
 				'sidebar-border': '#ede8ee',
 				'sidebar-outline': '#ede8ee',
-				'sidebar-ring': '#c0459e'
+				'sidebar-ring': '#bd429c'
 			},
 			dark: {
 				'background': '#2d202f',
@@ -1070,7 +1076,7 @@ export const THEMES: Theme[] = [
 		name: 'Amethyst',
 		blurb: "Violet greys under a violet primary.",
 		swatch: {
-			light: ['#9455dd', '#00c683', '#f9c144', '#d63d3e', '#3fb2e5'],
+			light: ['#9152da', '#00c683', '#f9c144', '#d63d3e', '#3fb2e5'],
 			dark: ['#bf90ff', '#00c683', '#f9c144', '#ff8179', '#3fb2e5']
 		},
 		tokens: {
@@ -1081,7 +1087,7 @@ export const THEMES: Theme[] = [
 				'card-foreground': '#282232',
 				'popover': '#ffffff',
 				'popover-foreground': '#282232',
-				'primary': '#9455dd',
+				'primary': '#9152da',
 				'primary-foreground': '#ffffff',
 				'secondary': '#f2f1f5',
 				'secondary-foreground': '#282232',
@@ -1089,8 +1095,8 @@ export const THEMES: Theme[] = [
 				'muted-foreground': '#706a7d',
 				'accent': '#fbfafc',
 				'accent-foreground': '#282232',
-				'primary-subtle': '#eaddf8',
-				'primary-subtle-foreground': '#6922ab',
+				'primary-subtle': '#e9dcf8',
+				'primary-subtle-foreground': '#6921ab',
 				'destructive': '#d63d3e',
 				'destructive-foreground': '#ffffff',
 				'destructive-subtle': '#f7d8d8',
@@ -1109,7 +1115,7 @@ export const THEMES: Theme[] = [
 				'info-subtle-foreground': '#005472',
 				'border': '#f2f1f5',
 				'input': '#dddae4',
-				'ring': '#9455dd',
+				'ring': '#9152da',
 				'chart-1': '#9657de',
 				'chart-2': '#cdb8ee',
 				'chart-3': '#dddae4',
@@ -1118,13 +1124,13 @@ export const THEMES: Theme[] = [
 				'scrim': '#282232',
 				'sidebar': '#ffffff',
 				'sidebar-foreground': '#706a7d',
-				'sidebar-primary': '#9455dd',
+				'sidebar-primary': '#9152da',
 				'sidebar-primary-foreground': '#ffffff',
 				'sidebar-accent': '#fbfafc',
 				'sidebar-accent-foreground': '#282232',
 				'sidebar-border': '#ebe9f0',
 				'sidebar-outline': '#ebe9f0',
-				'sidebar-ring': '#9455dd'
+				'sidebar-ring': '#9152da'
 			},
 			dark: {
 				'background': '#282232',
@@ -1184,7 +1190,7 @@ export const THEMES: Theme[] = [
 		name: 'Indigo',
 		blurb: "Cool slate under a deep indigo primary.",
 		swatch: {
-			light: ['#6466e6', '#00c683', '#f9c144', '#d63d3e', '#41b3e6'],
+			light: ['#6263e4', '#00c683', '#f9c144', '#d63d3e', '#41b3e6'],
 			dark: ['#96a0ff', '#00c683', '#f9c144', '#ff837b', '#41b3e6']
 		},
 		tokens: {
@@ -1195,7 +1201,7 @@ export const THEMES: Theme[] = [
 				'card-foreground': '#212435',
 				'popover': '#ffffff',
 				'popover-foreground': '#212435',
-				'primary': '#6466e6',
+				'primary': '#6263e4',
 				'primary-foreground': '#ffffff',
 				'secondary': '#f0f1f6',
 				'secondary-foreground': '#212435',
@@ -1204,7 +1210,7 @@ export const THEMES: Theme[] = [
 				'accent': '#fafbfc',
 				'accent-foreground': '#212435',
 				'primary-subtle': '#e0e0fa',
-				'primary-subtle-foreground': '#3e35b2',
+				'primary-subtle-foreground': '#3f34b3',
 				'destructive': '#d63d3e',
 				'destructive-foreground': '#ffffff',
 				'destructive-subtle': '#f7d8d8',
@@ -1223,7 +1229,7 @@ export const THEMES: Theme[] = [
 				'info-subtle-foreground': '#005473',
 				'border': '#f0f1f6',
 				'input': '#d9dbe6',
-				'ring': '#6466e6',
+				'ring': '#6263e4',
 				'chart-1': '#6769ea',
 				'chart-2': '#b7bff7',
 				'chart-3': '#d9dbe6',
@@ -1232,13 +1238,13 @@ export const THEMES: Theme[] = [
 				'scrim': '#212435',
 				'sidebar': '#ffffff',
 				'sidebar-foreground': '#686c81',
-				'sidebar-primary': '#6466e6',
+				'sidebar-primary': '#6263e4',
 				'sidebar-primary-foreground': '#ffffff',
 				'sidebar-accent': '#fafbfc',
 				'sidebar-accent-foreground': '#212435',
 				'sidebar-border': '#e8eaf1',
 				'sidebar-outline': '#e8eaf1',
-				'sidebar-ring': '#6466e6'
+				'sidebar-ring': '#6263e4'
 			},
 			dark: {
 				'background': '#212435',

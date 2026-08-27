@@ -249,12 +249,18 @@ export type ThemeId = (typeof THEME_IDS)[number];
 /**
  * The default, and what an unknown or missing stored value falls back to.
  *
- * Not the same notion as the base above: the base is the palette \`:root\` already wears, while
- * this is the one a first visit is dressed in. They were the same id until Amethyst took over,
- * so \`data-theme\` is now written on the first frame rather than left absent — \`index.html\`'s
- * first-paint script carries the same spelling, and nothing across a plain HTML file enforces it.
+ * THE SAME ID AS THE BASE, and that is the point. The base is the palette \`:root\` already
+ * wears — so a consumer who installs \`parallax-theme\` and never writes a \`data-theme\` gets
+ * Parallax. This value is what a first visit to the GALLERY is dressed in, and while it was
+ * Amethyst the gallery was demonstrating a palette no installation produces by default: the one
+ * page a visitor judges the kit by was not showing the kit's own colours.
+ *
+ * \`parallax\` is the one id with no CSS block, so writing it as \`data-theme\` matches nothing
+ * and leaves \`:root\` standing, which is exactly the intended result. \`index.html\`'s
+ * first-paint script carries the same spelling and the matching \`theme-color\` pair; nothing
+ * across a plain HTML file enforces that agreement, so it is stated on both ends.
  */
-export const DEFAULT_THEME: ThemeId = 'amethyst';
+export const DEFAULT_THEME: ThemeId = 'parallax';
 
 export type Theme = {
 	id: ThemeId;

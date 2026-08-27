@@ -121,6 +121,8 @@ const WHY_NUDGE =
 	"a pairing the anchor palette itself fails, jittered a hair further by the nudge — see the group note";
 const WHY_CRIMSON =
 	"the dark-lifted red brand still lands 0.30 under the anchor palette blue on the dark card; lifting further reads pink, not crimson";
+const WHY_CRIMSON_TEXT =
+	"the one hand-placed dark brand the AA text solver does not reach: at h8 C0.145 the window where a WHITE label still works closes before 4.5:1 does, and the solver's own next passing lightness (L 0.76) is a dusty pink carrying dark type. `text-primary` on this theme in dark mode is the link variant and the today marker only — the fill-and-label pairing every other use of the token relies on measures 4.62:1";
 
 const ACCEPTED_REGRESSIONS = [
 	/*
@@ -183,6 +185,14 @@ const ACCEPTED_REGRESSIONS = [
 	// them by a hair and their chart-2 is no longer below it.
 
 	acc("crimson", "dark", "primary on card", 3.02, 3.32, WHY_CRIMSON),
+	/*
+	 * The same colour, judged as type. Eight light themes and Crimson's dark brand were the nine
+	 * pairs that failed when `--primary` was solved as a fill only; the solver now clears the AA
+	 * text floor against the binding ground in both modes, and this is the single pair it cannot
+	 * reach, for the reason its own spec comment already records.
+	 */
+	acc("crimson", "dark", "primary as text on card", 3.02, 3.14, WHY_CRIMSON_TEXT),
+	acc("crimson", "dark", "primary as text on background", 3.32, 3.57, WHY_CRIMSON_TEXT),
 
 	/*
 	 * `parallax` had thirteen entries here and no longer needs one. It is the base now: app.css's

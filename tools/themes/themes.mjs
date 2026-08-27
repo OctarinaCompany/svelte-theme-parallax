@@ -225,12 +225,18 @@ const STATUS = {
  * search walks outward from the anchor palette's value and stops at the first lightness that works, so
  * the ladder is preserved to within a step nobody can see.
  */
-function placeLight(h, C, target, inkish) {
+function placeLight(h, C, target, inkish, page = null) {
 	for (let step = 0; step <= 0.3; step += 0.002) {
 		for (const L of step === 0 ? [target] : [target - step, target + step]) {
 			if (L < 0.3 || L > 0.95) continue;
 			const hex = fit(L, C, h);
-			if (Math.max(contrast(WHITE, hex), contrast(inkish, hex)) >= AA) return { L, hex };
+			if (Math.max(contrast(WHITE, hex), contrast(inkish, hex)) < AA) continue;
+			// `page` is the surface the colour is READ ON when it is used as type, as opposed to
+			// the label that sits on top of it when it is used as a fill. Only the brand passes
+			// one: the search otherwise walks outward from `target` and would happily stop at a
+			// lightness that carries a label perfectly and disappears into the page behind it.
+			if (page && contrast(hex, page) < AA) continue;
+			return { L, hex };
 		}
 	}
 	throw new Error(`no light lightness works at hue ${h}`);
@@ -596,14 +602,29 @@ export function buildTheme(spec) {
 	// --- brand ---------------------------------------------------------------------------
 	// the anchor palette's `primary` measures L 0.592; a theme that does not say otherwise starts there
 	// and is nudged by the same rule the statuses use.
+	/*
+	 * THE BRAND IS SOLVED AS TYPE, NOT ONLY AS A FILL.
+	 *
+	 * It used to be solved as a fill — the light value placed where it carried a label, the dark
+	 * value lifted only to WCAG's 3:1 non-text floor against the dark card — on the reasoning
+	 * that a brand is a fill before it is type. The tree disagrees: `--primary` IS body-sized
+	 * type in the `link` variant of both Button and Badge (shadcn's own), in the calendar's
+	 * today marker and in the event calendar's agenda headings. Measured against the old rule,
+	 * nine of the twenty-two theme/mode pairs put that type under 4.5:1 — eight light themes at
+	 * 4.38-4.45 against the page, and Crimson's dark brand at 3.02 against its own card.
+	 *
+	 * So both ends are solved at the AA text floor now, each against the surface that actually
+	 * binds it: in light mode the page (`n100`), which is a tinted off-white and therefore
+	 * darker than the white card; in dark mode the card (`d800`), which is lighter than the
+	 * page. An explicit `brandL` / `brandDark` in a theme spec still wins — those are the
+	 * hand-placed ink brands, and Graphite and Sepia clear the floor by a factor of two.
+	 */
 	const brandL = spec.brandL
 		? { L: spec.brandL, hex: fit(spec.brandL, spec.brandC, spec.brandH) }
-		: placeLight(spec.brandH, spec.brandC, 0.592, n.n900);
+		: placeLight(spec.brandH, spec.brandC, 0.592, n.n900, n.n100);
 	const brandD = spec.brandDark
 		? { L: spec.brandDark.L, hex: fit(spec.brandDark.L, spec.brandDark.C, spec.brandH) }
-		: // The brand is a fill before it is type, so its floor against the dark card is
-			// WCAG's 3:1 for non-text rather than 4.5:1.
-			liftDark(spec.brandH, spec.brandC, brandL.L, d.d800, n.n900, UI);
+		: liftDark(spec.brandH, spec.brandC, brandL.L, d.d800, n.n900);
 	const brand = brandL.hex,
 		brandDark = brandD.hex;
 
@@ -822,6 +843,19 @@ export function audit(t) {
 			4.5,
 		);
 		add(scope, "muted-foreground on muted", contrast(g(m, "muted-foreground"), g(m, "muted")), 4.5);
+		/*
+		 * `--primary` AS TYPE, at the text floor, on both grounds.
+		 *
+		 * Not a duplicate of the `primary on card` fill row further down: this pair is here
+		 * because `text-primary` is real body-sized type in the tree — shadcn's own `link`
+		 * variant of Button and Badge, the calendar's today marker, the agenda headings. The two
+		 * grounds are both measured because neither dominates: the light page is a tinted
+		 * off-white and therefore darker than the white card, while the dark card is lighter
+		 * than the dark page, so the binding surface swaps between modes and a single row would
+		 * report whichever happened to be kinder.
+		 */
+		add(scope, "primary as text on card", contrast(g(m, "primary"), g(m, "card")), 4.5);
+		add(scope, "primary as text on background", contrast(g(m, "primary"), g(m, "background")), 4.5);
 		add(
 			scope,
 			"sidebar-foreground on sidebar",
