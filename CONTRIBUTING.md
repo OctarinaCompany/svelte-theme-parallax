@@ -86,6 +86,19 @@ install notes — edit `tools/registry/generate.mjs` and run `npm run registry:g
 A pull request that hand-edits a generated file will be asked to move the change into the
 generator, and CI will have said so first: the drift gate re-runs both and fails on any diff.
 
+**Dependabot pull requests fail that gate by design, every time.** Each registry item embeds the
+dependency ranges from `package.json` — the only ranges the code is tested against — so a
+version bump changes what the generator emits, and Dependabot cannot run it. Before merging one:
+
+```bash
+git fetch origin && git switch <dependabot-branch>
+npm ci && npm run registry:generate
+git commit -am "chore: regenerate registry.json for the bumped ranges" && git push
+```
+
+CI turns green on the next run. Squash-merge, so the bump and its regeneration land as one
+commit.
+
 ## Adding a component
 
 Adding a component to the catalog is three compiler-linked edits and one command:

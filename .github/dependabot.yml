@@ -27,6 +27,38 @@ updates:
       # together, and re-examine whether the geometry override is still needed at all.
       - dependency-name: "@dnd-kit/*"
         update-types: ["version-update:semver-minor", "version-update:semver-major"]
+      # @types/node's MAJOR is the Node major it describes, so it has to match the runtime this
+      # project declares and deploys (.nvmrc, pages.yml, the ci.yml matrix) rather than the
+      # newest Node release: types ahead of the runtime make `check` accept APIs the Pages build
+      # then lacks. The 24 line keeps receiving updates until Node 24's end of life (2028-04-30),
+      # and the minor-and-patch group above still delivers them.
+      #
+      # LIFT THIS when .nvmrc and pages.yml move to 26 — Node 26 enters Active LTS on
+      # 2026-10-28 — and bump the types major in the same commit.
+      - dependency-name: "@types/node"
+        update-types: ["version-update:semver-major"]
+      # v9 is a rewrite of the table layer, not a bump. Measured on 2026-08-27: 646 type errors
+      # across 35 files and a build that cannot resolve nine exports (createTable, the
+      # get*RowModel options, getState and onStateChange are gone; every core type takes
+      # TFeatures first; column pinning is start/end). Worse than the renames, state moved into
+      # @tanstack/store atoms whose computed getters only re-run on atom writes — which silently
+      # kills the getter-on-options reactivity trick src/lib/shared/tanstack-table-bridge.svelte.ts
+      # is built on. A spike that migrated the whole construction layer still left 632 errors.
+      #
+      # LIFT THIS when the bridge is deliberately rewritten for v9's store — a decision, with the
+      # data-table and data-grid folders migrated in the same branch — not when Dependabot asks.
+      - dependency-name: "@tanstack/table-core"
+        update-types: ["version-update:semver-major"]
+      # TypeScript 7.0 ships no stable compiler API: `require("typescript")` resolves to a version
+      # string, and svelte-check 4.7.6 (the latest) both peers on `^5 || ^6` — so `npm ci` fails
+      # with ERESOLVE on the PR's own lockfile — and throws on any major >= 7 unless TS 6 is also
+      # installed and an experimental flag is passed. Nothing in this repository is at fault:
+      # every option TS 7 removed or re-defaulted was grepped and none is set.
+      #
+      # LIFT THIS when svelte-check's peer range admits ^7, which upstream ties to the stable API
+      # planned for TypeScript 7.1: `npm view svelte-check@latest peerDependencies` is the check.
+      - dependency-name: "typescript"
+        update-types: ["version-update:semver-major"]
   - package-ecosystem: github-actions
     directory: /
     schedule:
