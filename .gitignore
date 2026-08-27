@@ -24,9 +24,28 @@ dist-ssr
 .claude/worktrees/
 
 # Skills vendored by the skill manager. It reinstalls them into both of these paths on demand,
-# so they are local build output, not source, and are kept out of the tree.
+# so they are local build output, not source, and are kept out of the tree — and so is the lock
+# file that pins them, which described a checkout of somebody else's skill and nothing this
+# repository ships.
 .claude/skills/
 .agents/
+skills-lock.json
+
+# The rest of Claude Code's per-machine state: a lock file, a task queue, a mailbox, a local
+# agent registry. Every one is written by the tool as it runs and means nothing on another
+# machine. They belong here rather than in a maintainer's `.git/info/exclude`, which is where
+# they were: an exclude file is not cloned, so a second contributor saw them as untracked noise
+# and could commit them, and nothing in the repository said they were not wanted.
+.claude/scheduled_tasks.lock
+.claude/scheduled_tasks.json
+.claude/routines/.state/
+.claude/checkpoints/
+.claude/mailbox/
+.claude/agent-registry.json
+.claude/agent-memory-local/
+.claude/first-run
+.claude/assistant-daemon-state.json
+.claude/settings.local.json
 
 # The built registry. `registry.json` is the source and is tracked; these are what
 # `registry:build` compiles it into, regenerated from it on demand and copied verbatim into

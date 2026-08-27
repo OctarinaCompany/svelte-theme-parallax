@@ -1,0 +1,25 @@
+# Line endings are decided here rather than by whatever `core.autocrlf` a contributor happens to
+# have. `text=auto eol=lf` stores every text file with LF *and* checks it out with LF, on every
+# platform. The second half is what makes the rule enforceable: with the working tree normalised,
+# `.prettierrc` can set `endOfLine: "lf"` and `npm run format:check` fails on a CRLF file instead
+# of accepting whatever it finds.
+#
+# CI depends on the first half: the drift gate in `.github/workflows/ci.yml` re-runs the
+# generators and demands an empty `git status`. Both generators write LF, so a file checked out
+# with CRLF on a maintainer's Windows machine reads as modified the moment either one runs — a
+# whole-file phantom diff that `git diff` then hides, because it normalises the very difference
+# `git status` is reporting.
+#
+# Binary files are detected, not listed: `text=auto` leaves anything with a NUL byte alone, which
+# covers `public/assets/*.mp3` and `*.mp4` without naming them.
+* text=auto eol=lf
+
+# Generated. GitHub collapses these in diffs and drops them from the language statistics, which
+# otherwise read this repository as one third JSON. Every one is rebuilt by `npm run
+# registry:generate` or `npm run themes:generate`; see CONTRIBUTING.md.
+registry.json                            linguist-generated=true
+docs/REGISTRY.md                         linguist-generated=true
+public/llms.txt                          linguist-generated=true
+skills/parallax/references/components.md linguist-generated=true
+src/themes.css                           linguist-generated=true
+src/lib/themes/palettes.ts               linguist-generated=true

@@ -14,6 +14,5 @@ registry.json
 
 # Tool-owned lock files: whoever writes them wins, so formatting them here only causes churn.
 package-lock.json
-skills-lock.json
 
 dist/
