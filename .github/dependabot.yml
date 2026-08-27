@@ -11,6 +11,22 @@ updates:
         update-types:
           - minor
           - patch
+    ignore:
+      # The dnd-kit family is pre-1.0, where a MINOR is a breaking change by semver's own rule —
+      # and the grouping above cannot know that, so it filed a 0.2 -> 0.5 jump beside a patch
+      # bump and turned the whole group red. The lock is upstream: `@dnd-kit-svelte/svelte`,
+      # the Svelte adapter, is at its latest release (0.1.6) and still declares
+      # `@dnd-kit/abstract@^0.2`, while `@dnd-kit/helpers@0.5` requires `^0.5`. The two ranges
+      # do not meet, so npm nests a second `abstract`, and every drag object then carries a
+      # `DragOperationStatus` from one copy or the other — the runtime split the `overrides`
+      # entry in package.json exists to prevent. Forcing the whole family to 0.5 through more
+      # overrides would put the adapter three minor lines above what it was written against.
+      #
+      # LIFT THIS when the adapter publishes a release depending on `@dnd-kit/abstract@^0.5`;
+      # `npm view @dnd-kit-svelte/svelte@latest dependencies` is the check. Then bump the two
+      # together, and re-examine whether the geometry override is still needed at all.
+      - dependency-name: "@dnd-kit/*"
+        update-types: ["version-update:semver-minor", "version-update:semver-major"]
   - package-ecosystem: github-actions
     directory: /
     schedule:
