@@ -76,7 +76,6 @@
 			return toggleIconType;
 		},
 		get tree() {
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			return tree as TreeState<any> | undefined;
 		},
 	});

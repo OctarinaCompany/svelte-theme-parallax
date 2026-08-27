@@ -830,7 +830,6 @@ export class EventCalendarRootState<TData = unknown> {
 	// --- api -----------------------------------------------------------------------------------
 
 	#buildApi(): EventCalendarApi<TData> {
-		// eslint-disable-next-line @typescript-eslint/no-this-alias
 		const root = this;
 		const stepOpts = () => ({
 			timeZone: root.timeZone,

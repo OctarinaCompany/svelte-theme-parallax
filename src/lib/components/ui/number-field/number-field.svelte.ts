@@ -55,7 +55,7 @@ export const numberFieldGroupVariants = tv({
  * upstream delegates to Base UI's data attributes.
  */
 export const numberFieldButtonVariants = tv({
-	base: "relative flex shrink-0 cursor-pointer items-center justify-center transition-colors hover:bg-accent disabled:pointer-events-none disabled:opacity-50 pointer-coarse:after:absolute pointer-coarse:after:size-full pointer-coarse:after:min-h-11 pointer-coarse:after:min-w-11 [&_svg]:pointer-events-none [&_svg]:shrink-0",
+	base: "relative flex shrink-0 items-center justify-center transition-colors hover:bg-accent disabled:pointer-events-none disabled:opacity-50 pointer-coarse:after:absolute pointer-coarse:after:size-full pointer-coarse:after:min-h-11 pointer-coarse:after:min-w-11 [&_svg]:pointer-events-none [&_svg]:shrink-0",
 	variants: {
 		size: {
 			sm: "px-1.5 [&_svg:not([class*='size-'])]:size-3.5",

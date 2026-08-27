@@ -115,7 +115,7 @@
 		...restProps,
 		class: cn(
 			buttonVariants({ variant, size }),
-			"size-11 shrink-0 cursor-pointer rounded-full bg-accent shadow-md",
+			"size-11 shrink-0 rounded-full bg-accent shadow-md",
 			className,
 		),
 		onclick,
@@ -136,7 +136,7 @@
 		{size}
 		{disabled}
 		{...restProps}
-		class={cn("size-11 shrink-0 cursor-pointer rounded-full bg-accent shadow-md", className)}
+		class={cn("size-11 shrink-0 rounded-full bg-accent shadow-md", className)}
 		{onclick}
 	>
 		{@render children?.()}

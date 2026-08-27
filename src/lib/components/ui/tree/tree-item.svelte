@@ -72,7 +72,6 @@
 
 	setTreeItemContext({
 		get item() {
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			return item as Instance<any>;
 		},
 	});

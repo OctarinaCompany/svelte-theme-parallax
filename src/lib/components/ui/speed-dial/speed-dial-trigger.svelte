@@ -10,6 +10,7 @@
 		id: string;
 		"aria-controls": string;
 		"aria-expanded": boolean;
+		"aria-label": string;
 		"data-slot": "speed-dial-trigger";
 		"data-state": "open" | "closed";
 		disabled: boolean;
@@ -48,6 +49,7 @@
 		variant = "default",
 		size = "icon",
 		disabled: disabledProp,
+		"aria-label": ariaLabel,
 		onclick: onclickProp,
 		onmouseenter: onmouseenterProp,
 		onmouseleave: onmouseleaveProp,
@@ -64,6 +66,13 @@
 
 	// Upstream `isDisabled = disabledProp || disabled`.
 	const isDisabled = $derived(disabledProp || state.disabled);
+
+	// The trigger is a round icon button by construction — `size="icon"`, `size-11`, an icon for
+	// children — so nothing inside it can name it and the AX tree reports an empty name (WCAG
+	// 4.1.2). A caller-supplied `aria-label` always wins; this is only the default that keeps the
+	// button announceable, the way `<Banner.Close>` defaults to "Close". The state is announced
+	// separately, from `aria-expanded`.
+	const resolvedAriaLabel = $derived(ariaLabel ?? "Actions");
 
 	/** Hover-open is the trigger's own; hover-close is shared with the content, so the root owns it. */
 	let hoverOpenTimer: ReturnType<typeof setTimeout> | null = null;
@@ -153,11 +162,12 @@
 		// only `aria-expanded`/`aria-controls`.
 		"aria-controls": state.contentId,
 		"aria-expanded": state.open,
+		"aria-label": resolvedAriaLabel,
 		"data-slot": "speed-dial-trigger",
 		"data-state": getDataState(state.open),
 		disabled: isDisabled,
 		...restProps,
-		class: cn(buttonVariants({ variant, size }), "size-11 cursor-pointer rounded-full", className),
+		class: cn(buttonVariants({ variant, size }), "size-11 rounded-full", className),
 		onclick,
 		onmouseenter,
 		onmouseleave,
@@ -175,13 +185,14 @@
 		id={triggerId}
 		aria-controls={state.contentId}
 		aria-expanded={state.open}
+		aria-label={resolvedAriaLabel}
 		data-slot="speed-dial-trigger"
 		data-state={getDataState(state.open)}
 		disabled={isDisabled}
 		{variant}
 		{size}
 		{...restProps}
-		class={cn("size-11 cursor-pointer rounded-full", className)}
+		class={cn("size-11 rounded-full", className)}
 		{onclick}
 		{onmouseenter}
 		{onmouseleave}

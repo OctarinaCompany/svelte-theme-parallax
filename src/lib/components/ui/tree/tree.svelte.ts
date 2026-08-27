@@ -500,13 +500,11 @@ export class TreeItemInstance<T = unknown> {
 export type TreeContextValue = {
 	readonly indent: number;
 	readonly toggleIconType: TreeToggleIconType;
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	readonly tree: TreeState<any> | undefined;
 };
 
 /** What `<Tree.Item>` publishes — upstream's `currentItem` slot. */
 export type TreeItemContextValue = {
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	readonly item: TreeItemInstance<any>;
 };
 

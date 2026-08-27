@@ -51,7 +51,7 @@
 	<Popover.Trigger
 		data-slot="event-calendar-more"
 		class={cn(
-			"cursor-pointer truncate rounded-sm px-1.5 text-start text-muted-foreground hover:text-foreground",
+			"truncate rounded-sm px-1.5 text-start text-muted-foreground hover:text-foreground",
 			viewConfig.classNames?.moreIndicator,
 		)}
 		onclick={handleTriggerClick}

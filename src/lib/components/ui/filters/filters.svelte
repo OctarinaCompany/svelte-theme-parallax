@@ -507,11 +507,10 @@
 											Paying back that 4px only makes the two flush, which is where the Menubar
 											page's submenus sit and looks right there — but that page also strips the
 											shadow (`shadow-none`, the classic `dropdown-box-shadow`). This menu
-											keeps shadcn's elevation, as §17 of the theme notes decided, and
-											`shadow-lg` blurs 15px in every direction with no offset: flush against
-											the parent, the submenu smears its own shadow across it and the seam reads
-											as two panels fighting. The second 4px is the same air a top-level menu
-											already takes from its trigger — `dropdown-menu-content`'s own
+											keeps shadcn's elevation, and `shadow-lg` blurs 15px in every direction with
+											no offset: flush against the parent, the submenu smears its own shadow across
+											it and the seam reads as two panels fighting. The second 4px is the same air a
+											top-level menu already takes from its trigger — `dropdown-menu-content`'s own
 											`sideOffset = 4`.
 										-->
 										<DropdownMenu.Portal>

@@ -37,7 +37,7 @@
  *
  * `secondary` inherits the same caveat as everywhere else in this theme: the classic theme's
  * `secondary` is `gray-700`, which `--muted-foreground` matches in dark mode and misses
- * by one step in light. See §4.1 of the theme notes.
+ * by one step in light.
  *
  * `light` AND `dark` NEED A `dark:` HALF FOR EVERY STATE, not just the ground — the trap
  * AlertPage documents, and one the Button page fell into first. `dark` is #12263F in BOTH

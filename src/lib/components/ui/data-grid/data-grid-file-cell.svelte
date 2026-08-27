@@ -220,7 +220,7 @@
 				data-disabled={isPending ? "" : undefined}
 				data-invalid={error ? "" : undefined}
 				data-drag-over={isDragOver ? "" : undefined}
-				class="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-md border-2 border-dashed p-6 transition-colors outline-none hover:bg-accent/30 focus-visible:border-ring/50 data-drag-over:border-ring/50 data-drag-over:bg-accent/30 data-invalid:border-destructive data-invalid:ring-3 data-invalid:ring-destructive/20 dark:data-invalid:ring-destructive/40 data-disabled:pointer-events-none data-disabled:opacity-50"
+				class="flex flex-col items-center justify-center gap-2 rounded-md border-2 border-dashed p-6 transition-colors outline-none hover:bg-accent/30 focus-visible:border-ring/50 data-drag-over:border-ring/50 data-drag-over:bg-accent/30 data-invalid:border-destructive data-invalid:ring-3 data-invalid:ring-destructive/20 dark:data-invalid:ring-destructive/40 data-disabled:pointer-events-none data-disabled:opacity-50"
 				disabled={isPending}
 				onclick={() => inputRef?.click()}
 				ondragover={(event) => {

@@ -212,7 +212,7 @@
 		ondblclick: handleDoubleClick,
 		...restProps,
 		class: cn(
-			"group/ec-event relative flex w-full min-w-0 cursor-pointer touch-none items-center overflow-hidden text-start text-foreground select-none",
+			"group/ec-event relative flex w-full min-w-0 touch-none items-center overflow-hidden text-start text-foreground select-none",
 			"outline-none focus-visible:ring-2 focus-visible:ring-ring/50",
 			view === "agenda"
 				? // plain list row: color lives in the dot badge, not a tinted pill; hover AND

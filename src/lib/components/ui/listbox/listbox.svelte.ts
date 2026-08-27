@@ -401,9 +401,9 @@ export class ListboxRootState {
 	}
 
 	/**
-	 * Move the roving focus to `value`, actually focusing the element unless `virtual` (research
-	 * R-05). `keepAnchor` preserves the range anchor across a `Shift`+navigation move — the DOM
-	 * focus event would otherwise reset it through {@link markFocused}.
+	 * Move the roving focus to `value`, actually focusing the element unless `virtual`. `keepAnchor`
+	 * preserves the range anchor across a `Shift`+navigation move — the DOM focus event would
+	 * otherwise reset it through {@link markFocused}.
 	 */
 	focusItem(value: string, { keepAnchor = false }: { keepAnchor?: boolean } = {}): void {
 		const anchor = this.anchorValue;

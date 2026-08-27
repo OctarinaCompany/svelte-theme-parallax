@@ -255,7 +255,7 @@
 					class={cn(
 						// Upstream carries per-style-preset radii here; this
 						// theme has a single radius scale, so a plain rounded-sm stands in for all of them.
-						"absolute end-2.5 top-1/2 size-4 -translate-y-1/2 cursor-pointer rounded-sm",
+						"absolute end-2.5 top-1/2 size-4 -translate-y-1/2 rounded-sm",
 						"opacity-70 transition-opacity hover:opacity-100",
 						"ring-offset-background focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:outline-none",
 					)}

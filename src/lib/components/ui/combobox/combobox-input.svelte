@@ -189,8 +189,12 @@
 				Upstream wraps the trigger in `InputGroupButton asChild`; here the
 				trigger's `child` snippet is the same inversion. The `group-has-…` class is upstream's
 				mechanism for ceding the corner to the clear button.
+
+				The name is supplied here rather than defaulted inside the trigger: this is the one
+				composition that knows the button holds a chevron and nothing else. A standalone trigger
+				is named by the content its own `child` snippet renders.
 			-->
-			<ComboboxTrigger>
+			<ComboboxTrigger aria-label="Show options">
 				{#snippet child({ props })}
 					<InputGroupButton
 						size="icon-xs"

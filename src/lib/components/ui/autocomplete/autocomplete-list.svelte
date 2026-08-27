@@ -13,7 +13,6 @@
 	 * `{#snippet children(item)}` a type error at `item.anything`. A caller who wants the check back
 	 * annotates the parameter: `{#snippet children(item: Person)}`.
 	 */
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	export type AutocompleteListProps<T = any> = WithElementRef<
 		Omit<HTMLAttributes<HTMLDivElement>, "children">,
 		HTMLDivElement
@@ -23,7 +22,6 @@
 	};
 </script>
 
-<!-- eslint-disable-next-line @typescript-eslint/no-explicit-any -->
 <script lang="ts" generics="T = any">
 	import { getAutocompleteContext } from "./autocomplete.svelte.js";
 
@@ -42,6 +40,12 @@
 	 * the overflow is native, because that is what every other popup list in this repository does
 	 * (`select-content`, `command-list`): one component quietly introducing a second kind of scrollbar
 	 * is a worse inconsistency than a plain one.
+	 *
+	 * `<Combobox.List>` is this part's twin, duplicated rather than shared: `src/lib/shared/` carries
+	 * `.ts` machinery and never markup, and the two folders publish as independent registry items, so
+	 * a shared part would make installing one pull in the other. They have already drifted apart on
+	 * their own — the combobox list is multi-selectable, this one is not — which is the argument for
+	 * keeping them separate rather than against it.
 	 */
 
 	let {

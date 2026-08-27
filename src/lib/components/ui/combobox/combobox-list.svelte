@@ -13,7 +13,6 @@
 	 * ordinary `{#snippet children(item)}` a type error at `item.anything`. A caller who wants the
 	 * check back annotates the parameter: `{#snippet children(item: Person)}`.
 	 */
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	export type ComboboxListProps<T = any> = WithElementRef<
 		Omit<HTMLAttributes<HTMLDivElement>, "children">,
 		HTMLDivElement
@@ -28,7 +27,6 @@
 	};
 </script>
 
-<!-- eslint-disable-next-line @typescript-eslint/no-explicit-any -->
 <script lang="ts" generics="T = any">
 	import { getComboboxContext } from "./combobox.svelte.js";
 
@@ -42,6 +40,12 @@
 	 * while the options scroll under it. The `not-empty:` padding is upstream's `data-empty:p-0` —
 	 * with no options left the element collapses to nothing rather than leaving a stripe of padding
 	 * above the empty message.
+	 *
+	 * `<Autocomplete.List>` is this part's twin, duplicated rather than shared: `src/lib/shared/`
+	 * carries `.ts` machinery and never markup, and the two folders publish as independent registry
+	 * items, so a shared part would make installing one pull in the other. They have already drifted
+	 * apart on their own — this list carries `aria-multiselectable`, that one cannot — which is the
+	 * argument for keeping them separate rather than against it.
 	 */
 
 	let {

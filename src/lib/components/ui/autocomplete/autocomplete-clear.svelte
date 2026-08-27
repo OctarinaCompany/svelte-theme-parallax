@@ -46,7 +46,7 @@
 		disabled={root.disabled}
 		{...restProps}
 		class={cn(
-			"absolute top-1/2 -translate-y-1/2 cursor-pointer opacity-70 ring-offset-background transition-opacity outline-none hover:opacity-100 focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none data-disabled:pointer-events-none",
+			"absolute top-1/2 -translate-y-1/2 opacity-70 ring-offset-background transition-opacity outline-none hover:opacity-100 focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none data-disabled:pointer-events-none",
 			className,
 		)}
 		{onclick}

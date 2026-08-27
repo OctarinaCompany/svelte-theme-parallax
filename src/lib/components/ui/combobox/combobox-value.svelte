@@ -5,7 +5,6 @@
 	import { cn, type WithElementRef } from "$lib/utils.js";
 
 	/** `T` defaults to `any` for the reason `<Combobox.List>` records. */
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	export type ComboboxValueProps<T = any> = WithElementRef<
 		Omit<HTMLAttributes<HTMLSpanElement>, "children">,
 		HTMLSpanElement
@@ -21,7 +20,6 @@
 	};
 </script>
 
-<!-- eslint-disable-next-line @typescript-eslint/no-explicit-any -->
 <script lang="ts" generics="T = any">
 	import { getComboboxContext } from "./combobox.svelte.js";
 

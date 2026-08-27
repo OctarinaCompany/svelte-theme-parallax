@@ -239,9 +239,15 @@
 								class="absolute h-full bg-primary"
 							/>
 						</span>
+						<!--
+							The name goes on the THUMB, which is what carries `role="slider"`. The `<Label for>`
+							above cannot reach it — `for` binds to labelable elements and the slider root is a
+							`<span>` — so without this both ends of the range compute an empty name (WCAG 4.1.2).
+						-->
 						{#each thumbItems as thumb (thumb.index)}
 							<Slider.Thumb
 								index={thumb.index}
+								aria-label={thumb.index === 0 ? `${title} minimum` : `${title} maximum`}
 								data-slot="data-table-slider-filter-thumb"
 								class="block size-4 shrink-0 rounded-full border border-primary bg-background shadow-sm transition-[color,box-shadow] focus-visible:ring-4 focus-visible:ring-ring/50 focus-visible:outline-hidden disabled:pointer-events-none disabled:opacity-50"
 							/>

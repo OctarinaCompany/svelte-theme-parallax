@@ -96,7 +96,7 @@
 		type="button"
 		aria-expanded={open}
 		class={cn(
-			"group/json-viewer-branch -ml-1 inline-flex h-6 w-full cursor-pointer items-center rounded-sm px-1 text-left leading-6 outline-none select-none focus-visible:ring-3 focus-visible:ring-ring/50",
+			"group/json-viewer-branch -ml-1 inline-flex h-6 w-full items-center rounded-sm px-1 text-left leading-6 outline-none select-none focus-visible:ring-3 focus-visible:ring-ring/50",
 			"**:data-[slot=json-viewer-chevron]:size-4",
 			// Upstream only lights the trigger up while the branch is open (`:682`): when it is
 			// closed, the row around it already carries the hover.

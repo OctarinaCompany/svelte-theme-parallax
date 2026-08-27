@@ -241,6 +241,12 @@ The classic theme's `--warning` IS its yellow (src/app.css), and raw palette col
 				onpointermove={handlePointerMove}
 				onpointerleave={handlePointerLeave}
 			>
+				<!--
+				The one cursor this component writes, with the reason `CONVENTIONS.md` §8 requires: the hand
+				rule in `app.css` is stated in terms of buttons and control roles, and bits-ui renders each
+				star as a `role="presentation"` div that none of those selectors reach — while the stars are
+				exactly what a rating is clicked on.
+				-->
 				{#each items as item (item.index)}
 					<RatingGroup.Item index={item.index} class="relative cursor-pointer">
 						{@render starLayers(itemFill(item))}

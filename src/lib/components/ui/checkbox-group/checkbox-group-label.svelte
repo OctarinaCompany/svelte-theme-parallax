@@ -4,8 +4,7 @@
 
 	/**
 	 * `id` is omitted deliberately: the label's id is derived from the group's, because that is what
-	 * the root's `aria-labelledby` points at. Overriding it would dangle the reference (research
-	 * R-08).
+	 * the root's `aria-labelledby` points at. Overriding it would dangle the reference.
 	 */
 	export type CheckboxGroupLabelProps = WithElementRef<
 		Omit<HTMLLabelAttributes, "id">,

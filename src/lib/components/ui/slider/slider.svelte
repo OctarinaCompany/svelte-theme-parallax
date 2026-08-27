@@ -6,9 +6,30 @@
 		ref = $bindable(null),
 		value = $bindable(),
 		orientation = "horizontal",
+		thumbLabel,
+		"aria-label": ariaLabel,
+		"aria-labelledby": ariaLabelledby,
 		class: className,
 		...restProps
-	}: WithoutChildrenOrChild<SliderPrimitive.RootProps> = $props();
+	}: WithoutChildrenOrChild<SliderPrimitive.RootProps> & {
+		/**
+		 * The accessible name of the thumb — a string for every thumb, or one string per thumb of a
+		 * range. Defaults to the root's own `aria-label`.
+		 */
+		thumbLabel?: string | string[];
+	} = $props();
+
+	/**
+	 * The name has to reach the THUMB. `role="slider"` lives there, while `aria-label` — and a
+	 * `<label for>`, which cannot bind to the root's `<span>` at all — lands on the root, so a
+	 * slider labelled the obvious way still leaves the control a screen reader stops on with an
+	 * empty name (WCAG 4.1.2). Naming the root as well is deliberate: it carries no role, so the
+	 * name is not announced twice, and a caller who names only the root gets a named thumb for free.
+	 */
+	function thumbName(index: number): string | null | undefined {
+		if (Array.isArray(thumbLabel)) return thumbLabel[index] ?? ariaLabel;
+		return thumbLabel ?? ariaLabel;
+	}
 </script>
 
 <!--
@@ -20,6 +41,8 @@ get along, so we shut typescript up by casting `value` to `never`.
 	bind:value={value as never}
 	data-slot="slider"
 	{orientation}
+	aria-label={ariaLabel}
+	aria-labelledby={ariaLabelledby}
 	class={cn(
 		"relative flex w-full touch-none items-center select-none data-disabled:opacity-50 data-vertical:h-full data-vertical:min-h-40 data-vertical:w-auto data-vertical:flex-col",
 		className,
@@ -43,6 +66,8 @@ get along, so we shut typescript up by casting `value` to `never`.
 			<SliderPrimitive.Thumb
 				data-slot="slider-thumb"
 				index={thumb.index}
+				aria-label={thumbName(thumb.index)}
+				aria-labelledby={thumbName(thumb.index) ? undefined : ariaLabelledby}
 				class="block size-4 shrink-0 rounded-full border border-primary bg-white shadow-sm ring-ring/50 transition-[color,box-shadow] select-none hover:ring-4 focus-visible:ring-4 focus-visible:outline-hidden disabled:pointer-events-none disabled:opacity-50"
 			/>
 		{/each}

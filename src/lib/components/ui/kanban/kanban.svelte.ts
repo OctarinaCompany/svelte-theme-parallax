@@ -188,7 +188,7 @@ export class KanbanRootState {
 	readonly dir: Direction = $derived(this.#props.getDir());
 	readonly strategy: SortableStrategy | undefined = $derived(this.#props.getStrategy());
 
-	/** Incremented by every mounted `<Kanban.Overlay>`; drives the R-07 transform suppression. */
+	/** Incremented by every mounted `<Kanban.Overlay>`; drives the transform suppression. */
 	overlayCount = $state(0);
 	readonly hasOverlay: boolean = $derived(this.overlayCount > 0);
 

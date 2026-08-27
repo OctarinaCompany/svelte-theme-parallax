@@ -58,7 +58,6 @@
 		? getTreeItemContext("<Tree.ItemLabel>")
 		: undefined;
 
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	const resolvedItem = $derived((item as TreeItemInstance<any> | undefined) ?? itemCtx?.item);
 
 	/**

@@ -18,6 +18,7 @@
 		disabled: boolean;
 		"aria-haspopup": "listbox";
 		"aria-expanded": boolean;
+		"aria-label": string | undefined;
 		onclick: (event: MouseEvent) => void;
 		onkeydown: (event: KeyboardEvent) => void;
 		class: string;
@@ -61,6 +62,7 @@
 	let {
 		ref = $bindable(null),
 		class: className,
+		"aria-label": ariaLabel,
 		onclick: onclickProp,
 		onkeydown: onkeydownProp,
 		child,
@@ -69,6 +71,12 @@
 	}: ComboboxTriggerProps = $props();
 
 	const root = getComboboxContext("<Combobox.Trigger>");
+
+	// Beside an input the trigger is the chevron alone, so nothing in it can name the button and
+	// the AX tree reports an empty name (WCAG 4.1.2). The default fills in only there: a caller's
+	// `aria-label` always wins, and the select-shaped `child` case is named by the content the
+	// caller renders — the `<Banner.Close>` rule.
+	const resolvedAriaLabel = $derived(ariaLabel ?? (child || children ? undefined : "Show options"));
 
 	// An attachment rather than `bind:this`, so the `child` path — where the caller owns the
 	// element — still registers the anchor the select-shaped popup positions against.
@@ -113,6 +121,7 @@
 		disabled: root.disabled,
 		"aria-haspopup": "listbox",
 		"aria-expanded": root.open,
+		"aria-label": resolvedAriaLabel,
 		[attach]: attachTrigger,
 		...restProps,
 		onclick,

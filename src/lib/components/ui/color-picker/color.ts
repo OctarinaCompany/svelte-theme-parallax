@@ -3,8 +3,8 @@
  *
  * Ported from the numeric helpers the reference implementation inlines in `color-picker.tsx`
  * (lines 85-410). `color-swatch`'s own
- * `color.ts` owns only the background/checkerboard helpers, so the conversions live here (research
- * R-13); the swatch's checkerboard is composed rather than duplicated.
+ * `color.ts` owns only the background/checkerboard helpers, so the conversions live here; the
+ * swatch's checkerboard is composed rather than duplicated.
  */
 
 /** Every display format, in upstream declaration order. */

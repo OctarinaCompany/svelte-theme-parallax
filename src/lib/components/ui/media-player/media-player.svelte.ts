@@ -165,8 +165,7 @@ const SUBTITLE_KINDS: TextTrackKind[] = ["subtitles", "captions"];
  * One instance per `<MediaPlayer>`, published on context under a `Symbol` key.
  *
  * Collapses upstream's two React contexts — the `useSyncExternalStore` `Store` for ephemeral UI
- * state and `MediaPlayerContext` for ids, refs and config — into a single rune class (research
- * R-02).
+ * state and `MediaPlayerContext` for ids, refs and config — into a single rune class.
  *
  * The data flow is deliberately one-way, matching upstream: the element's own events are the only
  * thing that writes this state, through the listeners {@link attachMedia} and {@link attachRoot}

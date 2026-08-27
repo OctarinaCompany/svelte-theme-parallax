@@ -389,7 +389,7 @@ export class ColorPickerAreaState {
 	}
 
 	/**
-	 * The R-04 key table. Returns whether the key was handled, which is what the part turns into a
+	 * The key table. Returns whether the key was handled, which is what the part turns into a
 	 * `preventDefault()`.
 	 */
 	onKeydown(event: KeyboardEvent): boolean {

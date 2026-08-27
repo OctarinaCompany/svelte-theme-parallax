@@ -166,9 +166,9 @@
 	}: EditableRootProps = $props();
 
 	// Uncontrolled: seed once from `defaultValue` / `defaultEditing`. Controlled: the caller's binding
-	// wins, and a binding that declines the write keeps the rendered field where it was (research
-	// R-02). Both seeds are one-shot initialisations, so the defaults are read through `untrack` —
-	// reading them bare here would capture only their initial value while looking like reactive reads.
+	// wins, and a binding that declines the write keeps the rendered field where it was. Both seeds
+	// are one-shot initialisations, so the defaults are read through `untrack` — reading them bare
+	// here would capture only their initial value while looking like reactive reads.
 	value ??= untrack(() => defaultValue);
 	editing ??= untrack(() => defaultEditing);
 

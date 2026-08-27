@@ -75,7 +75,7 @@
 	};
 
 	const ROOT_CLASSES =
-		"relative inline-flex cursor-pointer items-center justify-center rounded-md outline-none select-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 data-disabled:cursor-not-allowed data-disabled:opacity-50";
+		"relative inline-flex items-center justify-center rounded-md outline-none select-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 data-disabled:cursor-not-allowed data-disabled:opacity-50";
 </script>
 
 <script lang="ts">
