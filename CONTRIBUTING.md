@@ -1,13 +1,15 @@
 # Contributing to Parallax
 
-Thanks for taking the time to contribute. Parallax is a themed component library and demo
-gallery built on [shadcn-svelte](https://shadcn-svelte.com/docs) — Svelte 5, Vite,
-Tailwind CSS v4, [Bits UI](https://bits-ui.com). This document tells you how the repository
-works and what a good change looks like here.
+Thanks for taking the time to contribute. Parallax is a dashboard theme kit for
+[shadcn-svelte](https://shadcn-svelte.com/docs) — Svelte 5, Vite, Tailwind CSS v4,
+[Bits UI](https://bits-ui.com) — distributed as a registry and documented by a gallery. This
+document tells you how the repository works and what a good change looks like here.
 
 ## Getting started
 
-Requires Node.js 20.19 or newer (22.12+ on the 22 line) — Vite 8's own floor.
+Requires Node.js 22.12 or newer on the 22 LTS line, or 24 and above. That is the `engines`
+range and the matrix CI builds on; Vite 8 itself would accept less, and the extra step up is a
+deliberate choice rather than a tooling floor.
 
 ```bash
 npm install
@@ -32,6 +34,10 @@ npm run themes:audit     # contrast, brand/status separation, CVD simulation
 npm run loaders:check    # loader CSS-in-markup styles svelte-check cannot see
 ```
 
+Plus a sixth that has no script of its own: CI re-runs `npm run registry:generate` and
+`npm run themes:generate` and fails if either changes the worktree. It runs last, so every gate
+above judges the committed files rather than freshly written ones.
+
 CI also greps `src/` for a hand-written gallery link before it installs anything. A route reaches
 the DOM through `href()` and nowhere else (`CONVENTIONS.md` §9), because a literal
 `/components/…` works locally and 404s under the deployed base. The grep is a backstop, not a
@@ -54,25 +60,45 @@ Everything under `src/lib/components/ui/` belongs to one of two tiers, and the r
 
 ## Generated files are never edited by hand
 
-`src/themes.css` and `src/lib/themes/palettes.ts` are written by the theme generator. To change
-a palette, edit `tools/themes/` and run:
+Six tracked files are written by the two generators, and none of them is a place to make a
+change. They carry `linguist-generated=true` in `.gitattributes`, so GitHub collapses them in a
+diff:
+
+| File | Written by |
+| ---- | ---------- |
+| `src/themes.css` | `npm run themes:generate` (`tools/themes/`) |
+| `src/lib/themes/palettes.ts` | `npm run themes:generate` |
+| `registry.json` | `npm run registry:generate` (`tools/registry/`) |
+| `docs/REGISTRY.md` | `npm run registry:generate` |
+| `public/llms.txt` | `npm run registry:generate` |
+| `skills/parallax/references/components.md` | `npm run registry:generate` |
+
+To change a palette, edit `tools/themes/` and run:
 
 ```bash
 npm run themes:generate  # rewrites the generated files, byte-identical per input
 npm run themes:audit     # must stay clean — CI runs it too
 ```
 
+To change what the registry publishes — an item's description, which files it carries, the
+install notes — edit `tools/registry/generate.mjs` and run `npm run registry:generate`.
+
 A pull request that hand-edits a generated file will be asked to move the change into the
-generator.
+generator, and CI will have said so first: the drift gate re-runs both and fails on any diff.
 
 ## Adding a component
 
-Adding a component to the catalog is three compiler-linked edits:
+Adding a component to the catalog is three compiler-linked edits and one command:
 
 1. a page under `src/lib/components/pages/`,
 2. a line in `CATEGORIES` in `src/lib/hooks/route.svelte.ts` (the ladder — a component belongs
    to the first group whose admission test it passes),
-3. its dynamic import in `src/App.svelte`.
+3. its dynamic import in `src/App.svelte`,
+4. then `npm run registry:generate`, which rewrites the four files above that describe the
+   catalog. Nothing in steps 1-3 updates them, and the drift gate fails the build if you skip it.
+
+The first three are compiler-linked in the strict sense — forget the import and
+`Record<RoutePath, …>` fails to build. The fourth is not, which is exactly why CI checks it.
 
 Never write a route down anywhere else — routes, route types and the sidebar menu are all
 derived from `CATEGORIES`. Every component must be rendered by at least one page.
@@ -89,8 +115,8 @@ derived from `CATEGORIES`. Every component must be rendered by at least one page
 
 - Keep them focused — one intent per PR.
 - For anything visual, include screenshots in **both light and dark mode**; if a change could
-  interact with palettes, check at least one non-default theme (the header's theme picker
-  switches them live).
+  interact with palettes, check at least one non-default theme (the Settings page switches them
+  live — the header bar carries the light/dark toggle only).
 - State which tier the change touches (registry / house / pages / tools / docs) — it decides
   how the review reads it.
 - The PR template's checklist mirrors the CI gates; tick it honestly.
@@ -104,8 +130,6 @@ of a real dependency).
 
 ## Odd files, explained
 
-- `skills-lock.json` pins the shadcn-svelte skill that AI-assisted tooling reinstalls into the
-  gitignored `.claude/skills/`; it is harmless if you never use that tooling.
 - `src/themes.css` and `src/lib/themes/palettes.ts` are generated — see above.
 - `package.json` keeps every package in `devDependencies` on purpose: this repository is an
   application consumed as a git repo, never as an npm package, so everything is build-time

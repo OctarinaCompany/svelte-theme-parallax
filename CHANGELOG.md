@@ -119,7 +119,7 @@ ships today is listed here.
   ships no pointer default on buttons, and the rule that restored it lived in a block no
   registry item carried — so a project built on Parallax showed an arrow on every button where
   the gallery showed a hand. It now ships with `parallax-restyle`, in `@layer base`, where a
-  `cursor-*` utility still overrides it per element. A sweep of all 121 gallery pages added
+  `cursor-*` utility still overrides it per element. A sweep of all 120 gallery pages added
   what was missing beside buttons: `select`, bound `<label>`s (the kit was already
   inconsistent there, because `cursor` inherits) and the ARIA roles that stand for a control
   when it is built from a `div`. The deliberate exceptions are unchanged and now written down

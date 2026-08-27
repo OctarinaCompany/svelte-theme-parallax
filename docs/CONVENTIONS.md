@@ -26,10 +26,13 @@ document disagree, one of them has a bug.
 
 - The negative status is **`destructive`** — never `error`, never `danger` — matching the
   shadcn-svelte token.
-- The **soft family** is the `{state}-subtle` variants on Badge, Alert and Status
-  (`success-subtle`, `info-subtle`, `warning-subtle`, `destructive-subtle`, plus Badge's
-  `primary-subtle`), built on the `--*-subtle` grounds with `--*-subtle-foreground` as the
-  type — never the raw status colour, which is a fill, not an ink on a tint.
+- The **soft family** is built on the `--*-subtle` grounds with `--*-subtle-foreground` as the
+  type — never the raw status colour, which is a fill, not an ink on a tint. Badge and Alert
+  name it: `success-subtle`, `info-subtle`, `warning-subtle`, `destructive-subtle`, plus Badge's
+  `primary-subtle`. **Status does not, and that is the rule rather than a gap**: every Status is
+  soft — it has no solid family to be told apart from — so its variants are the bare state names
+  (`success`, `destructive`, `warning`, `info`) and each already paints the subtle pair. A
+  component only spells the suffix where a solid sibling exists to disambiguate it from.
 - The **solid family** is the `solid-{state}` variants on Alert (`solid-primary`, `solid-info`,
   `solid-success`, `solid-warning`, `solid-destructive`).
 - The control size ramp is one ladder for every sized control, stated as the `--control-h-*`
@@ -59,8 +62,13 @@ document disagree, one of them has a bug.
 
 ## 5. Imports
 
-- Always `$lib` aliases with an explicit `.js` extension
-  (`$lib/components/ui/button/index.js`).
+- **Across folders, always `$lib`**, with an explicit `.js` extension
+  (`$lib/components/ui/button/index.js`). **Within a folder, siblings import each other
+  relatively** (`./button-group.svelte`), which is what the shadcn-svelte CLI writes and what
+  keeps a component folder movable. The dividing line is the folder, and it holds exactly:
+  across the whole of `src/` there are 2,227 relative imports and **not one of them escapes its
+  own directory** — no `../` appears in an import specifier anywhere. A path that needs to climb
+  is a path that should have been `$lib`.
 - Import from a component's **barrel**, never a deep path into another folder — the
   direction-provider barrel import is the precedent.
 - **Named exception**: `hooks/sidebar-state.ts` deep-imports `ui/sidebar/constants.js`.
@@ -106,15 +114,29 @@ carries its reason in a comment. The departures that exist: a surface clicked **
 `cursor-grab`, inline editors `cursor-text`, the number-field scrubber `ew-resize`, the sidebar
 rail its own directional arrows, a right-click-only surface (the context-menu trigger) keeps the
 arrow, and a `<button>` that exists to be focusable and announced while only opening a tooltip —
-the status-monitor bar — is not a command at all. A sweep of the 121 gallery pages says those are
-the only departures; anything new that leaves the rule should be able to name its class here.
+the status-monitor bar — is not a command at all.
+
+There is a second, narrower reason a component may write the cursor itself: **the base block
+cannot reach the element**. That block selects real elements and ARIA roles, so a control drawn
+as a `role="presentation"` div or as a `::before` hit area is invisible to it, and a component
+built that way could never obey the rule by staying silent. Exactly two do so today, and both
+name the unreachable element in a comment: `rating` paints its star as a presentational div, and
+`media-player` widens the seek bar's hit area with a pseudo-element. This is not a licence to
+restate the rule — a component whose control **is** a `<button>` writes nothing.
+
+A sweep of the 120 gallery pages says those are the only departures; anything new that leaves the
+rule should be able to name its class here.
 
 ## 9. The catalog
 
 - The catalog is declared **once**, as `CATEGORIES` in `src/lib/hooks/route.svelte.ts`. `ROUTES`,
   `RoutePath` and the sidebar's `navMain` are all derived from it. Adding a component is three
-  compiler-linked edits: a page under `components/pages/`, a line in `CATEGORIES`, and its dynamic
-  import in `App.svelte`. Never write a route down anywhere else.
+  compiler-linked edits — a page under `components/pages/`, a line in `CATEGORIES`, and its
+  dynamic import in `App.svelte` — **and then `npm run registry:generate`**, which rewrites the
+  four tracked files that describe the catalog (`registry.json`, `docs/REGISTRY.md`,
+  `public/llms.txt`, `skills/parallax/references/components.md`). That fourth step is the one
+  the compiler cannot enforce, which is exactly why CI re-runs both generators and fails on any
+  diff. Never write a route down anywhere else.
 - A route is a **path under the site base**, never a fragment: `/components/badge`, which leaves
   `#sizes` to the document. It is written down only in `CATEGORIES`, and it reaches the DOM only
   through `href()` — the single place a base and a route are concatenated, empty in development
@@ -147,11 +169,11 @@ the only departures; anything new that leaves the rule should be able to name it
   That tree stays flat and kebab-cased because `components.json` maps `aliases.ui` to one root, so
   the CLI will always write `ui/<name>/`; a category segment would fork the tree at the next
   regeneration and destroy the reviewable-diff property §1 exists to protect.
-- `ui/<slug>` ↔ `/components/<slug>` is an **invariant with named exceptions**. Eight pages ship
+- `ui/<slug>` ↔ `/components/<slug>` is an **invariant with named exceptions**. Nine pages ship
   no component: five are filed under `Patterns` by that fact — `file-upload` (implemented in
   `src/lib/hooks/file-upload.svelte.ts`), `list-group`, `page-headers`, `tables-in-cards`,
-  `typography` — and three are hoisted out of the ladder entirely as destinations: `settings`,
-  `themes` and `sizing`. Four folders own no
+  `typography` — and four are hoisted out of the ladder entirely as destinations: `quickstart`,
+  `settings`, `themes` and `sizing`. Four folders own no
   route: `sidebar` (rendered by the app shell), `badge-overflow`, `direction-provider` and
   `editable` (each rendered inside another component's page). Two components keep their folder
   after their route was retired: `label` (shown on the Field page) and `range-calendar` (shown on
@@ -167,3 +189,30 @@ the only departures; anything new that leaves the rule should be able to name it
   it composes. The ladder files by what a component IS to a reader, and §2's composition edges are
   a source-level relationship. Where a page pair is easily confused, the pages say so themselves —
   `ScrollerPage.svelte` is the template for that sentence.
+
+## 10. What a gallery page owes its component
+
+A page's job is not only to show a component working. A reader arriving from the sidebar has to
+be able to answer "what props does this take?" without opening the source, and the tree answers
+that in one of two ways depending on where the component came from:
+
+- A **ported or forked** component links to the page upstream already maintains — the
+  shadcn-svelte, Bits UI or origin-project documentation — rather than restating a table that
+  would drift the first time upstream changed. 51 pages do this.
+- A **house** component carries an **API reference** section of its own: one table per part,
+  listing prop, type, default and what it does. There is no upstream to point at, so the page is
+  the documentation. 49 pages do this.
+
+The two are alternatives, not a pair: only one page carries both, and it does so because it is a
+fork whose additions upstream does not document.
+
+**Nine pages owe neither**, and are not exceptions: `quickstart`, `settings`, `themes` and
+`sizing` document the kit rather than a component, and the five `Patterns` pages
+(`file-upload`, `list-group`, `page-headers`, `tables-in-cards`, `typography`) ship no component
+at all, as §9 records.
+
+**Ten pages owe one and do not have it yet**: `date-selector`, `event-calendar`, `combobox`,
+`filters`, `tree`, `cropper`, `number-field`, `compare-slider`, `data-grid` and `scroller`.
+Every one of them is a large house component — `data-grid` alone is 31 files — which is why they
+are last rather than first. They are listed here rather than left implicit so the gap is a
+tracked debt and not a discovery.

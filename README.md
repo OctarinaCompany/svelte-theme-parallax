@@ -3,9 +3,10 @@
 [![CI](https://github.com/OctarinaCompany/svelte-theme-parallax/actions/workflows/ci.yml/badge.svg)](https://github.com/OctarinaCompany/svelte-theme-parallax/actions/workflows/ci.yml)
 [![Licence: MIT](https://img.shields.io/badge/licence-MIT-blue.svg)](./LICENSE)
 
-**A themed component library and demo gallery built on [shadcn-svelte](https://shadcn-svelte.com/docs).**
-Svelte 5, Vite, Tailwind CSS v4, [Bits UI](https://bits-ui.com) — about 115 components under one
-coherent theme, each documented by a live page.
+**A dashboard theme kit for [shadcn-svelte](https://shadcn-svelte.com/docs).**
+Svelte 5, Vite, Tailwind CSS v4, [Bits UI](https://bits-ui.com) — 115 components under one
+coherent theme, twelve palettes over one token set, an installable application shell, and a
+gallery that documents every component with a live page.
 
 ## Start here — install the skill
 
@@ -67,8 +68,8 @@ The library has two kinds of components, and one theme over both:
   editable, gauge, phone input, media player, and many more), written idiomatically for
   Svelte 5 runes and first-class code in this repository.
 
-An app shell (sidebar, breadcrumb, settings page) and a gallery of ~130 pages document all of it —
-every sidebar entry that goes anywhere goes somewhere real. The sidebar's twelve headings are
+An app shell (sidebar, breadcrumb, settings page) and a gallery of 114 component pages document
+all of it — every sidebar entry that goes anywhere goes somewhere real. The sidebar's twelve headings are
 groups rather than destinations: the catalog is filed as an ordered ladder, where a component
 belongs to the first group whose test it passes. The ladder is declared once, in
 `src/lib/hooks/route.svelte.ts`, and the routes, the route type and the menu are derived from it.
@@ -78,17 +79,23 @@ straight from the URLs below.
 
 ## Quick start
 
-Requires Node.js 20.19 or newer (22.12+ on the 22 line) — Vite 8's own floor.
+Requires Node.js 22.12 or newer on the 22 LTS line, or 24 and above — the `engines` range, and
+the two versions CI builds on. Vite 8's own floor is lower; the extra step up is deliberate, so
+the project is not the last thing on a machine holding an end-of-life runtime in place.
 
 ```bash
 npm install
 npm run dev              # http://localhost:5173 — hot reload
-npm run check            # Svelte + TypeScript
+npm run format:check     # prettier — the only formatting authority
+npm run check            # Svelte + TypeScript, 0 errors expected
 npm run build            # production build into dist/
 npm run preview          # serve that build, under /svelte-theme-parallax/
-npm run themes:generate  # rewrite src/themes.css and src/lib/themes/palettes.ts
-npm run themes:audit     # contrast, brand/status separation, CVD simulation
 ```
+
+Those four checks are four of the six CI runs; the other two and the grep beside them are in
+[CONTRIBUTING.md](./CONTRIBUTING.md#the-quality-gates). The generators are not part of a
+newcomer's loop — CI re-runs them and fails on any diff, so they only matter when you have
+changed what they read.
 
 `npm run dev` serves at the root, but a build sets an **absolute** base, so `npm run preview`
 — like CI and Pages — serves the site under `/svelte-theme-parallax/`. Routes are real paths, so
@@ -236,6 +243,8 @@ install URL, and the post-install steps a registry item cannot perform for you.
 | `registry.json` | The registry manifest — **generated** by `tools/registry/` |
 | `tools/registry/` | The manifest generator, and the `app.css` block reader it uses |
 | `tools/site/` | The build steps the gallery itself needs: the per-route prerender, and the example extractor behind each heading's copy-code control |
+| `tools/loaders/` | The CSS-in-markup style check behind `npm run loaders:check`, which reads what `svelte-check` cannot see |
+| `tools/shared/` | The catalog reader both the registry generator and the prerender step read the route ladder through |
 | `skills/parallax/` | The Agent Skill published as `parallax-skill`, with its references and evals |
 | `public/llms.txt` | The machine-readable index of every item and guide — **generated** |
 | `.github/workflows/pages.yml` | Builds the registry and the gallery — fallback and prerendered pages included, `npm run build` writes those — and deploys the result to Pages on every push to `main` |
