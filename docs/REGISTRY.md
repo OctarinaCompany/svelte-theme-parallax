@@ -14,7 +14,7 @@ npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-para
 
 Two manual steps, because a registry item writes files and cannot patch the ones you already have.
 
-1. Import the alternate palettes from your global stylesheet, after the Tailwind import: `@import "./themes.css";`
+1. Import the alternate palettes from your global stylesheet, after the Tailwind import: `@import "./themes.css";` — the `./` holds only when that stylesheet is a SIBLING of the `src/themes.css` this item just wrote. Resolve the path against the directory of the stylesheet itself: a SvelteKit scaffold puts it at `src/routes/layout.css`, which needs `../themes.css`. The `tailwind.css` entry in `components.json` names the real location.
 2. Import the typeface the same way: `@import "@fontsource-variable/hanken-grotesk";`
 
 A third applies only if your stylesheet was NOT created by `shadcn-svelte init` — check it for the `@layer base` block with `* { @apply border-border outline-ring/50; }` and for `@import "tw-animate-css";`, and add whichever is absent. Tailwind v4's preflight gives borders a width and a style but no colour, so without that rule every `border-*` utility falls back to `currentColor` and the hairlines wear the text colour instead. Nothing errors, the page renders, and only the borders are wrong.
@@ -29,7 +29,7 @@ The four appearance axes as persisted state: an inverted sidebar, an inverted he
 npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-appearance.json
 ```
 
-## The contract
+### The contract
 
 The CSS this installed keys on attributes your own header has to write. Nothing paints until it does:
 
@@ -39,7 +39,7 @@ The CSS this installed keys on attributes your own header has to write. Nothing 
 
 The two mode axes need nothing from you: `header-mode` and `sidebar-mode` write `data-header-mode` and `data-sidebar-mode` on `<html>` themselves. The sidebar's floating axis needs nothing either — pass shadcn's own `variant="floating"` when `sidebarFloating.current` is set.
 
-## The first-paint script
+### The first-paint script
 
 Add this to the `<head>` of your `index.html` (or `src/app.html` under SvelteKit), before anything else runs. Without it the page paints in the page's own mode for one frame and then snaps to the inverted one — a visible flash on every load, which no client code can prevent because it happens before hydration.
 
@@ -87,7 +87,7 @@ The application shell: the sidebar (workspace switcher, two-shape navigation, us
 npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-shell.json
 ```
 
-## Wiring
+### Wiring
 
 The shell takes its content as typed props (see `src/lib/shared/nav.ts`) and its active state as a predicate — never a router. A minimal `App.svelte`:
 
@@ -97,6 +97,7 @@ The shell takes its content as typed props (see `src/lib/shared/nav.ts`) and its
   import AppShell from "$lib/components/layout/AppShell.svelte";
   import AppSidebar from "$lib/components/layout/AppSidebar.svelte";
   import PageHeader from "$lib/components/layout/PageHeader.svelte";
+  import { page } from "$app/state";
   import type { NavItem, User, Workspace } from "$lib/shared/nav.js";
   import GaugeIcon from "@lucide/svelte/icons/gauge";
   import CommandIcon from "@lucide/svelte/icons/command";
@@ -112,24 +113,26 @@ The shell takes its content as typed props (see `src/lib/shared/nav.ts`) and its
 <ModeWatcher />
 <AppShell>
   {#snippet sidebar()}
-    <AppSidebar {user} {workspaces} {items} isActive={(url) => url === location.pathname} />
+    <AppSidebar {user} {workspaces} {items} isActive={(url) => url === page.url.pathname} />
   {/snippet}
   <PageHeader trail={[{ label: "Dashboard" }]} />
   <!-- your page -->
 </AppShell>
 ```
 
+The predicate is the only thing the shell needs from a router, and reading it from `$app/state` is what keeps it correct on the server: `location` is not defined there, so the bare-`location` spelling this example used to carry threw a `ReferenceError` the moment the layout was server-rendered. Outside SvelteKit, feed the predicate from whatever the app already knows its current path to be.
+
 Every `PageHeader` slot is a snippet with a default: `sidebarTrigger`, `breadcrumb` (receives `trail`), `search` (empty — pass your own field or palette) and `controls` — which is the light/dark toggle alone. The palette picker and the two panel dropdowns are installed (`ThemeSelector`, plus `HeaderToggle` / `SidebarModeToggle` through `parallax-appearance-controls`) but not rendered: put them on a settings page, or render your own group through `controls`. Pass an empty `sidebarTrigger` snippet if the header ever renders outside `AppShell`'s provider.
 
-## What is already wired
+### What is already wired
 
 This header carries `data-slot="page-header"` / `data-slot="page-header-bar"` and writes `data-floating` / `data-hidden` itself — the contract `parallax-appearance`'s docs ask a hand-rolled header to satisfy is closed here. The first-paint script from those docs still applies verbatim.
 
-## Cautions
+### Cautions
 
 - Nothing above `PageHeader` may gain `overflow-x: hidden` — beside an `overflow-y: visible` it computes as `auto`, silently turning the shell into a scroll container and killing the sticky header with no error anywhere. Use `overflow-x: clip` if a clip is ever needed.
 - The CSS this item adds is unlayered on purpose (it must outrank the sidebar's own utilities), so it also outranks YOUR utility classes on the same slots — override it in plain CSS, not with a utility.
-- Three fidelity notes against the Parallax gallery: buttons install from the official registry, so icon buttons run ~36px rather than the gallery's token-driven 40px; dropdown menus keep the upstream shadow; and the collapsed rail's tooltips keep the upstream look — both of the latter are application-global restyles this item deliberately does not ship.
+- Two fidelity notes against the Parallax gallery: dropdown menus keep the upstream shadow, and the collapsed rail's tooltips keep the upstream look. Both are application-global restyles this item deliberately does not ship — they arrive with `parallax-restyle`. Buttons are not among them: this item depends on `parallax-button`, so the sizes it installs are the gallery's own token-driven ramp.
 
 ## parallax-skill
 
@@ -139,7 +142,7 @@ The Agent Skill that teaches an AI assistant to use Parallax correctly: registry
 npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-skill.json
 ```
 
-The skill is installed at `.claude/skills/parallax/` — commit it so the whole team's assistants share it. Claude Code picks it up automatically (live-watched, no restart); invoke it explicitly with `/parallax`.
+The skill is installed at `.claude/skills/parallax/` — commit it so the whole team's assistants share it, and start a fresh session if the assistant was already running when it landed. Invoke it explicitly with `/parallax`.
 
 It teaches: discover before installing (components.json), install through the CLI, the two manual post-install steps, Svelte 5 runes only, semantic tokens (soft status fills pair with their own foregrounds), and the appearance axes through their hooks.
 
@@ -153,7 +156,7 @@ npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-para
 
 ## parallax-restyle
 
-The Parallax shape for the OFFICIAL components: css-only restyles of switch, checkbox, tooltip, inputs, native-select, select, sliders, sonner, navigation-menu, kbd, command and the tabs line variant, plus the global menu-shadow and dialog-scrim opinions. Install once beside parallax-theme.
+The Parallax shape for components this registry does not republish: css-only restyles of switch, checkbox, tooltip, inputs, native-select, select, sliders, sonner, navigation-menu, kbd, command and the tabs line variant, plus the global menu-shadow and dialog-scrim opinions. Install once beside parallax-theme.
 
 ```sh
 npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-restyle.json
@@ -161,7 +164,7 @@ npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-para
 
 ## parallax-accordion
 
-The Parallax fork of the official accordion: the same API with the house refinements this theme depends on.
+The house accordion: shadcn's API with a chevron pair that swaps on open, hairline seams between items, and link and paragraph spacing inside a panel.
 
 ```sh
 npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-accordion.json
@@ -177,7 +180,7 @@ npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-para
 
 ## parallax-alert
 
-The Parallax fork of the official alert: the same API with the house refinements this theme depends on.
+The house alert: shadcn's API plus an `Alert.Action` corner slot and the full status ramp — the soft `*-subtle` family and the `solid-*` fills.
 
 ```sh
 npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-alert.json
@@ -185,7 +188,7 @@ npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-para
 
 ## parallax-alert-dialog
 
-The Parallax fork of the official alert-dialog: the same API with the house refinements this theme depends on.
+The house alert dialog: a `Media` part for the leading illustration, size variants on the content, and Action/Cancel that take Button's own `variant` and `size` rather than wrapping a button in a button.
 
 ```sh
 npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-alert-dialog.json
@@ -193,7 +196,7 @@ npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-para
 
 ## parallax-angle-slider
 
-Parallax's angle slider component — not in the official shadcn-svelte registry.
+A circular slider for angles: drag the thumb round the dial, with keyboard steps and an optional range. Reach for it when the value is a direction rather than a position on a line.
 
 ```sh
 npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-angle-slider.json
@@ -201,7 +204,7 @@ npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-para
 
 ## parallax-autocomplete
 
-Parallax's autocomplete component — not in the official shadcn-svelte registry.
+A text field that suggests as you type and still accepts what the list never offered — the free-text half of type-to-pick. Reach for Combobox instead when the answer must be one of the items.
 
 ```sh
 npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-autocomplete.json
@@ -209,7 +212,7 @@ npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-para
 
 ## parallax-avatar
 
-The house avatar: shadcn's API plus a size ramp and the hairline ring treatment.
+The house avatar: shadcn's API plus a size ramp, the hairline ring treatment, a status `Avatar.Badge` and `Avatar.Group` stacking.
 
 ```sh
 npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-avatar.json
@@ -217,7 +220,7 @@ npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-para
 
 ## parallax-badge
 
-The house badge: shadcn's API plus the soft *-subtle variants for every status family.
+The house badge: shadcn's API plus the soft `*-subtle` variants for every status family, and the ghost and link variants.
 
 ```sh
 npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-badge.json
@@ -225,7 +228,7 @@ npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-para
 
 ## parallax-badge-overflow
 
-Parallax's badge overflow component — not in the official shadcn-svelte registry.
+A row of badges that measures its container and folds whatever does not fit into a `+N` indicator. Reach for it wherever a list of tags has to survive a narrow column.
 
 ```sh
 npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-badge-overflow.json
@@ -233,7 +236,7 @@ npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-para
 
 ## parallax-banner
 
-Parallax's banner component — not in the official shadcn-svelte registry.
+A full-width notification strip pinned to the top or bottom of the viewport, with a queue that shows one at a time in priority order. Reach for it when the message outranks the page — an Alert stays in the flow it was written into, and a toast clears itself.
 
 ```sh
 npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-banner.json
@@ -241,7 +244,7 @@ npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-para
 
 ## parallax-breadcrumb
 
-The Parallax fork of the official breadcrumb: the same API with the house refinements this theme depends on.
+The house breadcrumb: shadcn's API with the theme's separator rhythm and muted trail, sized for the header bar the shell renders it in.
 
 ```sh
 npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-breadcrumb.json
@@ -249,7 +252,7 @@ npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-para
 
 ## parallax-button
 
-The house button: shadcn's API on the --control-h-* ramp (24/32/40/48px), with xs/icon-xs sizes and the data-icon slots.
+The house button: shadcn's API on the --control-h-* ramp (24/32/40/48px), with xs/icon-xs sizes, the data-icon slots and the contextual solid and outline palettes.
 
 ```sh
 npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-button.json
@@ -257,7 +260,7 @@ npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-para
 
 ## parallax-button-group
 
-The Parallax fork of the official button-group: the same API with the house refinements this theme depends on.
+The house button group: shadcn's API with the seam treatment that fuses a row or a column of controls into one shape, plus a `Text` part for inline labels.
 
 ```sh
 npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-button-group.json
@@ -265,7 +268,7 @@ npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-para
 
 ## parallax-calendar
 
-The Parallax fork of the official calendar: the same API with the house refinements this theme depends on.
+The house calendar: shadcn's API rebuilt on `--cell-size` and `--cell-radius`, so one month grid retunes for a card, a popover or a full page without forking the parts.
 
 ```sh
 npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-calendar.json
@@ -273,7 +276,7 @@ npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-para
 
 ## parallax-card
 
-The house card: shadcn's API plus a size prop and the ring-drawn outline.
+The house card: shadcn's API plus a `size` prop that retunes `--card-spacing`, and the ring-drawn outline.
 
 ```sh
 npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-card.json
@@ -281,7 +284,7 @@ npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-para
 
 ## parallax-carousel
 
-The Parallax fork of the official carousel: the same API with the house refinements this theme depends on.
+The house carousel: shadcn's Embla wrapper with the previous and next controls rebuilt as round icon-sm Buttons on the house ramp.
 
 ```sh
 npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-carousel.json
@@ -289,7 +292,7 @@ npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-para
 
 ## parallax-chart
 
-The Parallax fork of the official chart: the same API with the house refinements this theme depends on.
+The house chart frame: shadcn's LayerChart container, tooltip and legend on the theme's grid, axis and tooltip treatment, driven by a per-series colour config.
 
 ```sh
 npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-chart.json
@@ -297,7 +300,7 @@ npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-para
 
 ## parallax-checkbox
 
-The Parallax fork of the official checkbox: the same API with the house refinements this theme depends on.
+The house checkbox: shadcn's API on a 4px-radius box with the theme's border, focus ring and indeterminate mark.
 
 ```sh
 npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-checkbox.json
@@ -305,7 +308,7 @@ npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-para
 
 ## parallax-checkbox-group
 
-Parallax's checkbox group component — not in the official shadcn-svelte registry.
+Several checkboxes as one value: a shared label, description and validation message, horizontal or vertical. Reach for it when the boxes answer one question rather than several.
 
 ```sh
 npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-checkbox-group.json
@@ -313,7 +316,7 @@ npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-para
 
 ## parallax-circular-progress
 
-Parallax's circular progress component — not in the official shadcn-svelte registry.
+A progress ring: a closed circle, 48px on a 4px stroke, determinate or indeterminate. Reach for Gauge when the arc itself carries meaning — the two share their geometry.
 
 ```sh
 npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-circular-progress.json
@@ -321,7 +324,7 @@ npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-para
 
 ## parallax-code-block
 
-Parallax's code block component — not in the official shadcn-svelte registry.
+A copyable code sample with a line-number gutter, a language selector and lightweight language-aware highlighting. Reach for it for an opaque string to read and copy; JSON viewer parses a live value instead.
 
 ```sh
 npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-code-block.json
@@ -329,7 +332,7 @@ npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-para
 
 ## parallax-color-picker
 
-Parallax's color picker component — not in the official shadcn-svelte registry.
+A full colour picker: a saturation and brightness area, hue and alpha sliders, the native eyedropper, and per-channel fields in hex, rgb, hsl or hsb.
 
 ```sh
 npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-color-picker.json
@@ -337,7 +340,7 @@ npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-para
 
 ## parallax-color-swatch
 
-Parallax's color swatch component — not in the official shadcn-svelte registry.
+A single colour chip that renders transparency honestly, in five sizes — the building block of the picker's palette rows and of any legend that names a colour.
 
 ```sh
 npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-color-swatch.json
@@ -345,7 +348,7 @@ npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-para
 
 ## parallax-combobox
 
-Parallax's combobox component — not in the official shadcn-svelte registry.
+A searchable select: a Command list inside a Popover, single, multiple, or multiple as chips. What it commits is always one of the items — reach for Autocomplete when the answer may be one the list never offered.
 
 ```sh
 npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-combobox.json
@@ -353,7 +356,7 @@ npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-para
 
 ## parallax-command
 
-The Parallax fork of the official command: the same API with the house refinements this theme depends on.
+The house command menu: shadcn's cmdk wrapper with the input rebuilt on Input group, a rounded popover ground and the selected-row treatment the palette uses.
 
 ```sh
 npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-command.json
@@ -361,7 +364,7 @@ npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-para
 
 ## parallax-compare-slider
 
-Parallax's compare slider component — not in the official shadcn-svelte registry.
+Two versions of one image and a divider that wipes between them, by pointer, by touch or from the keyboard.
 
 ```sh
 npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-compare-slider.json
@@ -369,7 +372,7 @@ npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-para
 
 ## parallax-context-menu
 
-The Parallax fork of the official context-menu: the same API with the house refinements this theme depends on.
+The house context menu: shadcn's API with the flat row treatment, ring-drawn popovers and an RTL-aware submenu chevron.
 
 ```sh
 npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-context-menu.json
@@ -377,7 +380,7 @@ npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-para
 
 ## parallax-copy-button
 
-Parallax's copy button component — not in the official shadcn-svelte registry.
+A button that writes text to the clipboard and swaps its icon for a tick — once the write has actually resolved. The swap is a Svelte transition, with no animation library.
 
 ```sh
 npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-copy-button.json
@@ -385,7 +388,7 @@ npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-para
 
 ## parallax-cropper
 
-Parallax's cropper component — not in the official shadcn-svelte registry.
+An image and video crop surface: drag, wheel zoom, pinch-zoom-rotate and arrow-key nudging, rectangular or round.
 
 ```sh
 npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-cropper.json
@@ -409,7 +412,7 @@ npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-para
 
 ## parallax-date-selector
 
-Parallax's date selector component — not in the official shadcn-svelte registry.
+One control for a day, a month, a quarter, a half-year or a year, behind an is/before/after/between operator, with a free-text input that parses all of them.
 
 ```sh
 npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-date-selector.json
@@ -417,7 +420,7 @@ npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-para
 
 ## parallax-dialog
 
-The Parallax fork of the official dialog: the same API with the house refinements this theme depends on.
+The house dialog: shadcn's API with the close control rebuilt as a ghost icon Button, on the popover ground the theme's overlays share.
 
 ```sh
 npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-dialog.json
@@ -425,7 +428,7 @@ npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-para
 
 ## parallax-direction-provider
 
-Parallax's direction provider component — not in the official shadcn-svelte registry.
+The RTL/LTR provider. Where upstream renders no DOM and asks each consumer to forward `dir` itself, this renders a `display: contents` wrapper, so the real attribute reaches the subtree and descendants flip without opting in.
 
 ```sh
 npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-direction-provider.json
@@ -433,7 +436,7 @@ npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-para
 
 ## parallax-drawer
 
-The Parallax fork of the official drawer: the same API with the house refinements this theme depends on.
+The house drawer: shadcn's Vaul wrapper on the popover ground, with the drag handle and edge treatment the mobile sidebar uses.
 
 ```sh
 npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-drawer.json
@@ -441,7 +444,7 @@ npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-para
 
 ## parallax-dropdown-menu
 
-The Parallax fork of the official dropdown-menu: the same API with the house refinements this theme depends on.
+The house dropdown menu: shadcn's API with the flat row treatment, ring-drawn popovers and check and radio indicators on the trailing edge.
 
 ```sh
 npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-dropdown-menu.json
@@ -449,7 +452,7 @@ npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-para
 
 ## parallax-editable
 
-Parallax's editable component — not in the official shadcn-svelte registry.
+Text that becomes an input in place: a trigger, a preview, an input and a submit/cancel toolbar over one bindable value. Reach for it in a table cell or a heading where a whole form would be too much furniture.
 
 ```sh
 npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-editable.json
@@ -457,7 +460,7 @@ npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-para
 
 ## parallax-empty
 
-The Parallax fork of the official empty: the same API with the house refinements this theme depends on.
+The house empty state: shadcn's API with the media tile, heading and description treatment every placeholder in the gallery shares.
 
 ```sh
 npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-empty.json
@@ -465,7 +468,7 @@ npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-para
 
 ## parallax-event-calendar
 
-Parallax's event calendar component — not in the official shadcn-svelte registry.
+A full scheduling surface: month, week, day, N-day, agenda and resource views over one event model, with time zones, recurrence, localisation and an imperative API.
 
 ```sh
 npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-event-calendar.json
@@ -473,7 +476,7 @@ npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-para
 
 ## parallax-field
 
-The Parallax fork of the official field: the same API with the house refinements this theme depends on.
+The house field: shadcn's form-layout primitive carrying the label, description and error rhythm every form in this theme is built from, including the horizontal and fieldset arrangements.
 
 ```sh
 npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-field.json
@@ -481,7 +484,7 @@ npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-para
 
 ## parallax-filters
 
-Parallax's filters component — not in the official shadcn-svelte registry.
+The filter row as state: a filter is a chip of field, operator and value, and the row of them is a value the page owns. Reach for it when a list needs more than a search box.
 
 ```sh
 npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-filters.json
@@ -489,7 +492,7 @@ npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-para
 
 ## parallax-fps
 
-Parallax's fps component — not in the official shadcn-svelte registry.
+A frames-per-second counter, for watching whether an interaction still runs at frame rate.
 
 ```sh
 npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-fps.json
@@ -497,7 +500,7 @@ npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-para
 
 ## parallax-frame
 
-Parallax's frame component — not in the official shadcn-svelte registry.
+A presentational panel family: a bordered tray whose header, panels and footer share one spacing ladder and one radius, with panels separated, fused into a stacked run, or pulled flush to the edge.
 
 ```sh
 npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-frame.json
@@ -505,7 +508,7 @@ npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-para
 
 ## parallax-gauge
 
-Parallax's gauge component — not in the official shadcn-svelte registry.
+A circular meter over a configurable arc — a dial, a segment, a sweep short of a full turn — with an indeterminate state. Reach for Circular progress when a closed ring is all you need.
 
 ```sh
 npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-gauge.json
@@ -513,7 +516,7 @@ npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-para
 
 ## parallax-hover-card
 
-The Parallax fork of the official hover-card: the same API with the house refinements this theme depends on.
+The house hover card: shadcn's API on the theme's popover ground, ring-drawn rather than shadowed.
 
 ```sh
 npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-hover-card.json
@@ -521,7 +524,7 @@ npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-para
 
 ## parallax-icon-stack
 
-Parallax's icon stack component — not in the official shadcn-svelte registry.
+A layered isometric mark framing a single icon — the illustration an empty state or a feature card leads with, tinted from the surrounding text colour.
 
 ```sh
 npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-icon-stack.json
@@ -529,7 +532,7 @@ npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-para
 
 ## parallax-icon-tile
 
-Parallax's icon tile component — not in the official shadcn-svelte registry.
+A small framed container for one icon — the mark that leads a list row, a feature card or an empty state — in five surfaces, five sizes and two corner treatments.
 
 ```sh
 npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-icon-tile.json
@@ -537,7 +540,7 @@ npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-para
 
 ## parallax-input
 
-The Parallax fork of the official input: the same API with the house refinements this theme depends on.
+The house input: shadcn's API at the theme's height, padding and focus ring, so a field and a default button share a line.
 
 ```sh
 npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-input.json
@@ -545,7 +548,7 @@ npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-para
 
 ## parallax-input-group
 
-The Parallax fork of the official input-group: the same API with the house refinements this theme depends on.
+The house input group: shadcn's API with addons on either side of the control or above and below it, and an `xs` button size for the controls that sit inside one.
 
 ```sh
 npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-input-group.json
@@ -553,7 +556,7 @@ npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-para
 
 ## parallax-input-otp
 
-The Parallax fork of the official input-otp: the same API with the house refinements this theme depends on.
+A segmented one-time-code field, rebuilt on its own state module and provider: a slot per character, groups split by separators, and one hidden input so paste and autofill keep working.
 
 ```sh
 npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-input-otp.json
@@ -561,7 +564,7 @@ npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-para
 
 ## parallax-item
 
-The Parallax fork of the official item: the same API with the house refinements this theme depends on.
+The house item row: shadcn's title/description/action row with the `xs` and `sm` sizes and the media slot the gallery's list rows use. For the framed container drawn around a run of them, see the List group page.
 
 ```sh
 npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-item.json
@@ -569,7 +572,7 @@ npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-para
 
 ## parallax-json-viewer
 
-Parallax's json viewer component — not in the official shadcn-svelte registry.
+A collapsible JSON tree coloured by runtime type, with expand and collapse, copy, and array truncation. Reach for Code block when the payload is an opaque sample rather than a tree to navigate.
 
 ```sh
 npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-json-viewer.json
@@ -577,7 +580,7 @@ npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-para
 
 ## parallax-kanban
 
-Parallax's kanban component — not in the official shadcn-svelte registry.
+A drag-and-drop board: reorder inside a column, move between columns, reorder the columns themselves — with a pointer, with touch, or from the keyboard alone.
 
 ```sh
 npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-kanban.json
@@ -585,7 +588,7 @@ npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-para
 
 ## parallax-kbd
 
-The Parallax fork of the official kbd: the same API with the house refinements this theme depends on.
+The house keyboard key: shadcn's API as the theme's muted chip, sized to sit inside an input group or a menu row.
 
 ```sh
 npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-kbd.json
@@ -593,7 +596,7 @@ npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-para
 
 ## parallax-key-value
 
-Parallax's key value component — not in the official shadcn-svelte registry.
+A dynamic list of key/value pairs with paste support and per-row validation — headers, environment variables, metadata a user types.
 
 ```sh
 npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-key-value.json
@@ -601,7 +604,7 @@ npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-para
 
 ## parallax-language-selector
 
-Parallax's language selector component — not in the official shadcn-svelte registry.
+A dialog that switches the active locale. The catalog is data the caller supplies and the component moves a code: it translates nothing.
 
 ```sh
 npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-language-selector.json
@@ -609,7 +612,7 @@ npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-para
 
 ## parallax-listbox
 
-Parallax's listbox component — not in the official shadcn-svelte registry.
+An always-visible option list with the WAI-ARIA keyboard model and typeahead, single or multiple, as a column or a grid. Reach for it when the options should not be hidden behind a trigger.
 
 ```sh
 npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-listbox.json
@@ -625,7 +628,7 @@ npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-para
 
 ## parallax-marquee
 
-Parallax's marquee component — not in the official shadcn-svelte registry.
+Content that scrolls continuously, horizontally or vertically — pausing on hover and on focus, mirroring under RTL, and holding still for reduced motion.
 
 ```sh
 npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-marquee.json
@@ -633,7 +636,7 @@ npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-para
 
 ## parallax-mask-input
 
-Parallax's mask input component — not in the official shadcn-svelte registry.
+An input that formats what you type against a pattern — a phone number, a date, a card, a currency amount — and keeps the caret where you left it.
 
 ```sh
 npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-mask-input.json
@@ -641,7 +644,7 @@ npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-para
 
 ## parallax-masonry
 
-Parallax's masonry component — not in the official shadcn-svelte registry.
+A masonry grid: a column count that answers the breakpoint, and items placed by measured height rather than by row.
 
 ```sh
 npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-masonry.json
@@ -649,7 +652,7 @@ npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-para
 
 ## parallax-media-player
 
-Parallax's media player component — not in the official shadcn-svelte registry.
+A full video and audio player: custom controls, chapters, captions, playback rate and the complete keyboard shortcut set.
 
 ```sh
 npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-media-player.json
@@ -657,7 +660,7 @@ npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-para
 
 ## parallax-mention
 
-Parallax's mention component — not in the official shadcn-svelte registry.
+A text field that suggests and inserts mentions when a trigger character is typed at a word boundary. The popup follows the caret, and each inserted mention behaves as one atomic unit of text.
 
 ```sh
 npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-mention.json
@@ -665,7 +668,7 @@ npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-para
 
 ## parallax-menubar
 
-The Parallax fork of the official menubar: the same API with the house refinements this theme depends on.
+The house menubar: shadcn's API with the flat row treatment, ring-drawn popovers and indicators on the leading edge.
 
 ```sh
 npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-menubar.json
@@ -673,7 +676,7 @@ npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-para
 
 ## parallax-native-select
 
-The Parallax fork of the official native-select: the same API with the house refinements this theme depends on.
+The house native select: the browser's own dropdown at the theme's field height, with a `sm` or `default` size stamped as `data-size`.
 
 ```sh
 npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-native-select.json
@@ -681,7 +684,7 @@ npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-para
 
 ## parallax-navigation-menu
 
-The Parallax fork of the official navigation-menu: the same API with the house refinements this theme depends on.
+The house navigation menu: shadcn's API with the theme's trigger, link and viewport treatment, and `navigationMenuTriggerStyle` exported for the links that are not triggers.
 
 ```sh
 npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-navigation-menu.json
@@ -689,7 +692,7 @@ npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-para
 
 ## parallax-number-field
 
-Parallax's number field component — not in the official shadcn-svelte registry.
+A numeric input with spinner buttons, press-and-hold repeat, keyboard stepping and a drag-to-scrub label.
 
 ```sh
 npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-number-field.json
@@ -697,7 +700,7 @@ npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-para
 
 ## parallax-pagination
 
-The Parallax fork of the official pagination: the same API with the house refinements this theme depends on.
+The house pagination: shadcn's API with the page links drawn by `buttonVariants` at any Button size, so a pager matches the controls beside it.
 
 ```sh
 npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-pagination.json
@@ -705,7 +708,7 @@ npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-para
 
 ## parallax-partition-bar
 
-Parallax's partition bar component — not in the official shadcn-svelte registry.
+A total split into labelled parts: one bar per part, sized by its share, with its name and measurement underneath.
 
 ```sh
 npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-partition-bar.json
@@ -713,7 +716,7 @@ npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-para
 
 ## parallax-pending
 
-Parallax's pending component — not in the official shadcn-svelte registry.
+A wrapper that marks anything as pending: interactions off, keyboard focus kept, and the right ARIA state for buttons, forms, links and switches.
 
 ```sh
 npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-pending.json
@@ -721,7 +724,7 @@ npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-para
 
 ## parallax-phone-input
 
-Parallax's phone input component — not in the official shadcn-svelte registry.
+A phone field with country detection and international formatting, built on the mask input.
 
 ```sh
 npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-phone-input.json
@@ -729,7 +732,7 @@ npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-para
 
 ## parallax-popover
 
-The Parallax fork of the official popover: the same API with the house refinements this theme depends on.
+The house popover: shadcn's API plus `Header`, `Title` and `Description` parts, so a popover with a heading is composed rather than hand-laid.
 
 ```sh
 npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-popover.json
@@ -737,7 +740,7 @@ npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-para
 
 ## parallax-progress
 
-The Parallax fork of the official progress: the same API with the house refinements this theme depends on.
+The house progress bar: shadcn's API as a slim rounded track on the muted ground.
 
 ```sh
 npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-progress.json
@@ -745,7 +748,7 @@ npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-para
 
 ## parallax-qr-code
 
-Parallax's qr code component — not in the official shadcn-svelte registry.
+A QR code you compose: the same value rendered as SVG, canvas or image, with a centre overlay, a loading skeleton and a download control.
 
 ```sh
 npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-qr-code.json
@@ -753,7 +756,7 @@ npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-para
 
 ## parallax-radio-group
 
-The Parallax fork of the official radio-group: the same API with the house refinements this theme depends on.
+The house radio group: shadcn's API with the theme's ring, dot indicator and row rhythm.
 
 ```sh
 npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-radio-group.json
@@ -761,7 +764,7 @@ npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-para
 
 ## parallax-range-calendar
 
-The Parallax fork of the official range-calendar: the same API with the house refinements this theme depends on.
+The house range calendar: shadcn's API plus the `rangeCalendar`, `rangeCalendarFlush` and `rangeDay` class recipes, so a range picker reads the same in a card, in a popover, or flush to a panel edge.
 
 ```sh
 npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-range-calendar.json
@@ -769,7 +772,7 @@ npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-para
 
 ## parallax-rating
 
-Parallax's rating component — not in the official shadcn-svelte registry.
+A star rating that displays whole, half and fractional scores, and — when editable — collects one by mouse or keyboard.
 
 ```sh
 npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-rating.json
@@ -777,7 +780,7 @@ npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-para
 
 ## parallax-relative-time-card
 
-Parallax's relative time card component — not in the official shadcn-svelte registry.
+A hover card that shows a moment as relative time, with the absolute time and its zone underneath.
 
 ```sh
 npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-relative-time-card.json
@@ -785,7 +788,7 @@ npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-para
 
 ## parallax-resizable
 
-The Parallax fork of the official resizable: the same API with the house refinements this theme depends on.
+The house resizable panes: shadcn's API with the hairline handle and grip the theme's split layouts use.
 
 ```sh
 npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-resizable.json
@@ -793,7 +796,7 @@ npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-para
 
 ## parallax-responsive-dialog
 
-Parallax's responsive dialog component — not in the official shadcn-svelte registry.
+One dialog that renders as a centred modal above the breakpoint and a bottom drawer below it — and swaps between them without closing.
 
 ```sh
 npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-responsive-dialog.json
@@ -801,7 +804,7 @@ npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-para
 
 ## parallax-scroll-area
 
-The Parallax fork of the official scroll-area: the same API with the house refinements this theme depends on.
+The house scroll area: shadcn's API with the overlay scrollbar the theme paints. Reach for Scroller instead when native scrolling should stay and only the edge cues are wanted.
 
 ```sh
 npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-scroll-area.json
@@ -809,7 +812,7 @@ npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-para
 
 ## parallax-scroll-spy
 
-Parallax's scroll spy component — not in the official shadcn-svelte registry.
+Navigation links that track scroll position and scroll to their section on click, nested sections included.
 
 ```sh
 npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-scroll-spy.json
@@ -817,7 +820,7 @@ npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-para
 
 ## parallax-scroller
 
-Parallax's scroller component — not in the official shadcn-svelte registry.
+A scroll container that keeps the browser's own scrollbar and fades the edges where content continues, with optional buttons that scroll on press, hover or click. Where Scroll area replaces the scrollbar, this only layers affordances on top of it.
 
 ```sh
 npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-scroller.json
@@ -825,7 +828,7 @@ npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-para
 
 ## parallax-segmented-input
 
-Parallax's segmented input component — not in the official shadcn-svelte registry.
+Connected inputs that read as one segmented control, with focus and typing moving between the segments as they fill and empty.
 
 ```sh
 npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-segmented-input.json
@@ -833,7 +836,7 @@ npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-para
 
 ## parallax-select
 
-The Parallax fork of the official select: the same API with the house refinements this theme depends on.
+The house select: shadcn's API at the theme's field height, with the boxed trigger, ring-drawn content and scroll buttons on the popover ground.
 
 ```sh
 npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-select.json
@@ -841,7 +844,7 @@ npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-para
 
 ## parallax-selection-toolbar
 
-Parallax's selection toolbar component — not in the official shadcn-svelte registry.
+A floating toolbar that appears over a text selection, carrying formatting and utility actions.
 
 ```sh
 npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-selection-toolbar.json
@@ -849,7 +852,7 @@ npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-para
 
 ## parallax-separator
 
-The Parallax fork of the official separator: the same API with the house refinements this theme depends on.
+The house separator: shadcn's API on the theme's border token, a hairline in both orientations.
 
 ```sh
 npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-separator.json
@@ -857,7 +860,7 @@ npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-para
 
 ## parallax-shake
 
-Parallax's shake component — not in the official shadcn-svelte registry.
+A wrapper that replays a perspective wobble whenever a signal changes — the wrong-password nudge.
 
 ```sh
 npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-shake.json
@@ -865,7 +868,7 @@ npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-para
 
 ## parallax-sheet
 
-The Parallax fork of the official sheet: the same API with the house refinements this theme depends on.
+The house sheet: shadcn's edge panel with the close control rebuilt as a ghost icon Button, and a `showCloseButton` for the panels that own their own.
 
 ```sh
 npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-sheet.json
@@ -873,7 +876,7 @@ npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-para
 
 ## parallax-sidebar
 
-The Parallax fork of the official sidebar: the same API with the house refinements this theme depends on.
+The sidebar primitive the application shell is built on — provider, rail, menu, sub-menu and mobile drawer — retuned to the theme's rhythm and its sidebar tokens. `parallax-shell` installs it already wired.
 
 ```sh
 npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-sidebar.json
@@ -881,7 +884,7 @@ npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-para
 
 ## parallax-skeleton
 
-The Parallax fork of the official skeleton: the same API with the house refinements this theme depends on.
+The house skeleton: shadcn's pulsing placeholder on the muted ground rather than the accent one.
 
 ```sh
 npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-skeleton.json
@@ -889,23 +892,15 @@ npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-para
 
 ## parallax-slider
 
-The Parallax fork of the official slider: the same API with the house refinements this theme depends on.
+The house slider: shadcn's API with the pale thumb and focus ring the theme's controls share, horizontal or vertical.
 
 ```sh
 npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-slider.json
 ```
 
-## parallax-sonner
-
-The Parallax fork of the official sonner: the same API with the house refinements this theme depends on.
-
-```sh
-npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-sonner.json
-```
-
 ## parallax-sortable
 
-Parallax's sortable component — not in the official shadcn-svelte registry.
+Drag-and-drop reordering for a list or a grid, operable with a pointer, with touch and from the keyboard alone. Kanban composes it.
 
 ```sh
 npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-sortable.json
@@ -913,7 +908,7 @@ npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-para
 
 ## parallax-speed-dial
 
-Parallax's speed dial component — not in the official shadcn-svelte registry.
+A floating action button that fans a set of labelled actions out when it is triggered.
 
 ```sh
 npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-speed-dial.json
@@ -921,7 +916,7 @@ npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-para
 
 ## parallax-spinner
 
-The Parallax fork of the official spinner: the same API with the house refinements this theme depends on.
+The house spinner: shadcn's loading mark with `role` and `aria-label` overridable, and the foreign icon-library props (`name`, `color`, `stroke`) normalised so another icon set can stand in.
 
 ```sh
 npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-spinner.json
@@ -929,7 +924,7 @@ npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-para
 
 ## parallax-status
 
-Parallax's status component — not in the official shadcn-svelte registry.
+A status indicator: a dot with an animated ping and the colour families, for system state, presence and service health.
 
 ```sh
 npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-status.json
@@ -937,7 +932,7 @@ npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-para
 
 ## parallax-status-monitor
 
-Parallax's status monitor component — not in the official shadcn-svelte registry.
+The uptime strip from a public status page: one bar per period, coloured by state, with a tooltip per bar.
 
 ```sh
 npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-status-monitor.json
@@ -945,7 +940,7 @@ npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-para
 
 ## parallax-stepper
 
-Parallax's stepper component — not in the official shadcn-svelte registry.
+A multi-step flow with visible progress: a list of steps with indicator, title, description and separator, horizontal or vertical, each carrying its own state.
 
 ```sh
 npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-stepper.json
@@ -953,7 +948,7 @@ npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-para
 
 ## parallax-switch
 
-The Parallax fork of the official switch: the same API with the house refinements this theme depends on.
+The house switch: shadcn's API with the theme's track and thumb, stamped `data-size` so the control ramp reaches it.
 
 ```sh
 npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-switch.json
@@ -969,7 +964,7 @@ npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-para
 
 ## parallax-tabs
 
-The Parallax fork of the official tabs: the same API with the house refinements this theme depends on.
+The house tabs: shadcn's API plus the `line` list variant and its `sm` size, both stamped as `data-*` so `app.css` owns the look.
 
 ```sh
 npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-tabs.json
@@ -977,7 +972,7 @@ npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-para
 
 ## parallax-tags-input
 
-Parallax's tags input component — not in the official shadcn-svelte registry.
+Free-text values entered as removable chips, with paste, split-on-delimiter, edit in place and per-tag validation.
 
 ```sh
 npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-tags-input.json
@@ -985,7 +980,7 @@ npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-para
 
 ## parallax-text-gradient
 
-Parallax's text gradient component — not in the official shadcn-svelte registry.
+A highlight that sweeps through text — the label that says a machine is still working.
 
 ```sh
 npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-text-gradient.json
@@ -993,7 +988,7 @@ npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-para
 
 ## parallax-textarea
 
-The Parallax fork of the official textarea: the same API with the house refinements this theme depends on.
+The house textarea: shadcn's API at the theme's padding and focus ring, so it matches the fields beside it.
 
 ```sh
 npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-textarea.json
@@ -1001,7 +996,7 @@ npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-para
 
 ## parallax-timeline
 
-Parallax's timeline component — not in the official shadcn-svelte registry.
+A chronological list of events: vertical or horizontal, an alternating variant, RTL support, and completed/active/pending states.
 
 ```sh
 npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-timeline.json
@@ -1009,7 +1004,7 @@ npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-para
 
 ## parallax-toggle
 
-The Parallax fork of the official toggle: the same API with the house refinements this theme depends on.
+The house toggle: shadcn's API on the --control-h-* ramp with the data-icon slots, so a toggle and a button share a line.
 
 ```sh
 npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-toggle.json
@@ -1017,7 +1012,7 @@ npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-para
 
 ## parallax-toggle-group
 
-The Parallax fork of the official toggle-group: the same API with the house refinements this theme depends on.
+The house toggle group: shadcn's API with a `spacing` axis — fused into one shape, or spaced apart — and an orientation.
 
 ```sh
 npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-toggle-group.json
@@ -1025,7 +1020,7 @@ npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-para
 
 ## parallax-tooltip
 
-The Parallax fork of the official tooltip: the same API with the house refinements this theme depends on.
+The house tooltip: shadcn's API on the inverted foreground ground, with the arrow the theme draws.
 
 ```sh
 npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-tooltip.json
@@ -1033,7 +1028,7 @@ npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-para
 
 ## parallax-tour
 
-Parallax's tour component — not in the official shadcn-svelte registry.
+A guided tour: highlight an element, step through the instructions, and teach a screen the first time somebody sees it.
 
 ```sh
 npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-tour.json
@@ -1041,7 +1036,7 @@ npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-para
 
 ## parallax-tree
 
-Parallax's tree component — not in the official shadcn-svelte registry.
+A multi-level tree view with expand and collapse, selection, and the WAI-ARIA keyboard model.
 
 ```sh
 npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-tree.json

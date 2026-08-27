@@ -16,8 +16,8 @@
 			"title": "Parallax theme",
 			"description": "The Parallax palette: the base light and dark tokens, the eleven alternate palettes behind `data-theme`, and the Tailwind mappings for the token families shadcn does not ship — success, warning, info, the subtle family, and `--sidebar-outline`.",
 			"dependencies": [
-				"mode-watcher",
-				"@fontsource-variable/hanken-grotesk"
+				"mode-watcher@^1.1.0",
+				"@fontsource-variable/hanken-grotesk@^5.3.0"
 			],
 			"devDependencies": [],
 			"registryDependencies": [],
@@ -250,7 +250,7 @@
 					"--sidebar-ring": "#3a76e4"
 				}
 			},
-			"docs": "Two manual steps, because a registry item writes files and cannot patch the ones you already have.\n\n1. Import the alternate palettes from your global stylesheet, after the Tailwind import: `@import \"./themes.css\";`\n2. Import the typeface the same way: `@import \"@fontsource-variable/hanken-grotesk\";`\n\nA third applies only if your stylesheet was NOT created by `shadcn-svelte init` — check it for the `@layer base` block with `* { @apply border-border outline-ring/50; }` and for `@import \"tw-animate-css\";`, and add whichever is absent. Tailwind v4's preflight gives borders a width and a style but no colour, so without that rule every `border-*` utility falls back to `currentColor` and the hairlines wear the text colour instead. Nothing errors, the page renders, and only the borders are wrong.\n\n`parallax` is the base — it IS the `:root` and `.dark` this item just wrote, so it has no `[data-theme]` block of its own. The other eleven answer to `data-theme` on `<html>`; `mode-watcher` owns that attribute and persists it under `mode-watcher-theme`."
+			"docs": "Two manual steps, because a registry item writes files and cannot patch the ones you already have.\n\n1. Import the alternate palettes from your global stylesheet, after the Tailwind import: `@import \"./themes.css\";` — the `./` holds only when that stylesheet is a SIBLING of the `src/themes.css` this item just wrote. Resolve the path against the directory of the stylesheet itself: a SvelteKit scaffold puts it at `src/routes/layout.css`, which needs `../themes.css`. The `tailwind.css` entry in `components.json` names the real location.\n2. Import the typeface the same way: `@import \"@fontsource-variable/hanken-grotesk\";`\n\nA third applies only if your stylesheet was NOT created by `shadcn-svelte init` — check it for the `@layer base` block with `* { @apply border-border outline-ring/50; }` and for `@import \"tw-animate-css\";`, and add whichever is absent. Tailwind v4's preflight gives borders a width and a style but no colour, so without that rule every `border-*` utility falls back to `currentColor` and the hairlines wear the text colour instead. Nothing errors, the page renders, and only the borders are wrong.\n\n`parallax` is the base — it IS the `:root` and `.dark` this item just wrote, so it has no `[data-theme]` block of its own. The other eleven answer to `data-theme` on `<html>`; `mode-watcher` owns that attribute and persists it under `mode-watcher-theme`."
 		},
 		{
 			"name": "parallax-appearance",
@@ -258,7 +258,7 @@
 			"title": "Parallax appearance axes",
 			"description": "The four appearance axes as persisted state: an inverted sidebar, an inverted header, a floating header and a header that hides on scroll down. Module-level runes that write attributes on `<html>`, plus the CSS those attributes key on.",
 			"dependencies": [
-				"mode-watcher"
+				"mode-watcher@^1.1.0"
 			],
 			"devDependencies": [],
 			"registryDependencies": [
@@ -320,7 +320,7 @@
 					"translate": "none"
 				}
 			},
-			"docs": "## The contract\n\nThe CSS this installed keys on attributes your own header has to write. Nothing paints until it does:\n\n- `data-slot=\"page-header\"` on the outer sticky element — the one the floating fade hangs off and the auto-hide translates.\n- `data-slot=\"page-header-bar\"` on the bar inside it — this is what the inverted palette selects, and what re-scopes the nine chrome tokens onto the controls.\n- `data-floating` and `data-hidden` on the outer element, present or absent, from `headerFloating.current` and the auto-hide state.\n\nThe two mode axes need nothing from you: `header-mode` and `sidebar-mode` write `data-header-mode` and `data-sidebar-mode` on `<html>` themselves. The sidebar's floating axis needs nothing either — pass shadcn's own `variant=\"floating\"` when `sidebarFloating.current` is set.\n\n## The first-paint script\n\nAdd this to the `<head>` of your `index.html` (or `src/app.html` under SvelteKit), before anything else runs. Without it the page paints in the page's own mode for one frame and then snaps to the inverted one — a visible flash on every load, which no client code can prevent because it happens before hydration.\n\n```html\n<script>\n  try {\n    var root = document.documentElement;\n    var mode = localStorage.getItem(\"mode-watcher-mode\") || \"system\";\n    var dark = mode === \"dark\" || (mode === \"system\" && matchMedia(\"(prefers-color-scheme: dark)\").matches);\n    var rail = localStorage.getItem(\"sidebar-mode\");\n    var railWear = rail === \"inverted\" ? (dark ? \"light\" : \"dark\") : dark ? \"dark\" : \"light\";\n    if (rail === \"inverted\") root.setAttribute(\"data-sidebar-mode\", railWear);\n    var bar = localStorage.getItem(\"header-mode\");\n    var barWear = bar === \"inverted\" ? (dark ? \"light\" : \"dark\") : dark ? \"dark\" : \"light\";\n    if (barWear !== railWear) root.setAttribute(\"data-header-mode\", barWear);\n  } catch (e) {}\n</script>\n```\n\nKeep it in step with the hooks: it repeats their resolution, and every `localStorage` key it reads is exported from one of them as a constant."
+			"docs": "### The contract\n\nThe CSS this installed keys on attributes your own header has to write. Nothing paints until it does:\n\n- `data-slot=\"page-header\"` on the outer sticky element — the one the floating fade hangs off and the auto-hide translates.\n- `data-slot=\"page-header-bar\"` on the bar inside it — this is what the inverted palette selects, and what re-scopes the nine chrome tokens onto the controls.\n- `data-floating` and `data-hidden` on the outer element, present or absent, from `headerFloating.current` and the auto-hide state.\n\nThe two mode axes need nothing from you: `header-mode` and `sidebar-mode` write `data-header-mode` and `data-sidebar-mode` on `<html>` themselves. The sidebar's floating axis needs nothing either — pass shadcn's own `variant=\"floating\"` when `sidebarFloating.current` is set.\n\n### The first-paint script\n\nAdd this to the `<head>` of your `index.html` (or `src/app.html` under SvelteKit), before anything else runs. Without it the page paints in the page's own mode for one frame and then snaps to the inverted one — a visible flash on every load, which no client code can prevent because it happens before hydration.\n\n```html\n<script>\n  try {\n    var root = document.documentElement;\n    var mode = localStorage.getItem(\"mode-watcher-mode\") || \"system\";\n    var dark = mode === \"dark\" || (mode === \"system\" && matchMedia(\"(prefers-color-scheme: dark)\").matches);\n    var rail = localStorage.getItem(\"sidebar-mode\");\n    var railWear = rail === \"inverted\" ? (dark ? \"light\" : \"dark\") : dark ? \"dark\" : \"light\";\n    if (rail === \"inverted\") root.setAttribute(\"data-sidebar-mode\", railWear);\n    var bar = localStorage.getItem(\"header-mode\");\n    var barWear = bar === \"inverted\" ? (dark ? \"light\" : \"dark\") : dark ? \"dark\" : \"light\";\n    if (barWear !== railWear) root.setAttribute(\"data-header-mode\", barWear);\n  } catch (e) {}\n</script>\n```\n\nKeep it in step with the hooks: it repeats their resolution, and every `localStorage` key it reads is exported from one of them as a constant."
 		},
 		{
 			"name": "parallax-appearance-controls",
@@ -333,7 +333,7 @@
 				"https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-appearance.json"
 			],
 			"dependencies": [
-				"@lucide/svelte"
+				"@lucide/svelte@^1.30.0"
 			],
 			"devDependencies": [],
 			"files": [
@@ -394,8 +394,8 @@
 			"title": "Parallax shell",
 			"description": "The application shell: the sidebar (workspace switcher, two-shape navigation, user menu, icon rail, mobile drawer) and the page header bar (breadcrumb, search slot, light/dark toggle) — wired to the published appearance axes, taking their content as typed props.",
 			"dependencies": [
-				"@lucide/svelte",
-				"mode-watcher"
+				"@lucide/svelte@^1.30.0",
+				"mode-watcher@^1.1.0"
 			],
 			"devDependencies": [],
 			"registryDependencies": [
@@ -600,7 +600,7 @@
 					"bottom": "0.5rem"
 				}
 			},
-			"docs": "## Wiring\n\nThe shell takes its content as typed props (see `src/lib/shared/nav.ts`) and its active state as a predicate — never a router. A minimal `App.svelte`:\n\n```svelte\n<script lang=\"ts\">\n  import { ModeWatcher } from \"mode-watcher\";\n  import AppShell from \"$lib/components/layout/AppShell.svelte\";\n  import AppSidebar from \"$lib/components/layout/AppSidebar.svelte\";\n  import PageHeader from \"$lib/components/layout/PageHeader.svelte\";\n  import type { NavItem, User, Workspace } from \"$lib/shared/nav.js\";\n  import GaugeIcon from \"@lucide/svelte/icons/gauge\";\n  import CommandIcon from \"@lucide/svelte/icons/command\";\n\n  const user: User = { name: \"Ada Lovelace\", email: \"ada@example.com\" };\n  const workspaces: Workspace[] = [{ name: \"Acme Inc\", plan: \"Enterprise\", logo: CommandIcon }];\n  const items: NavItem[] = [\n    { title: \"Dashboard\", url: \"/\", icon: GaugeIcon },\n    { title: \"Reports\", items: [{ title: \"Monthly\", url: \"/reports/monthly\" }] },\n  ];\n</script>\n\n<ModeWatcher />\n<AppShell>\n  {#snippet sidebar()}\n    <AppSidebar {user} {workspaces} {items} isActive={(url) => url === location.pathname} />\n  {/snippet}\n  <PageHeader trail={[{ label: \"Dashboard\" }]} />\n  <!-- your page -->\n</AppShell>\n```\n\nEvery `PageHeader` slot is a snippet with a default: `sidebarTrigger`, `breadcrumb` (receives `trail`), `search` (empty — pass your own field or palette) and `controls` — which is the light/dark toggle alone. The palette picker and the two panel dropdowns are installed (`ThemeSelector`, plus `HeaderToggle` / `SidebarModeToggle` through `parallax-appearance-controls`) but not rendered: put them on a settings page, or render your own group through `controls`. Pass an empty `sidebarTrigger` snippet if the header ever renders outside `AppShell`'s provider.\n\n## What is already wired\n\nThis header carries `data-slot=\"page-header\"` / `data-slot=\"page-header-bar\"` and writes `data-floating` / `data-hidden` itself — the contract `parallax-appearance`'s docs ask a hand-rolled header to satisfy is closed here. The first-paint script from those docs still applies verbatim.\n\n## Cautions\n\n- Nothing above `PageHeader` may gain `overflow-x: hidden` — beside an `overflow-y: visible` it computes as `auto`, silently turning the shell into a scroll container and killing the sticky header with no error anywhere. Use `overflow-x: clip` if a clip is ever needed.\n- The CSS this item adds is unlayered on purpose (it must outrank the sidebar's own utilities), so it also outranks YOUR utility classes on the same slots — override it in plain CSS, not with a utility.\n- Three fidelity notes against the Parallax gallery: buttons install from the official registry, so icon buttons run ~36px rather than the gallery's token-driven 40px; dropdown menus keep the upstream shadow; and the collapsed rail's tooltips keep the upstream look — both of the latter are application-global restyles this item deliberately does not ship."
+			"docs": "### Wiring\n\nThe shell takes its content as typed props (see `src/lib/shared/nav.ts`) and its active state as a predicate — never a router. A minimal `App.svelte`:\n\n```svelte\n<script lang=\"ts\">\n  import { ModeWatcher } from \"mode-watcher\";\n  import AppShell from \"$lib/components/layout/AppShell.svelte\";\n  import AppSidebar from \"$lib/components/layout/AppSidebar.svelte\";\n  import PageHeader from \"$lib/components/layout/PageHeader.svelte\";\n  import { page } from \"$app/state\";\n  import type { NavItem, User, Workspace } from \"$lib/shared/nav.js\";\n  import GaugeIcon from \"@lucide/svelte/icons/gauge\";\n  import CommandIcon from \"@lucide/svelte/icons/command\";\n\n  const user: User = { name: \"Ada Lovelace\", email: \"ada@example.com\" };\n  const workspaces: Workspace[] = [{ name: \"Acme Inc\", plan: \"Enterprise\", logo: CommandIcon }];\n  const items: NavItem[] = [\n    { title: \"Dashboard\", url: \"/\", icon: GaugeIcon },\n    { title: \"Reports\", items: [{ title: \"Monthly\", url: \"/reports/monthly\" }] },\n  ];\n</script>\n\n<ModeWatcher />\n<AppShell>\n  {#snippet sidebar()}\n    <AppSidebar {user} {workspaces} {items} isActive={(url) => url === page.url.pathname} />\n  {/snippet}\n  <PageHeader trail={[{ label: \"Dashboard\" }]} />\n  <!-- your page -->\n</AppShell>\n```\n\nThe predicate is the only thing the shell needs from a router, and reading it from `$app/state` is what keeps it correct on the server: `location` is not defined there, so the bare-`location` spelling this example used to carry threw a `ReferenceError` the moment the layout was server-rendered. Outside SvelteKit, feed the predicate from whatever the app already knows its current path to be.\n\nEvery `PageHeader` slot is a snippet with a default: `sidebarTrigger`, `breadcrumb` (receives `trail`), `search` (empty — pass your own field or palette) and `controls` — which is the light/dark toggle alone. The palette picker and the two panel dropdowns are installed (`ThemeSelector`, plus `HeaderToggle` / `SidebarModeToggle` through `parallax-appearance-controls`) but not rendered: put them on a settings page, or render your own group through `controls`. Pass an empty `sidebarTrigger` snippet if the header ever renders outside `AppShell`'s provider.\n\n### What is already wired\n\nThis header carries `data-slot=\"page-header\"` / `data-slot=\"page-header-bar\"` and writes `data-floating` / `data-hidden` itself — the contract `parallax-appearance`'s docs ask a hand-rolled header to satisfy is closed here. The first-paint script from those docs still applies verbatim.\n\n### Cautions\n\n- Nothing above `PageHeader` may gain `overflow-x: hidden` — beside an `overflow-y: visible` it computes as `auto`, silently turning the shell into a scroll container and killing the sticky header with no error anywhere. Use `overflow-x: clip` if a clip is ever needed.\n- The CSS this item adds is unlayered on purpose (it must outrank the sidebar's own utilities), so it also outranks YOUR utility classes on the same slots — override it in plain CSS, not with a utility.\n- Two fidelity notes against the Parallax gallery: dropdown menus keep the upstream shadow, and the collapsed rail's tooltips keep the upstream look. Both are application-global restyles this item deliberately does not ship — they arrive with `parallax-restyle`. Buttons are not among them: this item depends on `parallax-button`, so the sizes it installs are the gallery's own token-driven ramp."
 		},
 		{
 			"name": "parallax-skill",
@@ -652,7 +652,7 @@
 					"target": "~/.claude/skills/parallax/evals.json"
 				}
 			],
-			"docs": "The skill is installed at `.claude/skills/parallax/` — commit it so the whole team's assistants share it. Claude Code picks it up automatically (live-watched, no restart); invoke it explicitly with `/parallax`.\n\nIt teaches: discover before installing (components.json), install through the CLI, the two manual post-install steps, Svelte 5 runes only, semantic tokens (soft status fills pair with their own foregrounds), and the appearance axes through their hooks."
+			"docs": "The skill is installed at `.claude/skills/parallax/` — commit it so the whole team's assistants share it, and start a fresh session if the assistant was already running when it landed. Invoke it explicitly with `/parallax`.\n\nIt teaches: discover before installing (components.json), install through the CLI, the two manual post-install steps, Svelte 5 runes only, semantic tokens (soft status fills pair with their own foregrounds), and the appearance axes through their hooks."
 		},
 		{
 			"name": "parallax-primitives",
@@ -703,7 +703,7 @@
 			"name": "parallax-restyle",
 			"type": "registry:ui",
 			"title": "Parallax restyle",
-			"description": "The Parallax shape for the OFFICIAL components: css-only restyles of switch, checkbox, tooltip, inputs, native-select, select, sliders, sonner, navigation-menu, kbd, command and the tabs line variant, plus the global menu-shadow and dialog-scrim opinions. Install once beside parallax-theme.",
+			"description": "The Parallax shape for components this registry does not republish: css-only restyles of switch, checkbox, tooltip, inputs, native-select, select, sliders, sonner, navigation-menu, kbd, command and the tabs line variant, plus the global menu-shadow and dialog-scrim opinions. Install once beside parallax-theme.",
 			"dependencies": [],
 			"devDependencies": [],
 			"registryDependencies": [
@@ -969,7 +969,7 @@
 			"name": "parallax-accordion",
 			"type": "registry:ui",
 			"title": "Accordion",
-			"description": "The Parallax fork of the official accordion: the same API with the house refinements this theme depends on.",
+			"description": "The house accordion: shadcn's API with a chevron pair that swaps on open, hairline seams between items, and link and paragraph spacing inside a panel.",
 			"dependencies": [
 				"@lucide/svelte@^1.30.0",
 				"bits-ui@^2.18.1"
@@ -1076,7 +1076,7 @@
 			"name": "parallax-alert",
 			"type": "registry:ui",
 			"title": "Alert",
-			"description": "The Parallax fork of the official alert: the same API with the house refinements this theme depends on.",
+			"description": "The house alert: shadcn's API plus an `Alert.Action` corner slot and the full status ramp — the soft `*-subtle` family and the `solid-*` fills.",
 			"dependencies": [
 				"tailwind-variants@^3.3.1"
 			],
@@ -1114,7 +1114,7 @@
 			"name": "parallax-alert-dialog",
 			"type": "registry:ui",
 			"title": "Alert dialog",
-			"description": "The Parallax fork of the official alert-dialog: the same API with the house refinements this theme depends on.",
+			"description": "The house alert dialog: a `Media` part for the leading illustration, size variants on the content, and Action/Cancel that take Button's own `variant` and `size` rather than wrapping a button in a button.",
 			"dependencies": [
 				"bits-ui@^2.18.1",
 				"tailwind-variants@^3.3.1"
@@ -1200,7 +1200,7 @@
 			"name": "parallax-angle-slider",
 			"type": "registry:ui",
 			"title": "Angle slider",
-			"description": "Parallax's angle slider component — not in the official shadcn-svelte registry.",
+			"description": "A circular slider for angles: drag the thumb round the dial, with keyboard steps and an optional range. Reach for it when the value is a direction rather than a position on a line.",
 			"dependencies": [],
 			"devDependencies": [],
 			"registryDependencies": [
@@ -1253,7 +1253,7 @@
 			"name": "parallax-autocomplete",
 			"type": "registry:ui",
 			"title": "Autocomplete",
-			"description": "Parallax's autocomplete component — not in the official shadcn-svelte registry.",
+			"description": "A text field that suggests as you type and still accepts what the list never offered — the free-text half of type-to-pick. Reach for Combobox instead when the answer must be one of the items.",
 			"dependencies": [
 				"@lucide/svelte@^1.30.0",
 				"bits-ui@^2.18.1",
@@ -1343,7 +1343,7 @@
 			"name": "parallax-avatar",
 			"type": "registry:ui",
 			"title": "Avatar",
-			"description": "The house avatar: shadcn's API plus a size ramp and the hairline ring treatment.",
+			"description": "The house avatar: shadcn's API plus a size ramp, the hairline ring treatment, a status `Avatar.Badge` and `Avatar.Group` stacking.",
 			"dependencies": [
 				"bits-ui@^2.18.1"
 			],
@@ -1391,7 +1391,7 @@
 			"name": "parallax-badge",
 			"type": "registry:ui",
 			"title": "Badge",
-			"description": "The house badge: shadcn's API plus the soft *-subtle variants for every status family.",
+			"description": "The house badge: shadcn's API plus the soft `*-subtle` variants for every status family, and the ghost and link variants.",
 			"dependencies": [
 				"tailwind-variants@^3.3.1"
 			],
@@ -1414,7 +1414,7 @@
 			"name": "parallax-badge-overflow",
 			"type": "registry:ui",
 			"title": "Badge overflow",
-			"description": "Parallax's badge overflow component — not in the official shadcn-svelte registry.",
+			"description": "A row of badges that measures its container and folds whatever does not fit into a `+N` indicator. Reach for it wherever a list of tags has to survive a narrow column.",
 			"dependencies": [],
 			"devDependencies": [],
 			"registryDependencies": [],
@@ -1445,7 +1445,7 @@
 			"name": "parallax-banner",
 			"type": "registry:ui",
 			"title": "Banner",
-			"description": "Parallax's banner component — not in the official shadcn-svelte registry.",
+			"description": "A full-width notification strip pinned to the top or bottom of the viewport, with a queue that shows one at a time in priority order. Reach for it when the message outranks the page — an Alert stays in the flow it was written into, and a toast clears itself.",
 			"dependencies": [
 				"@lucide/svelte@^1.30.0",
 				"bits-ui@^2.18.1",
@@ -1517,7 +1517,7 @@
 			"name": "parallax-breadcrumb",
 			"type": "registry:ui",
 			"title": "Breadcrumb",
-			"description": "The Parallax fork of the official breadcrumb: the same API with the house refinements this theme depends on.",
+			"description": "The house breadcrumb: shadcn's API with the theme's separator rhythm and muted trail, sized for the header bar the shell renders it in.",
 			"dependencies": [
 				"@lucide/svelte@^1.30.0"
 			],
@@ -1570,7 +1570,7 @@
 			"name": "parallax-button",
 			"type": "registry:ui",
 			"title": "Button",
-			"description": "The house button: shadcn's API on the --control-h-* ramp (24/32/40/48px), with xs/icon-xs sizes and the data-icon slots.",
+			"description": "The house button: shadcn's API on the --control-h-* ramp (24/32/40/48px), with xs/icon-xs sizes, the data-icon slots and the contextual solid and outline palettes.",
 			"dependencies": [
 				"tailwind-variants@^3.3.1"
 			],
@@ -1598,7 +1598,7 @@
 			"name": "parallax-button-group",
 			"type": "registry:ui",
 			"title": "Button group",
-			"description": "The Parallax fork of the official button-group: the same API with the house refinements this theme depends on.",
+			"description": "The house button group: shadcn's API with the seam treatment that fuses a row or a column of controls into one shape, plus a `Text` part for inline labels.",
 			"dependencies": [
 				"tailwind-variants@^3.3.1"
 			],
@@ -1633,7 +1633,7 @@
 			"name": "parallax-calendar",
 			"type": "registry:ui",
 			"title": "Calendar",
-			"description": "The Parallax fork of the official calendar: the same API with the house refinements this theme depends on.",
+			"description": "The house calendar: shadcn's API rebuilt on `--cell-size` and `--cell-radius`, so one month grid retunes for a card, a popover or a full page without forking the parts.",
 			"dependencies": [
 				"@internationalized/date@^3.12.3",
 				"@lucide/svelte@^1.30.0",
@@ -1745,7 +1745,7 @@
 			"name": "parallax-card",
 			"type": "registry:ui",
 			"title": "Card",
-			"description": "The house card: shadcn's API plus a size prop and the ring-drawn outline.",
+			"description": "The house card: shadcn's API plus a `size` prop that retunes `--card-spacing`, and the ring-drawn outline.",
 			"dependencies": [],
 			"devDependencies": [],
 			"registryDependencies": [],
@@ -1819,7 +1819,7 @@
 			"name": "parallax-carousel",
 			"type": "registry:ui",
 			"title": "Carousel",
-			"description": "The Parallax fork of the official carousel: the same API with the house refinements this theme depends on.",
+			"description": "The house carousel: shadcn's Embla wrapper with the previous and next controls rebuilt as round icon-sm Buttons on the house ramp.",
 			"dependencies": [
 				"@lucide/svelte@^1.30.0",
 				"bits-ui@^2.18.1",
@@ -1871,7 +1871,7 @@
 			"name": "parallax-chart",
 			"type": "registry:ui",
 			"title": "Chart",
-			"description": "The Parallax fork of the official chart: the same API with the house refinements this theme depends on.",
+			"description": "The house chart frame: shadcn's LayerChart container, tooltip and legend on the theme's grid, axis and tooltip treatment, driven by a per-series colour config.",
 			"dependencies": [
 				"layerchart@^2.1.0"
 			],
@@ -1909,7 +1909,7 @@
 			"name": "parallax-checkbox",
 			"type": "registry:ui",
 			"title": "Checkbox",
-			"description": "The Parallax fork of the official checkbox: the same API with the house refinements this theme depends on.",
+			"description": "The house checkbox: shadcn's API on a 4px-radius box with the theme's border, focus ring and indeterminate mark.",
 			"dependencies": [
 				"@lucide/svelte@^1.30.0",
 				"bits-ui@^2.18.1"
@@ -1933,7 +1933,7 @@
 			"name": "parallax-checkbox-group",
 			"type": "registry:ui",
 			"title": "Checkbox group",
-			"description": "Parallax's checkbox group component — not in the official shadcn-svelte registry.",
+			"description": "Several checkboxes as one value: a shared label, description and validation message, horizontal or vertical. Reach for it when the boxes answer one question rather than several.",
 			"dependencies": [
 				"@lucide/svelte@^1.30.0",
 				"bits-ui@^2.18.1"
@@ -1995,7 +1995,7 @@
 			"name": "parallax-circular-progress",
 			"type": "registry:ui",
 			"title": "Circular progress",
-			"description": "Parallax's circular progress component — not in the official shadcn-svelte registry.",
+			"description": "A progress ring: a closed circle, 48px on a 4px stroke, determinate or indeterminate. Reach for Gauge when the arc itself carries meaning — the two share their geometry.",
 			"dependencies": [],
 			"devDependencies": [],
 			"registryDependencies": [],
@@ -2046,7 +2046,7 @@
 			"name": "parallax-code-block",
 			"type": "registry:ui",
 			"title": "Code block",
-			"description": "Parallax's code block component — not in the official shadcn-svelte registry.",
+			"description": "A copyable code sample with a line-number gutter, a language selector and lightweight language-aware highlighting. Reach for it for an opaque string to read and copy; JSON viewer parses a live value instead.",
 			"dependencies": [
 				"@lucide/svelte@^1.30.0",
 				"tailwind-variants@^3.3.1"
@@ -2104,7 +2104,7 @@
 			"name": "parallax-color-picker",
 			"type": "registry:ui",
 			"title": "Color picker",
-			"description": "Parallax's color picker component — not in the official shadcn-svelte registry.",
+			"description": "A full colour picker: a saturation and brightness area, hue and alpha sliders, the native eyedropper, and per-channel fields in hex, rgb, hsl or hsb.",
 			"dependencies": [
 				"@lucide/svelte@^1.30.0",
 				"bits-ui@^2.18.1",
@@ -2197,7 +2197,7 @@
 			"name": "parallax-color-swatch",
 			"type": "registry:ui",
 			"title": "Color swatch",
-			"description": "Parallax's color swatch component — not in the official shadcn-svelte registry.",
+			"description": "A single colour chip that renders transparency honestly, in five sizes — the building block of the picker's palette rows and of any legend that names a colour.",
 			"dependencies": [
 				"tailwind-variants@^3.3.1"
 			],
@@ -2225,7 +2225,7 @@
 			"name": "parallax-combobox",
 			"type": "registry:ui",
 			"title": "Combobox",
-			"description": "Parallax's combobox component — not in the official shadcn-svelte registry.",
+			"description": "A searchable select: a Command list inside a Popover, single, multiple, or multiple as chips. What it commits is always one of the items — reach for Autocomplete when the answer may be one the list never offered.",
 			"dependencies": [
 				"@lucide/svelte@^1.30.0",
 				"bits-ui@^2.18.1"
@@ -2332,7 +2332,7 @@
 			"name": "parallax-command",
 			"type": "registry:ui",
 			"title": "Command",
-			"description": "The Parallax fork of the official command: the same API with the house refinements this theme depends on.",
+			"description": "The house command menu: shadcn's cmdk wrapper with the input rebuilt on Input group, a rounded popover ground and the selected-row treatment the palette uses.",
 			"dependencies": [
 				"@lucide/svelte@^1.30.0",
 				"bits-ui@^2.18.1"
@@ -2409,7 +2409,7 @@
 			"name": "parallax-compare-slider",
 			"type": "registry:ui",
 			"title": "Compare slider",
-			"description": "Parallax's compare slider component — not in the official shadcn-svelte registry.",
+			"description": "Two versions of one image and a divider that wipes between them, by pointer, by touch or from the keyboard.",
 			"dependencies": [
 				"@lucide/svelte@^1.30.0"
 			],
@@ -2457,7 +2457,7 @@
 			"name": "parallax-context-menu",
 			"type": "registry:ui",
 			"title": "Context menu",
-			"description": "The Parallax fork of the official context-menu: the same API with the house refinements this theme depends on.",
+			"description": "The house context menu: shadcn's API with the flat row treatment, ring-drawn popovers and an RTL-aware submenu chevron.",
 			"dependencies": [
 				"@lucide/svelte@^1.30.0",
 				"bits-ui@^2.18.1"
@@ -2556,7 +2556,7 @@
 			"name": "parallax-copy-button",
 			"type": "registry:ui",
 			"title": "Copy button",
-			"description": "Parallax's copy button component — not in the official shadcn-svelte registry.",
+			"description": "A button that writes text to the clipboard and swaps its icon for a tick — once the write has actually resolved. The swap is a Svelte transition, with no animation library.",
 			"dependencies": [
 				"@lucide/svelte@^1.30.0"
 			],
@@ -2588,7 +2588,7 @@
 			"name": "parallax-cropper",
 			"type": "registry:ui",
 			"title": "Cropper",
-			"description": "Parallax's cropper component — not in the official shadcn-svelte registry.",
+			"description": "An image and video crop surface: drag, wheel zoom, pinch-zoom-rotate and arrow-key nudging, rectangular or round.",
 			"dependencies": [
 				"tailwind-variants@^3.3.1"
 			],
@@ -2957,7 +2957,7 @@
 			"name": "parallax-date-selector",
 			"type": "registry:ui",
 			"title": "Date selector",
-			"description": "Parallax's date selector component — not in the official shadcn-svelte registry.",
+			"description": "One control for a day, a month, a quarter, a half-year or a year, behind an is/before/after/between operator, with a free-text input that parses all of them.",
 			"dependencies": [
 				"@internationalized/date@^3.12.3",
 				"@lucide/svelte@^1.30.0",
@@ -3021,7 +3021,7 @@
 			"name": "parallax-dialog",
 			"type": "registry:ui",
 			"title": "Dialog",
-			"description": "The Parallax fork of the official dialog: the same API with the house refinements this theme depends on.",
+			"description": "The house dialog: shadcn's API with the close control rebuilt as a ghost icon Button, on the popover ground the theme's overlays share.",
 			"dependencies": [
 				"@lucide/svelte@^1.30.0",
 				"bits-ui@^2.18.1"
@@ -3092,7 +3092,7 @@
 			"name": "parallax-direction-provider",
 			"type": "registry:ui",
 			"title": "Direction provider",
-			"description": "Parallax's direction provider component — not in the official shadcn-svelte registry.",
+			"description": "The RTL/LTR provider. Where upstream renders no DOM and asks each consumer to forward `dir` itself, this renders a `display: contents` wrapper, so the real attribute reaches the subtree and descendants flip without opting in.",
 			"dependencies": [],
 			"devDependencies": [],
 			"registryDependencies": [],
@@ -3118,7 +3118,7 @@
 			"name": "parallax-drawer",
 			"type": "registry:ui",
 			"title": "Drawer",
-			"description": "The Parallax fork of the official drawer: the same API with the house refinements this theme depends on.",
+			"description": "The house drawer: shadcn's Vaul wrapper on the popover ground, with the drag handle and edge treatment the mobile sidebar uses.",
 			"dependencies": [
 				"vaul-svelte@^1.0.0-next.7"
 			],
@@ -3191,7 +3191,7 @@
 			"name": "parallax-dropdown-menu",
 			"type": "registry:ui",
 			"title": "Dropdown menu",
-			"description": "The Parallax fork of the official dropdown-menu: the same API with the house refinements this theme depends on.",
+			"description": "The house dropdown menu: shadcn's API with the flat row treatment, ring-drawn popovers and check and radio indicators on the trailing edge.",
 			"dependencies": [
 				"@lucide/svelte@^1.30.0",
 				"bits-ui@^2.18.1"
@@ -3295,7 +3295,7 @@
 			"name": "parallax-editable",
 			"type": "registry:ui",
 			"title": "Editable",
-			"description": "Parallax's editable component — not in the official shadcn-svelte registry.",
+			"description": "Text that becomes an input in place: a trigger, a preview, an input and a submit/cancel toolbar over one bindable value. Reach for it in a table cell or a heading where a whole form would be too much furniture.",
 			"dependencies": [],
 			"devDependencies": [],
 			"registryDependencies": [
@@ -3364,7 +3364,7 @@
 			"name": "parallax-empty",
 			"type": "registry:ui",
 			"title": "Empty",
-			"description": "The Parallax fork of the official empty: the same API with the house refinements this theme depends on.",
+			"description": "The house empty state: shadcn's API with the media tile, heading and description treatment every placeholder in the gallery shares.",
 			"dependencies": [
 				"tailwind-variants@^3.3.1"
 			],
@@ -3412,7 +3412,7 @@
 			"name": "parallax-event-calendar",
 			"type": "registry:ui",
 			"title": "Event calendar",
-			"description": "Parallax's event calendar component — not in the official shadcn-svelte registry.",
+			"description": "A full scheduling surface: month, week, day, N-day, agenda and resource views over one event model, with time zones, recurrence, localisation and an imperative API.",
 			"dependencies": [
 				"@date-fns/tz@^1.5.0",
 				"@internationalized/date@^3.12.3",
@@ -3577,7 +3577,7 @@
 			"name": "parallax-field",
 			"type": "registry:ui",
 			"title": "Field",
-			"description": "The Parallax fork of the official field: the same API with the house refinements this theme depends on.",
+			"description": "The house field: shadcn's form-layout primitive carrying the label, description and error rhythm every form in this theme is built from, including the horizontal and fieldset arrangements.",
 			"dependencies": [
 				"tailwind-variants@^3.3.1"
 			],
@@ -3648,7 +3648,7 @@
 			"name": "parallax-filters",
 			"type": "registry:ui",
 			"title": "Filters",
-			"description": "Parallax's filters component — not in the official shadcn-svelte registry.",
+			"description": "The filter row as state: a filter is a chip of field, operator and value, and the row of them is a value the page owns. Reach for it when a list needs more than a search box.",
 			"dependencies": [
 				"@lucide/svelte@^1.30.0",
 				"tailwind-variants@^3.3.1"
@@ -3740,7 +3740,7 @@
 			"name": "parallax-fps",
 			"type": "registry:ui",
 			"title": "Fps",
-			"description": "Parallax's fps component — not in the official shadcn-svelte registry.",
+			"description": "A frames-per-second counter, for watching whether an interaction still runs at frame rate.",
 			"dependencies": [
 				"bits-ui@^2.18.1",
 				"tailwind-variants@^3.3.1"
@@ -3769,7 +3769,7 @@
 			"name": "parallax-frame",
 			"type": "registry:ui",
 			"title": "Frame",
-			"description": "Parallax's frame component — not in the official shadcn-svelte registry.",
+			"description": "A presentational panel family: a bordered tray whose header, panels and footer share one spacing ladder and one radius, with panels separated, fused into a stacked run, or pulled flush to the edge.",
 			"dependencies": [
 				"tailwind-variants@^3.3.1"
 			],
@@ -3822,7 +3822,7 @@
 			"name": "parallax-gauge",
 			"type": "registry:ui",
 			"title": "Gauge",
-			"description": "Parallax's gauge component — not in the official shadcn-svelte registry.",
+			"description": "A circular meter over a configurable arc — a dial, a segment, a sweep short of a full turn — with an indeterminate state. Reach for Circular progress when a closed ring is all you need.",
 			"dependencies": [],
 			"devDependencies": [],
 			"registryDependencies": [
@@ -3880,7 +3880,7 @@
 			"name": "parallax-hover-card",
 			"type": "registry:ui",
 			"title": "Hover card",
-			"description": "The Parallax fork of the official hover-card: the same API with the house refinements this theme depends on.",
+			"description": "The house hover card: shadcn's API on the theme's popover ground, ring-drawn rather than shadowed.",
 			"dependencies": [
 				"bits-ui@^2.18.1"
 			],
@@ -3918,7 +3918,7 @@
 			"name": "parallax-icon-stack",
 			"type": "registry:ui",
 			"title": "Icon stack",
-			"description": "Parallax's icon stack component — not in the official shadcn-svelte registry.",
+			"description": "A layered isometric mark framing a single icon — the illustration an empty state or a feature card leads with, tinted from the surrounding text colour.",
 			"dependencies": [
 				"tailwind-variants@^3.3.1"
 			],
@@ -3941,7 +3941,7 @@
 			"name": "parallax-icon-tile",
 			"type": "registry:ui",
 			"title": "Icon tile",
-			"description": "Parallax's icon tile component — not in the official shadcn-svelte registry.",
+			"description": "A small framed container for one icon — the mark that leads a list row, a feature card or an empty state — in five surfaces, five sizes and two corner treatments.",
 			"dependencies": [
 				"tailwind-variants@^3.3.1"
 			],
@@ -3969,7 +3969,7 @@
 			"name": "parallax-input",
 			"type": "registry:ui",
 			"title": "Input",
-			"description": "The Parallax fork of the official input: the same API with the house refinements this theme depends on.",
+			"description": "The house input: shadcn's API at the theme's height, padding and focus ring, so a field and a default button share a line.",
 			"dependencies": [],
 			"devDependencies": [],
 			"registryDependencies": [],
@@ -3990,7 +3990,7 @@
 			"name": "parallax-input-group",
 			"type": "registry:ui",
 			"title": "Input group",
-			"description": "The Parallax fork of the official input-group: the same API with the house refinements this theme depends on.",
+			"description": "The house input group: shadcn's API with addons on either side of the control or above and below it, and an `xs` button size for the controls that sit inside one.",
 			"dependencies": [
 				"tailwind-variants@^3.3.1"
 			],
@@ -4042,7 +4042,7 @@
 			"name": "parallax-input-otp",
 			"type": "registry:ui",
 			"title": "Input otp",
-			"description": "The Parallax fork of the official input-otp: the same API with the house refinements this theme depends on.",
+			"description": "A segmented one-time-code field, rebuilt on its own state module and provider: a slot per character, groups split by separators, and one hidden input so paste and autofill keep working.",
 			"dependencies": [
 				"@lucide/svelte@^1.30.0",
 				"bits-ui@^2.18.1"
@@ -4091,7 +4091,7 @@
 			"name": "parallax-item",
 			"type": "registry:ui",
 			"title": "Item",
-			"description": "The Parallax fork of the official item: the same API with the house refinements this theme depends on.",
+			"description": "The house item row: shadcn's title/description/action row with the `xs` and `sm` sizes and the media slot the gallery's list rows use. For the framed container drawn around a run of them, see the List group page.",
 			"dependencies": [
 				"tailwind-variants@^3.3.1"
 			],
@@ -4161,7 +4161,7 @@
 			"name": "parallax-json-viewer",
 			"type": "registry:ui",
 			"title": "Json viewer",
-			"description": "Parallax's json viewer component — not in the official shadcn-svelte registry.",
+			"description": "A collapsible JSON tree coloured by runtime type, with expand and collapse, copy, and array truncation. Reach for Code block when the payload is an opaque sample rather than a tree to navigate.",
 			"dependencies": [
 				"@lucide/svelte@^1.30.0",
 				"tailwind-variants@^3.3.1"
@@ -4225,7 +4225,7 @@
 			"name": "parallax-kanban",
 			"type": "registry:ui",
 			"title": "Kanban",
-			"description": "Parallax's kanban component — not in the official shadcn-svelte registry.",
+			"description": "A drag-and-drop board: reorder inside a column, move between columns, reorder the columns themselves — with a pointer, with touch, or from the keyboard alone.",
 			"dependencies": [
 				"bits-ui@^2.18.1"
 			],
@@ -4296,7 +4296,7 @@
 			"name": "parallax-kbd",
 			"type": "registry:ui",
 			"title": "Kbd",
-			"description": "The Parallax fork of the official kbd: the same API with the house refinements this theme depends on.",
+			"description": "The house keyboard key: shadcn's API as the theme's muted chip, sized to sit inside an input group or a menu row.",
 			"dependencies": [],
 			"devDependencies": [],
 			"registryDependencies": [],
@@ -4322,7 +4322,7 @@
 			"name": "parallax-key-value",
 			"type": "registry:ui",
 			"title": "Key value",
-			"description": "Parallax's key value component — not in the official shadcn-svelte registry.",
+			"description": "A dynamic list of key/value pairs with paste support and per-row validation — headers, environment variables, metadata a user types.",
 			"dependencies": [
 				"@lucide/svelte@^1.30.0"
 			],
@@ -4395,7 +4395,7 @@
 			"name": "parallax-language-selector",
 			"type": "registry:ui",
 			"title": "Language selector",
-			"description": "Parallax's language selector component — not in the official shadcn-svelte registry.",
+			"description": "A dialog that switches the active locale. The catalog is data the caller supplies and the component moves a code: it translates nothing.",
 			"dependencies": [
 				"@lucide/svelte@^1.30.0"
 			],
@@ -4445,7 +4445,7 @@
 			"name": "parallax-listbox",
 			"type": "registry:ui",
 			"title": "Listbox",
-			"description": "Parallax's listbox component — not in the official shadcn-svelte registry.",
+			"description": "An always-visible option list with the WAI-ARIA keyboard model and typeahead, single or multiple, as a column or a grid. Reach for it when the options should not be hidden behind a trigger.",
 			"dependencies": [
 				"@lucide/svelte@^1.30.0"
 			],
@@ -5183,7 +5183,7 @@
 			"name": "parallax-marquee",
 			"type": "registry:ui",
 			"title": "Marquee",
-			"description": "Parallax's marquee component — not in the official shadcn-svelte registry.",
+			"description": "Content that scrolls continuously, horizontally or vertically — pausing on hover and on focus, mirroring under RTL, and holding still for reduced motion.",
 			"dependencies": [
 				"tailwind-variants@^3.3.1"
 			],
@@ -5293,7 +5293,7 @@
 			"name": "parallax-mask-input",
 			"type": "registry:ui",
 			"title": "Mask input",
-			"description": "Parallax's mask input component — not in the official shadcn-svelte registry.",
+			"description": "An input that formats what you type against a pattern — a phone number, a date, a card, a currency amount — and keeps the caret where you left it.",
 			"dependencies": [],
 			"devDependencies": [],
 			"registryDependencies": [],
@@ -5324,7 +5324,7 @@
 			"name": "parallax-masonry",
 			"type": "registry:ui",
 			"title": "Masonry",
-			"description": "Parallax's masonry component — not in the official shadcn-svelte registry.",
+			"description": "A masonry grid: a column count that answers the breakpoint, and items placed by measured height rather than by row.",
 			"dependencies": [],
 			"devDependencies": [],
 			"registryDependencies": [
@@ -5372,7 +5372,7 @@
 			"name": "parallax-media-player",
 			"type": "registry:ui",
 			"title": "Media player",
-			"description": "Parallax's media player component — not in the official shadcn-svelte registry.",
+			"description": "A full video and audio player: custom controls, chapters, captions, playback rate and the complete keyboard shortcut set.",
 			"dependencies": [
 				"@lucide/svelte@^1.30.0",
 				"bits-ui@^2.18.1"
@@ -5523,7 +5523,7 @@
 			"name": "parallax-mention",
 			"type": "registry:ui",
 			"title": "Mention",
-			"description": "Parallax's mention component — not in the official shadcn-svelte registry.",
+			"description": "A text field that suggests and inserts mentions when a trigger character is typed at a word boundary. The popup follows the caret, and each inserted mention behaves as one atomic unit of text.",
 			"dependencies": [
 				"bits-ui@^2.18.1"
 			],
@@ -5594,7 +5594,7 @@
 			"name": "parallax-menubar",
 			"type": "registry:ui",
 			"title": "Menubar",
-			"description": "The Parallax fork of the official menubar: the same API with the house refinements this theme depends on.",
+			"description": "The house menubar: shadcn's API with the flat row treatment, ring-drawn popovers and indicators on the leading edge.",
 			"dependencies": [
 				"@lucide/svelte@^1.30.0",
 				"bits-ui@^2.18.1"
@@ -5698,7 +5698,7 @@
 			"name": "parallax-native-select",
 			"type": "registry:ui",
 			"title": "Native select",
-			"description": "The Parallax fork of the official native-select: the same API with the house refinements this theme depends on.",
+			"description": "The house native select: the browser's own dropdown at the theme's field height, with a `sm` or `default` size stamped as `data-size`.",
 			"dependencies": [
 				"@lucide/svelte@^1.30.0"
 			],
@@ -5731,7 +5731,7 @@
 			"name": "parallax-navigation-menu",
 			"type": "registry:ui",
 			"title": "Navigation menu",
-			"description": "The Parallax fork of the official navigation-menu: the same API with the house refinements this theme depends on.",
+			"description": "The house navigation menu: shadcn's API with the theme's trigger, link and viewport treatment, and `navigationMenuTriggerStyle` exported for the links that are not triggers.",
 			"dependencies": [
 				"@lucide/svelte@^1.30.0",
 				"bits-ui@^2.18.1",
@@ -5791,7 +5791,7 @@
 			"name": "parallax-number-field",
 			"type": "registry:ui",
 			"title": "Number field",
-			"description": "Parallax's number field component — not in the official shadcn-svelte registry.",
+			"description": "A numeric input with spinner buttons, press-and-hold repeat, keyboard stepping and a drag-to-scrub label.",
 			"dependencies": [
 				"@lucide/svelte@^1.30.0",
 				"tailwind-variants@^3.3.1"
@@ -5848,7 +5848,7 @@
 			"name": "parallax-pagination",
 			"type": "registry:ui",
 			"title": "Pagination",
-			"description": "The Parallax fork of the official pagination: the same API with the house refinements this theme depends on.",
+			"description": "The house pagination: shadcn's API with the page links drawn by `buttonVariants` at any Button size, so a pager matches the controls beside it.",
 			"dependencies": [
 				"@lucide/svelte@^1.30.0",
 				"bits-ui@^2.18.1"
@@ -5904,7 +5904,7 @@
 			"name": "parallax-partition-bar",
 			"type": "registry:ui",
 			"title": "Partition bar",
-			"description": "Parallax's partition bar component — not in the official shadcn-svelte registry.",
+			"description": "A total split into labelled parts: one bar per part, sized by its share, with its name and measurement underneath.",
 			"dependencies": [
 				"tailwind-variants@^3.3.1"
 			],
@@ -5947,7 +5947,7 @@
 			"name": "parallax-pending",
 			"type": "registry:ui",
 			"title": "Pending",
-			"description": "Parallax's pending component — not in the official shadcn-svelte registry.",
+			"description": "A wrapper that marks anything as pending: interactions off, keyboard focus kept, and the right ARIA state for buttons, forms, links and switches.",
 			"dependencies": [],
 			"devDependencies": [],
 			"registryDependencies": [],
@@ -5973,7 +5973,7 @@
 			"name": "parallax-phone-input",
 			"type": "registry:ui",
 			"title": "Phone input",
-			"description": "Parallax's phone input component — not in the official shadcn-svelte registry.",
+			"description": "A phone field with country detection and international formatting, built on the mask input.",
 			"dependencies": [
 				"@lucide/svelte@^1.30.0",
 				"bits-ui@^2.18.1"
@@ -6023,7 +6023,7 @@
 			"name": "parallax-popover",
 			"type": "registry:ui",
 			"title": "Popover",
-			"description": "The Parallax fork of the official popover: the same API with the house refinements this theme depends on.",
+			"description": "The house popover: shadcn's API plus `Header`, `Title` and `Description` parts, so a popover with a heading is composed rather than hand-laid.",
 			"dependencies": [
 				"bits-ui@^2.18.1"
 			],
@@ -6081,7 +6081,7 @@
 			"name": "parallax-progress",
 			"type": "registry:ui",
 			"title": "Progress",
-			"description": "The Parallax fork of the official progress: the same API with the house refinements this theme depends on.",
+			"description": "The house progress bar: shadcn's API as a slim rounded track on the muted ground.",
 			"dependencies": [
 				"bits-ui@^2.18.1"
 			],
@@ -6104,7 +6104,7 @@
 			"name": "parallax-qr-code",
 			"type": "registry:ui",
 			"title": "Qr code",
-			"description": "Parallax's qr code component — not in the official shadcn-svelte registry.",
+			"description": "A QR code you compose: the same value rendered as SVG, canvas or image, with a centre overlay, a loading skeleton and a download control.",
 			"dependencies": [
 				"qrcode@^1.5.4"
 			],
@@ -6164,7 +6164,7 @@
 			"name": "parallax-radio-group",
 			"type": "registry:ui",
 			"title": "Radio group",
-			"description": "The Parallax fork of the official radio-group: the same API with the house refinements this theme depends on.",
+			"description": "The house radio group: shadcn's API with the theme's ring, dot indicator and row rhythm.",
 			"dependencies": [
 				"@lucide/svelte@^1.30.0",
 				"bits-ui@^2.18.1"
@@ -6193,7 +6193,7 @@
 			"name": "parallax-range-calendar",
 			"type": "registry:ui",
 			"title": "Range calendar",
-			"description": "The Parallax fork of the official range-calendar: the same API with the house refinements this theme depends on.",
+			"description": "The house range calendar: shadcn's API plus the `rangeCalendar`, `rangeCalendarFlush` and `rangeDay` class recipes, so a range picker reads the same in a card, in a popover, or flush to a panel edge.",
 			"dependencies": [
 				"@internationalized/date@^3.12.3",
 				"@lucide/svelte@^1.30.0",
@@ -6310,7 +6310,7 @@
 			"name": "parallax-rating",
 			"type": "registry:ui",
 			"title": "Rating",
-			"description": "Parallax's rating component — not in the official shadcn-svelte registry.",
+			"description": "A star rating that displays whole, half and fractional scores, and — when editable — collects one by mouse or keyboard.",
 			"dependencies": [
 				"@lucide/svelte@^1.30.0",
 				"bits-ui@^2.18.1",
@@ -6340,7 +6340,7 @@
 			"name": "parallax-relative-time-card",
 			"type": "registry:ui",
 			"title": "Relative time card",
-			"description": "Parallax's relative time card component — not in the official shadcn-svelte registry.",
+			"description": "A hover card that shows a moment as relative time, with the absolute time and its zone underneath.",
 			"dependencies": [
 				"bits-ui@^2.18.1",
 				"tailwind-variants@^3.3.1"
@@ -6381,7 +6381,7 @@
 			"name": "parallax-resizable",
 			"type": "registry:ui",
 			"title": "Resizable",
-			"description": "The Parallax fork of the official resizable: the same API with the house refinements this theme depends on.",
+			"description": "The house resizable panes: shadcn's API with the hairline handle and grip the theme's split layouts use.",
 			"dependencies": [
 				"paneforge@^1.0.2"
 			],
@@ -6409,7 +6409,7 @@
 			"name": "parallax-responsive-dialog",
 			"type": "registry:ui",
 			"title": "Responsive dialog",
-			"description": "Parallax's responsive dialog component — not in the official shadcn-svelte registry.",
+			"description": "One dialog that renders as a centred modal above the breakpoint and a bottom drawer below it — and swaps between them without closing.",
 			"dependencies": [
 				"bits-ui@^2.18.1"
 			],
@@ -6486,7 +6486,7 @@
 			"name": "parallax-scroll-area",
 			"type": "registry:ui",
 			"title": "Scroll area",
-			"description": "The Parallax fork of the official scroll-area: the same API with the house refinements this theme depends on.",
+			"description": "The house scroll area: shadcn's API with the overlay scrollbar the theme paints. Reach for Scroller instead when native scrolling should stay and only the edge cues are wanted.",
 			"dependencies": [
 				"bits-ui@^2.18.1"
 			],
@@ -6514,7 +6514,7 @@
 			"name": "parallax-scroll-spy",
 			"type": "registry:ui",
 			"title": "Scroll spy",
-			"description": "Parallax's scroll spy component — not in the official shadcn-svelte registry.",
+			"description": "Navigation links that track scroll position and scroll to their section on click, nested sections included.",
 			"dependencies": [
 				"tailwind-variants@^3.3.1"
 			],
@@ -6570,7 +6570,7 @@
 			"name": "parallax-scroller",
 			"type": "registry:ui",
 			"title": "Scroller",
-			"description": "Parallax's scroller component — not in the official shadcn-svelte registry.",
+			"description": "A scroll container that keeps the browser's own scrollbar and fades the edges where content continues, with optional buttons that scroll on press, hover or click. Where Scroll area replaces the scrollbar, this only layers affordances on top of it.",
 			"dependencies": [
 				"@lucide/svelte@^1.30.0",
 				"tailwind-variants@^3.3.1"
@@ -6607,7 +6607,7 @@
 			"name": "parallax-segmented-input",
 			"type": "registry:ui",
 			"title": "Segmented input",
-			"description": "Parallax's segmented input component — not in the official shadcn-svelte registry.",
+			"description": "Connected inputs that read as one segmented control, with focus and typing moving between the segments as they fill and empty.",
 			"dependencies": [
 				"tailwind-variants@^3.3.1"
 			],
@@ -6649,7 +6649,7 @@
 			"name": "parallax-select",
 			"type": "registry:ui",
 			"title": "Select",
-			"description": "The Parallax fork of the official select: the same API with the house refinements this theme depends on.",
+			"description": "The house select: shadcn's API at the theme's field height, with the boxed trigger, ring-drawn content and scroll buttons on the popover ground.",
 			"dependencies": [
 				"@lucide/svelte@^1.30.0",
 				"bits-ui@^2.18.1"
@@ -6725,7 +6725,7 @@
 			"name": "parallax-selection-toolbar",
 			"type": "registry:ui",
 			"title": "Selection toolbar",
-			"description": "Parallax's selection toolbar component — not in the official shadcn-svelte registry.",
+			"description": "A floating toolbar that appears over a text selection, carrying formatting and utility actions.",
 			"dependencies": [
 				"bits-ui@^2.18.1"
 			],
@@ -6771,7 +6771,7 @@
 			"name": "parallax-separator",
 			"type": "registry:ui",
 			"title": "Separator",
-			"description": "The Parallax fork of the official separator: the same API with the house refinements this theme depends on.",
+			"description": "The house separator: shadcn's API on the theme's border token, a hairline in both orientations.",
 			"dependencies": [
 				"bits-ui@^2.18.1"
 			],
@@ -6794,7 +6794,7 @@
 			"name": "parallax-shake",
 			"type": "registry:ui",
 			"title": "Shake",
-			"description": "Parallax's shake component — not in the official shadcn-svelte registry.",
+			"description": "A wrapper that replays a perspective wobble whenever a signal changes — the wrong-password nudge.",
 			"dependencies": [],
 			"devDependencies": [],
 			"registryDependencies": [
@@ -6822,7 +6822,7 @@
 			"name": "parallax-sheet",
 			"type": "registry:ui",
 			"title": "Sheet",
-			"description": "The Parallax fork of the official sheet: the same API with the house refinements this theme depends on.",
+			"description": "The house sheet: shadcn's edge panel with the close control rebuilt as a ghost icon Button, and a `showCloseButton` for the panels that own their own.",
 			"dependencies": [
 				"@lucide/svelte@^1.30.0",
 				"bits-ui@^2.18.1"
@@ -6893,7 +6893,7 @@
 			"name": "parallax-sidebar",
 			"type": "registry:ui",
 			"title": "Sidebar",
-			"description": "The Parallax fork of the official sidebar: the same API with the house refinements this theme depends on.",
+			"description": "The sidebar primitive the application shell is built on — provider, rail, menu, sub-menu and mobile drawer — retuned to the theme's rhythm and its sidebar tokens. `parallax-shell` installs it already wired.",
 			"dependencies": [
 				"@lucide/svelte@^1.30.0",
 				"bits-ui@^2.18.1",
@@ -7046,7 +7046,7 @@
 			"name": "parallax-skeleton",
 			"type": "registry:ui",
 			"title": "Skeleton",
-			"description": "The Parallax fork of the official skeleton: the same API with the house refinements this theme depends on.",
+			"description": "The house skeleton: shadcn's pulsing placeholder on the muted ground rather than the accent one.",
 			"dependencies": [],
 			"devDependencies": [],
 			"registryDependencies": [],
@@ -7067,7 +7067,7 @@
 			"name": "parallax-slider",
 			"type": "registry:ui",
 			"title": "Slider",
-			"description": "The Parallax fork of the official slider: the same API with the house refinements this theme depends on.",
+			"description": "The house slider: shadcn's API with the pale thumb and focus ring the theme's controls share, horizontal or vertical.",
 			"dependencies": [
 				"bits-ui@^2.18.1"
 			],
@@ -7087,35 +7087,10 @@
 			]
 		},
 		{
-			"name": "parallax-sonner",
-			"type": "registry:ui",
-			"title": "Sonner",
-			"description": "The Parallax fork of the official sonner: the same API with the house refinements this theme depends on.",
-			"dependencies": [
-				"@lucide/svelte@^1.30.0",
-				"mode-watcher@^1.1.0",
-				"svelte-sonner@^1.1.1"
-			],
-			"devDependencies": [],
-			"registryDependencies": [],
-			"files": [
-				{
-					"path": "src/lib/components/ui/sonner/index.ts",
-					"type": "registry:ui",
-					"target": "~/src/lib/components/ui/sonner/index.ts"
-				},
-				{
-					"path": "src/lib/components/ui/sonner/sonner.svelte",
-					"type": "registry:ui",
-					"target": "~/src/lib/components/ui/sonner/sonner.svelte"
-				}
-			]
-		},
-		{
 			"name": "parallax-sortable",
 			"type": "registry:ui",
 			"title": "Sortable",
-			"description": "Parallax's sortable component — not in the official shadcn-svelte registry.",
+			"description": "Drag-and-drop reordering for a list or a grid, operable with a pointer, with touch and from the keyboard alone. Kanban composes it.",
 			"dependencies": [
 				"bits-ui@^2.18.1"
 			],
@@ -7175,7 +7150,7 @@
 			"name": "parallax-speed-dial",
 			"type": "registry:ui",
 			"title": "Speed dial",
-			"description": "Parallax's speed dial component — not in the official shadcn-svelte registry.",
+			"description": "A floating action button that fans a set of labelled actions out when it is triggered.",
 			"dependencies": [
 				"tailwind-variants@^3.3.1"
 			],
@@ -7231,7 +7206,7 @@
 			"name": "parallax-spinner",
 			"type": "registry:ui",
 			"title": "Spinner",
-			"description": "The Parallax fork of the official spinner: the same API with the house refinements this theme depends on.",
+			"description": "The house spinner: shadcn's loading mark with `role` and `aria-label` overridable, and the foreign icon-library props (`name`, `color`, `stroke`) normalised so another icon set can stand in.",
 			"dependencies": [
 				"@lucide/svelte@^1.30.0"
 			],
@@ -7254,7 +7229,7 @@
 			"name": "parallax-status",
 			"type": "registry:ui",
 			"title": "Status",
-			"description": "Parallax's status component — not in the official shadcn-svelte registry.",
+			"description": "A status indicator: a dot with an animated ping and the colour families, for system state, presence and service health.",
 			"dependencies": [
 				"tailwind-variants@^3.3.1"
 			],
@@ -7289,7 +7264,7 @@
 			"name": "parallax-status-monitor",
 			"type": "registry:ui",
 			"title": "Status monitor",
-			"description": "Parallax's status monitor component — not in the official shadcn-svelte registry.",
+			"description": "The uptime strip from a public status page: one bar per period, coloured by state, with a tooltip per bar.",
 			"dependencies": [
 				"tailwind-variants@^3.3.1"
 			],
@@ -7345,7 +7320,7 @@
 			"name": "parallax-stepper",
 			"type": "registry:ui",
 			"title": "Stepper",
-			"description": "Parallax's stepper component — not in the official shadcn-svelte registry.",
+			"description": "A multi-step flow with visible progress: a list of steps with indicator, title, description and separator, horizontal or vertical, each carrying its own state.",
 			"dependencies": [
 				"@lucide/svelte@^1.30.0",
 				"tailwind-variants@^3.3.1"
@@ -7427,7 +7402,7 @@
 			"name": "parallax-switch",
 			"type": "registry:ui",
 			"title": "Switch",
-			"description": "The Parallax fork of the official switch: the same API with the house refinements this theme depends on.",
+			"description": "The house switch: shadcn's API with the theme's track and thumb, stamped `data-size` so the control ramp reaches it.",
 			"dependencies": [
 				"bits-ui@^2.18.1"
 			],
@@ -7543,7 +7518,7 @@
 			"name": "parallax-tabs",
 			"type": "registry:ui",
 			"title": "Tabs",
-			"description": "The Parallax fork of the official tabs: the same API with the house refinements this theme depends on.",
+			"description": "The house tabs: shadcn's API plus the `line` list variant and its `sm` size, both stamped as `data-*` so `app.css` owns the look.",
 			"dependencies": [
 				"bits-ui@^2.18.1",
 				"tailwind-variants@^3.3.1"
@@ -7582,7 +7557,7 @@
 			"name": "parallax-tags-input",
 			"type": "registry:ui",
 			"title": "Tags input",
-			"description": "Parallax's tags input component — not in the official shadcn-svelte registry.",
+			"description": "Free-text values entered as removable chips, with paste, split-on-delimiter, edit in place and per-tag validation.",
 			"dependencies": [
 				"@lucide/svelte@^1.30.0"
 			],
@@ -7649,7 +7624,7 @@
 			"name": "parallax-text-gradient",
 			"type": "registry:ui",
 			"title": "Text gradient",
-			"description": "Parallax's text gradient component — not in the official shadcn-svelte registry.",
+			"description": "A highlight that sweeps through text — the label that says a machine is still working.",
 			"dependencies": [],
 			"devDependencies": [],
 			"registryDependencies": [],
@@ -7675,7 +7650,7 @@
 			"name": "parallax-textarea",
 			"type": "registry:ui",
 			"title": "Textarea",
-			"description": "The Parallax fork of the official textarea: the same API with the house refinements this theme depends on.",
+			"description": "The house textarea: shadcn's API at the theme's padding and focus ring, so it matches the fields beside it.",
 			"dependencies": [],
 			"devDependencies": [],
 			"registryDependencies": [],
@@ -7696,7 +7671,7 @@
 			"name": "parallax-timeline",
 			"type": "registry:ui",
 			"title": "Timeline",
-			"description": "Parallax's timeline component — not in the official shadcn-svelte registry.",
+			"description": "A chronological list of events: vertical or horizontal, an alternating variant, RTL support, and completed/active/pending states.",
 			"dependencies": [
 				"tailwind-variants@^3.3.1"
 			],
@@ -7766,7 +7741,7 @@
 			"name": "parallax-toggle",
 			"type": "registry:ui",
 			"title": "Toggle",
-			"description": "The Parallax fork of the official toggle: the same API with the house refinements this theme depends on.",
+			"description": "The house toggle: shadcn's API on the --control-h-* ramp with the data-icon slots, so a toggle and a button share a line.",
 			"dependencies": [
 				"bits-ui@^2.18.1",
 				"tailwind-variants@^3.3.1"
@@ -7790,7 +7765,7 @@
 			"name": "parallax-toggle-group",
 			"type": "registry:ui",
 			"title": "Toggle group",
-			"description": "The Parallax fork of the official toggle-group: the same API with the house refinements this theme depends on.",
+			"description": "The house toggle group: shadcn's API with a `spacing` axis — fused into one shape, or spaced apart — and an orientation.",
 			"dependencies": [
 				"bits-ui@^2.18.1",
 				"tailwind-variants@^3.3.1"
@@ -7821,7 +7796,7 @@
 			"name": "parallax-tooltip",
 			"type": "registry:ui",
 			"title": "Tooltip",
-			"description": "The Parallax fork of the official tooltip: the same API with the house refinements this theme depends on.",
+			"description": "The house tooltip: shadcn's API on the inverted foreground ground, with the arrow the theme draws.",
 			"dependencies": [
 				"bits-ui@^2.18.1"
 			],
@@ -7864,7 +7839,7 @@
 			"name": "parallax-tour",
 			"type": "registry:ui",
 			"title": "Tour",
-			"description": "Parallax's tour component — not in the official shadcn-svelte registry.",
+			"description": "A guided tour: highlight an element, step through the instructions, and teach a screen the first time somebody sees it.",
 			"dependencies": [
 				"@lucide/svelte@^1.30.0",
 				"bits-ui@^2.18.1"
@@ -7971,7 +7946,7 @@
 			"name": "parallax-tree",
 			"type": "registry:ui",
 			"title": "Tree",
-			"description": "Parallax's tree component — not in the official shadcn-svelte registry.",
+			"description": "A multi-level tree view with expand and collapse, selection, and the WAI-ARIA keyboard model.",
 			"dependencies": [
 				"@lucide/svelte@^1.30.0"
 			],
