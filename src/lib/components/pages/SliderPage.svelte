@@ -164,7 +164,14 @@
 
 	<Card.Root>
 		<Card.Content>
-			<Slider type="single" bind:value={volume} max={100} step={1} class={control} />
+			<Slider
+				type="single"
+				bind:value={volume}
+				max={100}
+				step={1}
+				aria-label="Volume"
+				class={control}
+			/>
 		</Card.Content>
 	</Card.Root>
 
@@ -172,7 +179,7 @@
 		{#snippet blurb()}
 			The three props the docs' usage snippet passes, at other values. They are the same three
 			attributes an <code class="text-[87.5%] text-primary">&lt;input type="range"&gt;</code> takes, and
-			the classic theme changes none of their behaviour — only how the track and thumb are painted.
+			they behave the same way — the theme paints the track and the thumb, nothing more.
 		{/snippet}
 		<Card.Root>
 			<Card.Content>
@@ -184,6 +191,7 @@
 						min={0}
 						max={5}
 						step={0.5}
+						aria-label="Temperature"
 						class={control}
 					/>
 					<!--
@@ -200,15 +208,21 @@
 
 	<DocSection title="Multiple thumbs">
 		{#snippet blurb()}
-			<code class="text-[87.5%] text-primary">type="multiple"</code> binds an array instead of a number
-			and renders one thumb per entry. This has no classic counterpart at all: a range input carries a
-			single value, so both the second thumb and the filled span between the two are shadcn's, kept as
-			they ship.
+			<code class="text-[87.5%] text-primary">type="multiple"</code> binds an array instead of a
+			number and renders one thumb per entry, with the span between them filled — something a native
+			<code class="text-[87.5%] text-primary">&lt;input type="range"&gt;</code> cannot do at all.
 		{/snippet}
 		<Card.Root>
 			<Card.Content>
 				<div class="flex flex-col gap-2">
-					<Slider type="multiple" bind:value={priceRange} max={100} step={1} class={control} />
+					<Slider
+						type="multiple"
+						bind:value={priceRange}
+						max={100}
+						step={1}
+						thumbLabel={["Minimum price", "Maximum price"]}
+						class={control}
+					/>
 					<p class="text-xs text-muted-foreground">{priceRange[0]} – {priceRange[1]}</p>
 				</div>
 			</Card.Content>
@@ -217,7 +231,8 @@
 
 	<DocSection title="Disabled">
 		{#snippet blurb()}
-			The only state the classic theme's compiled CSS restyles beyond the resting one.
+			The one state the slider repaints: the track, the fill and the thumb all fade together, and
+			the control stops answering the pointer and the arrow keys.
 		{/snippet}
 		<Card.Root>
 			<Card.Content>
@@ -232,7 +247,15 @@
 					overridden: the classic theme has no filled range, so it never had to answer what a disabled
 					primary fill should look like, and at full strength it reads as an enabled control.
 				-->
-				<Slider type="single" value={50} max={100} step={1} disabled class={control} />
+				<Slider
+					type="single"
+					value={50}
+					max={100}
+					step={1}
+					disabled
+					aria-label="Disabled slider"
+					class={control}
+				/>
 			</Card.Content>
 		</Card.Root>
 	</DocSection>
@@ -247,7 +270,14 @@
 			<Card.Content>
 				<!-- demo 3, verbatim apart from the page's shared row height. -->
 				<div class="flex w-full max-w-xs items-center justify-center">
-					<Slider type="multiple" bind:value={discreteValues} max={100} step={10} class={control} />
+					<Slider
+						type="multiple"
+						bind:value={discreteValues}
+						max={100}
+						step={10}
+						thumbLabel={["First value", "Second value", "Third value"]}
+						class={control}
+					/>
 				</div>
 			</Card.Content>
 		</Card.Root>
@@ -255,9 +285,8 @@
 
 	<DocSection title="Vertical slider with range selection">
 		{#snippet blurb()}
-			<code class="text-[87.5%] text-primary">orientation="vertical"</code> on a single value and on
-			a range. The classic <code class="text-[87.5%] text-primary">.form-range</code> is horizontal only,
-			so both columns are shadcn's, kept as they ship.
+			<code class="text-[87.5%] text-primary">orientation="vertical"</code> on a single value and on a
+			range — the axis a native range input has no way to ask for.
 		{/snippet}
 		<Card.Root>
 			<Card.Content>
@@ -272,6 +301,7 @@
 						max={100}
 						step={1}
 						orientation="vertical"
+						aria-label="Vertical value"
 						class="h-40"
 					/>
 					<Slider
@@ -280,6 +310,7 @@
 						max={100}
 						step={5}
 						orientation="vertical"
+						thumbLabel={["Vertical range start", "Vertical range end"]}
 						class="h-40"
 					/>
 				</div>
@@ -318,7 +349,14 @@
 							<span class="text-xs text-muted-foreground">%</span>
 						</div>
 					</div>
-					<Slider type="single" bind:value={opacityValue} max={100} step={1} class={control} />
+					<Slider
+						type="single"
+						bind:value={opacityValue}
+						max={100}
+						step={1}
+						aria-label="Opacity"
+						class={control}
+					/>
 				</div>
 			</Card.Content>
 		</Card.Root>
@@ -354,6 +392,7 @@
 						min={2700}
 						max={6500}
 						step={100}
+						aria-label="Color temperature"
 						class={control}
 					/>
 				</div>
@@ -371,7 +410,14 @@
 				<!-- demo 9 -->
 				<div class="mx-auto grid w-full max-w-sm gap-4">
 					<Label class="text-sm font-medium">Storage</Label>
-					<Slider type="single" bind:value={storageValue} min={5} max={35} class={control} />
+					<Slider
+						type="single"
+						bind:value={storageValue}
+						min={5}
+						max={35}
+						aria-label="Storage"
+						class={control}
+					/>
 					<span
 						aria-hidden="true"
 						class="flex w-full items-center justify-between text-xs font-medium text-muted-foreground"
@@ -394,7 +440,13 @@
 			<Card.Content>
 				<div class="mx-auto grid w-full max-w-sm gap-4">
 					<Label class="text-sm font-medium">Duration (months)</Label>
-					<Slider type="single" bind:value={durationValue} max={durationMax} class={control} />
+					<Slider
+						type="single"
+						bind:value={durationValue}
+						max={durationMax}
+						aria-label="Duration in months"
+						class={control}
+					/>
 					<!--
 						demo 10. Each tick column is `w-0` so the row's `justify-between` spaces
 						thirteen zero-width points evenly across the track, and `px-2.5` insets the first
@@ -457,6 +509,7 @@
 							min={tooltipMin}
 							max={tooltipMax}
 							step={1}
+							aria-label="Completion"
 							class={control}
 						/>
 					</div>
@@ -482,6 +535,7 @@
 							min={1}
 							max={5}
 							step={1}
+							aria-label="Rate your experience"
 							class={control}
 						/>
 						<span class="text-2xl" aria-hidden="true">{ratingEmojis[ratingValue - 1]}</span>

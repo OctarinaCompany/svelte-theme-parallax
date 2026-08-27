@@ -261,6 +261,7 @@
 							min={1}
 							max={5}
 							step={0.01}
+							aria-label="Zoom"
 						/>
 					</div>
 					<div class="flex flex-col gap-1.5">
@@ -272,6 +273,7 @@
 							min={-180}
 							max={180}
 							step={1}
+							aria-label="Rotation"
 						/>
 					</div>
 				</div>

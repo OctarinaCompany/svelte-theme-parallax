@@ -464,7 +464,7 @@
 	});
 </script>
 
-<DocPage title="Data Grid">
+<DocPage title="Data grid">
 	{#snippet subtitle()}
 		A virtualized, spreadsheet-like editable grid: keyboard navigation, rectangular cell selection,
 		clipboard support and nine cell variants. Reach for it over the

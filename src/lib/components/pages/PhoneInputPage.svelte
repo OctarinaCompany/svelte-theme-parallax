@@ -311,7 +311,7 @@
 	];
 </script>
 
-<DocPage title="Phone Input">
+<DocPage title="Phone input">
 	{#snippet subtitle()}
 		An accessible phone input with automatic country detection and international phone number
 		formatting.
@@ -319,11 +319,9 @@
 
 	<DocSection title="Default">
 		{#snippet blurb()}
-			The root's placeholder wins over the field's own, which is why upstream's demo shows “Enter
-			phone number” rather than its own placeholder. Selecting a country seeds an empty field with
-			its calling code and replaces any value under a different calling code; only a number already
-			under the selected code is kept — a divergence from upstream, which leaves the value
-			untouched.
+			A placeholder set on the root wins over one set on the field, which is why the box reads
+			“Enter phone number” here. Selecting a country seeds an empty field with its calling code and
+			replaces any value under a different one; a number already under the selected code is kept.
 		{/snippet}
 		<Card.Root>
 			<Card.Content>

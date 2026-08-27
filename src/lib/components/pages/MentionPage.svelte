@@ -324,7 +324,7 @@
 		</Card.Root>
 	</DocSection>
 
-	<DocSection title="Custom Trigger">
+	<DocSection title="Custom trigger">
 		{#snippet blurb()}
 			The popup opens on # instead of @.
 		{/snippet}
@@ -351,7 +351,7 @@
 		</Card.Root>
 	</DocSection>
 
-	<DocSection title="With Custom Filter">
+	<DocSection title="With custom filter">
 		{#snippet blurb()}
 			A controlled slash-command palette whose onFilter keeps only the commands starting with the
 			typed term.

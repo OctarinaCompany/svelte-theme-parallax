@@ -229,7 +229,7 @@
 		</Card.Root>
 	</DocSection>
 
-	<DocSection title="With Form">
+	<DocSection title="With form">
 		{#snippet blurb()}
 			A drawer holding a small form — the mobile-first alternative to putting the same fields in a
 			Dialog. Fields compose from the Field primitives, exactly as they would anywhere else on a
@@ -298,7 +298,7 @@
 		</Card.Root>
 	</DocSection>
 
-	<DocSection title="Snap Points">
+	<DocSection title="Snap points">
 		{#snippet blurb()}
 			<code class="text-[87.5%] text-primary">snapPoints</code> lets the drawer rest at intermediate
 			heights — here 40% and full — and

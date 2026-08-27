@@ -149,7 +149,7 @@
 
 	<Card.Root>
 		<Card.Content>
-			<NativeSelect.Root class={control}>
+			<NativeSelect.Root class={control} aria-label="Status">
 				<NativeSelect.Option value="">Select status</NativeSelect.Option>
 				<NativeSelect.Option value="todo">Todo</NativeSelect.Option>
 				<NativeSelect.Option value="in-progress">In Progress</NativeSelect.Option>
@@ -171,7 +171,7 @@
 					header note. Both the classic theme and shadcn leave them alone, so this example looks the
 					same in either theme and differs between platforms.
 				-->
-				<NativeSelect.Root class={control}>
+				<NativeSelect.Root class={control} aria-label="Department">
 					<NativeSelect.Option value="">Select department</NativeSelect.Option>
 					{#each departments as department (department.label)}
 						<NativeSelect.OptGroup label={department.label}>
@@ -196,7 +196,7 @@
 				single option, its "Disabled State" example disables the control.
 			-->
 			<Card.Content class="flex flex-col gap-4">
-				<NativeSelect.Root class={control}>
+				<NativeSelect.Root class={control} aria-label="Fruit">
 					<NativeSelect.Option value="">Select a fruit</NativeSelect.Option>
 					<NativeSelect.Option value="apple">Apple</NativeSelect.Option>
 					<NativeSelect.Option value="banana">Banana</NativeSelect.Option>
@@ -211,7 +211,7 @@
 					to make the state more visible, because doing so would be an invention rather than
 					a port.
 				-->
-				<NativeSelect.Root class={control} disabled>
+				<NativeSelect.Root class={control} aria-label="Priority" disabled>
 					<NativeSelect.Option value="">Select priority</NativeSelect.Option>
 					<NativeSelect.Option value="low">Low</NativeSelect.Option>
 					<NativeSelect.Option value="medium">Medium</NativeSelect.Option>
@@ -243,7 +243,7 @@
 					`--bs-form-select-bg-icon` at `none`, so the caret is the only image on the
 					control. shadcn draws no icon either, so that half needs nothing.
 				-->
-				<NativeSelect.Root class={control} aria-invalid="true">
+				<NativeSelect.Root class={control} aria-label="Role" aria-invalid="true">
 					<NativeSelect.Option value="">Select role</NativeSelect.Option>
 					<NativeSelect.Option value="admin">Admin</NativeSelect.Option>
 					<NativeSelect.Option value="editor">Editor</NativeSelect.Option>
@@ -279,10 +279,8 @@
 
 	<DocSection title="Small">
 		{#snippet blurb()}
-			The size the classic theme documents beside the default one, reached here through the
-			component's
-			<code class="text-[87.5%] text-primary">size</code> prop rather than a
-			<code class="text-[87.5%] text-primary">.form-select-sm</code> class.
+			The smaller of the two sizes, reached through the component's
+			<code class="text-[87.5%] text-primary">size</code> prop rather than through a class of its own.
 		{/snippet}
 		<Card.Root>
 			<Card.Content>
@@ -292,7 +290,7 @@
 					corners, and `.125rem` / `.5rem` padding with the caret's 1.75rem right side
 					left alone.
 				-->
-				<NativeSelect.Root class={control} size="sm">
+				<NativeSelect.Root class={control} aria-label="Food" size="sm">
 					<NativeSelect.Option value="">Select a food</NativeSelect.Option>
 					<NativeSelect.OptGroup label="Fruits">
 						<NativeSelect.Option value="apple">Apple</NativeSelect.Option>

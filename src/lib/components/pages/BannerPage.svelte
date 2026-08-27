@@ -186,7 +186,7 @@
 		</Card.Root>
 	</DocSection>
 
-	<DocSection title="Stacked Banners">
+	<DocSection title="Stacked banners">
 		{#snippet blurb()}
 			The queue keeps its defaults, so the banner pins itself to the top of the viewport and later
 			additions wait their turn — add a few and watch the count.

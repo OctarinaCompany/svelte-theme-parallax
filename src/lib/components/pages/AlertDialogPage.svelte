@@ -82,10 +82,17 @@
 	];
 </script>
 
-<DocPage title="Alert Dialog">
+<DocPage title="Alert dialog">
 	{#snippet subtitle()}
 		A modal that interrupts the user with an important message and expects a response — no close
-		button, and Escape or an overlay click resolves to Cancel.
+		button, and Escape or an overlay click resolves to Cancel. Please see the
+		<a
+			class="text-primary underline underline-offset-3"
+			href="https://shadcn-svelte.com/docs/components/alert-dialog"
+			target="_blank"
+			rel="noreferrer">official shadcn-svelte documentation</a
+		>
+		for a full list of options.
 	{/snippet}
 
 	<DocSection title="Basic alert dialog with title, description, and action buttons">

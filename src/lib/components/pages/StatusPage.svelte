@@ -268,7 +268,7 @@
 		</Card.Root>
 	</DocSection>
 
-	<DocSection title="Text Only">
+	<DocSection title="Text only">
 		<Card.Root>
 			<Card.Content>
 				<div class="flex flex-wrap items-center gap-2.5">
@@ -296,7 +296,7 @@
 		</Card.Root>
 	</DocSection>
 
-	<DocSection title="Service Status List">
+	<DocSection title="Service status list">
 		<Card.Root>
 			<Card.Content>
 				<div class="flex w-full max-w-md flex-col gap-2">

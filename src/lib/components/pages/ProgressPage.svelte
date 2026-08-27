@@ -223,7 +223,14 @@
 			<Card.Content>
 				<div class="mx-auto flex w-full max-w-xs flex-col gap-6">
 					<Progress value={sliderProgressValue} />
-					<Slider type="single" bind:value={sliderProgressValue} min={0} max={100} step={1} />
+					<Slider
+						type="single"
+						bind:value={sliderProgressValue}
+						min={0}
+						max={100}
+						step={1}
+						aria-label="Progress"
+					/>
 				</div>
 			</Card.Content>
 		</Card.Root>

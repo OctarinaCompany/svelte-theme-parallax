@@ -716,15 +716,14 @@
 
 <DocPage title="Chart">
 	{#snippet subtitle()}
-		The classic theme draws its charts with Chart.js; this theme keeps the styling and renders them
-		with LayerChart, which is what
+		Charts drawn with LayerChart and dressed in the theme's own tokens, which is what
 		<a
 			class="text-primary underline underline-offset-3"
 			href="https://shadcn-svelte.com/docs/components/chart"
 			target="_blank"
 			rel="noreferrer">shadcn-svelte's Chart</a
 		>
-		wraps. Every series below is the classic theme's own data.
+		wraps. Every series below is sample data — no chart on this page fetches anything.
 	{/snippet}
 
 	<DocSection title="Line">
@@ -849,12 +848,8 @@
 
 	<DocSection title="Toggle chart data">
 		{#snippet blurb()}
-			The classic theme toggles datasets through a JavaScript plugin driven by
-			<code class="text-[87.5%] text-primary">data-toggle</code>,
-			<code class="text-[87.5%] text-primary">data-target</code> and
-			<code class="text-[87.5%] text-primary">data-dataset</code> attributes. That plugin has no counterpart
-			here and none is needed — the two examples it documents are ordinary reactive state, so the attribute
-			contract is deliberately not reproduced. The behaviour is.
+			Series a reader can switch on and off. Nothing declarative drives it: the visible set is
+			ordinary reactive state, and the chart redraws from whatever is left in it.
 		{/snippet}
 
 		<div class="flex flex-col gap-6">

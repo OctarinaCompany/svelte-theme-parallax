@@ -3626,7 +3626,7 @@
 	{/if}
 {/snippet}
 
-<DocPage title="Data Table">
+<DocPage title="Data table">
 	{#snippet subtitle()}
 		A powerful and flexible data table for displaying, filtering, sorting and paginating tabular
 		data, built on <code>@tanstack/table-core</code>. Reach for it over the plain
@@ -4065,9 +4065,8 @@
 
 	<DocSection title="Sticky header">
 		{#snippet blurb()}
-			`headerSticky` — the scroller is capped and the head row sticks to its top. The classic theme
-			already fills the head with the page ground, so nothing shows through it while the rows pass
-			under.
+			`headerSticky` — the scroller is capped and the head row sticks to its top. The head row is
+			already filled with the page ground, so nothing shows through it while the rows pass under.
 		{/snippet}
 		<Card.Root>
 			<Card.Content>

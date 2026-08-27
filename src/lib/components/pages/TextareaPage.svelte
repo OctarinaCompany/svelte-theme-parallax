@@ -140,8 +140,8 @@
 
 	<DocSection title="Disabled">
 		{#snippet blurb()}
-			The classic theme gives a disabled field the same background, border and text colour as an
-			enabled one, so the only cue left is that it cannot be focused or typed into.
+			A disabled field keeps the background, border and text colour of an enabled one, so what marks
+			it is the cursor and the fact that it cannot be focused or typed into.
 		{/snippet}
 		<Card.Root>
 			<Card.Content>
@@ -152,7 +152,7 @@
 
 	<DocSection title="With label">
 		{#snippet blurb()}
-			A label above its field, the shape the classic theme's own Forms card uses for every control.
+			A label above its field, which is the shape every form on this site uses.
 		{/snippet}
 		<Card.Root>
 			<Card.Content>
@@ -166,10 +166,8 @@
 
 	<DocSection title="With text">
 		{#snippet blurb()}
-			Helper text beside the field. The classic theme's
-			<code class="text-[87.5%] text-primary">.form-text</code> is a
-			<code class="text-[87.5%] text-primary">&lt;small&gt;</code>, so it is 13px rather than the
-			15px the shadcn example asks for.
+			Helper text under the field, set at 13px rather than the body's 15px so it reads as a note
+			about the control and not as another line of the form.
 		{/snippet}
 		<Card.Root>
 			<Card.Content>
@@ -202,8 +200,8 @@
 
 	<DocSection title="With button">
 		{#snippet blurb()}
-			A field and its submit button, the shape of the classic theme's own form example in
-			<code class="text-[87.5%] text-primary">the reference docs#forms</code>.
+			A field and its submit button — the whole of a comment box, which is what a textarea is
+			usually part of.
 		{/snippet}
 		<Card.Root>
 			<Card.Content>

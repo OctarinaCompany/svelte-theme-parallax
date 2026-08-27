@@ -778,7 +778,7 @@
 		</Card.Root>
 	</DocSection>
 
-	<DocSection title="With Dynamic Overlay">
+	<DocSection title="With dynamic overlay">
 		{#snippet blurb()}
 			— the overlay snippet receives the active identifier and whether it is a column or an item,
 			and renders a whole column preview or a single card.

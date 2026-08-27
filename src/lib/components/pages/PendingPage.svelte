@@ -230,7 +230,7 @@
 		</Card.Root>
 	</DocSection>
 
-	<DocSection title="Wrapper Component">
+	<DocSection title="Wrapper component">
 		<Card.Root>
 			<Card.Content>
 				<div class="flex flex-col items-center gap-4">
@@ -252,7 +252,7 @@
 		</Card.Root>
 	</DocSection>
 
-	<DocSection title="Form with Pending State">
+	<DocSection title="Form with pending state">
 		<Card.Root>
 			<Card.Content>
 				<form class="w-full max-w-sm" onsubmit={onSignIn}>
@@ -292,7 +292,7 @@
 		</Card.Root>
 	</DocSection>
 
-	<DocSection title="Navigation Links">
+	<DocSection title="Navigation links">
 		<Card.Root>
 			<Card.Content>
 				<div class="flex items-center justify-center">
@@ -313,7 +313,7 @@
 		</Card.Root>
 	</DocSection>
 
-	<DocSection title="Toggle Switches">
+	<DocSection title="Toggle switches">
 		<Card.Root>
 			<Card.Content>
 				<div class="flex w-full max-w-sm flex-col gap-6">

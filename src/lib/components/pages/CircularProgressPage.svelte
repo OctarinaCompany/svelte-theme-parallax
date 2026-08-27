@@ -250,7 +250,7 @@
 	];
 </script>
 
-<DocPage title="Circular Progress">
+<DocPage title="Circular progress">
 	{#snippet subtitle()}
 		A circular progress indicator that displays completion progress in a ring format, with full
 		support for indeterminate states. This is the closed-ring preset — a small loader, 48px on a 4px

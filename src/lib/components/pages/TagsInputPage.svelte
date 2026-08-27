@@ -393,7 +393,7 @@
 	</Button>
 {/snippet}
 
-<DocPage title="Tags Input">
+<DocPage title="Tags input">
 	{#snippet subtitle()}
 		Display a list of tags in an input field with the ability to add, edit, and remove them. See the
 		<a class="text-primary underline underline-offset-3" href={href("/components/combobox")}
@@ -453,7 +453,7 @@
 		</Card.Root>
 	</DocSection>
 
-	<DocSection title="With Validation">
+	<DocSection title="With validation">
 		{#snippet blurb()}
 			Add up to 6 tricks with at least 3 characters, excluding “ollie”; every rejection raises a
 			toast.

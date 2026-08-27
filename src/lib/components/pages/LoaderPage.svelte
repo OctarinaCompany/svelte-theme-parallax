@@ -134,14 +134,12 @@
 	 * which across twelve hands is how a catalog ends up with two sections meaning the same thing.
 	 *
 	 * Every specimen's `name` and `kebab` are the catalog's own fields, and the order within a
-	 * section is the catalog's order — the gallery order, not alphabetical. `total` is
-	 * the catalog's count for the group and the blurb prints it against `specimens.length`, so the
-	 * page keeps reporting its own coverage now that the two are equal.
+	 * section is the catalog's order — the gallery order, not alphabetical. Each blurb prints
+	 * `specimens.length`, so a section's count can never disagree with the tiles under it.
 	 */
-	const groups: { title: string; total: number; blurb: string; specimens: Specimen[] }[] = [
+	const groups: { title: string; blurb: string; specimens: Specimen[] }[] = [
 		{
 			title: "Physics & Simulation",
-			total: 1,
 			blurb:
 				"The one loader in the folder allowed to run JavaScript: every bar's height is a function of where the ball is, which per-element CSS keyframes cannot express.",
 			specimens: [
@@ -155,7 +153,6 @@
 		},
 		{
 			title: "Dots & Pulses",
-			total: 24,
 			blurb: "Small round marks that travel, fade or breathe.",
 			specimens: [
 				{ name: "Pulse Dots", kebab: "pulse-dots", component: Loader.PulseDots },
@@ -186,7 +183,6 @@
 		},
 		{
 			title: "Rings & Spinners",
-			total: 30,
 			blurb:
 				"Anything that turns. The largest family, and the one the classic spinner is the archetype of.",
 			specimens: [
@@ -228,7 +224,6 @@
 		},
 		{
 			title: "Bars & Waves",
-			total: 19,
 			blurb: "Rows of bars rising and falling — equalisers, waveforms, cascades.",
 			specimens: [
 				{ name: "Bar Cascade", kebab: "bar-cascade", component: Loader.BarCascade },
@@ -254,7 +249,6 @@
 		},
 		{
 			title: "Geometric Shapes",
-			total: 35,
 			blurb: "Squares, hexagons, diamonds and pendulums: shapes that flip, morph or swing.",
 			specimens: [
 				{ name: "Flip Square", kebab: "flip-square", component: Loader.FlipSquare },
@@ -320,7 +314,6 @@
 		},
 		{
 			title: "Text & Interface",
-			total: 19,
 			blurb:
 				"Loaders made of words, and the small interface surfaces — an island, a terminal, a card — that carry one.",
 			specimens: [
@@ -411,7 +404,7 @@
 		{
 			prop: "label",
 			type: "string",
-			default: "upstream's own string",
+			default: "the loader's own word",
 			description:
 				"Text loaders only. The word the loader animates, and its accessible name — one knob, so the two cannot drift.",
 		},
@@ -515,20 +508,19 @@
 	</DocSection>
 
 	<!--
-		The six sections the catalog defines, all of them now full. The count in each blurb is derived
-		from `specimens.length` rather than written down, so it was the honest report while the groups
-		were filling and it is the honest report now that they read "N of N" — and the empty-section
-		branch below stays, because a section that lost its loaders should say so rather than
-		disappear.
+		The six sections the catalog defines. The count in each blurb is derived from
+		`specimens.length` rather than written down, so it cannot drift from the tiles under it, and
+		the empty-section branch below stays: a section that lost its loaders should say so rather
+		than disappear.
 	-->
 	{#each groups as group (group.title)}
 		<DocSection title={group.title} code={false}>
 			{#snippet blurb()}
-				{group.blurb} {group.specimens.length} of {group.total} ported.
+				{group.blurb} {group.specimens.length} of them.
 			{/snippet}
 			{#if group.specimens.length === 0}
 				<p class="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
-					None of this group is ported yet.
+					This group is empty.
 				</p>
 			{:else}
 				<!--

@@ -309,7 +309,7 @@
 	];
 </script>
 
-<DocPage title="Selection Toolbar">
+<DocPage title="Selection toolbar">
 	{#snippet subtitle()}
 		A floating toolbar that appears on text selection with formatting and utility actions.
 	{/snippet}

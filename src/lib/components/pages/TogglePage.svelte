@@ -226,10 +226,8 @@
 
 	<DocSection title="Outline">
 		{#snippet blurb()}
-			The variant that maps onto the classic theme's own toggle: a
-			<code class="text-[87.5%] text-primary">.btn-white</code> label driven by a hidden
-			<code class="text-[87.5%] text-primary">.btn-check</code>, which turns its border and its type
-			primary once pressed.
+			The outlined toggle: a button on the card ground that turns both its border and its type
+			primary once it is pressed, so the on state reads without a fill.
 		{/snippet}
 		<Card.Root>
 			<Card.Content>
@@ -244,7 +242,7 @@
 		</Card.Root>
 	</DocSection>
 
-	<DocSection title="With Text">
+	<DocSection title="With text">
 		{#snippet blurb()}
 			An icon and a label in the same toggle.
 		{/snippet}
@@ -268,8 +266,7 @@
 
 	<DocSection title="Small">
 		{#snippet blurb()}
-			<code class="text-[87.5%] text-primary">.btn-sm</code>, where a .125rem padding and a 1.75
-			line height make a 28.75px control.
+			The small rung of the control ramp: a 32px control, with the type dropping a step to match.
 		{/snippet}
 		<Card.Root>
 			<Card.Content>
@@ -282,8 +279,7 @@
 
 	<DocSection title="Large">
 		{#snippet blurb()}
-			<code class="text-[87.5%] text-primary">.btn-lg</code>, where the padding grows to .75rem and
-			the corner to the large radius.
+			The large rung: a 48px control, with the padding and the corner growing with it.
 		{/snippet}
 		<Card.Root>
 			<Card.Content>
@@ -296,7 +292,8 @@
 
 	<DocSection title="Disabled">
 		{#snippet blurb()}
-			The classic framework dims a disabled button to 0.65, where shadcn dims to 0.5.
+			A disabled toggle dims to 0.65 rather than shadcn's 0.5, which is the same figure every other
+			disabled control on this site fades to.
 		{/snippet}
 		<Card.Root>
 			<Card.Content>
@@ -552,7 +549,7 @@
 
 	<DocSection title="Disabled toggle states">
 		{#snippet blurb()}
-			The enabled/disabled matrix across both variants — the classic 0.65 dim either way.
+			The enabled/disabled matrix across both variants — the same 0.65 dim either way.
 		{/snippet}
 		<Card.Root>
 			<Card.Content>

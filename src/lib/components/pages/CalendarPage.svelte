@@ -593,13 +593,13 @@
 	const uid = $props.id();
 </script>
 
-<!-- The classic day cell, handed to every single-date calendar below. -->
-{#snippet classicDay()}
+<!-- The page's day cell, handed to every single-date calendar below. -->
+{#snippet dayChip()}
 	<CalendarDay class={dayCell} />
 {/snippet}
 
 <!-- Its range counterpart. -->
-{#snippet classicRangeDay()}
+{#snippet rangeDayChip()}
 	<RangeDay class={rangeDay} />
 {/snippet}
 
@@ -714,20 +714,19 @@
 			{/snippet}
 			<Card.Root class={fitCard}>
 				<Card.Content class="p-0">
-					<Calendar type="single" bind:value={basicDate} class={pickerBody} day={classicDay} />
+					<Calendar type="single" bind:value={basicDate} class={pickerBody} day={dayChip} />
 				</Card.Content>
 			</Card.Root>
 		</DocSection>
 
 		<DocSection title="Range calendar">
 			{#snippet blurb()}
-				Six days, seeded from today. The band is the classic theme's <code
-					class="text-[87.5%] text-primary">the in-range day cell</code
-				> recipe, shared with the Range calendar page.
+				Six days, seeded from today. The days between the ends take the in-range fill, the same band
+				the Range calendar page draws.
 			{/snippet}
 			<Card.Root class={fitCard}>
 				<Card.Content class="p-0">
-					<RangeCalendar bind:value={basicRange} class={rangeCalendarFlush} day={classicRangeDay} />
+					<RangeCalendar bind:value={basicRange} class={rangeCalendarFlush} day={rangeDayChip} />
 				</Card.Content>
 			</Card.Root>
 		</DocSection>
@@ -745,7 +744,7 @@
 						isDateDisabled={isDate3Disabled}
 						excludeDisabled
 						class={rangeCalendarFlush}
-						day={classicRangeDay}
+						day={rangeDayChip}
 					/>
 				</Card.Content>
 			</Card.Root>
@@ -758,16 +757,15 @@
 			{/snippet}
 			<Card.Root class={fitCard}>
 				<Card.Content class="p-0">
-					<Calendar type="multiple" bind:value={multipleDays} class={pickerBody} day={classicDay} />
+					<Calendar type="multiple" bind:value={multipleDays} class={pickerBody} day={dayChip} />
 				</Card.Content>
 			</Card.Root>
 		</DocSection>
 
 		<DocSection title="Custom select day style">
 			{#snippet blurb()}
-				The source rounds the day button full. Every radius in the panel reads
-				<code class="text-[87.5%] text-primary">--cell-radius</code>, so one variable turns the
-				chips into circles.
+				Every radius in the panel reads <code class="text-[87.5%] text-primary">--cell-radius</code
+				>, so one variable turns the day chips from rounded squares into circles.
 			{/snippet}
 			<Card.Root class={fitCard}>
 				<Card.Content class="p-0">
@@ -775,7 +773,7 @@
 						type="single"
 						bind:value={circleDate}
 						class={cn(pickerBody, "[--cell-radius:calc(infinity*1px)]")}
-						day={classicDay}
+						day={dayChip}
 					/>
 				</Card.Content>
 			</Card.Root>
@@ -788,7 +786,7 @@
 			{/snippet}
 			<Card.Root class={fitCard}>
 				<Card.Content class="p-0">
-					<RangeCalendar bind:value={circleRange} class={circleRangeFrame} day={classicRangeDay} />
+					<RangeCalendar bind:value={circleRange} class={circleRangeFrame} day={rangeDayChip} />
 				</Card.Content>
 			</Card.Root>
 		</DocSection>
@@ -807,7 +805,7 @@
 							pickerBody,
 							"[&_[data-calendar-header]]:justify-start [&_[data-calendar-header]]:ps-2.5 [&_nav]:justify-end",
 						)}
-						day={classicDay}
+						day={dayChip}
 					/>
 				</Card.Content>
 			</Card.Root>
@@ -815,11 +813,10 @@
 
 		<DocSection title="Month and year selection">
 			{#snippet blurb()}
-				Month and year as NON-native dropdowns. react-day-picker can swap its caption selects for
-				popup ones; bits-ui's are native <code class="text-[87.5%] text-primary"
-					>&lt;select&gt;</code
+				Month and year as NON-native dropdowns. Bits UI's caption selects are native <code
+					class="text-[87.5%] text-primary">&lt;select&gt;</code
 				> elements with no replacement hook, so the header is hidden and the same row is rendered above
-				the grid from this theme's Select. The span is the source's: July 1980 to now.
+				the grid from this theme's Select. The span offered is July 1980 to today.
 			{/snippet}
 			<Card.Root class={fitCard}>
 				<Card.Content class="p-0">
@@ -863,7 +860,7 @@
 							bind:value={selectDate}
 							bind:placeholder={selectMonth}
 							class={cn(pickerDropdown, "[&_[data-calendar-header]]:hidden [&_nav]:hidden")}
-							day={classicDay}
+							day={dayChip}
 						/>
 					</div>
 				</Card.Content>
@@ -918,7 +915,7 @@
 							bind:value={yearNavDate}
 							bind:placeholder={yearNavMonth}
 							class={cn(pickerDropdown, "[&_[data-calendar-header]]:hidden [&_nav]:hidden")}
-							day={classicDay}
+							day={dayChip}
 						/>
 					</div>
 				</Card.Content>
@@ -1007,7 +1004,7 @@
 						bind:value={currentMonthDate}
 						bind:placeholder={currentMonthMonth}
 						class={pickerBody}
-						day={classicDay}
+						day={dayChip}
 					/>
 					<Button
 						class="mb-2 ml-4"
@@ -1023,8 +1020,7 @@
 
 		<DocSection title="Today button">
 			{#snippet blurb()}
-				The same shape, but the button selects today as well as showing it. The label is the
-				source's, typo included.
+				The same shape, but the button selects today as well as scrolling the grid to it.
 			{/snippet}
 			<Card.Root class={fitCard}>
 				<Card.Content class="p-0">
@@ -1033,7 +1029,7 @@
 						bind:value={todayBtnDate}
 						bind:placeholder={todayBtnMonth}
 						class={pickerBody}
-						day={classicDay}
+						day={dayChip}
 					/>
 					<Button
 						class="mb-2 ml-4"
@@ -1044,7 +1040,7 @@
 							todayBtnMonth = now;
 						}}
 					>
-						Current today
+						Today
 					</Button>
 				</Card.Content>
 			</Card.Root>
@@ -1112,7 +1108,7 @@
 								bind:value={inlineYearDate}
 								bind:placeholder={inlineYearMonth}
 								class={cn(pickerDropdown, "[&_[data-calendar-header]]:hidden [&_nav]:hidden")}
-								day={classicDay}
+								day={dayChip}
 							/>
 							{#if inlineYearOpen}
 								<div
@@ -1206,7 +1202,7 @@
 							}
 							minValue={now}
 							class={cn(pickerBody, "w-fit")}
-							day={classicDay}
+							day={dayChip}
 						/>
 						{@render timeColumn(slotDate, slotTime, (time) => (slotTime = time))}
 					</div>
@@ -1235,7 +1231,7 @@
 							bind:placeholder={presetMonth}
 							maxValue={now}
 							class={cn(pickerBody, "w-fit")}
-							day={classicDay}
+							day={dayChip}
 						/>
 					</div>
 				</Card.Content>
@@ -1258,7 +1254,7 @@
 							bind:placeholder={presetRangeMonth}
 							maxValue={now}
 							class={rangeCalendarFlush}
-							day={classicRangeDay}
+							day={rangeDayChip}
 						/>
 					</div>
 				</Card.Content>
@@ -1267,9 +1263,9 @@
 
 		<DocSection title="Calendar with pricing">
 			{#snippet blurb()}
-				A per-night price under each day, from the source's seeded formula — stable for a given
-				date, green under $100. The one demo shipped without a card: the panel draws its own border,
-				and the cells grow to 48px to hold two lines.
+				A per-night price under each day, seeded from the date so it is stable between renders, and
+				green under $100. The one demo shipped without a card: the panel draws its own border, and
+				the cells grow to 48px to hold two lines.
 			{/snippet}
 			<Calendar
 				type="single"
@@ -1304,7 +1300,7 @@
 						bind:placeholder={footerMonth}
 						fixedWeeks
 						class={pickerBody}
-						day={classicDay}
+						day={dayChip}
 					/>
 				</Card.Content>
 				<Card.Footer class="flex flex-wrap gap-2 border-t p-3">
@@ -1350,7 +1346,7 @@
 							isDateDisabled={isBooked}
 							disableDaysOutsideMonth
 							class={cn(pickerBody, hideOutside, "w-fit p-0")}
-							day={classicDay}
+							day={dayChip}
 						/>
 					</div>
 					<div
@@ -1407,7 +1403,7 @@
 						bind:value={twoMonthsDate}
 						numberOfMonths={2}
 						class={pickerBody}
-						day={classicDay}
+						day={dayChip}
 					/>
 				</Card.Content>
 			</Card.Root>
@@ -1415,10 +1411,8 @@
 
 		<DocSection title="Display 2 months with range picker">
 			{#snippet blurb()}
-				The same two grids selecting a range — the shape classically called
-				<code class="text-[87.5%] text-primary">showMonths: 2</code>, whose hardcoded
-				<code class="text-[87.5%] text-primary">#e6e6e6</code> divider the classic theme never remaps,
-				so no divider is guessed at here either.
+				The same two grids selecting a range, side by side. Nothing is drawn between the months: the
+				gap is the separation, so neither panel needs a rule that would have to be themed twice.
 			{/snippet}
 			<Card.Root class={fitCard}>
 				<Card.Content class="overflow-x-auto p-0">
@@ -1426,7 +1420,7 @@
 						bind:value={twoMonthRange}
 						numberOfMonths={2}
 						class={rangeCalendarFlush}
-						day={classicRangeDay}
+						day={rangeDayChip}
 					/>
 				</Card.Content>
 			</Card.Root>
@@ -1445,7 +1439,7 @@
 						type="single"
 						bind:value={() => eventDate, (value) => value && (eventDate = value)}
 						class={cn(pickerBody, "mx-auto w-fit p-0 [--cell-size:36px]")}
-						day={classicDay}
+						day={dayChip}
 					/>
 				</Card.Content>
 				<Card.Footer class="flex flex-col items-start gap-3 border-t px-4 pt-3">
@@ -1476,7 +1470,7 @@
 		<DocSection title="Localize calendar">
 			{#snippet blurb()}
 				The locale is a prop: weekday and caption labels re-render in Chinese, and the title follows
-				from the demo's own strings. The seeded range is the source's, February 2026.
+				from the demo's own strings.
 			{/snippet}
 			<Card.Root class="w-fit">
 				<Card.Header>
@@ -1512,7 +1506,7 @@
 						bind:placeholder={localeMonth}
 						locale={localized[localeKey].locale}
 						class={rangeCalendarFlush}
-						day={classicRangeDay}
+						day={rangeDayChip}
 					/>
 				</Card.Content>
 			</Card.Root>
@@ -1520,8 +1514,8 @@
 
 		<DocSection title="Calendar with date picker">
 			{#snippet blurb()}
-				The plainest of the pickers: a form-control trigger and the grid in a popover — the one
-				shape the classic theme actually documents, since its calendar is never an inline panel.
+				The plainest of the pickers: a form-control trigger and the grid in a popover, which is the
+				shape a date field takes in a form rather than on a page of its own.
 			{/snippet}
 			<Card.Root>
 				<Card.Content>
@@ -1545,7 +1539,7 @@
 								type="single"
 								bind:value={pickDate}
 								class={pickerDropdown}
-								day={classicDay}
+								day={dayChip}
 								onValueChange={() => (pickDateOpen = false)}
 							/>
 						</Popover.Content>
@@ -1578,7 +1572,7 @@
 								bind:value={pickRange}
 								numberOfMonths={2}
 								class={rangeCalendarFlush}
-								day={classicRangeDay}
+								day={rangeDayChip}
 							/>
 						</Popover.Content>
 					</Popover.Root>
@@ -1663,7 +1657,7 @@
 									bind:value={yearViewDate}
 									bind:placeholder={yearViewMonth}
 									class={cn(pickerDropdown, "[&_[data-calendar-header]]:hidden [&_nav]:hidden")}
-									day={classicDay}
+									day={dayChip}
 									onValueChange={() => (yearViewOpen = false)}
 								/>
 							</div>
@@ -1740,7 +1734,7 @@
 									}
 									minValue={now}
 									class={cn(pickerBody, "w-fit")}
-									day={classicDay}
+									day={dayChip}
 								/>
 								{@render timeColumn(
 									pickerSlotDate,
@@ -1799,7 +1793,7 @@
 									bind:placeholder={pickerPresetMonth}
 									maxValue={now}
 									class={cn(pickerBody, "w-fit")}
-									day={classicDay}
+									day={dayChip}
 								/>
 							</div>
 						</Popover.Content>
@@ -1839,7 +1833,7 @@
 									bind:placeholder={pickPresetMonth}
 									maxValue={now}
 									class={rangeCalendarFlush}
-									day={classicRangeDay}
+									day={rangeDayChip}
 								/>
 							</div>
 						</Popover.Content>
@@ -1878,7 +1872,7 @@
 								type="single"
 								bind:value={timeRangeDate}
 								class={cn(pickerBody, "w-fit p-0")}
-								day={classicDay}
+								day={dayChip}
 							/>
 							<Separator class="my-3" />
 							<div class="grid grid-cols-2 gap-2.5">

@@ -224,7 +224,7 @@
 	</Button>
 {/snippet}
 
-<DocPage title="Relative Time Card">
+<DocPage title="Relative time card">
 	{#snippet subtitle()}
 		A hover card that displays relative time relative to local time with timezone information.
 	{/snippet}

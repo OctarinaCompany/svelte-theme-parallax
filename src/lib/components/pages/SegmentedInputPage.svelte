@@ -179,7 +179,7 @@
 	];
 </script>
 
-<DocPage title="Segmented Input">
+<DocPage title="Segmented input">
 	{#snippet subtitle()}
 		A group of connected input fields that appear as a single segmented visual unit.
 	{/snippet}
@@ -217,7 +217,7 @@
 		</Card.Root>
 	</DocSection>
 
-	<DocSection title="Form Input">
+	<DocSection title="Form input">
 		{#snippet blurb()}
 			The area code and number segments declare their own maxlength, so pasting “5551234567” into
 			the area code overflows the extra digits into the number field.
@@ -267,7 +267,7 @@
 		</Card.Root>
 	</DocSection>
 
-	<DocSection title="RGB Color Input">
+	<DocSection title="RGB color input">
 		{#snippet blurb()}
 			Each channel clamps itself to 0–255, and a pasted “255, 128, 0” lands one value per channel.
 		{/snippet}
@@ -317,7 +317,7 @@
 		</Card.Root>
 	</DocSection>
 
-	<DocSection title="Vertical Layout">
+	<DocSection title="Vertical layout">
 		{#snippet blurb()}
 			In a vertical group the up and down arrows move between fields and the horizontal ones stay
 			with the caret.

@@ -293,11 +293,8 @@
 
 	<DocSection title="Text">
 		{#snippet blurb()}
-			Static segments fused to the field — the classic
-			<code class="text-[87.5%] text-primary">.input-group-text</code>, rendered the way the classic
-			theme's
-			<code class="text-[87.5%] text-primary">.input-group-merge</code> modifier draws it: one outline
-			around addon and control, no interior seam.
+			Static segments fused to the field: one outline around the addon and the control together,
+			with no interior seam, so the pair reads as a single object.
 		{/snippet}
 		<Card.Root>
 			<Card.Content>
@@ -628,7 +625,7 @@
 		</Card.Root>
 	</DocSection>
 
-	<DocSection title="AI Chat textarea with rich toolbar actions">
+	<DocSection title="AI chat textarea with rich toolbar actions">
 		{#snippet blurb()}
 			The prompt-bar composition every AI product converges on: a textarea with a
 			<code class="text-[87.5%] text-primary">block-end</code> toolbar — attachments and mode toggles
@@ -694,7 +691,7 @@
 		</Card.Root>
 	</DocSection>
 
-	<DocSection title="AI Chat interface with file and context attachments">
+	<DocSection title="AI chat interface with file and context attachments">
 		{#snippet blurb()}
 			The prompt bar again, with the context made visible: a
 			<code class="text-[87.5%] text-primary">block-start</code> row of outline chips shows what the prompt

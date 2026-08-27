@@ -434,8 +434,8 @@
 
 	<DocSection title="Menubar for formatting and media">
 		{#snippet blurb()}
-			An editor-style bar mixing icon items, checkable toggles and an iconed submenu. Ported from
-			the demo source.
+			An editor-style bar mixing icon items, checkable toggles and an iconed submenu — the
+			arrangement a text editor's menu row actually takes.
 		{/snippet}
 		<Card.Root>
 			<Card.Content>

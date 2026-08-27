@@ -410,8 +410,8 @@
 
 	<DocSection title="Sizing">
 		{#snippet blurb()}
-			Using the classic typical naming structure, you can create a standard avatar, or scale it up
-			to different sizes based on what's needed.
+			One avatar at each rung of the size ramp, from the chip a table row can hold to the block a
+			profile header opens with.
 		{/snippet}
 		<Card.Root>
 			<Card.Content>
@@ -432,7 +432,7 @@
 		</Card.Root>
 	</DocSection>
 
-	<DocSection title="Status Indicator">
+	<DocSection title="Status indicator">
 		{#snippet blurb()}
 			A coloured dot pinned to the avatar's corner reports whether the person is available.
 		{/snippet}
@@ -456,7 +456,7 @@
 
 	<DocSection title="Shape">
 		{#snippet blurb()}
-			Change the shape of an avatar with the default the classic framework image classes.
+			The same avatar rounded, squared off, or taken all the way to a circle.
 		{/snippet}
 		<Card.Root>
 			<Card.Content>
@@ -526,9 +526,9 @@
 
 	<DocSection title="Groups">
 		{#snippet blurb()}
-			Easily group avatars of any size, shape and content with a single component. Past four
-			members, the classic theme's profile pages close the group with a
-			<code class="text-[87.5%] text-primary">+7</code> overflow chip.
+			Easily group avatars of any size, shape and content with a single component. Past four members
+			the group closes with a <code class="text-[87.5%] text-primary">+7</code> chip rather than running
+			off the row.
 		{/snippet}
 		<Card.Root>
 			<Card.Content>

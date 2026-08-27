@@ -268,14 +268,19 @@
 
 	<Card.Root>
 		<Card.Content>
-			<Input type="email" placeholder="Email" class="max-w-xs" />
+			<!--
+				`aria-label`, because this demo is deliberately label-free and a placeholder is not an
+				accessible name: Chrome does not compute one from it, and it disappears on the first
+				keystroke. Every other field on this page is named by a real `<label for>`.
+			-->
+			<Input type="email" placeholder="Email" aria-label="Email" class="max-w-xs" />
 		</Card.Content>
 	</Card.Root>
 
 	<DocSection title="File">
 		{#snippet blurb()}
-			The file input, whose button segment is the base framework's rather than the theme's — nothing
-			in the classic theme's Sass touches it.
+			The file input. Its button segment is the browser's own control, which no stylesheet here can
+			reach — only the field around it is themed.
 		{/snippet}
 		<Card.Root>
 			<Card.Content>
@@ -289,19 +294,19 @@
 
 	<DocSection title="Disabled">
 		{#snippet blurb()}
-			The classic theme gives a disabled field the same background, border and text colour as an
-			enabled one, so the only cue left is that it cannot be focused or typed into.
+			A disabled field keeps the background, border and text colour of an enabled one, so what marks
+			it is the cursor and the fact that it cannot be focused or typed into.
 		{/snippet}
 		<Card.Root>
 			<Card.Content>
-				<Input disabled type="email" placeholder="Email" class="max-w-sm" />
+				<Input disabled type="email" placeholder="Email" aria-label="Email" class="max-w-sm" />
 			</Card.Content>
 		</Card.Root>
 	</DocSection>
 
 	<DocSection title="With label">
 		{#snippet blurb()}
-			A label above its field, the shape the classic theme's own Forms card uses for every input.
+			A label above its field, which is the shape every form on this site uses.
 		{/snippet}
 		<Card.Root>
 			<Card.Content>
@@ -315,22 +320,21 @@
 
 	<DocSection title="With button">
 		{#snippet blurb()}
-			A field and a button side by side. The classic theme's own answer to this is
-			<code class="text-[87.5%] text-primary">.input-group</code>, which merges the two into one
-			outline; the shadcn example keeps them apart, so this is a plain flex row.
+			A field and a button side by side, kept apart as two objects. For the shape that merges them
+			into a single outline, see Input group.
 		{/snippet}
 		<Card.Root>
 			<Card.Content>
 				<!--
-					`gap-2` rather than the `.input-group`'s zero: the classic theme joins the two controls and
-					removes the seam (`.input-group > :not(:first-child) { margin-left: 0 }`), which
-					is a different component from the one shadcn documents here.
+					`gap-2` rather than zero: an Input group joins the two controls and removes the seam,
+					which is a different component from the one shadcn documents here — see
+					`InputGroupPage.svelte` for that shape.
 
-					`items-center` leaves a half-pixel: the field's true the classic theme height is 40.5px and
-					the button's is the same 40.5px, and both round to 40px, so the two agree.
+					`items-center` costs nothing here: both controls resolve to the same 40px rung of the
+					size ramp, so there is no half-pixel for the alignment to split.
 				-->
 				<div class="flex w-full max-w-sm items-center gap-2">
-					<Input type="email" placeholder="Email" />
+					<Input type="email" placeholder="Email" aria-label="Email" />
 					<button type="submit" class={button}>Subscribe</button>
 				</div>
 			</Card.Content>
@@ -810,9 +814,8 @@
 
 	<DocSection title="Input with bottom border only">
 		{#snippet blurb()}
-			Everything stripped but a 2px underline that turns primary on focus. The classic theme's own
-			name for this shape is <code class="text-[87.5%] text-primary">.form-control-flush</code>,
-			which this page's header lists among the modifiers the shadcn docs never show.
+			Everything stripped but a 2px underline that turns primary on focus — a field for a place
+			where a full box would be too much furniture.
 		{/snippet}
 		<Card.Root>
 			<Card.Content>
@@ -889,9 +892,8 @@
 
 	<DocSection title="Pill-shaped input">
 		{#snippet blurb()}
-			The classic theme's name for it is <code class="text-[87.5%] text-primary"
-				>.form-control-rounded</code
-			>, another of the modifiers from this page's header.
+			The same field with its corners taken all the way round, for a search box or a filter bar
+			where the pill shape reads as a chip rather than as a form.
 		{/snippet}
 		<Card.Root>
 			<Card.Content>

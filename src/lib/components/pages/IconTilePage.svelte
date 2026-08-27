@@ -22,6 +22,7 @@
 	import StarIcon from "@lucide/svelte/icons/star";
 	import DocPage from "$lib/components/layout/DocPage.svelte";
 	import DocSection from "$lib/components/layout/DocSection.svelte";
+	import * as Table from "$lib/components/ui/table/index.js";
 	import { href } from "$lib/hooks/route.svelte.js";
 
 	/**
@@ -131,6 +132,92 @@
 		{ label: "Destructive", class: "bg-destructive text-destructive-foreground" },
 	];
 
+	/**
+	 * The component's own surface, for the API reference at the foot of the page.
+	 *
+	 * A house component has no upstream page to defer to, so the props are written down here —
+	 * read off `$lib/components/ui/icon-tile/icon-tile.svelte`, the only other place they exist.
+	 */
+	const iconTileProps = [
+		{
+			prop: "ref",
+			type: "HTMLSpanElement | null",
+			default: "null",
+			description: "Bindable reference to the rendered element. Stays `null` in `child` mode.",
+		},
+		{
+			prop: "variant",
+			type: "'outline' | 'elevated' | 'soft' | 'solid' | 'frame'",
+			default: "'outline'",
+			description:
+				"The tile's surface. `soft` and `solid` derive every fill from `currentColor`, so one text-colour class retints the whole tile.",
+		},
+		{
+			prop: "size",
+			type: "'xs' | 'sm' | 'default' | 'lg' | 'xl'",
+			default: "'default'",
+			description:
+				"24 / 32 / 40 / 48 / 56px. Sets the tile, the glyph and the inset together, so the tile reads as the same object at every step.",
+		},
+		{
+			prop: "radius",
+			type: "'default' | 'full'",
+			default: "'default'",
+			description:
+				"`full` is a circle. `default` is the theme radius clamped to a third of the tile, so a small tile does not round itself into one by accident.",
+		},
+		{
+			prop: "class",
+			type: "ClassValue",
+			default: "—",
+			description: "Merged last, so it overrides the variant classes and the four variables below.",
+		},
+		{
+			prop: "children",
+			type: "Snippet",
+			default: "—",
+			description:
+				"The glyph. An `svg` with no `size-*` class of its own takes `--icon-tile-icon-size`.",
+		},
+		{
+			prop: "child",
+			type: "Snippet<[{ props }]>",
+			default: "—",
+			description:
+				"Render the tile onto your own element — an `<a>`, say — and spread the merged props onto it. `children` is not rendered in this mode.",
+		},
+		{
+			prop: "...restProps",
+			type: "HTMLAttributes",
+			default: "—",
+			description: "Spread onto the element, so `id`, `aria-*` and event handlers pass through.",
+		},
+	];
+
+	const iconTileVariables = [
+		{
+			name: "--icon-tile-size",
+			default: "set by size",
+			description: "The tile's width and height.",
+		},
+		{
+			name: "--icon-tile-icon-size",
+			default: "set by size",
+			description: "Applied to any child svg that carries no size class of its own.",
+		},
+		{
+			name: "--icon-tile-radius",
+			default: "set by radius",
+			description:
+				"The corner. The inner card of `soft` and `frame` derives its own radius from this one.",
+		},
+		{
+			name: "--icon-tile-inset",
+			default: "set by size",
+			description: "The gap between the outer ring and the inner card, on `soft` and `frame`.",
+		},
+	];
+
 	/** demo 17, with upstream's four Tailwind hues replaced by the theme's grounds. */
 	const brandTiles = [
 		{ label: "Primary", icon: StarIcon, class: "bg-primary text-primary-foreground" },
@@ -144,7 +231,7 @@
 	];
 </script>
 
-<DocPage title="Icon Tile">
+<DocPage title="Icon tile">
 	{#snippet subtitle()}
 		A small framed container for a single icon — the mark that leads a list row, a feature card or
 		an empty state, in five surfaces, five sizes and two corner treatments.
@@ -317,8 +404,8 @@
 
 	<DocSection title="List row">
 		{#snippet blurb()}
-			A <code>sm</code> tile as the media column of an <code>Item</code> — the row the classic theme
-			builds with <code>.avatar-title</code>.
+			A <code>sm</code> tile as the media column of an <code>Item</code> — the shape a list row takes
+			when its leading glyph needs a ground of its own rather than sitting bare.
 		{/snippet}
 		<Card.Root>
 			<Card.Content>
@@ -493,5 +580,70 @@
 				</div>
 			</Card.Content>
 		</Card.Root>
+	</DocSection>
+
+	<DocSection title="API reference">
+		<div class="flex flex-col gap-3">
+			<h3 class="text-base font-medium">IconTile</h3>
+			<p class="text-sm text-muted-foreground">
+				The whole component. It renders a <code>&lt;span&gt;</code>, so it drops into a line of text
+				or a flex row without a wrapper.
+			</p>
+			<Card.Root>
+				<Card.Content class="px-0 [&_[data-slot=table-cell]]:whitespace-normal">
+					<Table.Root>
+						<Table.Header>
+							<Table.Row>
+								<Table.Head>Prop</Table.Head>
+								<Table.Head>Type</Table.Head>
+								<Table.Head>Default</Table.Head>
+								<Table.Head>Description</Table.Head>
+							</Table.Row>
+						</Table.Header>
+						<Table.Body>
+							{#each iconTileProps as row (row.prop)}
+								<Table.Row>
+									<Table.Cell class="font-medium">{row.prop}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.type}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.default}</Table.Cell>
+									<Table.Cell>{row.description}</Table.Cell>
+								</Table.Row>
+							{/each}
+						</Table.Body>
+					</Table.Root>
+				</Card.Content>
+			</Card.Root>
+		</div>
+
+		<div class="flex flex-col gap-3">
+			<h3 class="text-base font-medium">CSS variables</h3>
+			<p class="text-sm text-muted-foreground">
+				The four values <code>size</code> and <code>radius</code> set. They are ordinary custom
+				properties on the root, so a caller can override any of them through <code>class</code>
+				— which is what the Custom sizing section above does.
+			</p>
+			<Card.Root>
+				<Card.Content class="px-0 [&_[data-slot=table-cell]]:whitespace-normal">
+					<Table.Root>
+						<Table.Header>
+							<Table.Row>
+								<Table.Head>Variable</Table.Head>
+								<Table.Head>Default</Table.Head>
+								<Table.Head>Description</Table.Head>
+							</Table.Row>
+						</Table.Header>
+						<Table.Body>
+							{#each iconTileVariables as row (row.name)}
+								<Table.Row>
+									<Table.Cell class="font-medium">{row.name}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.default}</Table.Cell>
+									<Table.Cell>{row.description}</Table.Cell>
+								</Table.Row>
+							{/each}
+						</Table.Body>
+					</Table.Root>
+				</Card.Content>
+			</Card.Root>
+		</div>
 	</DocSection>
 </DocPage>

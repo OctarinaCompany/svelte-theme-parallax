@@ -368,8 +368,8 @@
 
 	<DocSection title="Outline">
 		{#snippet blurb()}
-			A joined group of outlined items — the shape the classic framework builds with
-			<code class="text-[87.5%] text-primary">.nav.btn-group</code>.
+			A joined group of outlined items: one outline around the row, with the seams between items
+			drawn rather than doubled.
 		{/snippet}
 		<Card.Root>
 			<Card.Content>
@@ -401,9 +401,8 @@
 
 	<DocSection title="Single">
 		{#snippet blurb()}
-			<code class="text-[87.5%] text-primary">type="single"</code> allows one item at a time — the
-			behaviour the classic framework gets from radio
-			<code class="text-[87.5%] text-primary">.btn-check</code> inputs sharing a name.
+			<code class="text-[87.5%] text-primary">type="single"</code> allows one item at a time, the way
+			a set of radios does — picking one releases whichever was pressed before.
 		{/snippet}
 		<Card.Root>
 			<Card.Content>
@@ -429,8 +428,8 @@
 
 	<DocSection title="Small">
 		{#snippet blurb()}
-			<code class="text-[87.5%] text-primary">.btn-group-sm</code>: 2px of vertical padding, 8px
-			horizontal, a 13px type size and a 4px outer radius.
+			The small rung of the control ramp: 2px of vertical padding, 8px horizontal, a 13px type size
+			and a 4px outer radius.
 		{/snippet}
 		<Card.Root>
 			<Card.Content>
@@ -456,8 +455,7 @@
 
 	<DocSection title="Large">
 		{#snippet blurb()}
-			<code class="text-[87.5%] text-primary">.btn-group-lg</code>: 12px of vertical padding, 20px
-			horizontal, and an 8px outer radius.
+			The large rung: 12px of vertical padding, 20px horizontal, and an 8px outer radius.
 		{/snippet}
 		<Card.Root>
 			<Card.Content>
@@ -483,9 +481,8 @@
 
 	<DocSection title="Disabled">
 		{#snippet blurb()}
-			<code class="text-[87.5%] text-primary">disabled</code> on the root disables every item, at
-			the classic
-			<code class="text-[87.5%] text-primary">--bs-btn-disabled-opacity</code> of 0.65.
+			<code class="text-[87.5%] text-primary">disabled</code> on the root disables every item at once,
+			and the whole row fades together rather than item by item.
 		{/snippet}
 		<Card.Root>
 			<Card.Content>

@@ -394,7 +394,7 @@
 	</Table.Root>
 {/snippet}
 
-<DocPage title="Key Value">
+<DocPage title="Key value">
 	{#snippet subtitle()}
 		A dynamic input for managing key-value pairs, with paste support and validation.
 	{/snippet}
@@ -420,7 +420,7 @@
 		</Card.Root>
 	</DocSection>
 
-	<DocSection title="With Paste Support">
+	<DocSection title="With paste support">
 		{#snippet blurb()}
 			Paste a multi-line block into a key field and it expands into one row per line.
 		{/snippet}
@@ -454,7 +454,7 @@ PORT=3000</pre>
 		</Card.Root>
 	</DocSection>
 
-	<DocSection title="With Validation">
+	<DocSection title="With validation">
 		{#snippet blurb()}
 			Keys must be uppercase with underscores, values of a *KEY* row must be at least ten
 			characters, and duplicate non-empty keys are flagged.
@@ -495,7 +495,7 @@ PORT=3000</pre>
 		</Card.Root>
 	</DocSection>
 
-	<DocSection title="With Form">
+	<DocSection title="With form">
 		{#snippet blurb()}
 			A native &lt;form&gt; with Field and rune state stands in for react-hook-form and zod, which
 			have no Svelte analogue here.

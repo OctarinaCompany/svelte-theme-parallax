@@ -993,9 +993,8 @@
 
 	<DocSection title="Striped rows">
 		{#snippet blurb()}
-			the classic <code class="text-[87.5%] text-primary">.table-striped</code>, which neither the
-			primitive nor the global table rules carry — the stripe is stated on the rows at the call
-			site, on the same
+			Alternating row fills. Neither the primitive nor the global table rules carry them — the
+			stripe is stated on the rows at the call site, on the same
 			<code class="text-[87.5%] text-primary">bg-muted/50</code> surface the hover state already uses.
 		{/snippet}
 		<Card.Root>
@@ -1030,14 +1029,12 @@
 
 	<DocSection title="Row density">
 		{#snippet blurb()}
-			This theme's extension rather than a port: the classic theme's
-			<code class="text-[87.5%] text-primary">.table-sm</code> keeps the same cell padding and only
-			drops type.
-			<code class="text-[87.5%] text-primary">Table.Root</code> takes
-			<code class="text-[87.5%] text-primary">density</code> —
+			Density as a real axis rather than a type size. <code class="text-[87.5%] text-primary"
+				>Table.Root</code
+			>
+			takes <code class="text-[87.5%] text-primary">density</code>:
 			<code class="text-[87.5%] text-primary">sm</code>
-			is 40px rows carrying the 13px <code class="text-[87.5%] text-primary">.table-sm</code> body
-			type,
+			is 40px rows carrying 13px body type — density through type, not only through spacing —
 			<code class="text-[87.5%] text-primary">default</code> the uniform 56px every table already
 			renders, and <code class="text-[87.5%] text-primary">lg</code> 76px for cells that stack two
 			lines. The head follows the body down on <code class="text-[87.5%] text-primary">sm</code> and never

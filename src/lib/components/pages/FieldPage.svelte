@@ -474,12 +474,21 @@
 						-->
 						<Field.Field data-invalid={showWorkEmailError || undefined}>
 							<Field.FieldLabel for="field-work-email">Work email</Field.FieldLabel>
+							<!--
+								`aria-describedby` FOLLOWS the swap below rather than naming both ids: only
+								one of the two elements is in the DOM at a time, and a reference to an id
+								that is not rendered is dropped silently — the reader is then told nothing
+								at the moment the field is wrong, which is the moment that matters.
+							-->
 							<Input
 								id="field-work-email"
 								type="email"
 								placeholder="you@company.com"
 								bind:value={workEmail}
 								aria-invalid={showWorkEmailError || undefined}
+								aria-describedby={showWorkEmailError
+									? "field-work-email-error"
+									: "field-work-email-hint"}
 								onblur={() => (workEmailTouched = true)}
 							/>
 							<!--
@@ -488,9 +497,9 @@
 								read as a contradiction.
 							-->
 							{#if showWorkEmailError}
-								<Field.FieldError>{workEmailError}</Field.FieldError>
+								<Field.FieldError id="field-work-email-error">{workEmailError}</Field.FieldError>
 							{:else}
-								<Field.FieldDescription>
+								<Field.FieldDescription id="field-work-email-hint">
 									We only use this to route support tickets.
 								</Field.FieldDescription>
 							{/if}
@@ -859,8 +868,13 @@
 						</Field.Field>
 						<Field.Field data-invalid="true">
 							<Field.FieldLabel for="settings-slug">URL Slug</Field.FieldLabel>
-							<Input id="settings-slug" value="alex johnson" aria-invalid="true" />
-							<Field.FieldError>
+							<Input
+								id="settings-slug"
+								value="alex johnson"
+								aria-invalid="true"
+								aria-describedby="settings-slug-error"
+							/>
+							<Field.FieldError id="settings-slug-error">
 								Slug can only contain lowercase letters, numbers, and hyphens.
 							</Field.FieldError>
 						</Field.Field>
@@ -1164,9 +1178,12 @@
 									value="invalid-email"
 									placeholder="you@example.com"
 									aria-invalid="true"
+									aria-describedby="val-email-error"
 								/>
 							</InputGroup.Root>
-							<Field.FieldError>Please enter a valid email address.</Field.FieldError>
+							<Field.FieldError id="val-email-error">
+								Please enter a valid email address.
+							</Field.FieldError>
 						</Field.Field>
 						<Field.Field data-invalid="true">
 							<Field.FieldLabel for="val-password">
@@ -1182,9 +1199,11 @@
 									value="short"
 									placeholder="Enter password"
 									aria-invalid="true"
+									aria-describedby="val-password-error"
 								/>
 							</InputGroup.Root>
 							<Field.FieldError
+								id="val-password-error"
 								errors={[
 									{ message: "Must be at least 8 characters." },
 									{ message: "Must contain at least one number." },
@@ -1208,14 +1227,11 @@
 		</Card.Root>
 	</DocSection>
 
-	<DocSection title="Classic form group">
+	<DocSection title="Plain form group">
 		{#snippet blurb()}
-			The only shape the classic theme documents a label in, and the reason this page's primitive
-			has no classic counterpart: <code class="text-[87.5%] text-primary">.form-group</code>
-			holding a
-			<code class="text-[87.5%] text-primary">.form-label</code> above a
-			<code class="text-[87.5%] text-primary">.form-control</code> is a margin rhythm, not a part that
-			knows anything about the control it wraps.
+			The arrangement <code class="text-[87.5%] text-primary">Field</code> replaces: a label above a control,
+			held together by nothing but a margin. It reads the same and knows nothing — no shared id, no description
+			slot, no invalid state to pass down.
 		{/snippet}
 		<Card.Root>
 			<Card.Content>
@@ -1470,8 +1486,16 @@
 				-->
 				<Field.Field data-invalid="true" class="max-w-xs">
 					<Field.FieldLabel for="label-error">Email</Field.FieldLabel>
-					<Input id="label-error" type="email" value="invalid-email" aria-invalid="true" />
-					<Field.FieldError>Please enter a valid email address</Field.FieldError>
+					<Input
+						id="label-error"
+						type="email"
+						value="invalid-email"
+						aria-invalid="true"
+						aria-describedby="label-error-message"
+					/>
+					<Field.FieldError id="label-error-message">
+						Please enter a valid email address
+					</Field.FieldError>
 				</Field.Field>
 			</Card.Content>
 		</Card.Root>
@@ -1479,8 +1503,9 @@
 
 	<DocSection title="Label with inline edit toggle">
 		{#snippet blurb()}
-			A control inside the label rather than a decoration: the pencil swaps the field's read-only
-			description for an input, and the tick swaps it back.
+			A control beside the caption rather than a decoration in it: the pencil swaps the field's
+			read-only description for an input, and the tick swaps it back. The caption changes element
+			with the body — a real <code>&lt;label&gt;</code> only while there is a control for it to name.
 		{/snippet}
 		<Card.Root>
 			<Card.Content>
@@ -1489,11 +1514,27 @@
 					the point of the toggle, hence the autofocus the a11y lint would otherwise flag.
 				-->
 				<Field.Field class="max-w-xs">
-					<Field.FieldLabel for="label-inline-edit">
-						Project Name
+					<!--
+						THE CAPTION SWAPS ELEMENTS WITH THE BODY, and that is the whole of this block.
+						`<label for>` has to name a control that exists; the input only exists in the
+						editing branch, so a label rendered unconditionally would resolve to nothing for
+						as long as the field is at rest. `FieldTitle` is the same typography without the
+						`<label>` semantics, which is exactly what a caption over a read-only value is.
+
+						The pencil sits BESIDE the caption rather than inside it: a control nested in a
+						`<label>` is a second hit area for the field it labels, so pressing it would put
+						the caret in the input as well as toggling the mode.
+					-->
+					<div class="flex items-center gap-2">
+						{#if labelInlineEditEditing}
+							<Field.FieldLabel for="label-inline-edit">Project Name</Field.FieldLabel>
+						{:else}
+							<Field.FieldTitle>Project Name</Field.FieldTitle>
+						{/if}
 						<Button
 							size="icon-xs"
 							variant="ghost"
+							aria-label={labelInlineEditEditing ? "Save project name" : "Edit project name"}
 							onclick={() => (labelInlineEditEditing = !labelInlineEditEditing)}
 						>
 							{#if labelInlineEditEditing}
@@ -1502,7 +1543,7 @@
 								<PencilIcon class="size-3.5" />
 							{/if}
 						</Button>
-					</Field.FieldLabel>
+					</div>
 					{#if labelInlineEditEditing}
 						<!-- svelte-ignore a11y_autofocus -->
 						<Input id="label-inline-edit" bind:value={labelInlineEditValue} autofocus />

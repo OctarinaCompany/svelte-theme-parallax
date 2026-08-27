@@ -322,7 +322,7 @@
 	];
 </script>
 
-<DocPage title="Angle Slider">
+<DocPage title="Angle slider">
 	{#snippet subtitle()}
 		An interactive circular slider for selecting angles with support for single values and ranges.
 	{/snippet}

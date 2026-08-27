@@ -451,11 +451,11 @@
 	// the store. Runes subscribe on read, so the Svelte port needs no selector at all: one accessor
 	// returns the state and every field read off it is tracked individually.
 	const contextExample = `<script lang="ts">
-	import { getColorPickerContext } from '$lib/components/ui/color-picker/index.js';
+	import { getColorPickerContext } from "$lib/components/ui/color-picker/index.js";
 
 	// Call this during initialisation of any part rendered inside <ColorPicker.Root>.
 	// It throws when there is no root above it.
-	const picker = getColorPickerContext('<ColorPicker.Readout>');
+	const picker = getColorPickerContext("<ColorPicker.Readout>");
 ${"<"}/script>
 
 <dl>
@@ -600,7 +600,7 @@ ${"<"}/script>
 	];
 </script>
 
-<DocPage title="Color Picker">
+<DocPage title="Color picker">
 	{#snippet subtitle()}
 		A color picker component that allows users to select colors using various input methods — a 2D
 		saturation/brightness area, hue and alpha sliders, the native eyedropper, and per-channel text

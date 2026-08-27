@@ -198,7 +198,7 @@
 				bind:placeholder={month}
 				numberOfMonths={2}
 				class={rangeCalendarFlush}
-				day={classicRangeDay}
+				day={rangeDayChip}
 			/>
 		</div>
 		<div class="flex items-center justify-end gap-1.5 border-t border-border p-3">
@@ -208,6 +208,6 @@
 	</Popover.Content>
 </Popover.Root>
 
-{#snippet classicRangeDay()}
+{#snippet rangeDayChip()}
 	<RangeDay class={rangeDay} />
 {/snippet}

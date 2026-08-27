@@ -403,9 +403,8 @@
 
 	<DocSection title="Simple">
 		{#snippet blurb()}
-			The same panel with one line per link — a straight
-			<code class="text-[87.5%] text-primary">.dropdown-menu</code> of
-			<code class="text-[87.5%] text-primary">.dropdown-item</code> rows.
+			The same panel with one line per link — a straight dropdown of plain rows, with no description
+			column beside them.
 		{/snippet}
 		<Card.Root class={panelCard}>
 			<Card.Content>
@@ -475,7 +474,7 @@
 				>viewport=&lbrace;isMobile.current&rbrace;</code
 			>
 			instead, so that above the mobile breakpoint each panel is anchored under its own trigger — the
-			way a classic dropdown menu sits under its toggle.
+			way a dropdown menu sits under its toggle.
 		{/snippet}
 		<Card.Root class={panelCard}>
 			<Card.Content>

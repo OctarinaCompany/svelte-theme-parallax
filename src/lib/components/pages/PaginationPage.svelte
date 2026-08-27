@@ -691,6 +691,7 @@
 								<span class="text-sm whitespace-nowrap text-muted-foreground">Rows per page</span>
 								<NativeSelect.Root
 									class="w-18"
+									aria-label="Rows per page"
 									bind:value={rowsPerPageValue}
 									onchange={() => {
 										if (rowsPage > rowsTotalPages) rowsPage = rowsTotalPages;
@@ -764,6 +765,7 @@
 							<Pagination.Item>
 								<NativeSelect.Root
 									class="w-26"
+									aria-label="Go to page"
 									value={String(currentPage)}
 									onchange={(e) => (pageSelectPage = Number(e.currentTarget.value))}
 								>
@@ -874,6 +876,7 @@
 							<Pagination.Item>
 								<NativeSelect.Root
 									class="w-28"
+									aria-label="Rows per page"
 									bind:value={fullBarPerPageValue}
 									onchange={() => {
 										if (fullBarPage > fullBarTotalPages) fullBarPage = fullBarTotalPages;

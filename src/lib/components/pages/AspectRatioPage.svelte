@@ -125,12 +125,10 @@
 		</Card.Root>
 	</DocSection>
 
-	<DocSection title="The classic ratios">
+	<DocSection title="Common ratios">
 		{#snippet blurb()}
-			The four values the classic theme inherits from the classic <code
-				class="text-[87.5%] text-primary">aspect-ratios</code
-			> map, written as numbers rather than as class names. The last one is the ratio the classic theme
-			itself uses, for the map embed.
+			The four ratios a page reaches for most often, written as numbers rather than as named classes
+			so any other value is one edit away.
 		{/snippet}
 		<Card.Root>
 			<Card.Content>
@@ -189,7 +187,7 @@
 		</Card.Root>
 	</DocSection>
 
-	<DocSection title="3:2 classic photography aspect ratio">
+	<DocSection title="3:2 photography aspect ratio">
 		{#snippet blurb()}
 			The 35mm film frame, still the default sensor ratio on most DSLR and mirrorless cameras.
 		{/snippet}

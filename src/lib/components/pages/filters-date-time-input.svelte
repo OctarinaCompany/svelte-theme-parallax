@@ -146,7 +146,7 @@
 				}
 				minValue={now}
 				class="p-2 [--cell-size:39px] sm:pe-5 [&_[data-calendar-head-cell]]:font-bold [&_[data-calendar-head-cell]]:text-foreground"
-				day={classicDay}
+				day={dayChip}
 			/>
 			<div class="relative w-full max-sm:h-46 sm:w-40">
 				<div class="absolute inset-0 py-4 max-sm:border-t">
@@ -183,11 +183,11 @@
 </Popover.Root>
 
 <!--
-	The day chip, as the Calendar page derives it from the classic theme's picker partial. One line rather
-	than an import: that page keeps it local, and a shared module for a single string would be a
-	bigger change to a file this theme has no other business in.
+	The day chip, the same one the Calendar page draws. One line rather than an import: that page
+	keeps it local too, and a shared module for a single string would be a bigger change than the
+	duplication costs.
 -->
-{#snippet classicDay()}
+{#snippet dayChip()}
 	<CalendarDay
 		class="border border-transparent not-data-selected:hover:border-input not-data-selected:hover:bg-muted data-[selected]:border-primary data-[selected]:hover:text-primary-foreground [&[data-today]:not([data-selected])]:border-border [&[data-today]:not([data-selected])]:bg-transparent"
 	/>

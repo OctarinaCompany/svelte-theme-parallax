@@ -41,7 +41,14 @@
 	{#snippet subtitle()}
 		A segmented one-time-password field: each character gets its own slot, groups can be split by
 		separators, and the value is typed into a single hidden input so paste and autofill keep
-		working.
+		working. Please see the
+		<a
+			class="text-primary underline underline-offset-3"
+			href="https://shadcn-svelte.com/docs/components/input-otp"
+			target="_blank"
+			rel="noreferrer">official shadcn-svelte documentation</a
+		>
+		for a full list of options.
 	{/snippet}
 
 	<DocSection title="Basic OTP input">

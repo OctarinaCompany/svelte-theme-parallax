@@ -233,15 +233,22 @@
 {/snippet}
 {#snippet inactive()}
 	<!--
-	`.card-inactive` is `--bs-card-bg: transparent`, no shadow, and `border-style: dashed`
-	against `--bs-border-color`.
+		Transparent, unshadowed, with a dashed outline: an empty slot rather than a surface.
 
-	`border` is not redundant with `border-dashed`: shadcn's Card draws its outline with a
-	ring, not a border, so its border-WIDTH is 0 and `border-dashed` alone would set a style
-	on nothing — the first version of this demo rendered no outline at all. `ring-0` then
-	drops the ring that would otherwise sit outside the dashes.
--->
-	<Card.Root class="border border-dashed border-border bg-transparent shadow-none ring-0">
+		`border` is not redundant with `border-dashed`: shadcn's Card draws its outline with a
+		ring, not a border, so its border-WIDTH is 0 and `border-dashed` alone would set a style
+		on nothing — the first version of this demo rendered no outline at all. `ring-0` then
+		drops the ring that would otherwise sit outside the dashes.
+
+		`border-muted-foreground` and NOT `border-border`, which every other card here uses.
+		`--border` is solved to read against `--card`; this is the one card on the page with no fill
+		of its own, so its edge is drawn on the PAGE ground, where `--border` measures 1.08:1 and
+		simply is not there. Measured on this page: `--muted-foreground` at full strength is 4.99:1
+		in light and 5.06:1 in dark, clear of the 3:1 the WCAG asks of a boundary that carries
+		meaning — and here the dashes ARE the demo. Every weaker step was measured too and none
+		reaches it: `/25` gives 1.38:1, `/50` 2.00:1, `/70` 2.80:1.
+	-->
+	<Card.Root class="border border-dashed border-muted-foreground bg-transparent shadow-none ring-0">
 		<Card.Content>
 			<p class="text-sm">{lorem}</p>
 		</Card.Content>
@@ -261,11 +268,35 @@
 		<Card.Root>
 			<Card.Header><Card.Title>Traffic Channels</Card.Title></Card.Header>
 			<Card.Content class="my-auto">
-				<div class="h-28 rounded-md bg-muted" aria-hidden="true"></div>
-				<p class="mt-3 text-xs text-muted-foreground">
-					Stands in for the classic theme's chart. The card is taller than this content because the
-					column beside it is.
-				</p>
+				<!--
+					A real series rather than a grey plate. What the section documents is that this card
+					stretches to the height of the column beside it, and a placeholder made the demo read
+					as unfinished instead.
+
+					Inline SVG rather than the Chart component: one area and one line need no library,
+					and `preserveAspectRatio="none"` lets the drawing stretch with the card exactly as
+					the card stretches with the row. `vector-effect` keeps the stroke 2px while it does.
+				-->
+				<svg
+					viewBox="0 0 300 112"
+					preserveAspectRatio="none"
+					class="h-28 w-full"
+					role="img"
+					aria-label="Visits over the last eleven weeks, trending up"
+				>
+					<path
+						d="M0 88 L30 74 L60 80 L90 62 L120 66 L150 48 L180 54 L210 36 L240 40 L270 22 L300 16 L300 112 L0 112 Z"
+						class="fill-primary/10"
+					/>
+					<path
+						d="M0 88 L30 74 L60 80 L90 62 L120 66 L150 48 L180 54 L210 36 L240 40 L270 22 L300 16"
+						class="fill-none stroke-primary"
+						stroke-width="2"
+						stroke-linejoin="round"
+						vector-effect="non-scaling-stroke"
+					/>
+				</svg>
+				<p class="mt-3 text-xs text-muted-foreground">Visits, last eleven weeks</p>
 			</Card.Content>
 		</Card.Root>
 
@@ -368,12 +399,11 @@
 
 	<DocSection title="Card header navigation that meets the rule">
 		{#snippet blurb()}
-			The same navigation, drawn the classic theme's way: the tabs span the header's full height and
+			The same navigation, drawn so that it belongs to the header: the tabs span its full height and
 			their active underline lands on the header's own rule rather than floating inside it. The pill
-			above is the shadcn shape and needs nothing; this is what
-			<code class="text-[87.5%] text-primary">.card-header-tabs</code> was, and it is worth having because
-			a card whose header is a switch reads as one surface instead of two. The Chart page puts the same
-			tabs over a chart.
+			above is the shadcn shape and needs nothing; this one is worth having because a card whose
+			header is a switch reads as one surface instead of two. The Chart page puts the same tabs over
+			a chart.
 		{/snippet}
 		{@render headerTabsToRule()}
 	</DocSection>

@@ -125,12 +125,9 @@
 <DocPage title="List group">
 	{#snippet subtitle()}
 		List groups are a flexible and powerful component for displaying a series of content. Modify and
-		extend them to support just about any content within. <code class="text-[87.5%] text-primary"
-			>.list-group</code
-		>
-		is a set of classes rather than a component, so what this page ports is the container: the rounded
-		box, the hairline between rows, the active fill, and the classic theme's focus recolour. The row inside
-		it is
+		extend them to support just about any content within. The list group is a set of classes rather
+		than a component, so what this page shows is the container: the rounded box, the hairline
+		between rows, the active fill and the focus recolour. The row inside it is
 		<a class="text-primary underline underline-offset-3" href={href("/components/item")}>Item</a>,
 		which carries named media, content and action slots and whose default row is skinned to this
 		same padding.

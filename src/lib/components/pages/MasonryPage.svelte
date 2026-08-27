@@ -250,7 +250,7 @@
 		</Card.Root>
 	</DocSection>
 
-	<DocSection title="Linear Layout">
+	<DocSection title="Linear layout">
 		{#snippet blurb()}
 			— set linear to keep items in source order across the columns, falling back to the shortest
 			column only once one column runs away.
@@ -271,7 +271,7 @@
 		</Card.Root>
 	</DocSection>
 
-	<DocSection title="Server Side Rendering">
+	<DocSection title="Server-side rendering">
 		{#snippet blurb()}
 			— defaultWidth, defaultHeight and a fallback snippet keep the first paint measurement-free, so
 			the server and the first client render agree.

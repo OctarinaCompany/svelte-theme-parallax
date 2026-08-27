@@ -426,8 +426,8 @@
 
 	<DocSection title="Colored radio group">
 		{#snippet blurb()}
-			One disc per status colour, tinted on the checked fill rather than on a border the classic
-			theme's radio does not draw.
+			One disc per status colour, carried on the checked fill rather than on a border — a radio here
+			draws none to colour.
 		{/snippet}
 		<Card.Root>
 			<Card.Content>

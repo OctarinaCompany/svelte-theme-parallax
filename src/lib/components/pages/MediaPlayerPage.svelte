@@ -522,7 +522,7 @@
 	</Table.Root>
 {/snippet}
 
-<DocPage title="Media Player">
+<DocPage title="Media player">
 	{#snippet subtitle()}
 		A fully featured media player supporting video and audio playback with custom controls,
 		chapters, captions and a complete keyboard shortcut set.
@@ -561,7 +561,7 @@
 		</Card.Root>
 	</DocSection>
 
-	<DocSection title="Audio Player">
+	<DocSection title="Audio player">
 		{#snippet blurb()}
 			— the same parts around an &lt;audio&gt; element, with the seek bar carrying its own clocks.
 		{/snippet}
@@ -591,7 +591,7 @@
 		</Card.Root>
 	</DocSection>
 
-	<DocSection title="With Settings Menu">
+	<DocSection title="With settings menu">
 		{#snippet blurb()}
 			— chapters, caption tracks, a settings menu with Speed, Quality and Captions submenus, and
 			auto-hiding controls.
@@ -638,7 +638,7 @@
 		</Card.Root>
 	</DocSection>
 
-	<DocSection title="HLS Playback">
+	<DocSection title="HLS playback">
 		{#snippet blurb()}
 			Upstream reaches for a React wrapper around hls.js; this theme points a plain video at the
 			.m3u8 instead, so browsers with native HLS play it and the rest fall through to the player’s
@@ -675,10 +675,10 @@
 		</Card.Root>
 	</DocSection>
 
-	<DocSection title="With Error Handling">
+	<DocSection title="With error handling">
 		{#snippet blurb()}
-			— the source is deliberately absent, so the player surfaces its error state with “Try again”
-			and “Reload page”.
+			— the video source is deliberately absent, so the player surfaces its error state with “Try
+			again” and “Reload page”.
 		{/snippet}
 		<Card.Root>
 			<Card.Content class="p-0">
@@ -718,7 +718,7 @@
 		</Card.Root>
 	</DocSection>
 
-	<DocSection title="With Playlist">
+	<DocSection title="With playlist">
 		{#snippet blurb()}
 			— the page owns the track list, swaps the source, and advances on ended. B and N step through
 			the playlist.
@@ -847,7 +847,7 @@
 		</Card.Root>
 	</DocSection>
 
-	<DocSection title="Right to Left">
+	<DocSection title="Right to left">
 		{#snippet blurb()}
 			The video and audio compositions under <code>dir="rtl"</code>: the controls bar, both sliders
 			and the time readout mirror, while the arrow keys keep seeking physically.

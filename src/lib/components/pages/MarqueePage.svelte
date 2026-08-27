@@ -409,7 +409,7 @@
 		</Card.Root>
 	</DocSection>
 
-	<DocSection title="Logo Showcase">
+	<DocSection title="Logo showcase">
 		<Card.Root>
 			<Card.Content>
 				<Marquee.Root autoFill>
@@ -431,7 +431,7 @@
 		</Card.Root>
 	</DocSection>
 
-	<DocSection title="Wide Plates">
+	<DocSection title="Wide plates">
 		{#snippet blurb()}
 			The same auto-filled row, but with wide logo plates instead of the square tiles above. A wide
 			aspect changes what holds the row together: each plate is only as wide as the wordmark it
@@ -491,7 +491,7 @@
 		</Card.Root>
 	</DocSection>
 
-	<DocSection title="Vertical Layout">
+	<DocSection title="Vertical layout">
 		<Card.Root>
 			<Card.Content class="h-[400px]">
 				<Marquee.Root side="bottom" class="h-[320px] max-w-sm">

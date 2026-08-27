@@ -307,13 +307,13 @@
 	];
 </script>
 
-<DocPage title="Scroll Spy">
+<DocPage title="Scroll spy">
 	{#snippet subtitle()}
 		Navigation links that track scroll position and scroll to their section on click, with support
 		for nested sections and customizable behavior.
 	{/snippet}
 
-	<DocSection title="Default (Horizontal)">
+	<DocSection title="Default (horizontal)">
 		{#snippet blurb()}
 			— the viewport is the tracked scroll container.
 		{/snippet}
@@ -343,7 +343,7 @@
 		</Card.Root>
 	</DocSection>
 
-	<DocSection title="Vertical Orientation">
+	<DocSection title="Vertical orientation">
 		{#snippet blurb()}
 			— the nav sits above the content.
 		{/snippet}
@@ -408,7 +408,7 @@
 		</Card.Root>
 	</DocSection>
 
-	<DocSection title="Sticky Layout">
+	<DocSection title="Sticky layout">
 		{#snippet blurb()}
 			Mirrors the MDX example — no scrollContainer, so the window scrolls and a sticky nav stays
 			visible.

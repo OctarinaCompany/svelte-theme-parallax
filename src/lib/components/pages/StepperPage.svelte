@@ -663,7 +663,7 @@
 		</Card.Root>
 	</DocSection>
 
-	<DocSection title="With Validation">
+	<DocSection title="With validation">
 		{#snippet blurb()}
 			— the page owns `value` and `onValidate` gates every forward move. A local validator stands in
 			for react-hook-form and zod.
@@ -798,7 +798,7 @@
 		</Card.Root>
 	</DocSection>
 
-	<DocSection title="With Form">
+	<DocSection title="With form">
 		{#snippet blurb()}
 			— a multi-step form built from Field, Input and Textarea, where each step is validated before
 			the stepper advances.

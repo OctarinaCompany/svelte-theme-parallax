@@ -287,8 +287,8 @@
 
 	<DocSection title="Usage">
 		{#snippet blurb()}
-			The minimal pair — a trigger and its content. At this width the preview is a label, which is
-			the only shape the classic theme's own popovers take.
+			The minimal pair — a trigger and its content. At this width the preview is a label rather than
+			a card, which is as small as a hover card usefully gets.
 		{/snippet}
 		<Card.Root>
 			<Card.Content>

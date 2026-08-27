@@ -761,7 +761,7 @@
 		</Card.Root>
 	</DocSection>
 
-	<DocSection title="With Dynamic Overlay">
+	<DocSection title="With dynamic overlay">
 		{#snippet blurb()}
 			— the overlay snippet receives the active identifier and renders the matching card.
 		{/snippet}
@@ -804,7 +804,7 @@
 		</Card.Root>
 	</DocSection>
 
-	<DocSection title="With Handle">
+	<DocSection title="With handle">
 		{#snippet blurb()}
 			— the region composes onto a table body, each item onto a table row, and the handle onto a
 			Button.
@@ -868,7 +868,7 @@
 		</Card.Root>
 	</DocSection>
 
-	<DocSection title="With Primitive Values">
+	<DocSection title="With primitive values">
 		{#snippet blurb()}
 			— a string array needs no getItemValue, and the overlay renders a Sortable.Item of its own.
 		{/snippet}

@@ -24,6 +24,8 @@
 		setHeaderFloating,
 	} from "$lib/hooks/header-behaviour.svelte.js";
 	import { setSidebarFloating, sidebarFloating } from "$lib/hooks/sidebar-behaviour.svelte.js";
+	import HeaderToggle from "$lib/components/navigation/HeaderToggle.svelte";
+	import SidebarModeToggle from "$lib/components/navigation/SidebarModeToggle.svelte";
 	import { headerMode, setHeaderMode, type HeaderMode } from "$lib/hooks/header-mode.svelte.js";
 	import { setSidebarMode, sidebarMode, type SidebarMode } from "$lib/hooks/sidebar-mode.svelte.js";
 	import { href } from "$lib/hooks/route.svelte.js";
@@ -247,7 +249,7 @@
 						{@render switchRow(
 							"settings-sidebar-floating",
 							"Floating",
-							"Detaches the rail into a rounded inset panel — the kit's default look; off seats it flush, as the classic theme does.",
+							"Detaches the rail into a rounded inset panel — the kit's default look; off seats it flush against the page edge.",
 							sidebarFloating.current,
 							setSidebarFloating,
 						)}
@@ -289,6 +291,37 @@
 							headerAutoHide.current,
 							setHeaderAutoHide,
 						)}
+					</div>
+				</Card.Content>
+			</Card.Root>
+		</DocSection>
+
+		<DocSection title="The same axes, as bar controls">
+			{#snippet blurb()}
+				Everything above drives the axes through the hooks directly, in a page-sized layout that can
+				name and explain each choice. <code class="text-[87.5%] text-primary"
+					>SidebarModeToggle</code
+				>
+				and <code class="text-[87.5%] text-primary">HeaderToggle</code> are the compact form of the
+				same two groups — the dropdowns this bar used to carry, published as
+				<code class="text-[87.5%] text-primary">parallax-appearance-controls</code> for an
+				application that wants them back in the header through
+				<code class="text-[87.5%] text-primary">PageHeader</code>'s
+				<code class="text-[87.5%] text-primary">controls</code> snippet. They are live: change one and
+				the grids above follow, because both read the same state.
+			{/snippet}
+			<Card.Root>
+				<Card.Content>
+					<!--
+						THE REASON THIS SECTION EXISTS. Both components ship as a registry item, and until
+						this section they were rendered by nothing — the one thing `CONVENTIONS.md` §9 says
+						must not happen, because a component no page renders is a component whose look
+						nobody reviews. The Settings grids are a different presentation of the same axes,
+						not a substitute for seeing these two draw.
+					-->
+					<div class="flex flex-wrap items-center gap-2">
+						<SidebarModeToggle />
+						<HeaderToggle />
 					</div>
 				</Card.Content>
 			</Card.Root>

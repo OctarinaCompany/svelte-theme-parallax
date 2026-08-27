@@ -775,10 +775,8 @@
 
 	<DocSection title="With text">
 		{#snippet blurb()}
-			A description under the label. The classic framework calls this a
-			<code class="text-[87.5%] text-primary">.form-text</code>, and the classic theme sets its
-			<code class="text-[87.5%] text-primary">margin-top</code> to zero so it sits flush under the line
-			it explains.
+			A description under the label, sitting flush against the line it explains rather than a step
+			below it.
 		{/snippet}
 		<Card.Root>
 			<Card.Content>
@@ -802,8 +800,8 @@
 
 	<DocSection title="Disabled">
 		{#snippet blurb()}
-			Both halves fade to 50%, which is the classic figure as well as shadcn's; the difference is
-			the cursor, and that the input stops taking pointer events entirely.
+			Both halves fade to 50%. The label has to stay the box's next sibling for it to fade with it,
+			and the control stops taking pointer events entirely rather than only looking inert.
 		{/snippet}
 		<Card.Root>
 			<Card.Content>
@@ -823,8 +821,8 @@
 	<DocSection title="As a card">
 		{#snippet blurb()}
 			A bordered block that picks up the checked state of the checkbox inside it, through a
-			<code class="text-[87.5%] text-primary">:has()</code> selector. The classic framework has no component
-			for this and the classic theme adds none, so only the colours below are the classic theme's.
+			<code class="text-[87.5%] text-primary">:has()</code> selector. The whole block is the hit area,
+			so a press on the title, the help line or the padding reaches the control.
 		{/snippet}
 		<Card.Root>
 			<Card.Content>
@@ -853,12 +851,9 @@
 
 	<DocSection title="Indeterminate">
 		{#snippet blurb()}
-			The third state, for a box that is neither wholly on nor wholly off. The classic framework
-			paints it the same
-			<code class="text-[87.5%] text-primary">primary</code> as the checked box with a dash where
-			the tick would be; the classic theme ships no example of it, and the ground it needs is new in
-			<code class="text-[87.5%] text-primary">app.css</code>. This one cycles through all three,
-			where the source and the browser both leave the mixed state for good on the first click.
+			The third state, for a box that is neither wholly on nor wholly off: the checked fill with a
+			dash where the tick would be. This one cycles through all three, where a plain browser
+			checkbox leaves the mixed state for good on the first press.
 		{/snippet}
 		<Card.Root>
 			<Card.Content>
@@ -877,10 +872,10 @@
 
 	<DocSection title="Dashed">
 		{#snippet blurb()}
-			The classic theme never dashes a form control — the two dashed borders in the whole theme are
-			<code class="text-[87.5%] text-primary">.card-inactive</code> and the Dropzone message, both containers,
-			where dashed means "empty slot". This one is the source's, and it costs the page one of its two
-			important utilities.
+			The box outlined in dashes instead of filled. It takes a
+			<code class="text-[87.5%] text-primary">border!</code> override rather than a plain
+			<code class="text-[87.5%] text-primary">border</code>, because a resting checkbox here is
+			drawn with no border at all for a utility to widen — the note beside the demo says why.
 		{/snippet}
 		<Card.Root>
 			<Card.Content>
@@ -905,10 +900,8 @@
 
 	<DocSection title="Todo list">
 		{#snippet blurb()}
-			The one shape on this page the classic theme owns outright.
-			<code class="text-[87.5%] text-primary">.checklist</code> is a theme-specific component, and
-			its checked row is struck through
-			<em>and</em> muted — so this section says more than the source's, which only strikes.
+			A checklist row: ticking the box strikes its label through <em>and</em> mutes it, so a done line
+			reads as done at a glance rather than only up close.
 		{/snippet}
 		<Card.Root>
 			<Card.Content>
@@ -939,10 +932,9 @@
 
 	<DocSection title="Sizes">
 		{#snippet blurb()}
-			The classic theme has no size scale for a checkbox, only the rule the sizes have to obey:
-			<code class="text-[87.5%] text-primary">form-check-input-checked-bg-size: 75% 75%</code>, a
-			ratio rather than a length. Each box restates it through
-			<code class="text-[87.5%] text-primary">--checkbox-tick</code>.
+			Four boxes at different sizes. The tick is a share of the box rather than a fixed length —
+			each size restates it through <code class="text-[87.5%] text-primary">--checkbox-tick</code> — so
+			the glyph keeps the same proportion in every square.
 		{/snippet}
 		<Card.Root>
 			<Card.Content>
@@ -963,10 +955,9 @@
 
 	<DocSection title="Badge">
 		{#snippet blurb()}
-			A chip that carries its own checkbox, which appears only once the chip is chosen. No badge in
-			the classic theme contains a form control — the badge stylesheet is twenty-four lines and none
-			of them mention one — so the pill's geometry is the theme's and only the composition is the
-			source's.
+			A chip that carries its own checkbox, which appears only once the chip is chosen. The box is
+			screen-reader-only until then rather than hidden, so an unchosen chip is still reachable from
+			the keyboard, and the pill wears the focus ring on its behalf.
 		{/snippet}
 		<Card.Root>
 			<Card.Content>
@@ -1024,11 +1015,9 @@
 
 	<DocSection title="Horizontal group">
 		{#snippet blurb()}
-			The classic framework's own answer is
-			<code class="text-[87.5%] text-primary">.form-check-inline</code>, which is nothing but
-			<code class="text-[87.5%] text-primary">display: inline-block; margin-right: 1rem</code> — and
-			the classic theme neither overrides it nor ever uses it. The 1rem is what
-			<code class="text-[87.5%] text-primary">gap-x-4</code> states here.
+			Choices laid out in a row rather than a stack, 1rem apart. The heading is a paragraph naming a <code
+				class="text-[87.5%] text-primary">role="group"</code
+			>, not a bare label: a label with no control to name would leave the boxes sounding unrelated.
 		{/snippet}
 		<Card.Root>
 			<Card.Content>
@@ -1069,11 +1058,8 @@
 
 	<DocSection title="Vertical group">
 		{#snippet blurb()}
-			The same group stacked, with an icon in each label. The 2px between rows is
-			<code class="text-[87.5%] text-primary">.form-check + .form-check</code>, the classic
-			<code class="text-[87.5%] text-primary">.125rem</code> — the classic theme raises it to
-			<code class="text-[87.5%] text-primary">.75rem</code> only inside a
-			<code class="text-[87.5%] text-primary">.checklist</code>, which a stack of choices is not.
+			The same group stacked, with an icon in each label. The rows sit 2px apart — close enough to
+			read as one group rather than as five separate settings.
 		{/snippet}
 		<Card.Root>
 			<Card.Content>
@@ -1109,10 +1095,12 @@
 
 	<DocSection title="Colors">
 		{#snippet blurb()}
-			The classic theme recolours a checkbox for one reason only — validity, green for
-			<code class="text-[87.5%] text-primary">.is-valid</code> and red for
-			<code class="text-[87.5%] text-primary">.is-invalid</code>. There is no decorative colour
-			variant, so these three take the classic roles nearest the source's red, sky and green.
+			Three checked fills in the status colours. They are token roles —
+			<code class="text-[87.5%] text-primary">destructive</code>,
+			<code class="text-[87.5%] text-primary">info</code>
+			and
+			<code class="text-[87.5%] text-primary">success</code> — rather than literal reds and greens, so
+			they follow whichever palette the page is wearing.
 		{/snippet}
 		<Card.Root>
 			<Card.Content>
@@ -1140,9 +1128,7 @@
 	<DocSection title="Custom icons">
 		{#snippet blurb()}
 			A checkbox with no box at all: the control keeps its role and its keyboard behaviour, and an
-			icon carries the state. Nothing here is the classic theme's, and nothing here has to undo the
-			classic theme either — see the note on
-			<code class="text-[87.5%] text-primary">data-slot</code> in this file's header.
+			icon carries the state — outlined while off, filled while on.
 		{/snippet}
 		<Card.Root>
 			<Card.Content>
@@ -1175,10 +1161,8 @@
 
 	<DocSection title="Filled icon">
 		{#snippet blurb()}
-			A coloured disc that shows a ringed tick when chosen. The classic theme does have a circular
-			checkbox — <code class="text-[87.5%] text-primary">.form-check-circle</code>, undocumented and
-			used on the two CRM pages only — but that is a selection control rather than a status disc, so
-			only its colours are borrowed.
+			A coloured disc that shows a ringed tick when chosen — a status marker rather than a form
+			control to a reader, though it is still a checkbox underneath and still answers the keyboard.
 		{/snippet}
 		<Card.Root>
 			<Card.Content>
@@ -1210,11 +1194,8 @@
 
 	<DocSection title="List group">
 		{#snippet blurb()}
-			The classic theme never puts a checkbox in a list-group row — the list-group stylesheet is
-			sixty-five lines and mentions no form control — so the rows keep the source's shape and take
-			the list's own metrics: <code class="text-[87.5%] text-primary">1rem 1.25rem</code> of padding
-			and a
-			<code class="text-[87.5%] text-primary">border-radius</code> outer corner.
+			Checkboxes as the rows of a list: one rounded box, a hairline per seam, and the control pushed
+			to the far edge so the labels line up down the left.
 		{/snippet}
 		<Card.Root>
 			<Card.Content>
@@ -1248,10 +1229,8 @@
 
 	<DocSection title="Tree">
 		{#snippet blurb()}
-			A parent that goes indeterminate while only some of its children are chosen. The classic theme
-			has a select-all — <code class="text-[87.5%] text-primary">.list-checkbox-all</code> in
-			<code class="text-[87.5%] text-primary">src/js/list.js</code> — but it is strictly two-state and
-			never sets the third, so the mixed parent is the source's idea on the classic theme's paint.
+			A parent that goes indeterminate while only some of its children are chosen, and switches the
+			whole group on or off when it is pressed itself.
 		{/snippet}
 		<Card.Root>
 			<Card.Content>
@@ -1295,9 +1274,8 @@
 
 	<DocSection title="Form">
 		{#snippet blurb()}
-			The same row as "With text" with the two buttons a form ends in. The classic theme's own form
-			rhythm is <code class="text-[87.5%] text-primary">form-group-margin-bottom: 1.375rem</code>
-			between groups and <code class="text-[87.5%] text-primary">.5rem</code> under the help line.
+			The same row as "With text" with the two buttons a form ends in. The help line stays flush
+			under its label and the actions take the gap instead, so the group reads as one block.
 		{/snippet}
 		<Card.Root>
 			<Card.Content>
@@ -1329,10 +1307,9 @@
 
 	<DocSection title="Animated">
 		{#snippet blurb()}
-			The tick drawn rather than switched on, and the box lifting under the pointer.
-			<code class="text-[87.5%] text-primary">.form-check-input</code> carries no
-			<code class="text-[87.5%] text-primary">transition</code> at all in the classic theme — the tick
-			appears instantly — so both movements are the source's, at the theme's own easing.
+			The tick drawn rather than switched on, and the box lifting under the pointer. Both movements
+			take the theme's own easing, and both stop under
+			<code class="text-[87.5%] text-primary">prefers-reduced-motion</code>.
 		{/snippet}
 		<Card.Root>
 			<Card.Content>
@@ -1399,11 +1376,9 @@
 
 	<DocSection title="Animated todo list">
 		{#snippet blurb()}
-			The strike of
-			<code class="text-[87.5%] text-primary">.checklist</code> drawn instead of switched on, on the
-			one round checkbox the classic theme has —
-			<code class="text-[87.5%] text-primary">.form-check-circle</code>, 1.375rem at
-			<code class="text-[87.5%] text-primary">border-radius: 50%</code>.
+			The strike of the "Todo list" row drawn across rather than switched on, on a round box. The
+			rule is a pseudo-element and not a <code class="text-[87.5%] text-primary">line-through</code
+			>, because a text decoration cannot be animated.
 		{/snippet}
 		<Card.Root>
 			<Card.Content>
@@ -1449,10 +1424,8 @@
 
 	<DocSection title="Confetti">
 		{#snippet blurb()}
-			Twelve pieces thrown at random angles when the box is checked. Nothing in the classic theme
-			does this; what it lends is the shape of the movement — the one motion it authors on an
-			interactive element, <code class="text-[87.5%] text-primary">.lift</code>, is a
-			<code class="text-[87.5%] text-primary">translate3d</code> over 250ms, and the theme scales nothing.
+			Twelve pieces thrown at random angles when the box is checked. They travel 30–50px, so the
+			card has to give up its <code class="text-[87.5%] text-primary">overflow-hidden</code> for them.
 		{/snippet}
 		<!--
 			`overflow-visible` because the Card's own class list is `overflow-hidden`, and pieces
@@ -1497,11 +1470,8 @@
 
 	<DocSection title="Invalid checkbox">
 		{#snippet blurb()}
-			A required box that has not been ticked. The classic theme marks an invalid control with
-			<code class="text-[87.5%] text-primary">.is-invalid</code>, which is a red BORDER — and this
-			theme has removed the border from a checkbox entirely, so what marks it here is the
-			destructive ring, the one shadow
-			<code class="text-[87.5%] text-primary">app.css</code> deliberately spares.
+			A required box that has not been ticked. A checkbox here carries no border to turn red, so
+			what marks it is a destructive ring around the box and the label turning with it.
 		{/snippet}
 		<Card.Root>
 			<Card.Content>
@@ -1532,11 +1502,8 @@
 	<DocSection title="Checkbox group in a frame">
 		{#snippet blurb()}
 			The same stack of choices given a surface of its own — a titled shell with the rows in one
-			seamless panel. The classic theme's nearest arrangement is a
-			<code class="text-[87.5%] text-primary">.card</code> around a
-			<code class="text-[87.5%] text-primary">.list-group</code>, which has neither the recessed
-			tray nor the concentric inner corner; the Frame page next door records why the component has
-			no classic counterpart.
+			seamless panel, the tray recessed and its inner corner concentric with the outer one. See
+			Frame for the primitive underneath.
 		{/snippet}
 		<Card.Root>
 			<Card.Content>
@@ -1664,10 +1631,8 @@
 
 	<DocSection title="Avatar based card checkbox">
 		{#snippet blurb()}
-			A person as the thing being chosen, with the control at the far end of the row. The classic
-			theme has no such row either — its own selection card, the undocumented
-			<code class="text-[87.5%] text-primary">.form-check-circle</code> on the two CRM pages, puts the
-			box in the corner rather than in the line.
+			A person as the thing being chosen, with the control at the far end of the row rather than
+			hung in the corner as the payment card below has it.
 		{/snippet}
 		<Card.Root>
 			<Card.Content>
@@ -1702,11 +1667,9 @@
 
 	<DocSection title="Nested checkbox group">
 		{#snippet blurb()}
-			<code class="text-[87.5%] text-primary">Tree</code> above with the levels it does not have: a
-			branch that is a parent to the row under it and a child to the row over it, so the mixed state
-			has to propagate rather than just be computed once. The classic theme's own select-all,
-			<code class="text-[87.5%] text-primary">.list-checkbox-all</code>, is one level and two
-			states.
+			<code class="text-[87.5%] text-primary">Tree</code> above with the levels it does not have: a branch
+			that is a parent to the row under it and a child to the row over it, so the mixed state has to propagate
+			up and down rather than be computed once.
 		{/snippet}
 		<Card.Root>
 			<Card.Content>
@@ -1772,11 +1735,8 @@
 
 	<DocSection title="Payment method card checkbox">
 		{#snippet blurb()}
-			The card-with-a-corner-control shape carrying a real object — a saved payment method. The
-			classic theme has a billing card of its own on
-			<code class="text-[87.5%] text-primary">account-billing.html</code>, and it is a
-			<code class="text-[87.5%] text-primary">.list-group-item</code> with a radio; the checkbox version
-			is the source's.
+			The card-with-a-corner-control shape carrying a real object — a saved payment method, with the
+			checkbox hung in the corner and the whole card as its hit area.
 		{/snippet}
 		<Card.Root>
 			<Card.Content>
@@ -1829,11 +1789,9 @@
 
 	<DocSection title="Checkbox with label and tooltip info">
 		{#snippet blurb()}
-			A setting whose label needs a sentence of explanation that does not belong under it. The
-			classic framework would write that sentence as a
-			<code class="text-[87.5%] text-primary">.form-text</code>, which is what "With text" above
-			does; this is the other answer, for when the explanation is longer than the setting is
-			important.
+			A setting whose label needs a sentence of explanation that would crowd the row. Where "With
+			text" above puts it under the label, this puts it behind a tooltip — the answer for an
+			explanation longer than the setting is important.
 		{/snippet}
 		<Card.Root>
 			<Card.Content>
@@ -1874,11 +1832,8 @@
 
 	<DocSection title="Checkbox group with badge">
 		{#snippet blurb()}
-			Two settings whose names need a tag rather than a sentence. The classic theme tags a row the
-			same way —
-			<code class="text-[87.5%] text-primary">.badge</code> beside a title is how
-			<code class="text-[87.5%] text-primary">account-billing.html</code> marks the active plan — so only
-			the micro-pill's metrics are the source's.
+			Two settings whose names need a tag rather than a sentence. The pill sits beside the label and
+			not inside it: a label wrapping the chip would make the tag a second hit area for the box.
 		{/snippet}
 		<Card.Root>
 			<Card.Content>

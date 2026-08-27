@@ -1,6 +1,7 @@
 <script lang="ts">
 	import * as Card from "$lib/components/ui/card/index.js";
 	import DocPage from "$lib/components/layout/DocPage.svelte";
+	import DocSection from "$lib/components/layout/DocSection.svelte";
 	import { href } from "$lib/hooks/route.svelte.js";
 
 	/**
@@ -62,47 +63,70 @@
 		(OFL-1.1) grotesque by Hanken Design Co.
 	{/snippet}
 
-	<Card.Root>
-		<Card.Content>
-			<!-- `.row > .col-xl-6` twice: two columns from `xl`, stacked below it. -->
-			<div class="grid gap-6 xl:grid-cols-2">
-				<div>
+	<div>
+		<DocSection title="Headings">
+			{#snippet blurb()}
+				Six levels, each stating its own step. Nothing here comes from a base-layer rule, so what
+				you read is exactly what you would have to type — see the note at the top of this file for
+				why the scale is not applied to bare <code>h1</code>–<code>h6</code>.
+			{/snippet}
+			<Card.Root>
+				<Card.Content>
 					{#each levels as level (level.tag)}
 						<svelte:element this={level.tag} class="{heading} {level.size} {level.margin}">
 							{level.tag}. Heading specimen
 						</svelte:element>
 					{/each}
-				</div>
+				</Card.Content>
+			</Card.Root>
+		</DocSection>
 
-				<div>
+		<DocSection title="Body copy">
+			{#snippet blurb()}
+				Two weights of the same 15px body step: full-strength ink for the sentence a reader is meant
+				to read, and <code>--muted-foreground</code> for the one explaining it.
+			{/snippet}
+			<Card.Root>
+				<Card.Content>
 					<p class={paragraph}>
-						Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor
-						incididunt ut labore et dolore magna aliqua.
+						Hanken Grotesk is a variable font, so every weight on this page comes from one file and
+						the numeric axis is continuous — a heading at 500 and body copy at 400 cost the same
+						download.
 					</p>
 
-					<!-- `.text-body-secondary` is `body-secondary-color` = `gray-600`. -->
+					<!-- The secondary ink, `--muted-foreground`: a caption under a line, not a second voice. -->
 					<p class="{paragraph} text-muted-foreground">
-						Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod.
+						Secondary type is a token rather than an opacity, so it stays legible when the palette
+						changes and does not fade further on a tinted surface.
 					</p>
+				</Card.Content>
+			</Card.Root>
+		</DocSection>
 
+		<DocSection title="Links">
+			{#snippet blurb()}
+				A link in running text is coloured rather than underlined, and darkens on hover.
+			{/snippet}
+			<Card.Root>
+				<Card.Content>
 					<!--
-						`link-color: primary` with `link-decoration: none` and no hover decoration
-						either — the classic theme's links are coloured, never underlined.
-
-						The hover colour is `darken(link-color, 15%)` = #1657AF. `darken()` shifts HSL
-						lightness, which CSS has no equivalent for, so the 70/30 mix stands in at
-						#1F56A1 — the same approximation the Buttons page documents for `.btn-link`.
+						The hover colour is the primary mixed 70/30 toward black. It is written as a
+						`color-mix()` rather than a second token because it is one state of one colour;
+						the Button page's `link` variant makes the same call for the same reason.
 					-->
 					<p class={paragraph}>
+						Every palette on the
 						<a
-							href={href("/components/typography")}
+							href={href("/components/themes")}
 							class="text-primary no-underline transition-colors hover:text-[color-mix(in_srgb,var(--primary)_70%,black)]"
 						>
-							Link example
+							Themes
 						</a>
+						page repaints this link, because its colour is <code>--primary</code> and nothing here names
+						a hue.
 					</p>
-				</div>
-			</div>
-		</Card.Content>
-	</Card.Root>
+				</Card.Content>
+			</Card.Root>
+		</DocSection>
+	</div>
 </DocPage>

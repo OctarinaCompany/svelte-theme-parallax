@@ -227,9 +227,8 @@
 			{#snippet blurb()}
 				The same components every other page shows, under whichever theme is active. Nothing here
 				reads the palette data — these are ordinary components, repainted by the tokens. The second
-				row of badges is the classic theme's soft variant, and in light mode it reads faint on
-				purpose: the ground is a tint of the type's own colour, so the contrast is capped by how
-				dark that colour is. See the Badges page for what the classic theme does and why it is kept.
+				row is the soft badge family, which in light mode reads faint on purpose: the ground is a
+				tint of the type's own colour, so the contrast is capped by how dark that colour is.
 			{/snippet}
 
 			<Card.Root>
@@ -300,17 +299,16 @@
 					</Card.Header>
 					<Card.Content class="grid gap-3 text-sm text-muted-foreground">
 						<p>
-							Every theme reuses the classic theme's own lightness ladder, measured out of
+							Every theme reuses one lightness ladder, written out of
 							<code class="text-foreground">app.css</code> in OKLCH — the page, the card, the two border
 							weights and the dark surfaces all sit at the same lightness in every one. Only hue and chroma
 							move, which is why a different palette never reads as a different product.
 						</p>
 						<p>
-							What is solved rather than inherited is what the classic theme's own port doc already
-							flags: secondary text, which measured 2.37:1 there, and the five labels on solid
-							fills, which the classic framework picks with <code class="text-foreground"
-								>color-contrast()</code
-							> and lands at 1.87:1 on success.
+							Two things are solved rather than inherited, because picking them by eye misses the
+							WCAG floor: secondary text, and the labels that sit on the solid status fills — a
+							white label on the success green measures 1.87:1, so each fill carries a solved ink of
+							its own.
 						</p>
 					</Card.Content>
 				</Card.Root>

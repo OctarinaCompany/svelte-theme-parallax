@@ -189,16 +189,16 @@
 	const fieldLabel = "font-normal";
 
 	/**
-	 * The classic four edge classes, in the order the shadcn docs list the `side` values:
-	 * `.offcanvas-top`, `.offcanvas-end`, `.offcanvas-bottom`, `.offcanvas-start`. The classic framework
-	 * names the horizontal pair by writing direction rather than by side, which is why `right`
-	 * maps to `end` and `left` to `start`.
+	 * The four edges, in the order the shadcn docs list the `side` values.
+	 *
+	 * Each carries the dimension a panel on that edge is sized by, which is the one thing that
+	 * differs between them: a side panel is measured across, a top or bottom one down.
 	 */
 	const sides = [
-		{ side: "top", label: "Top", classicClass: ".offcanvas-top" },
-		{ side: "right", label: "Right", classicClass: ".offcanvas-end" },
-		{ side: "bottom", label: "Bottom", classicClass: ".offcanvas-bottom" },
-		{ side: "left", label: "Left", classicClass: ".offcanvas-start" },
+		{ side: "top", label: "Top", measure: "height" },
+		{ side: "right", label: "Right", measure: "width" },
+		{ side: "bottom", label: "Bottom", measure: "height" },
+		{ side: "left", label: "Left", measure: "width" },
 	] as const;
 
 	/*
@@ -294,17 +294,16 @@
 					<Sheet.Root>
 						<Sheet.Trigger class={trigger}>{edge.label}</Sheet.Trigger>
 						<!--
-							`panelSize` covers all four edges at once: the horizontal pair takes
-							`offcanvas-horizontal-width`, the vertical pair `--bs-offcanvas-height`.
-							The classic framework sizes them from two different variables for the same reason —
-							a side panel is measured across, a top or bottom one down.
+							`panelSize` covers all four edges at once, sizing the horizontal pair by width
+							and the vertical pair by height — a side panel is measured across, a top or
+							bottom one down.
 						-->
 						<Sheet.Content side={edge.side} class="{panel} {panelSize}">
 							<Sheet.Header class={header}>
 								<Sheet.Title>{edge.label}</Sheet.Title>
 								<Sheet.Description>
-									The classic framework builds the same panel with <code
-										class="text-[87.5%] text-primary">{edge.classicClass}</code
+									A panel on this edge is sized by its <code class="text-[87.5%] text-primary"
+										>{edge.measure}</code
 									>.
 								</Sheet.Description>
 							</Sheet.Header>
@@ -320,10 +319,9 @@
 
 	<DocSection title="Size">
 		{#snippet blurb()}
-			You can adjust the size of the sheet using CSS classes. The classic theme's default is
-			<code class="text-[87.5%] text-primary">offcanvas-horizontal-width: 350px</code>, so a wider
-			panel is an override rather than a variant — the classic framework ships no size modifier for
-			the offcanvas.
+			You can adjust the size of the sheet using CSS classes. There is no size variant to pick from:
+			a wider panel is a width class on <code class="text-[87.5%] text-primary">Sheet.Content</code>
+			itself.
 		{/snippet}
 		<Card.Root>
 			<Card.Content>
@@ -348,10 +346,7 @@
 							</Sheet.Description>
 						</Sheet.Header>
 						<div class={body}>
-							At 540px the panel is wider than <code class="text-[87.5%] text-primary"
-								>--bs-offcanvas-width</code
-							>, which the classic theme pins at 350px against the classic framework's own 400px
-							default.
+							At 540px this panel is wider than the 350px every other sheet on the page opens at.
 						</div>
 					</Sheet.Content>
 				</Sheet.Root>

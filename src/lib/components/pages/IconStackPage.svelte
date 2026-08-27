@@ -14,6 +14,7 @@
 	import UserPlusIcon from "@lucide/svelte/icons/user-plus";
 	import DocPage from "$lib/components/layout/DocPage.svelte";
 	import DocSection from "$lib/components/layout/DocSection.svelte";
+	import * as Table from "$lib/components/ui/table/index.js";
 
 	/**
 	 * The Icon stack component page — its six examples in the order that
@@ -40,6 +41,63 @@
 	 *    `UserPlusIcon`, `DatabaseIcon`.
 	 */
 
+	/**
+	 * The component's own surface, for the API reference at the foot of the page.
+	 *
+	 * A house component has no upstream page to defer to, so the props live here — read off
+	 * `$lib/components/ui/icon-stack/icon-stack.svelte`, which is the only other place they are
+	 * written down.
+	 */
+	const iconStackProps = [
+		{
+			prop: "ref",
+			type: "HTMLDivElement | null",
+			default: "null",
+			description: "Bindable reference to the rendered element. Stays `null` in `child` mode.",
+		},
+		{
+			prop: "class",
+			type: "ClassValue",
+			default: "—",
+			description:
+				"Merged last, so it overrides the base classes — including the two content-position variables below.",
+		},
+		{
+			prop: "children",
+			type: "Snippet",
+			default: "—",
+			description:
+				"The icon that floats on the front sheet. Sized by the caller: the content plane is skewed and scaled, so the balance depends on the stack's height and the component cannot pick one.",
+		},
+		{
+			prop: "child",
+			type: "Snippet<[{ props }]>",
+			default: "—",
+			description:
+				"Render the root onto your own element and spread the merged props onto it. Neither the layered SVG nor `children` is rendered in this mode.",
+		},
+		{
+			prop: "...restProps",
+			type: "HTMLAttributes",
+			default: "—",
+			description:
+				"Everything else is spread onto the element, so `id`, `aria-*` and event handlers pass through.",
+		},
+	];
+
+	const iconStackVariables = [
+		{
+			name: "--icon-stack-content-x",
+			default: "71%",
+			description: "Horizontal position of the floating content within the stack.",
+		},
+		{
+			name: "--icon-stack-content-y",
+			default: "58%",
+			description: "Vertical position of the floating content within the stack.",
+		},
+	];
+
 	/** The three size steps of demo 2, each with the icon size upstream pairs it with. */
 	const iconStackSizes = [
 		{ label: "Small", class: "h-16 w-14", icon: ArchiveIcon, iconClass: "size-3.5" },
@@ -60,7 +118,7 @@
 	];
 </script>
 
-<DocPage title="Icon Stack">
+<DocPage title="Icon stack">
 	{#snippet subtitle()}
 		A layered isometric mark that frames a single icon — the illustration an empty state or a
 		feature card leads with, sized and tinted from the surrounding text colour.
@@ -201,5 +259,70 @@
 				</div>
 			</Card.Content>
 		</Card.Root>
+	</DocSection>
+
+	<DocSection title="API reference">
+		<div class="flex flex-col gap-3">
+			<h3 class="text-base font-medium">IconStack</h3>
+			<p class="text-sm text-muted-foreground">
+				The whole component: three isometric sheets, a soft ground shadow, and a skewed content
+				plane holding whatever you pass as <code>children</code>.
+			</p>
+			<Card.Root>
+				<Card.Content class="px-0 [&_[data-slot=table-cell]]:whitespace-normal">
+					<Table.Root>
+						<Table.Header>
+							<Table.Row>
+								<Table.Head>Prop</Table.Head>
+								<Table.Head>Type</Table.Head>
+								<Table.Head>Default</Table.Head>
+								<Table.Head>Description</Table.Head>
+							</Table.Row>
+						</Table.Header>
+						<Table.Body>
+							{#each iconStackProps as row (row.prop)}
+								<Table.Row>
+									<Table.Cell class="font-medium">{row.prop}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.type}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.default}</Table.Cell>
+									<Table.Cell>{row.description}</Table.Cell>
+								</Table.Row>
+							{/each}
+						</Table.Body>
+					</Table.Root>
+				</Card.Content>
+			</Card.Root>
+		</div>
+
+		<div class="flex flex-col gap-3">
+			<h3 class="text-base font-medium">CSS variables</h3>
+			<p class="text-sm text-muted-foreground">
+				Written as arbitrary-property utilities rather than an inline <code>style</code>, so a
+				caller can override either of them through <code>class</code> and tailwind-merge resolves the
+				conflict.
+			</p>
+			<Card.Root>
+				<Card.Content class="px-0 [&_[data-slot=table-cell]]:whitespace-normal">
+					<Table.Root>
+						<Table.Header>
+							<Table.Row>
+								<Table.Head>Variable</Table.Head>
+								<Table.Head>Default</Table.Head>
+								<Table.Head>Description</Table.Head>
+							</Table.Row>
+						</Table.Header>
+						<Table.Body>
+							{#each iconStackVariables as row (row.name)}
+								<Table.Row>
+									<Table.Cell class="font-medium">{row.name}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.default}</Table.Cell>
+									<Table.Cell>{row.description}</Table.Cell>
+								</Table.Row>
+							{/each}
+						</Table.Body>
+					</Table.Root>
+				</Card.Content>
+			</Card.Root>
+		</div>
 	</DocSection>
 </DocPage>

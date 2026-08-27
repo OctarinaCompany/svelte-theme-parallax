@@ -349,8 +349,8 @@
 		A status-coloured message block for contextual feedback on what the user just did. It is the
 		inline member of Feedback: a bordered block rendered in the flow where it is written, carrying
 		no dismiss control of its own — Banner is the full-width strip a queue pins over the viewport,
-		and Sonner the stack of toasts that clears itself. The first section is the classic set; the
-		rest are thirty gallery examples, repainted in this theme's tokens. See the
+		and Sonner the stack of toasts that clears itself. The first section is the solid status set;
+		the rest are thirty examples repainted in this theme's tokens. See the
 		<a
 			class="text-primary underline underline-offset-3"
 			href="https://shadcn-svelte.com/docs/components/alert"
@@ -360,10 +360,10 @@
 		for the component's own API.
 	{/snippet}
 
-	<DocSection title="The classic contextual variants">
+	<DocSection title="Contextual variants">
 		{#snippet blurb()}
-			One solid band per theme colour, with the type <code>color-contrast()</code> picks against it
-			— the classic theme regenerates every classic <code>.alert-*</code> to override the tinted defaults.
+			One solid band per status colour, each carrying the ink solved for that fill rather than a
+			blanket white — which is why the warning row comes out dark on amber.
 		{/snippet}
 
 		<!--
@@ -839,6 +839,12 @@
 			<code>alert-18</code> … <code>alert-20</code>: the card ground kept, the status carried by the
 			border and the type. The description drops to 80% of the same colour rather than to
 			<code>--muted-foreground</code>, so the block reads as one object.
+			<strong class="font-medium text-foreground">Read the numbers before you copy this one:</strong
+			>
+			a status colour is a fill, not an ink, and on the light card these three titles measure 2.4:1, 2.2:1
+			and 1.7:1 — under the 4.5:1 the WCAG asks of 15px type. The Soft section below is the same message
+			with an ink solved for its ground; this shape is here because the outline itself is worth documenting,
+			not because it is the one to ship.
 		{/snippet}
 
 		<Card.Root>
@@ -860,9 +866,11 @@
 				</Alert.Root>
 
 				<!--
-					All three rows are below AA in light mode — info 2.6:1, success 1.9:1 and this one
-					1.6:1, #F6C343 type on a near-white card. Reproduced rather than corrected: see the
-					header comment, and §17.3 of the theme notes for why a tint cannot fix it.
+					All three rows are below AA in light mode — measured on the rendered pixels at 2.41:1,
+					2.23:1 and, for this one, 1.65:1. Nothing a variant can do fixes it: the ink IS the
+					status colour, so the only repair is a different colour. The section's blurb says so
+					on the page rather than only here, and the Soft section below is the pairing that
+					clears AA.
 				-->
 				<Alert.Root class="border-warning text-warning">
 					<CircleAlertIcon />
@@ -879,8 +887,8 @@
 		{#snippet blurb()}
 			<code>alert-21</code> … <code>alert-25</code>: the <code>-subtle</code> ground under its
 			contrast-walked <code>-subtle-foreground</code> ink — the soft pairing every status surface
-			shares. The first keeps the default type, as upstream does, because
-			<code>--primary</code> is a brand colour rather than a status.
+			shares. The first keeps the default type, because <code>--primary</code> is a brand colour rather
+			than a status.
 		{/snippet}
 
 		<Card.Root>
@@ -930,10 +938,9 @@
 
 	<DocSection title="Solid">
 		{#snippet blurb()}
-			<code>alert-26</code> … <code>alert-30</code>: the full-strength fill, which is where the
-			gallery and the classic theme finally agree — this is the same object as the first section,
-			composed rather than reskinned. The warning row is the one place the theme improves on
-			upstream: <code>--warning-foreground</code> is navy, where upstream sets white on amber.
+			<code>alert-26</code> … <code>alert-30</code>: the full-strength fill — the same object as the
+			first section on this page, composed out of parts rather than reskinned. The warning row takes
+			<code>--warning-foreground</code>, a navy, because white on amber is unreadable.
 		{/snippet}
 
 		<Card.Root>

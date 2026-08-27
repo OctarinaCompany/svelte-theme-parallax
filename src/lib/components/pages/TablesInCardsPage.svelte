@@ -1242,7 +1242,7 @@
 		{#snippet blurb()}
 			Airtable and GitHub Projects put the row-height switch on the view itself; here it sits in the
 			card header, driving <code>Table.Root</code>'s <code>density</code>:
-			<code>sm</code> is 40px rows with the 13px <code>.table-sm</code> body type,
+			<code>sm</code> is 40px rows with 13px body type,
 			<code>default</code> the uniform 56px, <code>lg</code> 76px. Each tier is a floor, not a clamp —
 			a cell that stacks two lines simply holds its row above it.
 		{/snippet}

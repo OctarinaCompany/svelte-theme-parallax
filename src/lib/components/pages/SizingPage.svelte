@@ -79,10 +79,10 @@
 
 	<DocSection title="The ramp">
 		{#snippet blurb()}
-			Four steps, valued from the classic theme's shared <code>input-btn-*</code> derivation — a
-			default button and a text field are the <em>same 40px object</em> there, which is the fact the
-			whole ramp preserves. <code>sm</code> keeps the ecosystem's 32px over the classic theme's
-			28.75px line-height trick; <code>xs</code> is shadcn's, with no reference analogue.
+			Four steps, and one rule underneath them: a default button and a text field are the
+			<em>same 40px object</em>, so a form row lines up without anyone measuring it.
+			<code>sm</code> is the ecosystem's 32px, and <code>xs</code> is shadcn's own extra rung for a control
+			that sits inside another one.
 		{/snippet}
 		<Card.Root>
 			<Card.Content class="flex flex-col gap-6">

@@ -190,10 +190,9 @@
 
 	<DocSection title="States">
 		{#snippet blurb()}
-			The classic theme's own navs example: one active tab, two idle ones and a disabled one. The
-			resting label is <code class="text-[87.5%] text-primary">gray-600</code>, hover is
-			<code class="text-[87.5%] text-primary">gray-700</code>
-			and the active one is the body colour.
+			One active tab, two idle ones and a disabled one. An idle label sits at
+			<code class="text-[87.5%] text-primary">--muted-foreground</code>, darkens under the pointer,
+			and reaches the body colour only once it is the active tab.
 		{/snippet}
 		<Card.Root>
 			<Card.Content>
@@ -215,9 +214,8 @@
 
 	<DocSection title="Small">
 		{#snippet blurb()}
-			A small variation of the tab row — the classic theme's <code class="text-[87.5%] text-primary"
-				>.nav-tabs-sm</code
-			>, which it recommends for card headers.
+			A smaller variation of the tab row, for a card header where a full-height row would crowd the
+			title beside it.
 		{/snippet}
 		<Card.Root>
 			<Card.Content>
@@ -247,9 +245,7 @@
 	<DocSection title="Horizontal overflow">
 		{#snippet blurb()}
 			Tabs that do not wrap when they outrun the viewport: they stay on one line and the row scrolls
-			in the x axis instead. This is the classic theme's <code class="text-[87.5%] text-primary"
-				>.nav-overflow</code
-			>.
+			in the x axis instead.
 		{/snippet}
 		<Card.Root>
 			<Card.Content>
@@ -286,11 +282,8 @@
 
 	<DocSection title="Basic tabs">
 		{#snippet blurb()}
-			The default filled list — the one look this page had not shown yet, since every classic
-			section above asks for <code class="text-[87.5%] text-primary">variant="line"</code>. Its
-			classic-framework counterpart is <code class="text-[87.5%] text-primary">.nav-pills</code>,
-			not
-			<code class="text-[87.5%] text-primary">.nav-tabs</code>.
+			The default filled list — the one look this page had not shown yet, since every section above
+			asks for <code class="text-[87.5%] text-primary">variant="line"</code> instead.
 		{/snippet}
 		<!-- demo 1: the account/password pair again, this time on the untouched pill list. -->
 		<div class="flex w-full max-w-xs flex-col gap-6">
@@ -347,10 +340,9 @@
 
 	<DocSection title="Tabs with vertical orientation">
 		{#snippet blurb()}
-			The list stacks down the left and the panel fills the rest. The classic theme documents no
-			vertical tabs, so this is shadcn's own behaviour, untouched by the <code
-				class="text-[87.5%] text-primary">app.css</code
-			> measurements — those are scoped to horizontal lists.
+			The list stacks down the left and the panel fills the rest. This is shadcn-svelte's own
+			vertical behaviour, untouched by the theme's tab measurements — those are scoped to horizontal
+			lists.
 		{/snippet}
 		<!--
 			demo 3. The vertical column, the full-width triggers and their left alignment all

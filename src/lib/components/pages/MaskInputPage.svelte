@@ -406,7 +406,7 @@
 	];
 </script>
 
-<DocPage title="Mask Input">
+<DocPage title="Mask input">
 	{#snippet subtitle()}
 		An input that formats what you type against a pattern like a phone number, date, credit card or
 		currency amount — and keeps the caret where you left it.

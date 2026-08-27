@@ -511,8 +511,6 @@
 	<DocSection title="Usage">
 		{#snippet blurb()}
 			The bare form the documentation page shows under Usage — one call, one string, and no options.
-			This is the toast closest to the classic theme's own example, which is a single line of text
-			in a <code class="text-[87.5%] text-primary">.toast-body</code>.
 		{/snippet}
 		<Card.Root>
 			<Card.Content>
@@ -523,9 +521,8 @@
 
 	<DocSection title="Examples">
 		{#snippet blurb()}
-			The five toast types plus the promise helper. None of them has a classic counterpart:
-			<code class="text-[87.5%] text-primary">.toast</code> has one skin, no icon and no loading state,
-			so the icons and the colours below are shadcn-svelte's own.
+			The five toast types plus the promise helper. Each type brings its own icon and colour; the
+			promise helper opens on a loading toast and rewrites it in place when the promise settles.
 		{/snippet}
 		<Card.Root>
 			<Card.Content>
@@ -558,14 +555,11 @@
 
 	<DocSection title="Close button">
 		{#snippet blurb()}
-			The one addition with a real classic counterpart:
-			<code class="text-[87.5%] text-primary">.btn-close</code> is the only control the classic
-			theme's toast has, sitting at the end of its header row. sonner's is a 20px chip hung off the
-			top-left corner of the box instead. The package already gives it the toast's colours in dark
-			mode and leaves light mode on two hardcoded greys, which shows on a skinned toast — a
-			near-black glyph in a near-white ring on a solid ground — so
+			A dismiss control, rendered as a 20px chip hung off the top-left corner of the box. sonner
+			colours it from the toast in dark mode but from two fixed greys in light mode, which on a
+			skinned toast reads as a near-black glyph in a near-white ring on a solid ground — so
 			<code class="text-[87.5%] text-primary">app.css</code> settles both modes on the toast's own colours
-			and adds the classic opacity pair.
+			and dims the chip to half strength until it is hovered or focused.
 		{/snippet}
 		<Card.Root>
 			<Card.Content>
@@ -583,10 +577,7 @@
 		{#snippet blurb()}
 			A per-toast <code class="text-[87.5%] text-primary">position</code>. Five of the six make
 			sonner mount a list of its own for that corner; the sixth is the app's own default, so a
-			Bottom Right toast joins the list every other section on this page fires into. The classic
-			framework has no equivalent option — a
-			<code class="text-[87.5%] text-primary">.toast-container</code> is placed by position utilities
-			in the markup, once, for every toast it holds.
+			Bottom Right toast joins the list every other section on this page fires into.
 		{/snippet}
 		<Card.Root>
 			<Card.Content>
@@ -612,8 +603,8 @@
 	<DocSection title="Soft">
 		{#snippet blurb()}
 			The tinted skin, keyed to
-			<code class="text-[87.5%] text-primary">--{"{"}status{"}"}-subtle</code> — the ground The
-			classic theme's own soft badges sit on — with the contrast-walked
+			<code class="text-[87.5%] text-primary">--{"{"}status{"}"}-subtle</code> — the same ground the
+			soft badges sit on — with the contrast-walked
 			<code class="text-[87.5%] text-primary">-subtle-foreground</code> ink as type and the full-strength
 			colour as border. Nothing here names a colour, so all twelve palettes follow.
 		{/snippet}
@@ -653,10 +644,9 @@
 	<DocSection title="Solid">
 		{#snippet blurb()}
 			The filled skin. Its type is
-			<code class="text-[87.5%] text-primary">--{"{"}status{"}"}-foreground</code> rather than the
-			white upstream hardcodes, so the warning toast comes out dark on yellow — the answer the
-			classic <code class="text-[87.5%] text-primary">color-contrast()</code> gives for that ground, in
-			both modes.
+			<code class="text-[87.5%] text-primary">--{"{"}status{"}"}-foreground</code> rather than a fixed
+			white, so the warning toast comes out dark on yellow — the readable answer for that ground, in both
+			modes.
 		{/snippet}
 		<Card.Root>
 			<Card.Content>
@@ -692,11 +682,8 @@
 	<DocSection title="Toast duration options">
 		{#snippet blurb()}
 			A per-toast <code class="text-[87.5%] text-primary">duration</code>, from two seconds to
-			<code class="text-[87.5%] text-primary">Infinity</code> — the value that never schedules a
-			dismiss, which is why the persistent call is the one that also asks for a close button. the
-			classic counterpart is <code class="text-[87.5%] text-primary">data-bs-delay</code> on
-			<code class="text-[87.5%] text-primary">.toast</code>, with
-			<code class="text-[87.5%] text-primary">autohide</code> off for the persistent case.
+			<code class="text-[87.5%] text-primary">Infinity</code> — the value that never schedules a dismiss,
+			which is why the persistent call is the one that also asks for a close button.
 		{/snippet}
 		<Card.Root>
 			<Card.Content>

@@ -242,7 +242,7 @@
 	<DocSection title="Default">
 		<Card.Root>
 			<Card.Content>
-				<Listbox.Root class="w-full">
+				<Listbox.Root aria-label="Tricks" class="w-full">
 					{#each tricks as trick (trick.label)}
 						<Listbox.Item value={trick.label}>
 							<div class="flex flex-col">
@@ -257,13 +257,17 @@
 		</Card.Root>
 	</DocSection>
 
-	<DocSection title="Horizontal Orientation">
+	<DocSection title="Horizontal orientation">
 		{#snippet blurb()}
 			ArrowLeft and ArrowRight move along the row.
 		{/snippet}
 		<Card.Root>
 			<Card.Content>
-				<Listbox.Root orientation="horizontal" class="w-full flex-row gap-4">
+				<Listbox.Root
+					aria-label="Tricks, laid out in a row"
+					orientation="horizontal"
+					class="w-full flex-row gap-4"
+				>
 					{#each horizontalTricks as trick (trick.label)}
 						<Listbox.Item value={trick.label}>
 							<div class="flex flex-col">
@@ -280,13 +284,17 @@
 		</Card.Root>
 	</DocSection>
 
-	<DocSection title="Grid Layout">
+	<DocSection title="Grid layout">
 		{#snippet blurb()}
 			With <code>orientation="mixed"</code> the arrow keys navigate both axes of the rendered grid.
 		{/snippet}
 		<Card.Root>
 			<Card.Content>
-				<Listbox.Root orientation="mixed" class="grid w-full gap-2 sm:grid-cols-3">
+				<Listbox.Root
+					aria-label="Tricks, laid out in a grid"
+					orientation="mixed"
+					class="grid w-full gap-2 sm:grid-cols-3"
+				>
 					{#each gridTricks as trick (trick.label)}
 						<Listbox.Item value={trick.label} class="items-start">
 							<div class="flex flex-col gap-px">
@@ -301,14 +309,19 @@
 		</Card.Root>
 	</DocSection>
 
-	<DocSection title="Grouped Items">
+	<DocSection title="Grouped items">
 		{#snippet blurb()}
 			Multiple selection, with navigation crossing group boundaries.
 		{/snippet}
 		<Card.Root>
 			<Card.Content>
 				<div class="flex w-full flex-col gap-4">
-					<Listbox.Root multiple bind:value={selectedTricks} class="w-full">
+					<Listbox.Root
+						aria-label="Tricks by category"
+						multiple
+						bind:value={selectedTricks}
+						class="w-full"
+					>
 						{#each Object.entries(groupedTricks) as [groupName, groupTricks] (groupName)}
 							<Listbox.Group>
 								<Listbox.GroupLabel>{groupName}</Listbox.GroupLabel>

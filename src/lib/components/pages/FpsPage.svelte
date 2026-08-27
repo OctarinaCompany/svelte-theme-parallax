@@ -220,7 +220,7 @@
 		</Card.Root>
 	</DocSection>
 
-	<DocSection title="Props">
+	<DocSection title="API reference">
 		<Card.Root>
 			<Card.Content class="px-0 [&_[data-slot=table-cell]]:whitespace-normal">
 				<Table.Root>

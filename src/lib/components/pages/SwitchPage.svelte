@@ -130,14 +130,12 @@
 				same three facts directly.
 			-->
 			<div class="flex items-center gap-2">
-				<Switch id="switch-classic-default" bind:checked />
+				<Switch id="switch-usage-default" bind:checked />
 				<!--
 					`font-normal` because `.form-check-label` sets only `cursor`, so it inherits
 					`font-weight-base` (400) where shadcn's `Label` asks for 500.
 				-->
-				<Label for="switch-classic-default" class="font-normal">
-					The classic switch, unchecked to start
-				</Label>
+				<Label for="switch-usage-default" class="font-normal">The switch, unchecked to start</Label>
 			</div>
 		</Card.Content>
 	</Card.Root>
@@ -194,10 +192,9 @@
 
 	<DocSection title="One size, by design">
 		{#snippet blurb()}
-			Upstream ships a <code>sm</code> variant; this theme does not. The classic theme's
-			<code>.form-switch</code> is one object — a 48×24 track with an 18px knob — and
-			<code>app.css</code> states that geometry for every instance, so the component offers no size prop
-			and every switch on this page is the same switch.
+			The switch is one object — a 48×24 track with an 18px knob — and <code>app.css</code> states that
+			geometry for every instance, so there is no size prop to pass and every switch on this page is the
+			same switch.
 		{/snippet}
 		<Card.Root>
 			<Card.Content>

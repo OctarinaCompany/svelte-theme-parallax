@@ -58,6 +58,23 @@
 		"[--animate-spin:spin_0.75s_linear_infinite] motion-reduce:[--animate-spin:spin_1.5s_linear_infinite]";
 
 	/**
+	 * The loading-dots demo's dot, and the one animation on this page that TRAVELS.
+	 *
+	 * `animate-spin` under reduced motion is only slowed, following the classic framework's own rule
+	 * above — a glyph turning in place is not the motion the setting is about. `animate-bounce`
+	 * is: it translates each dot up and down, which is exactly what a reader who asks for
+	 * reduced motion is asking not to be shown, and slowing it down would not change that.
+	 *
+	 * So the substitution is the one `app.css` already makes for the 128 loaders when the same
+	 * query matches — `loader-rest`, a 45% opacity dip in place, motion swapped for a pulse
+	 * rather than frozen, so the demo still reads as "working". The mechanism is `speed`'s:
+	 * `animate-bounce` compiles to `animation: var(--animate-bounce)`, so redefining the
+	 * variable collides with no utility and needs no `!`.
+	 */
+	const dot =
+		"size-2 animate-bounce rounded-full bg-primary motion-reduce:[--animate-bounce:loader-rest_2s_ease-in-out_infinite]";
+
+	/**
 	 * The classic theme's Colors card, which names exactly four: `.text-primary`, `.text-secondary`,
 	 * `.text-success`, `.text-danger`. The shadcn docs use `text-red-500` through
 	 * `text-purple-500` — raw palette values this theme does not carry — so the four the classic theme
@@ -634,15 +651,14 @@
 					rather than bouncing three, so nothing transfers and the demo markup stands as-is.
 
 					The page's `speed` constant does not apply: it retunes `--animate-spin`, and
-					`animate-bounce` reads `--animate-bounce`. `role="status"` with an `aria-label`
+					`animate-bounce` reads `--animate-bounce` — see {@link dot}, which is where the
+					reduced-motion answer for this one lives. `role="status"` with an `aria-label`
 					restores what `spinner.svelte` provides by default and bare spans do not.
 				-->
 				<div class="flex items-center justify-center gap-1.5" role="status" aria-label="Loading">
-					<span class="size-2 animate-bounce rounded-full bg-primary [animation-delay:-0.3s]"
-					></span>
-					<span class="size-2 animate-bounce rounded-full bg-primary [animation-delay:-0.15s]"
-					></span>
-					<span class="size-2 animate-bounce rounded-full bg-primary"></span>
+					<span class="{dot} [animation-delay:-0.3s]"></span>
+					<span class="{dot} [animation-delay:-0.15s]"></span>
+					<span class={dot}></span>
 				</div>
 			</Card.Content>
 		</Card.Root>

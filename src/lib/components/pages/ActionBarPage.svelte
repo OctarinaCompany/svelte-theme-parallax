@@ -340,7 +340,7 @@
 	];
 </script>
 
-<DocPage title="Action Bar">
+<DocPage title="Action bar">
 	{#snippet subtitle()}
 		A floating action bar that appears at the bottom or top of the viewport to display contextual
 		actions for selected items.

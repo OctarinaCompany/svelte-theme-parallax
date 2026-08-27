@@ -403,11 +403,9 @@
 			target="_blank"
 			rel="noreferrer">official shadcn-svelte documentation</a
 		>
-		for a full list of options. The default row here is skinned to the classic
-		<code class="text-[87.5%] text-primary">.list-group-item</code>, but
-		<code class="text-[87.5%] text-primary">Item.Group</code> only stacks rows with a gap. For the
-		container the classic framework draws around them — one rounded box, a hairline per seam, and an
-		active fill on the chosen row — see
+		for a full list of options. <code class="text-[87.5%] text-primary">Item.Group</code> only
+		stacks rows with a gap; for the container drawn around them — one rounded box, a hairline per
+		seam, and an active fill on the chosen row — see
 		<a class="text-primary underline underline-offset-3" href={href("/components/list-group")}
 			>List group</a
 		>, which ports that as plain classes rather than as a component.
@@ -461,8 +459,9 @@
 
 	<DocSection title="Variants">
 		{#snippet blurb()}
-			Three grounds for one row. Only <code class="text-[87.5%] text-primary">outline</code> has a classic
-			counterpart — a list row always draws its border there.
+			Three grounds for one row: no edge at all, a border, and a quiet fill. The borderless one is
+			how a flush list looks between its seams, which is why the Group section below pairs it with
+			separators rather than with an outline.
 		{/snippet}
 		<Card.Root>
 			<Card.Content class="flex flex-col gap-6">
@@ -523,8 +522,8 @@
 
 	<DocSection title="Size">
 		{#snippet blurb()}
-			The item has different sizes for different use cases — a compact row, a standard one, and the
-			one size the classic theme itself adds.
+			Four heights for the same row, from a compact one-line entry to a roomy one with a description
+			under the title.
 		{/snippet}
 		<Card.Root>
 			<Card.Content class="flex flex-col gap-6">
@@ -558,7 +557,7 @@
 					<Item.Content>
 						<Item.Title>Default</Item.Title>
 						<Item.Description class={description}>
-							The classic theme's list row: 16px of vertical padding, 20px of horizontal.
+							The row every other section on this page uses: 16px of vertical padding, 20px of
 						</Item.Description>
 					</Item.Content>
 					<Item.Actions>
@@ -570,7 +569,7 @@
 					<Item.Content>
 						<Item.Title>Large</Item.Title>
 						<Item.Description class={description}>
-							The list-group-lg row: the same width, one full spacer tall.
+							The same row one full spacing step taller, for a description under the title.
 						</Item.Description>
 					</Item.Content>
 					<Item.Actions>
@@ -583,8 +582,8 @@
 
 	<DocSection title="Icon">
 		{#snippet blurb()}
-			An icon in the media slot. The classic theme puts one in an avatar chip rather than leaving it
-			bare, so this row carries the chip.
+			An icon in the media slot, set in a chip rather than left bare so it holds the same square an
+			avatar would.
 		{/snippet}
 		<Card.Root>
 			<Card.Content>
@@ -608,8 +607,7 @@
 
 	<DocSection title="Avatar">
 		{#snippet blurb()}
-			One avatar, then a stack of them — the shape the classic theme calls
-			<code class="text-[87.5%] text-primary">.avatar-group</code>.
+			One avatar, then a stack of them overlapped into a group.
 		{/snippet}
 		<Card.Root>
 			<Card.Content class="flex flex-col gap-6">
@@ -712,8 +710,8 @@
 
 	<DocSection title="Group">
 		{#snippet blurb()}
-			Items stacked into a list. This is the one section where the classic theme has an opinion
-			about the container rather than about the row.
+			Items stacked into a list. The gap between rows is replaced by a separator, so the group reads
+			as one surface rather than as a column of cards.
 		{/snippet}
 		<Card.Root>
 			<Card.Content>
@@ -844,8 +842,8 @@
 
 	<DocSection title="Dropdown">
 		{#snippet blurb()}
-			An item inside a menu. The classic theme's own version of this is a
-			<code class="text-[87.5%] text-primary">.dropdown-menu-card</code> holding a flush list.
+			An item inside a menu, which is what the row is for once it stops being a page-level list: the
+			same title, description and media, on a panel.
 		{/snippet}
 		<Card.Root>
 			<Card.Content>

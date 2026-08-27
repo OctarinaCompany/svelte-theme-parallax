@@ -78,7 +78,7 @@
 	];
 </script>
 
-<DocPage title="Color Swatch">
+<DocPage title="Color swatch">
 	{#snippet subtitle()}
 		A color swatch component for displaying color values with support for transparency and various
 		sizes.

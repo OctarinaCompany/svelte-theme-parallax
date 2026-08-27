@@ -352,9 +352,7 @@
 	<DocSection title="Basic menu">
 		{#snippet blurb()}
 			The minimal form from the documentation's usage section — a trigger and four items, with no
-			shortcuts, submenu or indicators. It is the closest this component gets to a plain classic <code
-				class="text-[87.5%] text-primary">.dropdown-menu</code
-			>.
+			shortcuts, submenu or indicators.
 		{/snippet}
 		<Card.Root>
 			<Card.Content>
@@ -409,10 +407,9 @@
 
 	<DocSection title="Context menu labels and separators">
 		{#snippet blurb()}
-			From Demo 5 — a menu organised into labelled command groups. The
-			<code class="text-[87.5%] text-primary">ContextMenuLabel</code> inside a group is this build's
-			<code class="text-[87.5%] text-primary">GroupHeading</code>, styled as the classic theme's
-			<code class="text-[87.5%] text-primary">.dropdown-header</code>.
+			A menu organised into labelled command groups. A
+			<code class="text-[87.5%] text-primary">ContextMenu.GroupHeading</code> names each one, set in the
+			muted type a heading takes rather than the item type under it.
 		{/snippet}
 		<Card.Root>
 			<Card.Content>

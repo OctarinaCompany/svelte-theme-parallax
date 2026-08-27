@@ -279,8 +279,8 @@
 
 <DocPage title="Button">
 	{#snippet subtitle()}
-		Use the classic theme's custom button styles for actions in forms, dialogs, and more with
-		support for multiple sizes, states, and more. Please see the
+		Buttons for actions in forms, dialogs and more, with support for multiple variants, sizes and
+		states. Please see the
 		<a
 			class="text-primary underline underline-offset-3"
 			href="https://shadcn-svelte.com/docs/components/button"
@@ -347,8 +347,8 @@
 
 	<DocSection title="White">
 		{#snippet blurb()}
-			Creates a white variation of a button since the classic native "light" variant doesn't work
-			well over light backgrounds.
+			A button on the card ground rather than on a tint — the variant to reach for when a muted fill
+			would disappear against the surface behind it.
 		{/snippet}
 		<Card.Root>
 			<Card.Content>
@@ -801,7 +801,7 @@
 		</Card.Root>
 	</DocSection>
 
-	<DocSection title="Social login buttons with Remix Icons">
+	<DocSection title="Social login buttons with Remix icons">
 		{#snippet blurb()}
 			Icon-only outline buttons carrying inlined brand marks — each one's accessible name lives in <code
 				>aria-label</code
@@ -1188,7 +1188,7 @@
 		</Card.Root>
 	</DocSection>
 
-	<DocSection title="Sliding Icon Button (Hover reveal)">
+	<DocSection title="Sliding icon button (hover reveal)">
 		{#snippet blurb()}
 			Hovering slides the label aside and reveals an arrow inside the pill.
 		{/snippet}
@@ -1210,7 +1210,7 @@
 		</Card.Root>
 	</DocSection>
 
-	<DocSection title="Shortcut Tooltip Button (Kbd hints)">
+	<DocSection title="Shortcut tooltip button (Kbd hints)">
 		<Card.Root>
 			<Card.Content>
 				<!--

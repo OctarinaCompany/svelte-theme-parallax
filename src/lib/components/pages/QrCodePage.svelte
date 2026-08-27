@@ -292,7 +292,7 @@
 	</Card.Root>
 {/snippet}
 
-<DocPage title="QR Code">
+<DocPage title="QR code">
 	{#snippet subtitle()}
 		A flexible QR code component for generating and displaying QR codes with customization options.
 	{/snippet}
@@ -317,7 +317,7 @@
 		</Card.Root>
 	</DocSection>
 
-	<DocSection title="Different Formats">
+	<DocSection title="Different formats">
 		{#snippet blurb()}
 			Each code renders through a different part, and each download button is composed onto a Button
 			through the child snippet — this repository's replacement for upstream's asChild.

@@ -952,7 +952,7 @@
 		</Card.Root>
 	</DocSection>
 
-	<DocSection title="Horizontal Alternate">
+	<DocSection title="Horizontal alternate">
 		<Card.Root>
 			<Card.Content>
 				<Timeline.Root variant="alternate" orientation="horizontal" activeIndex={1}>
@@ -974,7 +974,7 @@
 		</Card.Root>
 	</DocSection>
 
-	<DocSection title="Custom Dot">
+	<DocSection title="Custom dot">
 		<Card.Root>
 			<Card.Content>
 				<Timeline.Root activeIndex={1} class="max-w-md [--timeline-dot-size:2rem]">

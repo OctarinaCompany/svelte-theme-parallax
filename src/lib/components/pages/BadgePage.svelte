@@ -3,6 +3,7 @@
 	import XIcon from "@lucide/svelte/icons/x";
 	import * as Avatar from "$lib/components/ui/avatar/index.js";
 	import { Badge, type BadgeVariant } from "$lib/components/ui/badge/index.js";
+	import * as BadgeOverflow from "$lib/components/ui/badge-overflow/index.js";
 	import { Button } from "$lib/components/ui/button/index.js";
 	import * as Card from "$lib/components/ui/card/index.js";
 	import DocPage from "$lib/components/layout/DocPage.svelte";
@@ -54,90 +55,86 @@
 	 */
 	const solid = {
 		Primary: "bg-primary text-primary-foreground",
-		Secondary: "bg-muted-foreground text-primary-foreground",
+		// `--background`, not `--primary-foreground`: the ground is the muted TYPE colour used as a
+		// fill, so the ink that reads on it is the page, and the pair inverts correctly with the mode.
+		Secondary: "bg-muted-foreground text-background",
 		Success: "bg-success text-success-foreground",
 		Danger: "bg-destructive text-destructive-foreground",
 		Warning: "bg-warning text-warning-foreground",
 		Info: "bg-info text-info-foreground",
-		Light: "bg-secondary text-warning-foreground dark:bg-card dark:text-primary-foreground",
-		Dark: "bg-foreground text-primary-foreground dark:bg-background",
+		// The neutral pair, and the one place on this page a ground and its ink have to be
+		// declared together. `--secondary` / `--foreground` invert between modes on their own,
+		// so each takes the ink already solved FOR it — never `--primary-foreground`, which is
+		// the ink for the brand fill and is a DARK value wherever the dark primary is a pastel.
+		Light: "bg-secondary text-secondary-foreground",
+		Dark: "bg-foreground text-background dark:bg-background dark:text-foreground",
 	} as const;
 
 	/**
-	 * Subtle badges — the classic theme's `.text-bg-{state}-subtle` is `background-color:
-	 * var(--bs-{state}-bg-subtle)` with the FULL-STRENGTH colour as the type. The five states
-	 * whose `--*-subtle` token exists in app.css are the Badge component's own `{state}-subtle`
-	 * variants now (the classic theme's `danger` spells `destructive-subtle` there), so those rows carry a
-	 * `variant` and no classes at all — and since 2026-08-11 the variant departs from the source
-	 * on ONE deliberate axis: the type is the contrast-walked `--{state}-subtle-foreground`
-	 * rather than the raw colour, because the raw pairing measured 1.5-4.4:1 (app.css §status
-	 * tokens has the numbers and the derivation).
+	 * Subtle badges — a tint of each colour as the ground, with an ink solved against that tint.
 	 *
-	 * THE OTHER THREE remain the documented exception, page-local as before. `secondary`,
-	 * `light` and `dark` have no `--*-subtle` token here, because
-	 * nothing else in this codebase uses them. They are written with `color-mix()` instead,
-	 * which is the literal CSS translation of the Sass that produced the five tokens:
+	 * The five status names have a real `--{state}-subtle` token pair in `src/app.css`, so those
+	 * rows are the Badge component's own `{state}-subtle` variants and carry no classes at all.
+	 * Their type is the contrast-walked `--{state}-subtle-foreground` rather than the raw status
+	 * colour, which is the rule `docs/CONVENTIONS.md` §3 states: the raw colour is a fill, not an
+	 * ink on a tint, and pairing it with its own tint measured 1.5–4.4:1.
 	 *
-	 *   bg-subtle:      shift-color(value,  80%) = mix(white, value, 80%)
-	 *   bg-subtle-dark: shift-color(value, -55%) = mix(black, value, 55%)
+	 * THE THREE NEUTRALS — `secondary`, `light` and `dark` — have no `--*-subtle` token, because
+	 * nothing else in the codebase needs one. They are written here as three steps of one ramp,
+	 * `color-mix()`ing `--muted-foreground` into `--card` at 10 / 25 / 40%, with `--foreground`
+	 * as the type. Promote any of them to a real token the moment a second consumer appears.
 	 *
-	 * so `color-mix(in srgb, X 20%, white)` and `color-mix(in srgb, X 45%, black)` reproduce
-	 * them exactly — `--primary-subtle` checks out against #D5E5FA and #143767. Promote any of
-	 * the three to a real token the moment a second consumer appears.
+	 * WHICH TOKEN GETS MIXED is the whole of it, and it was wrong here before. The ground has to
+	 * stay on the CARD's side of the lightness scale in both modes, or the ink solved for the card
+	 * stops reading on it. `--muted-foreground` is a mid grey in both modes, so mixing it into
+	 * `--card` nudges the ground toward grey and never past it. `--primary-foreground`, which
+	 * these three used to mix, only looks like a neutral: it is the ink for the BRAND fill, so it
+	 * is white where the primary is dark and near-black where the dark-mode primary is a pastel —
+	 * which is how the Light and Dark chips came to be dark ink on a dark plate, at 1.2:1.
 	 *
-	 * WHICH COLOUR GETS SHIFTED, for the neutral pair, is the one thing on this page that is easy
-	 * to get wrong — and was wrong here first. The classic theme's compiled grounds are #FBFCFE/#6B6D70 for
-	 * `light` and #D0D4D9/#08111C for `dark`, and those are NOT derived from the classic theme's `light`
-	 * (#EDF2F9 / #152E4D) at all: the theme overrides the base colours but never regenerates
-	 * their subtle derivatives, so the classic framework's own #F8F9FA and #212529 are what got shifted.
+	 * The three steps also have to stay apart from each other and from the card behind them, which
+	 * is what 10 / 25 / 40 buys: at 8% the light chip disappears into the card, and above 45% the
+	 * dark chip stops reading as a tint at all.
 	 *
-	 * Shifting the classic theme's `light` instead — the first attempt here — collapses in dark mode:
-	 * `--card` at 45% black is #09141F, near-black, where the classic theme shows a mid grey, and it lands
-	 * within one unit of the `dark` badge beside it, so the two render as the same swatch.
-	 *
-	 * `--primary-foreground` is the fix, and it is not a trick: it holds `white` in BOTH modes,
-	 * which is what the classic `light` is a hair off. It reproduces #6B6D70 as #737373 in dark
-	 * and #FBFCFE as #FFFFFF in light. `dark` needs no such care — `--foreground` in light and
-	 * `--background` in dark are both `dark` exactly, and land on #D0D4D9 and #081119.
-	 *
-	 * THE TYPE IS THE COLOUR ITSELF, including where that reads badly. `.text-bg-*-subtle` sets
-	 * `color: var(--bs-{state})` for all eight, and for the two neutrals that colour is a
-	 * near-white or a near-black sitting on a ground shifted from the same value: #EDF2F9 on
-	 * #FBFCFE in light, #152E4D on #6B6D70 and #12263F on #08111C in dark. All three are close
-	 * to invisible, and all three are what the theme ships.
-	 *
-	 * An earlier version of this page "fixed" them, on the reasoning that classic patched the
-	 * identical problem on the SOLID badge (the reference stylesheet ends with a dark-mode block forcing
-	 * `.text-bg-light` to white) and simply forgot the subtle pair. That reasoning was wrong to
-	 * act on: a port that quietly repairs its source stops being a reference for what the source
-	 * does. The tokens are the exact ones — `light` is `--secondary` in light and `--card` in
-	 * dark, `dark` is `--foreground` in light and `--background` in dark — so anyone who does
-	 * want the legible variant can see precisely what to change.
+	 * They are written out rather than generated from the percentage: Tailwind scans this file as
+	 * TEXT, so a class assembled in a template literal compiles to nothing and the chip renders
+	 * bare.
 	 */
+	const neutralSubtle = {
+		light: "bg-[color-mix(in_srgb,var(--muted-foreground)_10%,var(--card))] text-foreground",
+		mid: "bg-[color-mix(in_srgb,var(--muted-foreground)_25%,var(--card))] text-foreground",
+		dark: "bg-[color-mix(in_srgb,var(--muted-foreground)_40%,var(--card))] text-foreground",
+	} as const;
+
 	const subtle: { label: string; variant?: BadgeVariant; class?: string }[] = [
 		{ label: "Primary", variant: "primary-subtle" },
-		{
-			label: "Secondary",
-			class:
-				"bg-[color-mix(in_srgb,var(--muted-foreground)_20%,white)] text-muted-foreground dark:bg-[color-mix(in_srgb,var(--muted-foreground)_45%,black)]",
-		},
+		{ label: "Secondary", class: neutralSubtle.mid },
 		{ label: "Success", variant: "success-subtle" },
 		{ label: "Info", variant: "info-subtle" },
 		{ label: "Warning", variant: "warning-subtle" },
 		{ label: "Danger", variant: "destructive-subtle" },
-		{
-			label: "Light",
-			class:
-				"bg-[color-mix(in_srgb,var(--primary-foreground)_20%,white)] text-secondary dark:bg-[color-mix(in_srgb,var(--primary-foreground)_45%,black)] dark:text-card",
-		},
-		{
-			label: "Dark",
-			class:
-				"bg-[color-mix(in_srgb,var(--foreground)_20%,white)] text-foreground dark:bg-[color-mix(in_srgb,var(--background)_45%,black)] dark:text-background",
-		},
+		{ label: "Light", class: neutralSubtle.light },
+		{ label: "Dark", class: neutralSubtle.dark },
 	];
 
 	const solidEntries = Object.entries(solid);
+
+	/**
+	 * The list the overflow section measures.
+	 *
+	 * Long enough that a 280px row hides several of them at one line and fewer at two, which is
+	 * the whole point of the demo — a shorter list would fit either way and show nothing.
+	 */
+	const overflowSkills = [
+		"TypeScript",
+		"Svelte",
+		"Tailwind",
+		"Vite",
+		"Playwright",
+		"PostgreSQL",
+		"Docker",
+		"Terraform",
+	];
 </script>
 
 <DocPage title="Badge">
@@ -175,12 +172,10 @@
 
 	<DocSection title="Subtle">
 		{#snippet blurb()}
-			Creates a subtle variant of a corresponding contextual badge variation. These can be used
-			exactly like the classic core badges, including modifying classes like
-			<code class="text-[87.5%] text-primary">rounded-pill</code>, as an
-			<code class="text-[87.5%] text-primary">&lt;a&gt;</code> itself, or inside of
-			<code class="text-[87.5%] text-primary">&lt;button&gt;</code> or
-			<code class="text-[87.5%] text-primary">&lt;a&gt;</code> elements.
+			A tint of each status colour instead of the full-strength fill, with the ink walked up until
+			it clears the contrast floor against that tint. Use them exactly like the solid badges above —
+			on their own, as an <code class="text-[87.5%] text-primary">&lt;a&gt;</code>, or inside a
+			<code class="text-[87.5%] text-primary">&lt;button&gt;</code>.
 		{/snippet}
 		<Card.Root>
 			<Card.Content class="flex flex-wrap gap-2">
@@ -426,6 +421,63 @@
 					<span aria-hidden="true">{"\u{1F1FA}\u{1F1F8}"}</span>
 					USA
 				</Badge>
+			</Card.Content>
+		</Card.Root>
+	</DocSection>
+
+	<DocSection title="Badge overflow">
+		{#snippet blurb()}
+			A row of badges that keeps to a fixed number of lines and counts what did not fit. The split
+			is measured, not estimated: the component lays every badge out off-screen, reads the widths,
+			and re-runs the pass whenever the container resizes or the list changes — so the same list
+			gives a different <code class="text-[87.5%] text-primary">+n</code> at a different width.
+		{/snippet}
+		<Card.Root>
+			<Card.Content class="flex flex-col gap-6">
+				<!--
+					The width is stated on the wrapper rather than left to the card. The container has
+					to resolve to a definite width or there is nothing for the measurement pass to
+					measure against, which is the component's own documented prerequisite.
+				-->
+				<div class="flex flex-col gap-2">
+					<p class="text-xs text-muted-foreground">One line, 280px wide</p>
+					<div class="w-[280px]">
+						<BadgeOverflow.Root items={overflowSkills}>
+							{#snippet badge(_item, label)}
+								<Badge variant="secondary">{label}</Badge>
+							{/snippet}
+						</BadgeOverflow.Root>
+					</div>
+				</div>
+
+				<div class="flex flex-col gap-2">
+					<p class="text-xs text-muted-foreground">
+						Two lines, same list, same width — fewer hidden
+					</p>
+					<div class="w-[280px]">
+						<BadgeOverflow.Root items={overflowSkills} lineCount={2}>
+							{#snippet badge(_item, label)}
+								<Badge variant="secondary">{label}</Badge>
+							{/snippet}
+						</BadgeOverflow.Root>
+					</div>
+				</div>
+
+				<div class="flex flex-col gap-2">
+					<p class="text-xs text-muted-foreground">
+						A counter of your own, through the overflow snippet
+					</p>
+					<div class="w-[280px]">
+						<BadgeOverflow.Root items={overflowSkills}>
+							{#snippet badge(_item, label)}
+								<Badge variant="primary-subtle">{label}</Badge>
+							{/snippet}
+							{#snippet overflow(count)}
+								<Badge variant="outline">{count} more</Badge>
+							{/snippet}
+						</BadgeOverflow.Root>
+					</div>
+				</div>
 			</Card.Content>
 		</Card.Root>
 	</DocSection>

@@ -1546,9 +1546,9 @@
 		An autocomplete control: a select that can be searched. Built here, as everywhere, from a
 		<code class="text-[87.5%] text-primary">Command</code>
 		inside a
-		<code class="text-[87.5%] text-primary">Popover</code>, and skinned as the boxed-select the
-		classic select skin this theme already ships. Fourteen arrangements of the two. What it commits
-		is always one of the items, never the text typed to find them — reach for
+		<code class="text-[87.5%] text-primary">Popover</code>, skinned as the boxed select this theme
+		already ships. Fourteen arrangements of the two. What it commits is always one of the items,
+		never the text typed to find them — reach for
 		<a class="text-primary underline underline-offset-3" href={href("/components/autocomplete")}
 			>Autocomplete</a
 		>
@@ -1624,8 +1624,8 @@
 	<DocSection title="Combobox option group">
 		{#snippet blurb()}
 			<code class="text-[87.5%] text-primary">Command.Group</code> with a heading per category. Selecting
-			here replaces the value outright — there is no second click to clear, which is the source's choice
-			and the one difference from the section above.
+			here replaces the value outright — there is no second press to clear it, which is the one difference
+			from the section above.
 		{/snippet}
 		<Card.Root>
 			<Card.Content>
@@ -2114,8 +2114,8 @@
 
 	<DocSection title="Options with flag and search">
 		{#snippet blurb()}
-			The same shape as the section above with a single glyph instead of an avatar — and a single
-			chevron on the trigger, the source distinguishing a picker that only opens downwards.
+			The same shape as the section above with a single glyph instead of an avatar — and one chevron
+			rather than two on the trigger, since this picker only ever opens downwards.
 		{/snippet}
 		<Card.Root>
 			<Card.Content>
@@ -3242,7 +3242,13 @@
 								<InputGroupAddon align="inline-end">
 									<Combobox.Trigger>
 										{#snippet child({ props })}
-											<InputGroupButton {...props} variant="ghost" size="icon-xs" tabindex={-1}>
+											<InputGroupButton
+												{...props}
+												variant="ghost"
+												size="icon-xs"
+												tabindex={-1}
+												aria-label="Show suggestions"
+											>
 												<ChevronsUpDownIcon class="pointer-events-none text-muted-foreground" />
 											</InputGroupButton>
 										{/snippet}

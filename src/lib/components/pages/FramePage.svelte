@@ -6,6 +6,7 @@
 	import * as Frame from "$lib/components/ui/frame/index.js";
 	import DocPage from "$lib/components/layout/DocPage.svelte";
 	import DocSection from "$lib/components/layout/DocSection.svelte";
+	import * as Table from "$lib/components/ui/table/index.js";
 
 	/**
 	 * The Frame component page, one section per upstream demo in the demos' order.
@@ -54,6 +55,184 @@
 	 * again.
 	 */
 	let collapsiblePanelOpen = $state(true);
+
+	/**
+	 * The component's own surface, for the API reference at the foot of the page.
+	 *
+	 * Frame is a house component with no upstream page to defer to, so the props are written
+	 * down here — read off the six files in `$lib/components/ui/frame/`, which are the only
+	 * other place they exist.
+	 */
+	const frameRootProps = [
+		{
+			prop: "ref",
+			type: "HTMLDivElement | null",
+			default: "null",
+			description: "Bindable reference to the rendered element. Stays `null` in `child` mode.",
+		},
+		{
+			prop: "variant",
+			type: "'default' | 'inverse' | 'ghost'",
+			default: "'default'",
+			description:
+				"Chrome on the shell. `inverse` swaps the shell and panel grounds; `ghost` drops the shell border, and the panel radius grows to match.",
+		},
+		{
+			prop: "spacing",
+			type: "'xs' | 'sm' | 'default' | 'lg'",
+			default: "'default'",
+			description:
+				"The padding ladder every panel body, header and footer inside this frame reads. A container density ramp, deliberately not the `--control-h-*` control ramp.",
+		},
+		{
+			prop: "stacked",
+			type: "boolean",
+			default: "false",
+			description:
+				"Fuse adjacent panels into one segmented block: shared borders collapse and the inner corners square off.",
+		},
+		{
+			prop: "dense",
+			type: "boolean",
+			default: "false",
+			description:
+				"Drop the frame's own padding and pull the panels flush to its edge, so their corners align with the frame radius instead of nesting inside it.",
+		},
+		{
+			prop: "class",
+			type: "ClassValue",
+			default: "—",
+			description: "Merged last, so it overrides the part's own classes.",
+		},
+		{
+			prop: "children",
+			type: "Snippet",
+			default: "—",
+			description: "The part's content.",
+		},
+		{
+			prop: "child",
+			type: "Snippet<[{ props }]>",
+			default: "—",
+			description:
+				"Render the part onto your own element and spread the merged props onto it. `children` is not rendered in this mode.",
+		},
+		{
+			prop: "...restProps",
+			type: "HTMLAttributes",
+			default: "—",
+			description: "Spread onto the element, so `id`, `aria-*` and event handlers pass through.",
+		},
+	];
+
+	const framePanelProps = [
+		{
+			prop: "ref",
+			type: "HTMLDivElement | null",
+			default: "null",
+			description: "Bindable reference to the rendered element. Stays `null` in `child` mode.",
+		},
+		{
+			prop: "fit",
+			type: "boolean",
+			default: "false",
+			description: "Size the panel to its content. Left off, the panel grows to fill the frame.",
+		},
+		{
+			prop: "class",
+			type: "ClassValue",
+			default: "—",
+			description: "Merged last, so it overrides the part's own classes.",
+		},
+		{
+			prop: "children",
+			type: "Snippet",
+			default: "—",
+			description: "The part's content.",
+		},
+		{
+			prop: "child",
+			type: "Snippet<[{ props }]>",
+			default: "—",
+			description:
+				"Render the part onto your own element and spread the merged props onto it. `children` is not rendered in this mode.",
+		},
+		{
+			prop: "...restProps",
+			type: "HTMLAttributes",
+			default: "—",
+			description: "Spread onto the element, so `id`, `aria-*` and event handlers pass through.",
+		},
+	];
+
+	const frameSlotProps = [
+		{
+			prop: "ref",
+			type: "HTMLDivElement | null",
+			default: "null",
+			description: "Bindable reference to the rendered element. Stays `null` in `child` mode.",
+		},
+		{
+			prop: "class",
+			type: "ClassValue",
+			default: "—",
+			description: "Merged last, so it overrides the part's own classes.",
+		},
+		{
+			prop: "children",
+			type: "Snippet",
+			default: "—",
+			description: "The part's content.",
+		},
+		{
+			prop: "child",
+			type: "Snippet<[{ props }]>",
+			default: "—",
+			description:
+				"Render the part onto your own element and spread the merged props onto it. `children` is not rendered in this mode.",
+		},
+		{
+			prop: "...restProps",
+			type: "HTMLAttributes",
+			default: "—",
+			description: "Spread onto the element, so `id`, `aria-*` and event handlers pass through.",
+		},
+	];
+
+	const frameVariables = [
+		{
+			name: "--frame-radius",
+			default: "--radius-xl",
+			description: "The shell's corner.",
+		},
+		{
+			name: "--frame-gap",
+			default: "3px",
+			description: "The gap between separated panels.",
+		},
+		{
+			name: "--frame-px / --frame-py",
+			default: "3px",
+			description: "The shell's own padding around the panels.",
+		},
+		{
+			name: "--frame-panel-radius",
+			default: "derived",
+			description:
+				"The panel corner, computed from the shell radius minus the padding and the border so the two curves stay concentric.",
+		},
+		{
+			name: "--frame-panel-bg",
+			default: "set by variant",
+			description: "The panel ground. `inverse` is the one variant that changes it.",
+		},
+		{
+			name: "--frame-panel-px-base and friends",
+			default: "set by spacing",
+			description:
+				"The body, header and footer padding the spacing ladder writes; every part reads them rather than declaring its own.",
+		},
+	];
 </script>
 
 <DocPage title="Frame">
@@ -398,9 +577,8 @@
 
 	<DocSection title="Frame with medium border radius">
 		{#snippet blurb()}
-			<code class="text-[87.5%] text-primary">--radius-md</code> is the classic theme's own
-			<code class="text-[87.5%] text-primary">border-radius</code> — the corner its buttons, inputs and
-			dropdown panels take.
+			<code class="text-[87.5%] text-primary">--radius-md</code> is the corner this theme's buttons, inputs
+			and dropdown panels take, so a frame at this step reads as one of them.
 		{/snippet}
 		<Card.Root>
 			<Card.Content>
@@ -426,11 +604,10 @@
 
 	<DocSection title="Frame with large border radius">
 		{#snippet blurb()}
-			Identical to the default below it in this theme:
+			Identical to the default below it under this theme:
 			<code class="text-[87.5%] text-primary">--radius-lg</code> and
-			<code class="text-[87.5%] text-primary">--radius-xl</code> are both 0.5rem, since the classic theme
-			has nothing between the card corner and the one below it. Elsewhere the two steps differ, which
-			is why the section stays.
+			<code class="text-[87.5%] text-primary">--radius-xl</code> are both 0.5rem here. The two steps are
+			free to differ, which is why the section stays.
 		{/snippet}
 		<Card.Root>
 			<Card.Content>
@@ -485,9 +662,8 @@
 
 	<DocSection title="Frame with extra large border radius">
 		{#snippet blurb()}
-			<code class="text-[87.5%] text-primary">--radius-2xl</code> is 1rem here — the classic
-			<code class="text-[87.5%] text-primary">border-radius-xl</code>, one of the two steps the
-			classic theme leaves untouched.
+			<code class="text-[87.5%] text-primary">--radius-2xl</code> is 1rem here — the roundest step the
+			ramp offers before a corner becomes a pill.
 		{/snippet}
 		<Card.Root>
 			<Card.Content>
@@ -563,5 +739,136 @@
 				</Frame.Root>
 			</Card.Content>
 		</Card.Root>
+	</DocSection>
+
+	<DocSection title="API reference">
+		<div class="flex flex-col gap-3">
+			<h3 class="text-base font-medium">Frame.Root</h3>
+			<p class="text-sm text-muted-foreground">
+				The shell. It owns every variable the parts below read, which is why spacing and radius are
+				set once here rather than per panel.
+			</p>
+			<Card.Root>
+				<Card.Content class="px-0 [&_[data-slot=table-cell]]:whitespace-normal">
+					<Table.Root>
+						<Table.Header>
+							<Table.Row>
+								<Table.Head>Prop</Table.Head>
+								<Table.Head>Type</Table.Head>
+								<Table.Head>Default</Table.Head>
+								<Table.Head>Description</Table.Head>
+							</Table.Row>
+						</Table.Header>
+						<Table.Body>
+							{#each frameRootProps as row (row.prop)}
+								<Table.Row>
+									<Table.Cell class="font-medium">{row.prop}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.type}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.default}</Table.Cell>
+									<Table.Cell>{row.description}</Table.Cell>
+								</Table.Row>
+							{/each}
+						</Table.Body>
+					</Table.Root>
+				</Card.Content>
+			</Card.Root>
+		</div>
+
+		<div class="flex flex-col gap-3">
+			<h3 class="text-base font-medium">Frame.Panel</h3>
+			<p class="text-sm text-muted-foreground">
+				One panel inside the shell. Draws its own border, ground and radius from the shell's
+				variables.
+			</p>
+			<Card.Root>
+				<Card.Content class="px-0 [&_[data-slot=table-cell]]:whitespace-normal">
+					<Table.Root>
+						<Table.Header>
+							<Table.Row>
+								<Table.Head>Prop</Table.Head>
+								<Table.Head>Type</Table.Head>
+								<Table.Head>Default</Table.Head>
+								<Table.Head>Description</Table.Head>
+							</Table.Row>
+						</Table.Header>
+						<Table.Body>
+							{#each framePanelProps as row (row.prop)}
+								<Table.Row>
+									<Table.Cell class="font-medium">{row.prop}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.type}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.default}</Table.Cell>
+									<Table.Cell>{row.description}</Table.Cell>
+								</Table.Row>
+							{/each}
+						</Table.Body>
+					</Table.Root>
+				</Card.Content>
+			</Card.Root>
+		</div>
+
+		<div class="flex flex-col gap-3">
+			<h3 class="text-base font-medium">
+				Frame.Header, Frame.Title, Frame.Description, Frame.Footer
+			</h3>
+			<p class="text-sm text-muted-foreground">
+				The four content parts. None takes a prop of its own — they exist to carry the shell's
+				spacing and type, so their surface is the one below.
+			</p>
+			<Card.Root>
+				<Card.Content class="px-0 [&_[data-slot=table-cell]]:whitespace-normal">
+					<Table.Root>
+						<Table.Header>
+							<Table.Row>
+								<Table.Head>Prop</Table.Head>
+								<Table.Head>Type</Table.Head>
+								<Table.Head>Default</Table.Head>
+								<Table.Head>Description</Table.Head>
+							</Table.Row>
+						</Table.Header>
+						<Table.Body>
+							{#each frameSlotProps as row (row.prop)}
+								<Table.Row>
+									<Table.Cell class="font-medium">{row.prop}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.type}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.default}</Table.Cell>
+									<Table.Cell>{row.description}</Table.Cell>
+								</Table.Row>
+							{/each}
+						</Table.Body>
+					</Table.Root>
+				</Card.Content>
+			</Card.Root>
+		</div>
+
+		<div class="flex flex-col gap-3">
+			<h3 class="text-base font-medium">CSS variables</h3>
+			<p class="text-sm text-muted-foreground">
+				Published by the root and consumed by every part. Overriding one through
+				<code>class</code> on the root retunes the whole frame, which is how the radius sections above
+				work.
+			</p>
+			<Card.Root>
+				<Card.Content class="px-0 [&_[data-slot=table-cell]]:whitespace-normal">
+					<Table.Root>
+						<Table.Header>
+							<Table.Row>
+								<Table.Head>Variable</Table.Head>
+								<Table.Head>Default</Table.Head>
+								<Table.Head>Description</Table.Head>
+							</Table.Row>
+						</Table.Header>
+						<Table.Body>
+							{#each frameVariables as row (row.name)}
+								<Table.Row>
+									<Table.Cell class="font-medium">{row.name}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.default}</Table.Cell>
+									<Table.Cell>{row.description}</Table.Cell>
+								</Table.Row>
+							{/each}
+						</Table.Body>
+					</Table.Root>
+				</Card.Content>
+			</Card.Root>
+		</div>
 	</DocSection>
 </DocPage>

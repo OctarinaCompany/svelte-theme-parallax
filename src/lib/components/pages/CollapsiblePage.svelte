@@ -535,9 +535,7 @@
 	<DocSection title="Usage">
 		{#snippet blurb()}
 			The bare form the documentation page shows under Usage — a trigger and a panel, with no chrome
-			around them — carrying the one collapse affordance the classic theme does draw: the caret its
-			vertical navbar puts on every
-			<code class="text-[87.5%] text-primary">data-bs-toggle="collapse"</code> link.
+			around them, and a caret that turns to say which way the panel will go.
 		{/snippet}
 		<Card.Root>
 			<Card.Content>
@@ -898,7 +896,7 @@
 		</Frame.Root>
 	</DocSection>
 
-	<DocSection title="Collapsible User profile">
+	<DocSection title="Collapsible user profile">
 		{#snippet blurb()}
 			The same frame with an identity in its header — a hover card that stays open, in effect.
 		{/snippet}

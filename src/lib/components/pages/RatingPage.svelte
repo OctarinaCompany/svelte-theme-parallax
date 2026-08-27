@@ -10,6 +10,7 @@
 	import { cn } from "$lib/utils.js";
 	import DocPage from "$lib/components/layout/DocPage.svelte";
 	import DocSection from "$lib/components/layout/DocSection.svelte";
+	import * as Table from "$lib/components/ui/table/index.js";
 
 	/**
 	 * The Rating component page — its nine examples in the order that page
@@ -80,6 +81,112 @@
 				? "Thanks for your feedback"
 				: "Glad you enjoyed it!",
 	);
+
+	/**
+	 * The component's own surface, for the API reference at the foot of the page.
+	 *
+	 * A house component has no upstream page to defer to, so the props are written down here —
+	 * read off `$lib/components/ui/rating/rating.svelte`, the only other place they exist.
+	 */
+	const ratingProps = [
+		{
+			prop: "rating",
+			type: "number",
+			default: "—",
+			description:
+				"The current value, and the only required prop. Bindable. Decimals fill a star partly — 4.6 fills 60% of the fifth.",
+		},
+		{
+			prop: "onRatingChange",
+			type: "(rating: number) => void",
+			default: "—",
+			description:
+				"Fired with the next value after a real change, from a click or from the keyboard.",
+		},
+		{
+			prop: "maxRating",
+			type: "number",
+			default: "5",
+			description: "How many stars there are.",
+		},
+		{
+			prop: "size",
+			type: "'sm' | 'default' | 'lg'",
+			default: "'default'",
+			description: "Scales the gap, the stars and the read-out together.",
+		},
+		{
+			prop: "showValue",
+			type: "boolean",
+			default: "false",
+			description: "Render the numeric read-out beside the stars.",
+		},
+		{
+			prop: "editable",
+			type: "boolean",
+			default: "false",
+			description:
+				"Turn the display into a control: a single-tab-stop slider with arrow, Home, End and digit input, hover preview, and click-to-clear on the first star. Left off, it is purely presentational and takes no focus.",
+		},
+		{
+			prop: "allowHalf",
+			type: "boolean",
+			default: "false",
+			description:
+				"Snap clicks and hover to half stars. The halves it starts at are then the halves you can pick.",
+		},
+		{
+			prop: "disabled",
+			type: "boolean",
+			default: "false",
+			description: "Editable mode only: suppress every interaction and dim the control.",
+		},
+		{
+			prop: "name",
+			type: "string",
+			default: "—",
+			description:
+				"Editable mode only: the name of the hidden input the value is submitted with. Omitted, no hidden input is rendered.",
+		},
+		{
+			prop: "required",
+			type: "boolean",
+			default: "false",
+			description: "Editable mode only: mark that hidden input required. Pair it with `name`.",
+		},
+		{
+			prop: "aria-valuetext",
+			type: "string",
+			default: "'{value} out of {max}'",
+			description: "The spoken value for the editable slider.",
+		},
+		{
+			prop: "starClassName",
+			type: "string",
+			default: "—",
+			description:
+				"Class for the value span. The name is the primitive's and is kept as it is, so the surface matches what a reader will find upstream.",
+		},
+		{
+			prop: "class",
+			type: "ClassValue",
+			default: "—",
+			description: "Merged last, so it overrides the size classes on the root.",
+		},
+		{
+			prop: "ref",
+			type: "HTMLElement | null",
+			default: "null",
+			description: "Bindable reference to the rendered root.",
+		},
+		{
+			prop: "...restProps",
+			type: "RatingGroup.RootProps",
+			default: "—",
+			description:
+				"The rest of the bits-ui RatingGroup root surface, minus the props above which this component owns.",
+		},
+	];
 </script>
 
 <DocPage title="Rating">
@@ -255,5 +362,40 @@
 				<Button disabled={reviewRating === 0} size="sm" class="w-full">Submit Review</Button>
 			</Card.Content>
 		</Card.Root>
+	</DocSection>
+
+	<DocSection title="API reference">
+		<div class="flex flex-col gap-3">
+			<h3 class="text-base font-medium">Rating</h3>
+			<p class="text-sm text-muted-foreground">
+				One component in two modes. At rest it is a presentational row of stars; with
+				<code>editable</code> it becomes a bits-ui RatingGroup, which is where the keyboard behaviour
+				and the hidden input come from.
+			</p>
+			<Card.Root>
+				<Card.Content class="px-0 [&_[data-slot=table-cell]]:whitespace-normal">
+					<Table.Root>
+						<Table.Header>
+							<Table.Row>
+								<Table.Head>Prop</Table.Head>
+								<Table.Head>Type</Table.Head>
+								<Table.Head>Default</Table.Head>
+								<Table.Head>Description</Table.Head>
+							</Table.Row>
+						</Table.Header>
+						<Table.Body>
+							{#each ratingProps as row (row.prop)}
+								<Table.Row>
+									<Table.Cell class="font-medium">{row.prop}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.type}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.default}</Table.Cell>
+									<Table.Cell>{row.description}</Table.Cell>
+								</Table.Row>
+							{/each}
+						</Table.Body>
+					</Table.Root>
+				</Card.Content>
+			</Card.Root>
+		</div>
 	</DocSection>
 </DocPage>

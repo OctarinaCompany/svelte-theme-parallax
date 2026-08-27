@@ -167,7 +167,7 @@
 	</Table.Root>
 {/snippet}
 
-<DocPage title="Responsive Dialog">
+<DocPage title="Responsive dialog">
 	{#snippet subtitle()}
 		A dialog that renders as a centered modal on desktop and a bottom drawer on mobile. Resize the
 		window across 768px with one open — it swaps without closing.
@@ -211,7 +211,7 @@
 		</Card.Root>
 	</DocSection>
 
-	<DocSection title="Confirmation Dialog">
+	<DocSection title="Confirmation dialog">
 		{#snippet blurb()}
 			Use the responsive dialog to confirm destructive actions like deleting items.
 		{/snippet}
@@ -253,7 +253,7 @@
 		</Card.Root>
 	</DocSection>
 
-	<DocSection title="Variant Styling">
+	<DocSection title="Variant styling">
 		{#snippet blurb()}
 			Every part exposes a data-variant attribute, so one class list can style the dialog and the
 			drawer differently.

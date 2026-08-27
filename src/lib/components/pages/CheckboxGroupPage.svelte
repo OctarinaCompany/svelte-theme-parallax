@@ -335,7 +335,7 @@
 	</CheckboxGroup.Indicator>
 {/snippet}
 
-<DocPage title="Checkbox Group">
+<DocPage title="Checkbox group">
 	{#snippet subtitle()}
 		A group of checkboxes that allows multiple selections with support for validation and
 		accessibility.
@@ -402,7 +402,7 @@
 		</Card.Root>
 	</DocSection>
 
-	<DocSection title="With Validation">
+	<DocSection title="With validation">
 		{#snippet blurb()}
 			Selecting Indy invalidates the group, which swaps the description for the message.
 		{/snippet}
@@ -425,7 +425,7 @@
 		</Card.Root>
 	</DocSection>
 
-	<DocSection title="Multi Selection">
+	<DocSection title="Multi selection">
 		{#snippet blurb()}
 			Hold Shift while focus is inside the list and click to extend the selection across a whole
 			range.

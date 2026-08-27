@@ -214,7 +214,8 @@
 		{
 			name: "--speed-dial-transform-origin",
 			part: "content",
-			value: "Transform origin for animations, derived from `side`.",
+			value:
+				"Corner the open/close scale grows out of, derived from `side`. It is set on the content, which is the element that transforms — not on each item.",
 		},
 		{
 			name: "--speed-dial-animation-duration",
@@ -225,12 +226,6 @@
 			name: "--speed-dial-delay",
 			part: "item",
 			value: "Stagger delay: `index × 50ms` while opening, reversed while closing.",
-		},
-		{
-			name: "--speed-dial-transform-origin",
-			part: "item — documented upstream, not emitted",
-			value:
-				"The upstream docs list this variable on SpeedDialItem, but the upstream source only ever sets it on the content. This theme matches the source, not the table.",
 		},
 	];
 
@@ -253,7 +248,7 @@
 	];
 </script>
 
-<DocPage title="Speed Dial">
+<DocPage title="Speed dial">
 	{#snippet subtitle()}
 		A floating action button that reveals a set of actions when triggered.
 	{/snippet}
@@ -290,7 +285,7 @@
 		</Card.Root>
 	</DocSection>
 
-	<DocSection title="With Labels">
+	<DocSection title="With labels">
 		{#snippet blurb()}
 			— visible labels next to each action.
 		{/snippet}
@@ -325,7 +320,7 @@
 		</Card.Root>
 	</DocSection>
 
-	<DocSection title="Hover Mode">
+	<DocSection title="Hover mode">
 		{#snippet blurb()}
 			`activationMode="hover"` opens after `delay` ms and closes shortly after the pointer leaves
 			both the trigger and the content.
@@ -361,7 +356,7 @@
 		</Card.Root>
 	</DocSection>
 
-	<DocSection title="Controlled State">
+	<DocSection title="Controlled state">
 		{#snippet blurb()}
 			`bind:open` keeps the page authoritative, and `onInteractOutside` keeps the external toggle
 			from closing the dial before its own click lands.

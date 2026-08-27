@@ -1475,7 +1475,7 @@
 					-->
 					<Card.Root
 						class={cn(
-							"rounded-md border border-dashed shadow-none ring-0 transition-colors",
+							"rounded-lg border border-dashed shadow-none ring-0 transition-colors",
 							imageUpload.isDragging
 								? "border-primary bg-primary/5"
 								: "border-muted-foreground/25 hover:border-muted-foreground/50",
@@ -1560,7 +1560,7 @@
 
 					<Card.Root
 						class={cn(
-							"rounded-md border border-dashed shadow-none ring-0 transition-colors",
+							"rounded-lg border border-dashed shadow-none ring-0 transition-colors",
 							sortable.isDragging
 								? "border-primary bg-primary/5"
 								: "border-muted-foreground/25 hover:border-muted-foreground/50",
