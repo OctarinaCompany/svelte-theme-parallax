@@ -64,9 +64,13 @@ reinventing them.
 
 ## Update
 
-Re-run the install command (add `--overwrite` for the skill files) after a Parallax
-update, or copy the directory again. Skill edits are live — Claude Code re-reads the files
-on next use, no restart needed.
+Re-run the install command after a Parallax update, or copy the directory again. Pass
+`--overwrite`: a second `add` over files that already exist asks a question `--yes` cannot
+answer, and cancels — exiting 0 having written nothing.
+
+Editing a skill the session has **already discovered** is live: the body is read on each
+use, so no restart. A **first** install is the other case — a session discovers skills when
+it opens, so one added to a running session stays invisible until you restart it.
 
 ## Layout
 
@@ -76,7 +80,7 @@ skills/parallax/
 ├── references/
 │   ├── shell.md              # component contracts, incorrect/correct pairs
 │   ├── theming.md            # tokens → utility classes, palettes, axes, first-paint script
-│   ├── install.md            # the five items, manual steps, troubleshooting
+│   ├── install.md            # the foundation items, manual steps, troubleshooting
 │   ├── bootstrap.md          # empty directory → running dashboard, and its version traps
 │   ├── patterns.md           # distilled recipes of the flagship gallery patterns
 │   └── components.md         # generated map of every gallery page and ui/ folder

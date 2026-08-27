@@ -103,8 +103,9 @@ so it looks like a slow install and dies at whatever timeout you set. `--overwri
 safe *here* precisely because the scaffold is minutes old; it is the wrong flag on any
 project that already carries Parallax files.
 
-One command resolves the whole chain — the theme, the axes, the shell, the nav trio, the
-official components underneath — and it does three separate things:
+One command resolves the whole chain — the theme, the axes, the shell, the nav trio, and
+the component forks underneath, `collapsible` being the one bare official name in it — and
+it does three separate things:
 
 1. writes the component files under `src/lib/`
 2. writes `src/themes.css` (the eleven alternate palettes)

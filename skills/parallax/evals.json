@@ -8,7 +8,8 @@
 				"Reads components.json before proposing anything, and does not guess aliases",
 				"Installs with `npx shadcn-svelte@latest add .../parallax-shell.json`, never by copying files by hand",
 				"Applies AND announces both manual steps: the ./themes.css + @fontsource imports, and the first-paint script in src/app.html",
-				"Wires AppShell with a sidebar snippet passing typed data, and isActive={(url) => url === page.url.pathname} — no router import inside shell components",
+				"Wires AppShell with a sidebar snippet passing typed data, and isActive={(url) => url === page.url.pathname} from $app/state — no router import inside shell components",
+				"Never reaches for location.pathname in the predicate: `location` does not exist on the server, so SSR throws ReferenceError and every page answers 500",
 				"Puts page content beside <PageHeader />, never nested inside it",
 				"Runs svelte-check before declaring the task done"
 			]
@@ -24,6 +25,16 @@
 				"Adds the `utils` item and installs the `shadcn-svelte` package — the two things skipping `init` leaves missing",
 				"Imports the palette with a path resolved against the stylesheet's own directory (../themes.css from src/routes/), not a blind ./themes.css",
 				"Reaches a clean `npx svelte-check` and runs the app before calling it done"
+			]
+		},
+		{
+			"name": "install-the-fork-not-the-bare-name",
+			"prompt": "This project has parallax-theme installed and no components yet. Put a Card on the page with a subtle 'Pending' badge in its header.",
+			"expectations": [
+				"Installs parallax-card and parallax-badge from the Parallax registry URL, never `shadcn-svelte add card badge` — the bare names fetch upstream and lose the card's size prop and ring outline and the badge's *-subtle variants",
+				"Knows a bare official name is right only for a verbatim port (collapsible, label, aspect-ratio today) and treats a 404 on parallax-<name>.json as the test",
+				"Lets each item resolve its own dependency chain instead of adding dependencies by hand, and never copies source out of the gallery",
+				"Pairs the soft fill with its own foreground rather than text-warning on the tint"
 			]
 		},
 		{

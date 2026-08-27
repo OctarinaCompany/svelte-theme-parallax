@@ -69,7 +69,10 @@ indigo, parallax`. Palette and light/dark are independent axes: every theme defi
 modes, so `<html class="dark" data-theme="ember">` is an ordinary state.
 
 `parallax` is the base and **has no `[data-theme]` block on purpose** — it IS the
-`:root`/`.dark` palette; an unknown stored id narrows back to it.
+`:root`/`.dark` palette. Base is not default: a missing or unknown stored id narrows to
+`DEFAULT_THEME`, which the kit ships as `amethyst`, and that is the palette a first visit
+wears. The two were the same id until Amethyst took over, so `data-theme` is now written on
+the first frame rather than left absent.
 
 ## Programmatic control
 
@@ -130,3 +133,20 @@ step with the hooks' exported storage keys):
 	} catch (e) {}
 </script>
 ```
+
+**A Vite SPA needs three more lines.** `ModeWatcher` ships its own flash guard for
+light/dark and the palette, but delivers it through `<svelte:head>` — which only reaches
+the document when the markup is server-rendered. SvelteKit gets it for free; a static SPA
+mounts the component from JavaScript, and a `<script>` inserted that way never executes. So
+in `index.html`, and only there, the same block does mode-watcher's half too, right after
+the `dark` line above:
+
+```js
+root.classList.toggle("dark", dark);
+root.style.colorScheme = dark ? "dark" : "light";
+root.setAttribute("data-theme", localStorage.getItem("mode-watcher-theme") || "amethyst");
+```
+
+Write the default palette as a literal and keep it in step with the `defaultTheme` you pass
+`<ModeWatcher />` — `DEFAULT_THEME`, `amethyst` as the kit ships. Nothing across a plain
+HTML file enforces that agreement, so it is stated at both ends.

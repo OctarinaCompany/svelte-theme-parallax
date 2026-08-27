@@ -18,7 +18,7 @@ complete generated list, with each item's post-install notes, is in the reposito
 | `parallax-appearance`          | The four axes as hooks + `reduced-motion` + the page-header CSS         |
 | `parallax-appearance-controls` | `HeaderToggle` + `SidebarModeToggle`                                    |
 | `parallax-shell`               | The whole shell: AppShell/AppSidebar/PageHeader + nav trio + breadcrumb + `ModeToggle` and `ThemeSelector` + `shared/nav.ts` + the sidebar/drawer CSS |
-| `parallax-restyle`             | CSS-only: the Parallax shape for the OFFICIAL components you install by bare name (switch, checkbox, tooltip, inputs, select, sliders, sonner, tabs' line variant) plus the global menu-shadow and dialog-scrim opinions |
+| `parallax-restyle`             | CSS-only: the Parallax shape for the components whose look is application-global (switch, checkbox, tooltip, inputs, select, sliders, sonner, tabs' line variant) plus the global menu-shadow and dialog-scrim opinions. It selects on `data-slot`, so it reaches a Parallax fork and a bare official port alike |
 | `parallax-skill`               | This skill, into `.claude/skills/parallax/`                             |
 
 **One item per house or forked component** — `parallax-<name>`, e.g.
@@ -28,13 +28,20 @@ complete generated list, with each item's post-install notes, is in the reposito
 for the `*-subtle` variants, `parallax-card`, `parallax-avatar`). `parallax-primitives`
 holds the shared infrastructure several of them compose and arrives on its own.
 
-**What is NOT published**: verbatim ports of official shadcn-svelte components. Install
-those by their bare official name (`npx shadcn-svelte@latest add dialog`) — republishing a
-copy could only go stale.
+**What is NOT published**: verbatim ports of official shadcn-svelte components — the
+folders Parallax has not touched at all. Install those by their bare official name
+(`npx shadcn-svelte@latest add collapsible`); republishing a copy could only go stale.
+That list is short — `collapsible`, `label` and `aspect-ratio` are the whole of it today.
+Everything else the gallery renders is a fork or a house component and ships under the
+Parallax name, `parallax-dialog` and `parallax-card` included, so **do not guess from the
+component's name**: a 404 on `.../r/parallax-<name>.json` is the test.
 
-`parallax-shell` depends on the foundations plus the official `sidebar`, `breadcrumb`,
-`drawer`, `dropdown-menu`, `collapsible`, `avatar`, `separator`, `button` — one command
-resolves the entire chain, and the same is true of every component item.
+`parallax-shell` depends on `parallax-theme`, `parallax-appearance` and
+`parallax-appearance-controls`, plus `parallax-primitives`, `parallax-swap` and the forks
+it composes: `parallax-sidebar`, `parallax-breadcrumb`, `parallax-drawer`,
+`parallax-dropdown-menu`, `parallax-avatar`, `parallax-separator`, `parallax-button`.
+`collapsible` is the one bare official name in the whole chain. One command resolves all of
+it, and the same is true of every component item.
 
 ## Prerequisites
 
@@ -61,6 +68,20 @@ npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-para
 
 Never `--overwrite` on a project that already carries Parallax files without the user's
 explicit approval — the files are their code now.
+
+Know what refusing it costs, though, because the CLI does not say. On a project that
+already carries Parallax, `add` warns *"The following items already exist"* and asks
+whether to overwrite everything — and `--yes` does **not** answer that question. `add` has
+exactly two confirmation flags, `--yes` and `--overwrite`, and this prompt is gated on
+`--overwrite` alone; left unanswered in a non-interactive shell it cancels, and cancelling
+**exits 0 having written nothing**. A scripted second `add` therefore reports success and
+installs no files. So a second install needs an interactive terminal, or `--overwrite` and
+the user's approval — silence is not success here, check that the files changed.
+
+What `--overwrite` costs is the component files, rewritten from the registry, and the
+values of the tokens the items declare. It does not cost the rest of the stylesheet: the
+merge runs on that file's PostCSS tree and only adds nodes, so a hand-pasted `@layer base`
+block and the `@import` lines above it survive it.
 
 ## Manual post-install steps
 
@@ -99,8 +120,6 @@ shape (data as props, `isActive` predicate, content beside `PageHeader`).
 The differences a consumer sees when they install only part of the kit. Close them by
 installing the item named, never by hand-porting gallery code:
 
-- Buttons: `parallax-shell` depends on the **official** button, so icon buttons run ~36px.
-  Add `parallax-button` for the gallery's token-driven 40px control ramp.
 - Dropdown menus keep the upstream shadow, and tooltips the upstream look, until
   `parallax-restyle` is installed — it carries those application-global opinions, which no
   other item smuggles in.

@@ -62,7 +62,10 @@ Before adding or changing anything:
 2. **Compose the shell through props and snippets, don't fork it.** Every `PageHeader`
    slot has a default; every `AppSidebar` region takes data or a snippet.
 3. **Data in, predicate in — never a router import.** The shell learns the active page
-   through `isActive: (url: string) => boolean`; wire it once at the root.
+   through `isActive: (url: string) => boolean`; wire it once at the root, from the router
+   the app already has. In SvelteKit that is `page.url.pathname` from `$app/state` — never
+   `location.pathname`, which does not exist on the server: the first SSR render throws
+   `ReferenceError: location is not defined` and every page answers 500.
 4. **The appearance axes are the API.** Floating, inverted and auto-hide are persisted
    user state driven by the installed hooks — never reimplement them with local state.
 5. **Install, don't reimplement.** Anything Parallax authors is a registry item; anything
@@ -97,6 +100,8 @@ Before adding or changing anything:
 - **Switch palettes through `setTheme(id)`** from `$lib/themes/index.js`, never by writing
   `data-theme` or `localStorage` directly; light/dark goes through `mode-watcher`.
 - **The `parallax` theme id has no CSS block on purpose** — it IS the `:root`/`.dark` base.
+  Base is not default: a first visit wears `DEFAULT_THEME`, which the kit ships as
+  `amethyst`.
 - **Drive the axes through their setters** (`setHeaderFloating`, `setSidebarMode`, …),
   never by toggling classes or attributes yourself.
 - **Round an `Avatar.Root` and everything follows** — ring, image and fallback are
@@ -134,6 +139,9 @@ Before adding or changing anything:
 
 ```svelte
 <script lang="ts">
+	// SvelteKit's router, read at the root. A Vite SPA has no `$app/state` — close the
+	// predicate over its own current path instead; the shell never imports either.
+	import { page } from "$app/state";
 	import { ModeWatcher } from "mode-watcher";
 	import AppShell from "$lib/components/layout/AppShell.svelte";
 	import AppSidebar from "$lib/components/layout/AppSidebar.svelte";
@@ -159,7 +167,7 @@ Before adding or changing anything:
 			{workspaces}
 			{items}
 			label="Sections"
-			isActive={(url) => url === location.pathname}
+			isActive={(url) => url === page.url.pathname}
 		/>
 	{/snippet}
 	<PageHeader trail={[{ label: "Dashboard" }]} />
@@ -200,7 +208,7 @@ Before adding or changing anything:
 4. Wire data at the root the project already owns (its router lives there too).
 5. Validate: `npx svelte-check`, then run the app and check both modes and at least one
    non-default palette before calling styling done. `svelte-check` says nothing about the
-   theme — run the four console checks in
+   theme — run the five console checks in
    [references/bootstrap.md](references/bootstrap.md#7-validate), which catch the failures
    that render fine and are wrong.
 
@@ -209,11 +217,13 @@ List group, …). The COMPONENTS it uses are installable; the composition is wha
 
 1. Read its recipe in [references/patterns.md](references/patterns.md) — the load-bearing
    decisions are there so you do not rediscover them by trial.
-2. Install what the recipe names: `parallax-<name>` for anything it flags
-   **Parallax-only** (`parallax-data-table`, `parallax-action-bar`, `parallax-table` for
-   density, `parallax-badge` for `*-subtle`, …), bare official names for the rest. Never
-   hand-copy a component's source, and never take a Parallax fork by its bare name — that
-   installs the upstream one and loses the house API.
+2. Install what the recipe names — every component it lists is a registry item, and
+   nearly all of them ship as `parallax-<name>` (`parallax-data-table`,
+   `parallax-action-bar`, `parallax-table` for density, `parallax-badge` for `*-subtle`,
+   `parallax-card`, `parallax-select`, …). Only a **verbatim** port installs by its bare
+   official name, and there are three of those; a 404 on `parallax-<name>.json` is the
+   test. Never hand-copy a component's source, and never take a Parallax fork by its bare
+   name — that installs the upstream one and loses the house API.
 3. Then write the composition, using the page source as the reference (locally, or from
    `https://raw.githubusercontent.com/OctarinaCompany/svelte-theme-parallax/main/<path>`):
    swap the demo data for the project's, keep the class recipes intact.

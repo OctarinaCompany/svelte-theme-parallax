@@ -13,9 +13,11 @@ adapt. For each pattern: read this recipe first, then the source when you build 
 if the Parallax repo is around, otherwise from
 `https://raw.githubusercontent.com/OctarinaCompany/svelte-theme-parallax/main/<path>`.
 The complete gallery map (every page, every ui/ folder) is in
-[components.md](components.md). Components flagged *Parallax-only* are published registry
-items — install `parallax-<name>` (e.g. `parallax-data-table`) instead of copying source;
-the item resolves its own dependency chain.
+[components.md](components.md). Every COMPONENT these recipes name is a published registry
+item: install `parallax-<name>` (e.g. `parallax-data-table`) and let it resolve its own
+dependency chain — never copy its source. Only a verbatim port of an official component
+installs by its bare name, and `collapsible`, `label` and `aspect-ratio` are the whole of
+that list; a 404 on `.../r/parallax-<name>.json` is the test.
 
 ## Tables in cards
 
@@ -48,9 +50,9 @@ a data table is the page's main content.
 - Sort-header ghost buttons restate `text-xs font-semibold` (the Button's own scale would
   override the head's); a blank `header: ""` keeps FlexRender from printing the column id.
 
-Composes: card, checkbox, dropdown-menu, popover, select, toggle-group (official) +
-**Parallax-only** `data-table` (the engine), `action-bar`, Table's `density` prop, Badge's
-`*-subtle` variants.
+Composes, all as `parallax-<name>` items: `card`, `checkbox`, `dropdown-menu`, `popover`,
+`select`, `toggle-group`, `data-table` (the engine), `action-bar`, `table` for its
+`density` prop, `badge` for the `*-subtle` variants.
 Source: `src/lib/components/pages/TablesInCardsPage.svelte` +
 `pages/tables-in-cards-table.svelte`.
 
@@ -73,7 +75,7 @@ button, a bottom-hung tab row, an avatar stack, a cover image, or a chart band.
 - Merge active states with `cn()`, never string concatenation — contradictory utilities
   are otherwise resolved by Tailwind's sort order, not intent.
 
-Composes: card, avatar, button, chart (official). Source:
+Composes, all as `parallax-<name>` items: `card`, `avatar`, `button`, `chart`. Source:
 `src/lib/components/pages/PageHeadersPage.svelte`.
 
 ## List group
@@ -92,7 +94,7 @@ A class recipe, not a component.
   radius, items drop their `px`) rather than stacking on it.
 - Item padding is `px-5 py-4`; the large variant bumps only to `py-6`.
 
-Composes: card, badge, avatar (all official). Source:
+Composes, all as `parallax-<name>` items: `card`, `badge`, `avatar`. Source:
 `src/lib/components/pages/ListGroupPage.svelte`.
 
 ## File upload
@@ -114,8 +116,9 @@ image grid, sortable grid, cards, cover) driven by one rune-class plus a simulat
 - Every dropzone div gets `role="group"` + `aria-label`; progress rings pair with an
   `sr-only` `role="progressbar"`.
 
-Composes: card, dialog, progress, tooltip (official) + **Parallax-only** Alert's
-`solid-destructive`/`Alert.Action`, Badge `*-subtle`, Button icon sizes. Source:
+Composes, all as `parallax-<name>` items: `card`, `dialog`, `progress`, `tooltip`,
+`alert` for `solid-destructive` and `Alert.Action`, `badge` for `*-subtle`, `button` for
+the icon sizes. Source:
 `src/lib/components/pages/FileUploadPage.svelte` + `src/lib/hooks/file-upload.svelte.ts`.
 
 ## Typography
@@ -169,8 +172,8 @@ or virtualized length.
 - Layout switches (striped, sticky, pinned, fixed widths) are page-level classes on
   `Table.*`; pinning uses the exported `getColumnPinningStyle`.
 
-**Parallax-only**: install `parallax-data-table` — it resolves the table fork, the
-primitives (TanStack bridge) and `@tanstack/table-core` itself.
+**Install** `parallax-data-table` — it resolves the table fork, the primitives (TanStack
+bridge) and `@tanstack/table-core` itself.
 Source: `src/lib/components/pages/DataTablePage.svelte` +
 `src/lib/components/ui/data-table/`.
 
@@ -192,5 +195,5 @@ per cell variant, its own ARIA grid markup (not a `<table>`).
   `enableSearch`/`enablePaste` on `<DataGrid.KeyboardShortcuts>` so the Ctrl/Cmd+/ dialog
   stays truthful.
 
-**Parallax-only**: install `parallax-data-grid`. Source:
+**Install** `parallax-data-grid`. Source:
 `src/lib/components/pages/DataGridPage.svelte` + `src/lib/components/ui/data-grid/`.
