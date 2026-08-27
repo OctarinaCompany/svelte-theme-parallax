@@ -534,6 +534,22 @@ function stripBase(pathname: string): string | undefined {
  */
 function resolveRoute(path: string): RoutePath | undefined {
 	const trimmed = path.length > 1 && path.endsWith("/") ? path.slice(0, -1) : path;
+	/*
+	 * THE SITE ROOT IS AN ADDRESS THIS DEPLOYMENT PUBLISHES, so it resolves rather than
+	 * reporting not-found. `/` is what `package.json`'s `homepage` names, what the repository's
+	 * About box links to, and what every share of the project points at — it is the one path
+	 * guaranteed to be someone's first impression.
+	 *
+	 * It is not in `ROUTES` and must not be: `ROUTES` is derived from the catalog, and a root
+	 * entry there would need a page, a title and a place in the ladder. Nor is it an entry in
+	 * `ALIASES`, which is reserved for RETIRED routes — the root was never a route that moved.
+	 * It is the front door, and {@link HOME} is what stands behind it.
+	 *
+	 * This line is why the not-found state cannot be seeded from `matchRoute` alone: without it
+	 * the root matched nothing, and the landing page of the whole gallery rendered "this page
+	 * does not exist" while still answering HTTP 200 — a failure no status-code check can see.
+	 */
+	if (trimmed === "/") return HOME;
 	if ((ROUTES as readonly string[]).includes(trimmed)) return trimmed as RoutePath;
 	return ALIASES[trimmed];
 }
@@ -620,6 +636,20 @@ if (import.meta.env.DEV) {
 			);
 		}
 		seen.add(path);
+	}
+
+	/*
+	 * THE FRONT DOOR HAS TO RESOLVE. `/` is not in `ROUTES` and never will be, so nothing above
+	 * checks it — and the one time it stopped resolving, the whole gallery's landing page
+	 * rendered "this page does not exist" while still answering HTTP 200, which is invisible to
+	 * every status-code check the project runs. This is the cheapest thing that would have
+	 * caught it: the root is the address the About box, `package.json`'s `homepage` and every
+	 * share of the project point at.
+	 */
+	if (resolveRoute("/") === undefined) {
+		throw new Error(
+			"route.svelte.ts: the site root resolves to nothing, so the landing page would render the not-found state. See the `/` case in resolveRoute.",
+		);
 	}
 
 	/*
