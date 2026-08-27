@@ -45,6 +45,16 @@
 				"Does not write data-* attributes, classes, or localStorage keys directly",
 				"Mentions (or verifies) the first-paint script when the inverted axis is involved"
 			]
+		},
+		{
+			"name": "square-avatar-follows-root-radius",
+			"prompt": "In the users table, show each user as a rounded-square avatar with their initials next to the name — the same shape as the sidebar footer, not a circle.",
+			"expectations": [
+				"Uses Avatar.Root / Avatar.Image / Avatar.Fallback from $lib/components/ui/avatar, never a hand-made div",
+				"Writes the radius ONCE, on Avatar.Root (rounded-lg), and leaves the fallback and image without a rounded-* class",
+				"Does not add after:rounded-* to the root — the ring inherits the root's radius",
+				"Uses semantic tokens for any fill (bg-muted, bg-primary/text-primary-foreground), no raw colour"
+			]
 		}
 	]
 }

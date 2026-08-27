@@ -45,7 +45,7 @@
 							{#if user.avatar}
 								<Avatar.Image src={user.avatar} alt="" />
 							{/if}
-							<Avatar.Fallback class="rounded-lg">{initials}</Avatar.Fallback>
+							<Avatar.Fallback>{initials}</Avatar.Fallback>
 						</Avatar.Root>
 						<div class="grid flex-1 text-start text-sm leading-tight">
 							<span class="truncate font-medium">{user.name}</span>
@@ -67,7 +67,7 @@
 							{#if user.avatar}
 								<Avatar.Image src={user.avatar} alt="" />
 							{/if}
-							<Avatar.Fallback class="rounded-lg">{initials}</Avatar.Fallback>
+							<Avatar.Fallback>{initials}</Avatar.Fallback>
 						</Avatar.Root>
 						<div class="grid flex-1 text-start text-sm leading-tight">
 							<span class="truncate font-medium">{user.name}</span>

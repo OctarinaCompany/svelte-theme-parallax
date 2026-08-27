@@ -807,7 +807,7 @@
 							</svg>
 						{:else}
 							<Avatar.Root class="size-5 rounded-md">
-								<Avatar.Fallback class="rounded-md text-[10px]">
+								<Avatar.Fallback class="text-[10px]">
 									{workspace.initials}
 								</Avatar.Fallback>
 							</Avatar.Root>

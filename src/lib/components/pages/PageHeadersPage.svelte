@@ -265,8 +265,8 @@
 {#snippet withAvatars()}
 	<div class="flex flex-wrap items-center gap-4">
 		<!-- `.avatar-lg.avatar-4by3`: 4rem tall, and 4/3 as wide — the project thumbnail shape. -->
-		<Avatar.Root class="h-16 w-[5.3333rem] shrink-0 rounded-md after:rounded-md">
-			<Avatar.Fallback class="rounded-md">HP</Avatar.Fallback>
+		<Avatar.Root class="h-16 w-[5.3333rem] shrink-0 rounded-md">
+			<Avatar.Fallback>HP</Avatar.Fallback>
 		</Avatar.Root>
 		<div class="grow">
 			{@render pretitle("Projects")}

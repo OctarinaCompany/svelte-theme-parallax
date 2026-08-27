@@ -52,6 +52,13 @@ Role-mapped scale — body runs 15px, larger than shadcn's 14px:
   `class="text-xs tracking-label uppercase text-muted-foreground"`.
 - Radius: `rounded-md` for controls, `rounded-lg` for sidebar/tabs, `rounded-xl` equals
   `lg` on purpose (cards/dialogs), `rounded-4xl` is the pill (Badge).
+- **A radius has one owner.** When a component draws decoration in its own boxes — the
+  Avatar's hairline ring is a `::after`, its image and fallback are children — those boxes take
+  `rounded-[inherit]` and the ROOT is the only place a radius is written. So a squared avatar is
+  `<Avatar.Root class="rounded-lg">` and nothing else: never `after:rounded-lg` on the root, never
+  `rounded-lg` on the fallback. The sign of a violation is a circle drawn over a rounded square,
+  four corners of fill showing around it. Apply the same rule when forking any component that
+  stacks decorative boxes (rings, halos, focus outlines drawn by pseudo-elements).
 - `font-sans` is Hanken Grotesk Variable — needs
   `@import "@fontsource-variable/hanken-grotesk";` in the global stylesheet.
 

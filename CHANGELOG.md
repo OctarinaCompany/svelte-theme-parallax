@@ -70,6 +70,16 @@ ships today is listed here.
 
 ### Fixed
 
+- **A squared avatar no longer shows its corners around a circle.** `Avatar.Root` drew its
+  hairline ring with a hardcoded `after:rounded-full`, so every call site that squares the avatar
+  off — the sidebar footer's `rounded-lg`, a thumbnail's `rounded-md` — got a circle traced over a
+  rounded square with the four corners of the fill sticking out. Six gallery pages carried a manual
+  `after:rounded-*` beside the box to hide it — the Avatar page even documented the recipe as a
+  three-way call (box, ring, fallback) — and the sidebar footer, which ships with the shell, did
+  not. The ring, the image and the fallback now take `rounded-[inherit]`, which makes the root the
+  only place a radius is written; every workaround and every restated `rounded-*` on a fallback
+  is gone, and the Avatar page's radius ramp is one class per rung. `parallax-avatar` and
+  `parallax-shell` publish it; the skill states the rule ("a radius has one owner") and gains an eval.
 - **The sample video and audio were broken on the published site.** The Media player and Cropper
   demos loaded them from `/assets/…`, which on a project site is the OWNER's root rather than the
   site's, so both 404'd everywhere except a local dev server. They go through the site base now.

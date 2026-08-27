@@ -390,8 +390,8 @@
 					<Breadcrumb.List>
 						<Breadcrumb.Item>
 							<Breadcrumb.Link href={self} class="flex items-center gap-2">
-								<Avatar.Root class="size-5 rounded-sm after:rounded-sm">
-									<Avatar.Fallback class="rounded-sm text-[0.625rem]">VC</Avatar.Fallback>
+								<Avatar.Root class="size-5 rounded-sm">
+									<Avatar.Fallback class="text-[0.625rem]">VC</Avatar.Fallback>
 								</Avatar.Root>
 								Vercel
 							</Breadcrumb.Link>

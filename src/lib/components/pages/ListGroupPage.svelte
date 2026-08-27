@@ -199,10 +199,8 @@
 							a `.text-focus` class that no stylesheet here defines.
 						-->
 						<a href={self} class="{flushItem} {action} group flex items-center gap-4">
-							<Avatar.Root
-								class="{row.wide ? 'h-12 w-16' : 'size-12'} shrink-0 rounded-md after:rounded-md"
-							>
-								<Avatar.Fallback class="rounded-md">{row.initials}</Avatar.Fallback>
+							<Avatar.Root class="{row.wide ? 'h-12 w-16' : 'size-12'} shrink-0 rounded-md">
+								<Avatar.Fallback>{row.initials}</Avatar.Fallback>
 							</Avatar.Root>
 							<div class="min-w-0">
 								<h4

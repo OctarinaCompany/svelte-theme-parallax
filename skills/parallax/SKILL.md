@@ -99,6 +99,8 @@ Before adding or changing anything:
 - **The `parallax` theme id has no CSS block on purpose** — it IS the `:root`/`.dark` base.
 - **Drive the axes through their setters** (`setHeaderFloating`, `setSidebarMode`, …),
   never by toggling classes or attributes yourself.
+- **Round an `Avatar.Root` and everything follows** — ring, image and fallback are
+  `rounded-[inherit]`; never restate the radius on the children or add `after:rounded-*`.
 - **Anything that runs a command or navigates wears the hand cursor.** `parallax-restyle`
   ships the rule — buttons, `select`, `summary`, bound `<label>`s and the ARIA roles that
   stand for a control, in `@layer base` so a `cursor-*` utility still wins per element.

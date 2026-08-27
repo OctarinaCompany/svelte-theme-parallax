@@ -486,17 +486,17 @@
 					sits inside a `flex flex-1 flex-col` of its own, where growing along an auto-height
 					column buys nothing, so it carries no class at all.
 
-					THE AVATAR NEEDS ITS `after:` HALF. `Avatar.Root` draws a 1px hairline as
-					`after:rounded-full after:border`, and tailwind-merge keys `rounded-*` and
-					`after:rounded-*` into different groups — so `rounded-sm` alone squares the box and
-					leaves a CIRCLE inscribed in it, visible in dark mode where `--border` and `--muted`
-					differ. `PageHeadersPage` and `ListGroupPage` pair the two for the same reason.
+					`rounded-sm` on the root is the whole shape: the hairline ring, the image and the
+					fallback inherit the root's radius. (It once needed `after:rounded-sm` beside it and a
+					`rounded-sm` on the fallback — the ring was a hardcoded `after:rounded-full`, so the box
+					alone left a circle inscribed in it, visible in dark mode where `--border` and `--muted`
+					differ.)
 
 					The initials replace upstream's remote photograph — see the header.
 				-->
 				<Alert.Root class="flex items-center justify-between">
-					<Avatar.Root class="rounded-sm after:rounded-sm">
-						<Avatar.Fallback class="rounded-sm text-xs">HR</Avatar.Fallback>
+					<Avatar.Root class="rounded-sm">
+						<Avatar.Fallback class="text-xs">HR</Avatar.Fallback>
 					</Avatar.Root>
 					<div class="flex-1">
 						<Alert.Title>Sara has replied on the uploaded image.</Alert.Title>
@@ -585,8 +585,8 @@
 					half is dropped rather than translated.
 				-->
 				<Alert.Root class="flex items-center gap-3">
-					<Avatar.Root class="rounded-md after:rounded-md">
-						<Avatar.Fallback class="rounded-md bg-destructive text-destructive-foreground">
+					<Avatar.Root class="rounded-md">
+						<Avatar.Fallback class="bg-destructive text-destructive-foreground">
 							<FileExclamationPointIcon class="size-4" />
 						</Avatar.Fallback>
 					</Avatar.Root>
@@ -696,8 +696,8 @@
 
 				<!-- 09. A mention with a task bar. Initials again, and the warning ramp on the bar. -->
 				<Alert.Root class="flex gap-3">
-					<Avatar.Root class="rounded-sm after:rounded-sm">
-						<Avatar.Fallback class="rounded-sm text-xs">HR</Avatar.Fallback>
+					<Avatar.Root class="rounded-sm">
+						<Avatar.Fallback class="text-xs">HR</Avatar.Fallback>
 					</Avatar.Root>
 					<div class="flex flex-1 flex-col gap-2">
 						<div>

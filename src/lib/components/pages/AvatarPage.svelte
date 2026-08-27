@@ -133,14 +133,13 @@
 
 	/**
 	 * `.rounded` on an `.avatar-img` or `.avatar-title` — `border-radius: .375rem`, which is
-	 * `rounded-md` exactly. The root needs `after:rounded-md` restated as well: tailwind-merge
-	 * keys `rounded-*` and `after:rounded-*` into different groups, so squaring the box alone
-	 * would leave the `after:rounded-full` circle inscribed inside it (§16 of the theme notes
-	 * records the bug) — moot while {@link avatar} blanks the hairline, but cheap insurance
-	 * against these two constants parting ways. The fallback carries its own `rounded-md`
-	 * because it draws its own `rounded-full`.
+	 * `rounded-md` exactly. The root is the only place it is written: the hairline ring, the image
+	 * and the fallback all take `rounded-[inherit]`, so squaring the box squares the three of them.
+	 * (This used to need `after:rounded-md` restated and a `rounded-md` on the fallback —
+	 * tailwind-merge keys `rounded-*` and `after:rounded-*` into different groups, and the ring was
+	 * a hardcoded `after:rounded-full`, so the box alone left a circle inscribed in it.)
 	 */
-	const squared = "rounded-md after:rounded-md";
+	const squared = "rounded-md";
 
 	/**
 	 * `.avatar-4by3` — `width: calc(var(--bs-avatar-size) * 4 / 3)` while the height, and
@@ -245,18 +244,11 @@
 	const demoPeople = ["Alex Johnson", "Sarah Chen", "Michael Rodriguez", "Emma Wilson"] as const;
 
 	/**
-	 * demo 4's radius ramp. The root's `after:` hairline is a separate tailwind-merge
-	 * group from the box, so each rung states both — and the fallback a third time, since it draws
-	 * its own `rounded-full` (the {@link squared} constant above makes the same three-way call).
-	 * Upstream's third rung reads `rounded-lg after:rounded-xl` with an `rounded-xl` image, which
-	 * is a typo — three radii on one avatar; it is one radius here.
+	 * demo 4's radius ramp. One class per rung, on the root: the hairline, the image and the fallback
+	 * inherit it. Upstream's third rung reads `rounded-lg after:rounded-xl` with an `rounded-xl`
+	 * image, which is a typo — three radii on one avatar; it is one radius here, and can only be one.
 	 */
-	const demoRadii = [
-		{ box: "rounded-md after:rounded-md", inner: "rounded-md" },
-		{ box: "rounded-lg after:rounded-lg", inner: "rounded-lg" },
-		{ box: "rounded-xl after:rounded-xl", inner: "rounded-xl" },
-		{ box: "", inner: "" },
-	] as const;
+	const demoRadii = ["rounded-md", "rounded-lg", "rounded-xl", ""] as const;
 
 	/**
 	 * demo 6's presence vocabulary. Upstream paints it `bg-primary` / `bg-green-500` /
@@ -471,7 +463,7 @@
 				<div class="flex flex-wrap items-end gap-1">
 					{#each shapeOrder as k (k)}
 						<Avatar.Root class="{sizes[k].box} {squared} {avatar}">
-							<Avatar.Fallback class="rounded-md {sizes[k].type} {avatarTitle}">CF</Avatar.Fallback>
+							<Avatar.Fallback class="{sizes[k].type} {avatarTitle}">CF</Avatar.Fallback>
 						</Avatar.Root>
 						<Avatar.Root class="{sizes[k].box} {avatar}">
 							<Avatar.Fallback class="{sizes[k].type} {avatarTitle}">CF</Avatar.Fallback>
@@ -493,7 +485,7 @@
 					{#each ratio as r (r.box)}
 						<Avatar.Root class="{r.box} {squared} {avatar}">
 							<!-- `HP` is the Homepage project, the thumbnail `PageHeadersPage` names. -->
-							<Avatar.Fallback class="rounded-md {r.type} {avatarTitle}">HP</Avatar.Fallback>
+							<Avatar.Fallback class="{r.type} {avatarTitle}">HP</Avatar.Fallback>
 						</Avatar.Root>
 					{/each}
 				</div>
@@ -683,8 +675,8 @@
 			<Card.Content>
 				<div class="flex items-center gap-2">
 					{#each demoRadii as radius, i (i)}
-						<Avatar.Root class={radius.box}>
-							<Avatar.Fallback class={radius.inner}>{getInitials("Emma Wilson")}</Avatar.Fallback>
+						<Avatar.Root class={radius}>
+							<Avatar.Fallback>{getInitials("Emma Wilson")}</Avatar.Fallback>
 						</Avatar.Root>
 					{/each}
 				</div>
@@ -788,7 +780,7 @@
 				<div class="flex items-center gap-2">
 					{#each demoSquaredBadgeCorners as person (person.name)}
 						<Avatar.Root class={squared}>
-							<Avatar.Fallback class="rounded-md">{getInitials(person.name)}</Avatar.Fallback>
+							<Avatar.Fallback>{getInitials(person.name)}</Avatar.Fallback>
 							<Avatar.Badge class="ring-card {person.corner} {person.tone}" />
 						</Avatar.Root>
 					{/each}
