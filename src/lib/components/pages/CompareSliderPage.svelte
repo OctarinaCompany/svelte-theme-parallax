@@ -21,45 +21,273 @@
 
 	let controlled = $state(30);
 
-	const rootProps = [
+	type PropRow = { prop: string; type: string; default: string; description: string };
+
+	const rootProps: PropRow[] = [
 		{
 			prop: "value",
 			type: "number",
-			default: "50",
-			description: "Divider position as a percentage. Bindable.",
+			default: "—",
+			description:
+				"Bindable; the divider position as a percentage of the track. Seeded from `defaultValue` on the first render when unbound or bound to `undefined`, then written each time a pointer or keyboard move lands on a new value — a move that resolves to the current value writes nothing. A value written from outside is adopted without firing `onValueChange`; the slider clamps its own copy to 0–100 but never writes that back, so a binding set to 150 stays 150 while `aria-valuenow` reads 100.",
 		},
 		{
 			prop: "defaultValue",
 			type: "number",
 			default: "50",
-			description: "Starting position when `value` is not bound.",
+			description:
+				"Position the slider seeds itself with, clamped to 0–100. The seed fires whenever `value` is `undefined`, bound or not — a `bind:value` whose variable starts undefined starts here too. Read once, under `untrack`; changing it later has no effect.",
 		},
 		{
 			prop: "onValueChange",
 			type: "(value: number) => void",
 			default: "—",
-			description: "Fired on every real change, never on a set that resolves to the current value.",
+			description:
+				"Called with the clamped value on every real change from the pointer or the keyboard. Never called when a move resolves to the current value (a drag held past the edge does not repeat `100`), and never echoed back for a value the owner wrote through `value`.",
 		},
 		{
 			prop: "step",
 			type: "number",
 			default: "1",
 			description:
-				"Percentage points per arrow key; ten times that for Page keys and shifted arrows.",
+				"Percentage points an arrow key moves the divider; Page keys and shifted arrows move ten times that. Keyboard only — pointer moves are continuous.",
 		},
 		{
 			prop: "interaction",
-			type: '"drag" | "hover"',
-			default: '"drag"',
+			type: "'hover' | 'drag'",
+			default: "'drag'",
 			description:
-				"`drag` moves the divider only while the pointer is held; `hover` follows it unpressed and renders no grip.",
+				"`drag` captures the pointer on press, jumps the divider to the press point and follows until release or cancel. `hover` follows the unpressed pointer, ignores presses, and tells the handle to render no grip and no grab cursor.",
 		},
 		{
 			prop: "orientation",
-			type: '"horizontal" | "vertical"',
-			default: '"horizontal"',
-			description: "Which axis the divider travels along.",
+			type: "'horizontal' | 'vertical'",
+			default: "'horizontal'",
+			description:
+				"Axis the divider travels along. Sets `aria-orientation` and `data-orientation`, picks which side each half clips, and flips the keyboard: `ArrowLeft` decreases when horizontal, `ArrowUp` when vertical; `PageUp` and `Home` decrease on both.",
 		},
+		{
+			prop: "class",
+			type: "ClassValue | null",
+			default: "—",
+			description:
+				"Merged after the base classes. The root is `w-full` when horizontal and `h-full` when vertical and sets no other size, so the caller’s class supplies the height the halves fill.",
+		},
+		{
+			prop: "ref",
+			type: "HTMLElement | null",
+			default: "null",
+			description: "Bindable reference to the rendered element. Not populated in `child` mode.",
+		},
+		{
+			prop: "children",
+			type: "Snippet",
+			default: "—",
+			description:
+				"The halves, the handle and any labels, rendered inside the root element. Not rendered in `child` mode — the snippet passed to `child` decides what goes inside.",
+		},
+		{
+			prop: "child",
+			type: "Snippet<[{ props: CompareSliderChildProps }]>",
+			default: "—",
+			description:
+				"Render the slider onto your own element. `props` carries the role, `aria-*` and `data-*` attributes, `tabindex`, the merged class and the five pointer and keyboard handlers; spread all of it or the slider stops working.",
+		},
+		{
+			prop: "...restProps",
+			type: "HTMLAttributes<HTMLDivElement>",
+			default: "—",
+			description:
+				"Spread onto the element after the role, `aria-*` and `data-*` attributes and `tabindex`, so a caller’s own values win over them, and before `class` and the handlers, which they cannot replace. A caller’s `onpointerdown`, `onpointermove`, `onpointerup`, `onpointercancel` and `onkeydown` are called first; `event.preventDefault()` inside one skips the slider’s own handling of that event.",
+		},
+	];
+
+	const beforeProps: PropRow[] = [
+		{
+			prop: "label",
+			type: "string",
+			default: "—",
+			description:
+				'Accessible name for this half, rendered as a `CompareSlider.Label` with `side="before"` and wired through `aria-labelledby`. Without it the panel is `aria-hidden`, since an unnamed picture announces nothing useful.',
+		},
+		{
+			prop: "class",
+			type: "ClassValue | null",
+			default: "—",
+			description:
+				"Merged after the base classes, which pin the half to the full box (`absolute inset-0 h-full w-full`).",
+		},
+		{
+			prop: "style",
+			type: "string | null",
+			default: "—",
+			description:
+				"Appended after the `clip-path` declaration the part writes, so a caller can add declarations without losing the clip.",
+		},
+		{
+			prop: "ref",
+			type: "HTMLElement | null",
+			default: "null",
+			description: "Bindable reference to the rendered element.",
+		},
+		{
+			prop: "children",
+			type: "Snippet",
+			default: "—",
+			description:
+				"What this half shows, typically an `<img>` sized to the box; any content works. Rendered before the caption.",
+		},
+		{
+			prop: "...restProps",
+			type: "HTMLAttributes<HTMLDivElement>",
+			default: "—",
+			description:
+				'Spread onto the element after `role="img"`, the `aria-*` and `data-*` attributes, so a caller’s own values win over them, and before `class` and `style`, which they cannot replace.',
+		},
+	];
+
+	const afterProps: PropRow[] = [
+		{
+			prop: "label",
+			type: "string",
+			default: "—",
+			description:
+				'Accessible name for this half, rendered as a `CompareSlider.Label` with `side="after"` and wired through `aria-labelledby`. Without it the panel is `aria-hidden`, for the same reason as its sibling.',
+		},
+		{
+			prop: "class",
+			type: "ClassValue | null",
+			default: "—",
+			description:
+				"Merged after the base classes, which pin the half to the full box (`absolute inset-0 h-full w-full`).",
+		},
+		{
+			prop: "style",
+			type: "string | null",
+			default: "—",
+			description:
+				"Appended after the `clip-path` declaration the part writes, so a caller can add declarations without losing the clip.",
+		},
+		{
+			prop: "ref",
+			type: "HTMLElement | null",
+			default: "null",
+			description: "Bindable reference to the rendered element.",
+		},
+		{
+			prop: "children",
+			type: "Snippet",
+			default: "—",
+			description:
+				"What this half shows, typically an `<img>` sized to the box; any content works. Rendered before the caption.",
+		},
+		{
+			prop: "...restProps",
+			type: "HTMLAttributes<HTMLDivElement>",
+			default: "—",
+			description:
+				'Spread onto the element after `role="img"`, the `aria-*` and `data-*` attributes, so a caller’s own values win over them, and before `class` and `style`, which they cannot replace.',
+		},
+	];
+
+	const handleProps: PropRow[] = [
+		{
+			prop: "class",
+			type: "ClassValue | null",
+			default: "—",
+			description:
+				"Merged after the base classes, which centre the handle on the divider and, in `drag` mode only, add the grab cursor.",
+		},
+		{
+			prop: "style",
+			type: "string | null",
+			default: "—",
+			description:
+				"Appended after the `left` (or `top`, when vertical) percentage the part writes to sit on the divider.",
+		},
+		{
+			prop: "ref",
+			type: "HTMLElement | null",
+			default: "null",
+			description: "Bindable reference to the rendered element.",
+		},
+		{
+			prop: "children",
+			type: "Snippet",
+			default: "—",
+			description:
+				'Replaces the default bar and grip entirely. Left out, the part renders a 4px `bg-background` bar and, under `interaction="drag"` only, a 44px round grip with chevrons pointing along the axis.',
+		},
+		{
+			prop: "...restProps",
+			type: "HTMLAttributes<HTMLDivElement>",
+			default: "—",
+			description:
+				'Spread onto the element after `role="presentation"`, `aria-hidden` and the `data-*` attributes, so a caller’s own values win over them, and before `class` and `style`, which they cannot replace.',
+		},
+	];
+
+	const labelProps: PropRow[] = [
+		{
+			prop: "side",
+			type: "'before' | 'after'",
+			default: "'before'",
+			description:
+				"Which half this names; also written as `data-side`. Picks the corner: `before` parks top-left on either axis, `after` parks top-right when horizontal and bottom-left when vertical, so the two labels of one comparison never collide.",
+		},
+		{
+			prop: "class",
+			type: "ClassValue | null",
+			default: "—",
+			description: "Merged after the chip’s base classes and the corner placement.",
+		},
+		{
+			prop: "ref",
+			type: "HTMLElement | null",
+			default: "null",
+			description: "Bindable reference to the rendered element.",
+		},
+		{
+			prop: "children",
+			type: "Snippet",
+			default: "—",
+			description: "The caption. `Before` and `After` pass their `label` string here.",
+		},
+		{
+			prop: "...restProps",
+			type: "HTMLAttributes<HTMLDivElement>",
+			default: "—",
+			description:
+				"Spread onto the element. `Before` and `After` pass the `id` that their `aria-labelledby` points at.",
+		},
+	];
+
+	const keyboard = [
+		{
+			keys: "Tab",
+			description:
+				'Focuses the root — the whole surface is the one tab stop. The handle is `role="presentation"` and never takes focus.',
+		},
+		{
+			keys: "ArrowLeft / ArrowRight",
+			description:
+				"Moves the divider by `step` percentage points: left decreases, right increases, on a horizontal slider. On a vertical one both increase.",
+		},
+		{
+			keys: "ArrowUp / ArrowDown",
+			description:
+				"Moves by `step`: up decreases, down increases, on a vertical slider. On a horizontal one both increase.",
+		},
+		{
+			keys: "Shift + Arrow",
+			description: "The same arrow, ten steps at a time.",
+		},
+		{
+			keys: "PageUp / PageDown",
+			description:
+				"Decreases / increases by ten steps on either axis, with or without Shift. `PageUp` goes toward `0` even when vertical, the way a page key reads against a scrollbar.",
+		},
+		{ keys: "Home / End", description: "Jumps to `0` / `100`." },
 	];
 
 	const frame = "h-[400px] overflow-hidden rounded-lg border border-border";
@@ -221,32 +449,204 @@
 		</Card.Root>
 	</DocSection>
 
-	<DocSection title="Root props">
-		<Card.Root>
-			<Card.Content class="px-0 [&_[data-slot=table-cell]]:whitespace-normal">
-				<Table.Root>
-					<Table.Header>
-						<Table.Row>
-							<Table.Head>Prop</Table.Head>
-							<Table.Head>Type</Table.Head>
-							<Table.Head>Default</Table.Head>
-							<Table.Head>Description</Table.Head>
-						</Table.Row>
-					</Table.Header>
-					<Table.Body>
-						{#each rootProps as row (row.prop)}
+	<DocSection title="API reference">
+		<div class="flex flex-col gap-3">
+			<h3 class="text-base font-medium">CompareSlider.Root</h3>
+			<p class="text-sm text-muted-foreground">
+				The slider itself: a <code>role="slider"</code> <code>&lt;div&gt;</code> that owns the value,
+				the single tab stop and the keyboard, and publishes the position, orientation and interaction
+				to the parts through context.
+			</p>
+			<Card.Root>
+				<Card.Content class="px-0 [&_[data-slot=table-cell]]:whitespace-normal">
+					<Table.Root>
+						<Table.Header>
 							<Table.Row>
-								<Table.Cell class="font-mono text-xs">{row.prop}</Table.Cell>
-								<Table.Cell class="font-mono text-xs text-muted-foreground">{row.type}</Table.Cell>
-								<Table.Cell class="font-mono text-xs text-muted-foreground"
-									>{row.default}</Table.Cell
-								>
-								<Table.Cell class="text-sm">{row.description}</Table.Cell>
+								<Table.Head>Prop</Table.Head>
+								<Table.Head>Type</Table.Head>
+								<Table.Head>Default</Table.Head>
+								<Table.Head>Description</Table.Head>
 							</Table.Row>
-						{/each}
-					</Table.Body>
-				</Table.Root>
-			</Card.Content>
-		</Card.Root>
+						</Table.Header>
+						<Table.Body>
+							{#each rootProps as row (row.prop)}
+								<Table.Row>
+									<Table.Cell class="font-medium">{row.prop}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.type}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.default}</Table.Cell>
+									<Table.Cell>{row.description}</Table.Cell>
+								</Table.Row>
+							{/each}
+						</Table.Body>
+					</Table.Root>
+				</Card.Content>
+			</Card.Root>
+		</div>
+
+		<div class="flex flex-col gap-3">
+			<h3 class="text-base font-medium">CompareSlider.Before</h3>
+			<p class="text-sm text-muted-foreground">
+				The half revealed on the near side of the divider — left, or top when vertical. A
+				<code>role="img"</code> <code>&lt;div&gt;</code> at the full size of the root, clipped with
+				<code>inset()</code> rather than resized so the two pictures stay registered. Throws when
+				used outside <code>CompareSlider.Root</code>.
+			</p>
+			<Card.Root>
+				<Card.Content class="px-0 [&_[data-slot=table-cell]]:whitespace-normal">
+					<Table.Root>
+						<Table.Header>
+							<Table.Row>
+								<Table.Head>Prop</Table.Head>
+								<Table.Head>Type</Table.Head>
+								<Table.Head>Default</Table.Head>
+								<Table.Head>Description</Table.Head>
+							</Table.Row>
+						</Table.Header>
+						<Table.Body>
+							{#each beforeProps as row (row.prop)}
+								<Table.Row>
+									<Table.Cell class="font-medium">{row.prop}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.type}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.default}</Table.Cell>
+									<Table.Cell>{row.description}</Table.Cell>
+								</Table.Row>
+							{/each}
+						</Table.Body>
+					</Table.Root>
+				</Card.Content>
+			</Card.Root>
+		</div>
+
+		<div class="flex flex-col gap-3">
+			<h3 class="text-base font-medium">CompareSlider.After</h3>
+			<p class="text-sm text-muted-foreground">
+				The half revealed on the far side of the divider — right, or bottom when vertical. The
+				mirror of <code>Before</code>: the same full-size <code>role="img"</code>
+				<code>&lt;div&gt;</code> with the complementary clip. Throws when used outside
+				<code>CompareSlider.Root</code>.
+			</p>
+			<Card.Root>
+				<Card.Content class="px-0 [&_[data-slot=table-cell]]:whitespace-normal">
+					<Table.Root>
+						<Table.Header>
+							<Table.Row>
+								<Table.Head>Prop</Table.Head>
+								<Table.Head>Type</Table.Head>
+								<Table.Head>Default</Table.Head>
+								<Table.Head>Description</Table.Head>
+							</Table.Row>
+						</Table.Header>
+						<Table.Body>
+							{#each afterProps as row (row.prop)}
+								<Table.Row>
+									<Table.Cell class="font-medium">{row.prop}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.type}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.default}</Table.Cell>
+									<Table.Cell>{row.description}</Table.Cell>
+								</Table.Row>
+							{/each}
+						</Table.Body>
+					</Table.Root>
+				</Card.Content>
+			</Card.Root>
+		</div>
+
+		<div class="flex flex-col gap-3">
+			<h3 class="text-base font-medium">CompareSlider.Handle</h3>
+			<p class="text-sm text-muted-foreground">
+				The divider and its grip: a <code>role="presentation"</code>, <code>aria-hidden</code>
+				<code>&lt;div&gt;</code> positioned at the current value. It is the picture of the root’s
+				state, not a second control, so it is never focusable. Throws when used outside
+				<code>CompareSlider.Root</code>.
+			</p>
+			<Card.Root>
+				<Card.Content class="px-0 [&_[data-slot=table-cell]]:whitespace-normal">
+					<Table.Root>
+						<Table.Header>
+							<Table.Row>
+								<Table.Head>Prop</Table.Head>
+								<Table.Head>Type</Table.Head>
+								<Table.Head>Default</Table.Head>
+								<Table.Head>Description</Table.Head>
+							</Table.Row>
+						</Table.Header>
+						<Table.Body>
+							{#each handleProps as row (row.prop)}
+								<Table.Row>
+									<Table.Cell class="font-medium">{row.prop}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.type}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.default}</Table.Cell>
+									<Table.Cell>{row.description}</Table.Cell>
+								</Table.Row>
+							{/each}
+						</Table.Body>
+					</Table.Root>
+				</Card.Content>
+			</Card.Root>
+		</div>
+
+		<div class="flex flex-col gap-3">
+			<h3 class="text-base font-medium">CompareSlider.Label</h3>
+			<p class="text-sm text-muted-foreground">
+				A caption chip naming one half. <code>Before</code> and <code>After</code> render it for you
+				when given a <code>label</code> string; use it directly for anything richer than a word. It
+				reads the orientation from context to pick its corner, so it throws when used outside
+				<code>CompareSlider.Root</code>.
+			</p>
+			<Card.Root>
+				<Card.Content class="px-0 [&_[data-slot=table-cell]]:whitespace-normal">
+					<Table.Root>
+						<Table.Header>
+							<Table.Row>
+								<Table.Head>Prop</Table.Head>
+								<Table.Head>Type</Table.Head>
+								<Table.Head>Default</Table.Head>
+								<Table.Head>Description</Table.Head>
+							</Table.Row>
+						</Table.Header>
+						<Table.Body>
+							{#each labelProps as row (row.prop)}
+								<Table.Row>
+									<Table.Cell class="font-medium">{row.prop}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.type}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.default}</Table.Cell>
+									<Table.Cell>{row.description}</Table.Cell>
+								</Table.Row>
+							{/each}
+						</Table.Body>
+					</Table.Root>
+				</Card.Content>
+			</Card.Root>
+		</div>
+
+		<div class="flex flex-col gap-3">
+			<h3 class="text-base font-medium">Keyboard interactions</h3>
+			<p class="text-sm text-muted-foreground">
+				The keyboard map of the root, the one tab stop. Every move clamps to 0–100 and a handled key
+				is <code>preventDefault</code>ed; a move that lands on the current value writes nothing and
+				does not fire <code>onValueChange</code>. A caller’s <code>onkeydown</code> runs first, and
+				calling <code>preventDefault()</code> there skips the map for that key.
+			</p>
+			<Card.Root>
+				<Card.Content class="px-0 [&_[data-slot=table-cell]]:whitespace-normal">
+					<Table.Root>
+						<Table.Header>
+							<Table.Row>
+								<Table.Head>Key</Table.Head>
+								<Table.Head>Description</Table.Head>
+							</Table.Row>
+						</Table.Header>
+						<Table.Body>
+							{#each keyboard as row (row.keys)}
+								<Table.Row>
+									<Table.Cell class="font-medium">{row.keys}</Table.Cell>
+									<Table.Cell>{row.description}</Table.Cell>
+								</Table.Row>
+							{/each}
+						</Table.Body>
+					</Table.Root>
+				</Card.Content>
+			</Card.Root>
+		</div>
 	</DocSection>
 </DocPage>

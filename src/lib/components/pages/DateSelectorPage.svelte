@@ -10,6 +10,7 @@
 	import * as Popover from "$lib/components/ui/popover/index.js";
 	import { Button } from "$lib/components/ui/button/index.js";
 	import { Separator } from "$lib/components/ui/separator/index.js";
+	import * as Table from "$lib/components/ui/table/index.js";
 	import {
 		DateSelector,
 		DEFAULT_DATE_SELECTOR_I18N,
@@ -377,6 +378,444 @@
 		localizedDraft = localizedValue;
 		localizedOpen = false;
 	}
+
+	/* ---------------------------------------------------------------------------------------
+	 * API reference
+	 * ------------------------------------------------------------------------------------ */
+
+	type PropRow = { prop: string; type: string; default: string; description: string };
+
+	const rootProps: PropRow[] = [
+		{
+			prop: "value",
+			type: "DateSelectorValue",
+			default: "undefined",
+			description:
+				"Bindable; the whole selection as one structured value — `period`, `operator`, and the day or period fields that granularity uses. Also written by a successful free-text parse. A value set from outside is mirrored into the panel without firing `onValueChange`; setting it to `undefined` is ignored — clearing goes through the input's clear button.",
+		},
+		{
+			prop: "onValueChange",
+			type: "(value: DateSelectorValue) => void",
+			default: "—",
+			description:
+				"Called with the next value after every user-driven change: a day or period click, an operator or granularity switch, a clear, or a successful input parse. Never fires on mount, nor when `value` is set from outside.",
+		},
+		{
+			prop: "allowRange",
+			type: "boolean",
+			default: "true",
+			description:
+				"Whether the `between` tab renders and the views take two endpoints. With `false`, an operator of `between` arriving through `value` or `presetMode` still selects a single point.",
+		},
+		{
+			prop: "periodTypes",
+			type: "DateSelectorPeriodType[]",
+			default: "—",
+			description:
+				"Restricts which granularity tabs render, always in day → year order whatever the array's order. An empty array renders no tab at all.",
+		},
+		{
+			prop: "defaultPeriodType",
+			type: "DateSelectorPeriodType",
+			default: "'day'",
+			description:
+				"The granularity shown before any value exists, and the one an incoming `value` without a `period` falls back to. When `periodTypes` excludes it, the first allowed entry is used instead.",
+		},
+		{
+			prop: "defaultFilterType",
+			type: "DateSelectorFilterType",
+			default: "'is'",
+			description:
+				"The operator active before any value exists. An initial `value.operator` wins over it, and `presetMode` wins over both.",
+		},
+		{
+			prop: "presetMode",
+			type: "DateSelectorFilterType",
+			default: "—",
+			description:
+				"Pins the operator: the filter toggle dims and ignores clicks, the pinned operator overrides `value.operator`, and free-text parses take it too. Every value sync while it is set — a `value` present at mount, any click — also stores the pinned operator as the user's own choice, so removing it later keeps the pinned operator; the earlier choice survives only when nothing was synced under the pin.",
+		},
+		{
+			prop: "showInput",
+			type: "boolean",
+			default: "true",
+			description:
+				"Whether the text field and its clear button render between the toggle and the tabs. The clear button is the only in-panel way to empty the selection while keeping the current granularity and operator — switching either one also discards it; from outside, a `value` carrying only `period` and `operator` empties it the same way.",
+		},
+		{
+			prop: "showTwoMonths",
+			type: "boolean",
+			default: "true",
+			description:
+				"Whether the day view lays two months side by side. Below the mobile breakpoint a single month always renders.",
+		},
+		{
+			prop: "label",
+			type: "string",
+			default: "—",
+			description:
+				"A heading rendered before the filter toggle, on the same row. An empty string renders nothing.",
+		},
+		{
+			prop: "yearRange",
+			type: "number",
+			default: "10",
+			description:
+				"How many years the month, quarter, half-year and year views list when `minYear` and `maxYear` are not both set: that many consecutive years, starting `floor(yearRange / 2)` years before `baseYear`.",
+		},
+		{
+			prop: "baseYear",
+			type: "number",
+			default: "—",
+			description:
+				"The year the `yearRange` window is centred on. Unset means the current year, so the window follows the clock.",
+		},
+		{
+			prop: "minYear",
+			type: "number",
+			default: "—",
+			description:
+				"First listed year. Takes effect only together with `maxYear`; on its own it is ignored and the `yearRange` window applies.",
+		},
+		{
+			prop: "maxYear",
+			type: "number",
+			default: "—",
+			description:
+				"Last listed year. Takes effect only together with `minYear`; a `maxYear` below `minYear` lists no year at all.",
+		},
+		{
+			prop: "i18n",
+			type: "Partial<DateSelectorI18nConfig>",
+			default: "—",
+			description:
+				"String overrides, shallow-merged over `DEFAULT_DATE_SELECTOR_I18N`: a top-level key you omit keeps its default, but a nested table you supply (`filterTypes`, `months`, …) replaces the default one whole.",
+		},
+		{
+			prop: "inputHint",
+			type: "string",
+			default: "—",
+			description:
+				"Placeholder shown while the input is focused, hinting at what it parses. Setting it also makes the input editable: it accepts a bare year, `Q1`–`Q4` with an optional year, or a day in one of the date-fns patterns, and abandons anything unparseable on blur. Without it the input is a read-only display.",
+		},
+		{
+			prop: "dayDateFormat",
+			type: "string",
+			default: "'MM/dd/yyyy'",
+			description:
+				"The date-fns pattern day values display with. Free-text parsing tries it first unless `dayDateFormats` already lists it, in which case it keeps the position it has there.",
+		},
+		{
+			prop: "dayDateFormats",
+			type: "string[]",
+			default: "—",
+			description:
+				"Additional date-fns patterns parsing tries, in order, with `dayDateFormat` prepended when it is missing. Supplying any replaces the built-in fallback list (`dd/MM/yyyy`, `yyyy-MM-dd`, `MM-dd-yyyy`, `dd-MM-yyyy`).",
+		},
+		{
+			prop: "weekStartsOn",
+			type: "DateSelectorWeekStartsOn",
+			default: "—",
+			description:
+				"The day the week columns start on: `0` is Sunday, `6` is Saturday. Unset leaves the calendar's own Sunday start.",
+		},
+		{
+			prop: "class",
+			type: "ClassValue",
+			default: "—",
+			description:
+				"Merged after the wrapper's own classes, which fix a 470px width from the `sm` breakpoint up.",
+		},
+		{
+			prop: "ref",
+			type: "HTMLDivElement | null",
+			default: "null",
+			description: "Bindable reference to the rendered wrapper `<div>`.",
+		},
+		{
+			prop: "...restProps",
+			type: "HTMLAttributes<HTMLDivElement>",
+			default: "—",
+			description: "Spread onto the wrapper `<div>`.",
+		},
+	];
+
+	const filterToggleProps: PropRow[] = [
+		{
+			prop: "value",
+			type: "DateSelectorFilterType",
+			default: "—",
+			description:
+				"The active operator. Required. Seeds the highlighted tab and moves it whenever it changes, but the highlight is the underlying Tabs' own state: a tab focused with an arrow key highlights itself before `onValueChange` reports it, so the two stay together only while that report is echoed back into `value`. A `presetMode` only shows once `value` carries it.",
+		},
+		{
+			prop: "onValueChange",
+			type: "(value: DateSelectorFilterType) => void",
+			default: "—",
+			description:
+				"Called with the clicked operator. Required. Suppressed entirely while `presetMode` is set.",
+		},
+		{
+			prop: "showBetween",
+			type: "boolean",
+			default: "true",
+			description:
+				"Whether the `between` tab renders; `before` and `after` always do. The root passes `allowRange` here.",
+		},
+		{
+			prop: "showIs",
+			type: "boolean",
+			default: "true",
+			description: "Whether the `is` tab renders. The root never turns it off.",
+		},
+		{
+			prop: "presetMode",
+			type: "DateSelectorFilterType",
+			default: "—",
+			description:
+				"When set the list drops to half opacity, stops taking pointer events and stops reporting changes. It does not move the highlighted tab, but the dimmed list still takes keyboard focus: an arrow key re-highlights the focused tab locally and the dropped report never undoes that, so `value` decides the highlight only until an arrow key is pressed.",
+		},
+		{
+			prop: "class",
+			type: "string",
+			default: "—",
+			description: "Applied to both the Tabs root and its list, as upstream does.",
+		},
+	];
+
+	const periodTabsProps: PropRow[] = [
+		{
+			prop: "value",
+			type: "DateSelectorPeriodType",
+			default: "—",
+			description:
+				"The active granularity. Required; the navigation cluster only renders while it is `'day'`.",
+		},
+		{
+			prop: "onValueChange",
+			type: "(value: DateSelectorPeriodType) => void",
+			default: "—",
+			description: "Called with the clicked granularity. Required.",
+		},
+		{
+			prop: "periodTypes",
+			type: "readonly DateSelectorPeriodType[]",
+			default: "—",
+			description:
+				"Restricts which tabs render; the order is always day, month, quarter, half-year, year whatever the array's order. An empty array renders no tab.",
+		},
+		{
+			prop: "calendarMonth",
+			type: "DateValue",
+			default: "—",
+			description:
+				"The month the chevrons step from. It also drives the return-to-today button: hidden while this is the current month, its arrow pointing back from the future or from the past.",
+		},
+		{
+			prop: "onCalendarMonthChange",
+			type: "(month: DateValue) => void",
+			default: "—",
+			description:
+				"Called with the previous or next month from the chevrons, or with today's month from the return button.",
+		},
+		{
+			prop: "showNavigationButtons",
+			type: "boolean",
+			default: "false",
+			description:
+				"Whether the month navigation cluster renders. Three more conditions apply: `value` must be `'day'`, and `calendarMonth` and `onCalendarMonthChange` must both be set.",
+		},
+		{
+			prop: "class",
+			type: "string",
+			default: "—",
+			description: "Merged onto the wrapping row that holds the tabs and the navigation cluster.",
+		},
+	];
+
+	const dayPickerProps: PropRow[] = [
+		{
+			prop: "month",
+			type: "DateValue",
+			default: "—",
+			description:
+				"The first displayed month; the second, when two render, follows it. Required. Passed to the calendar as its placeholder — not bound — so a new value moves the view, while the calendar's own keyboard navigation moves the view without writing back to it.",
+		},
+		{
+			prop: "onMonthChange",
+			type: "(month: DateValue) => void",
+			default: "—",
+			description:
+				"Called when the calendar itself moves the view: arrow keys crossing a month boundary, or bits-ui recentring on a fresh selection. Leaving it unset does not pin the view: the calendar still moves on its own, and only `month` goes stale until the next value you pass.",
+		},
+		{
+			prop: "selectedDate",
+			type: "DateValue",
+			default: "—",
+			description: "The selected day, or the range start when `isRange` is set.",
+		},
+		{
+			prop: "selectedEndDate",
+			type: "DateValue",
+			default: "—",
+			description: "The range end. Ignored in single mode.",
+		},
+		{
+			prop: "isRange",
+			type: "boolean",
+			default: "false",
+			description:
+				"Swaps the single-select Calendar for a RangeCalendar, whose hover preview and endpoint ordering come for free. The root passes `filterType === 'between' && allowRange`.",
+		},
+		{
+			prop: "onDaySelect",
+			type: "(day: DateValue) => void",
+			default: "—",
+			description:
+				"Single mode only: called with the clicked day. Clicking the selected day again keeps it selected rather than clearing it, so the callback never receives an empty value.",
+		},
+		{
+			prop: "onRangeSelect",
+			type: "(start: DateValue | undefined, end: DateValue | undefined) => void",
+			default: "—",
+			description:
+				"Range mode only: `(start, undefined)` when a range opens or restarts, `(start, end)` once it closes, the pair already ordered. Not called when the reported start is the `selectedDate` already held — that is bits-ui echoing the value back.",
+		},
+		{
+			prop: "showTwoMonths",
+			type: "boolean",
+			default: "true",
+			description:
+				"Whether two months render side by side. Below the mobile breakpoint the picker always collapses to one month.",
+		},
+		{
+			prop: "weekStartsOn",
+			type: "DateSelectorWeekStartsOn",
+			default: "—",
+			description:
+				"The day the week columns start on: `0` is Sunday. Unset is Sunday. Head labels come from the i18n `weekdaysShort` table, falling back to `weekdays` for an empty or missing entry — never from the locale.",
+		},
+		{
+			prop: "class",
+			type: "string",
+			default: "—",
+			description: "Merged onto the wrapping `<div>`, not the calendar root.",
+		},
+	];
+
+	const periodGridProps: PropRow[] = [
+		{
+			prop: "years",
+			type: "number[]",
+			default: "—",
+			description: "One section per entry, in the given order, each headed by its year. Required.",
+		},
+		{
+			prop: "items",
+			type: "string[]",
+			default: "—",
+			description:
+				"The cell labels repeated under every year — the i18n `monthsShort`, `quarters` or `halfYears` table. A cell's index is the `value` reported on click. Required.",
+		},
+		{
+			prop: "selectedYear",
+			type: "number",
+			default: "—",
+			description: "Together with `selectedValue`, the one cell drawn as selected.",
+		},
+		{
+			prop: "selectedValue",
+			type: "number",
+			default: "—",
+			description: "The zero-based index, inside `selectedYear`, of the selected cell.",
+		},
+		{
+			prop: "rangeStart",
+			type: "DateSelectorPeriodPoint",
+			default: "—",
+			description:
+				"The cell drawn as the range's first endpoint, with the same filled style as a selection.",
+		},
+		{
+			prop: "rangeEnd",
+			type: "DateSelectorPeriodPoint",
+			default: "—",
+			description: "The cell drawn as the range's last endpoint.",
+		},
+		{
+			prop: "isInRange",
+			type: "(year: number, value: number) => boolean",
+			default: "—",
+			description:
+				"Asked once per cell; a `true` cell that is neither the selection nor an endpoint gets the accent background. Required.",
+		},
+		{
+			prop: "onSelect",
+			type: "(year: number, value: number) => void",
+			default: "—",
+			description: "Called with the clicked cell's year and index. Required.",
+		},
+		{
+			prop: "columns",
+			type: "number",
+			default: "—",
+			description:
+				"Cells per row, set as an inline grid template: the root passes 3 for months, 4 for quarters, 2 for half-years. Required.",
+		},
+		{
+			prop: "class",
+			type: "string",
+			default: "—",
+			description: "Merged onto the wrapping `<div>`.",
+		},
+	];
+
+	const yearListProps: PropRow[] = [
+		{
+			prop: "years",
+			type: "number[]",
+			default: "—",
+			description: "The buttons, in the given order, on a two-column grid. Required.",
+		},
+		{
+			prop: "selectedYear",
+			type: "number",
+			default: "—",
+			description:
+				"The year drawn as selected — but only while no `rangeStart` or `rangeEnd` exists; a range highlights its endpoints instead.",
+		},
+		{
+			prop: "rangeStart",
+			type: "DateSelectorPeriodPoint",
+			default: "—",
+			description: "The year drawn as the range's first endpoint; only its `year` is read.",
+		},
+		{
+			prop: "rangeEnd",
+			type: "DateSelectorPeriodPoint",
+			default: "—",
+			description: "The year drawn as the range's last endpoint; only its `year` is read.",
+		},
+		{
+			prop: "isYearInRange",
+			type: "(year: number) => boolean",
+			default: "—",
+			description:
+				"Asked once per year; a `true` year that is neither the selection nor an endpoint gets the accent background. Required.",
+		},
+		{
+			prop: "onSelect",
+			type: "(year: number) => void",
+			default: "—",
+			description: "Called with the clicked year. Required.",
+		},
+		{
+			prop: "class",
+			type: "string",
+			default: "—",
+			description: "Merged onto the wrapping `<div>`.",
+		},
+	];
 </script>
 
 <DocPage title="Date selector">
@@ -536,6 +975,206 @@
 					</Dialog.Content>
 				</Dialog.Root>
 			</div>
+		</div>
+	</DocSection>
+	<DocSection title="API reference">
+		<div class="flex flex-col gap-3">
+			<h3 class="text-base font-medium">DateSelector.Root</h3>
+			<p class="text-sm text-muted-foreground">
+				The whole panel: an optional label and the filter toggle on one row, the text input, the
+				granularity tabs, then the day picker or the scrolling grid the active granularity calls
+				for. It owns the state FilterToggle, PeriodTabs and DayPicker read from context, so those
+				three throw when rendered outside it; PeriodGrid and YearList read no context and work
+				anywhere.
+			</p>
+			<Card.Root>
+				<Card.Content class="px-0 [&_[data-slot=table-cell]]:whitespace-normal">
+					<Table.Root>
+						<Table.Header>
+							<Table.Row>
+								<Table.Head>Prop</Table.Head>
+								<Table.Head>Type</Table.Head>
+								<Table.Head>Default</Table.Head>
+								<Table.Head>Description</Table.Head>
+							</Table.Row>
+						</Table.Header>
+						<Table.Body>
+							{#each rootProps as row (row.prop)}
+								<Table.Row>
+									<Table.Cell class="font-medium">{row.prop}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.type}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.default}</Table.Cell>
+									<Table.Cell>{row.description}</Table.Cell>
+								</Table.Row>
+							{/each}
+						</Table.Body>
+					</Table.Root>
+				</Card.Content>
+			</Card.Root>
+		</div>
+
+		<div class="flex flex-col gap-3">
+			<h3 class="text-base font-medium">DateSelector.FilterToggle</h3>
+			<p class="text-sm text-muted-foreground">
+				The <code>is</code> / <code>before</code> / <code>after</code> / <code>between</code> tabs —
+				a controlled Tabs that reads only the i18n strings from context. It spreads nothing:
+				<code>class</code> is its only styling hook.
+			</p>
+			<Card.Root>
+				<Card.Content class="px-0 [&_[data-slot=table-cell]]:whitespace-normal">
+					<Table.Root>
+						<Table.Header>
+							<Table.Row>
+								<Table.Head>Prop</Table.Head>
+								<Table.Head>Type</Table.Head>
+								<Table.Head>Default</Table.Head>
+								<Table.Head>Description</Table.Head>
+							</Table.Row>
+						</Table.Header>
+						<Table.Body>
+							{#each filterToggleProps as row (row.prop)}
+								<Table.Row>
+									<Table.Cell class="font-medium">{row.prop}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.type}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.default}</Table.Cell>
+									<Table.Cell>{row.description}</Table.Cell>
+								</Table.Row>
+							{/each}
+						</Table.Body>
+					</Table.Root>
+				</Card.Content>
+			</Card.Root>
+		</div>
+
+		<div class="flex flex-col gap-3">
+			<h3 class="text-base font-medium">DateSelector.PeriodTabs</h3>
+			<p class="text-sm text-muted-foreground">
+				The granularity tabs, plus the month navigation cluster (return to today, previous, next)
+				the day view relies on, since the picker renders no navigation of its own. It spreads
+				nothing: <code>class</code> is its only styling hook.
+			</p>
+			<Card.Root>
+				<Card.Content class="px-0 [&_[data-slot=table-cell]]:whitespace-normal">
+					<Table.Root>
+						<Table.Header>
+							<Table.Row>
+								<Table.Head>Prop</Table.Head>
+								<Table.Head>Type</Table.Head>
+								<Table.Head>Default</Table.Head>
+								<Table.Head>Description</Table.Head>
+							</Table.Row>
+						</Table.Header>
+						<Table.Body>
+							{#each periodTabsProps as row (row.prop)}
+								<Table.Row>
+									<Table.Cell class="font-medium">{row.prop}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.type}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.default}</Table.Cell>
+									<Table.Cell>{row.description}</Table.Cell>
+								</Table.Row>
+							{/each}
+						</Table.Body>
+					</Table.Root>
+				</Card.Content>
+			</Card.Root>
+		</div>
+
+		<div class="flex flex-col gap-3">
+			<h3 class="text-base font-medium">DateSelector.DayPicker</h3>
+			<p class="text-sm text-muted-foreground">
+				The day view: one or two months from this theme's Calendar or RangeCalendar, with weekday
+				and month captions taken from the i18n tables rather than the locale. It reads the i18n
+				strings from context and spreads nothing: <code>class</code> is its only styling hook.
+			</p>
+			<Card.Root>
+				<Card.Content class="px-0 [&_[data-slot=table-cell]]:whitespace-normal">
+					<Table.Root>
+						<Table.Header>
+							<Table.Row>
+								<Table.Head>Prop</Table.Head>
+								<Table.Head>Type</Table.Head>
+								<Table.Head>Default</Table.Head>
+								<Table.Head>Description</Table.Head>
+							</Table.Row>
+						</Table.Header>
+						<Table.Body>
+							{#each dayPickerProps as row (row.prop)}
+								<Table.Row>
+									<Table.Cell class="font-medium">{row.prop}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.type}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.default}</Table.Cell>
+									<Table.Cell>{row.description}</Table.Cell>
+								</Table.Row>
+							{/each}
+						</Table.Body>
+					</Table.Root>
+				</Card.Content>
+			</Card.Root>
+		</div>
+
+		<div class="flex flex-col gap-3">
+			<h3 class="text-base font-medium">DateSelector.PeriodGrid</h3>
+			<p class="text-sm text-muted-foreground">
+				A stack of year sections, each a grid of month, quarter or half-year buttons. Purely
+				presentational — it reads no context, so it also works outside the root — and it spreads
+				nothing: <code>class</code> is its only styling hook.
+			</p>
+			<Card.Root>
+				<Card.Content class="px-0 [&_[data-slot=table-cell]]:whitespace-normal">
+					<Table.Root>
+						<Table.Header>
+							<Table.Row>
+								<Table.Head>Prop</Table.Head>
+								<Table.Head>Type</Table.Head>
+								<Table.Head>Default</Table.Head>
+								<Table.Head>Description</Table.Head>
+							</Table.Row>
+						</Table.Header>
+						<Table.Body>
+							{#each periodGridProps as row (row.prop)}
+								<Table.Row>
+									<Table.Cell class="font-medium">{row.prop}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.type}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.default}</Table.Cell>
+									<Table.Cell>{row.description}</Table.Cell>
+								</Table.Row>
+							{/each}
+						</Table.Body>
+					</Table.Root>
+				</Card.Content>
+			</Card.Root>
+		</div>
+
+		<div class="flex flex-col gap-3">
+			<h3 class="text-base font-medium">DateSelector.YearList</h3>
+			<p class="text-sm text-muted-foreground">
+				A two-column grid of year buttons. Purely presentational — it reads no context, so it also
+				works outside the root — and it spreads nothing: <code>class</code> is its only styling hook.
+			</p>
+			<Card.Root>
+				<Card.Content class="px-0 [&_[data-slot=table-cell]]:whitespace-normal">
+					<Table.Root>
+						<Table.Header>
+							<Table.Row>
+								<Table.Head>Prop</Table.Head>
+								<Table.Head>Type</Table.Head>
+								<Table.Head>Default</Table.Head>
+								<Table.Head>Description</Table.Head>
+							</Table.Row>
+						</Table.Header>
+						<Table.Body>
+							{#each yearListProps as row (row.prop)}
+								<Table.Row>
+									<Table.Cell class="font-medium">{row.prop}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.type}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.default}</Table.Cell>
+									<Table.Cell>{row.description}</Table.Cell>
+								</Table.Row>
+							{/each}
+						</Table.Body>
+					</Table.Root>
+				</Card.Content>
+			</Card.Root>
 		</div>
 	</DocSection>
 </DocPage>

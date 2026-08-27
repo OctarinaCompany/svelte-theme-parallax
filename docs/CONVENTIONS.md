@@ -198,21 +198,27 @@ that in one of two ways depending on where the component came from:
 
 - A **ported or forked** component links to the page upstream already maintains — the
   shadcn-svelte, Bits UI or origin-project documentation — rather than restating a table that
-  would drift the first time upstream changed. 51 pages do this.
-- A **house** component carries an **API reference** section of its own: one table per part,
-  listing prop, type, default and what it does. There is no upstream to point at, so the page is
-  the documentation. 49 pages do this.
+  would drift the first time upstream changed. **51 pages.**
+- A **house** component carries an **API reference** section of its own: one `<h3>` per part
+  naming it `Namespace.Part`, a sentence or two saying what that part IS and renders, then a
+  table of prop / type / default / description. There is no upstream to point at, so the page is
+  the documentation. **58 pages, 772 rows.**
 
-The two are alternatives, not a pair: only one page carries both, and it does so because it is a
-fork whose additions upstream does not document.
+The two are alternatives, never both, and **the rule holds with no exceptions**: 51 + 58 + the
+nine pages that owe neither is every page in the catalog. Those nine are not exceptions either —
+`quickstart`, `settings`, `themes` and `sizing` document the kit rather than a component, and the
+five `Patterns` pages (`file-upload`, `list-group`, `page-headers`, `tables-in-cards`,
+`typography`) ship no component at all, as §9 records.
 
-**Nine pages owe neither**, and are not exceptions: `quickstart`, `settings`, `themes` and
-`sizing` document the kit rather than a component, and the five `Patterns` pages
-(`file-upload`, `list-group`, `page-headers`, `tables-in-cards`, `typography`) ship no component
-at all, as §9 records.
+**What a row has to be.** The type is the declaration's, verbatim. The default is the
+destructuring default, or `—` where there is none. The description says what the prop DOES,
+read from the implementation — a sentence that could have been guessed from the prop's name is
+not documentation, and boundary behaviour (what an out-of-range value does, which callback does
+not fire, what `null` means) is exactly what a reader opened the table for.
 
-**Ten pages owe one and do not have it yet**: `date-selector`, `event-calendar`, `combobox`,
-`filters`, `tree`, `cropper`, `number-field`, `compare-slider`, `data-grid` and `scroller`.
-Every one of them is a large house component — `data-grid` alone is 31 files — which is why they
-are last rather than first. They are listed here rather than left implicit so the gap is a
-tracked debt and not a discovery.
+**What is deliberately not standardised.** Four details vary across these pages and none of them
+is a defect to be "fixed": whether the rest-spread is a `...restProps` row or a sentence in the
+part's paragraph (24 of the first 48 pages chose the row), whether the row arrays carry a
+`PropRow` type alias, whether `class` and `ref` get rows of their own, and whether the section
+closes with a keyboard-interaction table (7 pages do, where the component has a contract worth
+one). Match the page you are editing rather than converting it.

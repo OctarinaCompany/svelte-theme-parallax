@@ -12,6 +12,7 @@
 	import * as Card from "$lib/components/ui/card/index.js";
 	import * as Tree from "$lib/components/ui/tree/index.js";
 	import { Checkbox } from "$lib/components/ui/checkbox/index.js";
+	import * as Table from "$lib/components/ui/table/index.js";
 	import { TreeState } from "$lib/components/ui/tree/index.js";
 	import { getInitials } from "$lib/shared/get-initials.js";
 	import DocPage from "$lib/components/layout/DocPage.svelte";
@@ -277,6 +278,274 @@
 		const unregister = register(node);
 		return { destroy: unregister };
 	}
+	type PropRow = { prop: string; type: string; default: string; description: string };
+
+	const rootProps: PropRow[] = [
+		{
+			prop: "tree",
+			type: "TreeState<T>",
+			default: "—",
+			description:
+				"The state this view renders. It is only published on the root context: `Tree.Item` reaches its state through `item.getTree()`, so omitting it changes nothing rendered — the demos pass it for parity with upstream.",
+		},
+		{
+			prop: "indent",
+			type: "number",
+			default: "20",
+			description:
+				"Pixels of start padding added per depth level. Published on the root as `--tree-indent`; each `Tree.Item` multiplies it by its level into its own `--tree-padding`, so top-level rows get none.",
+		},
+		{
+			prop: "toggleIconType",
+			type: "'chevron' | 'plus-minus'",
+			default: "'chevron'",
+			description:
+				"Which affordance the default `Tree.ItemLabel` draws before a folder name: a chevron that rotates closed off the row’s `aria-expanded`, or a plus/minus glyph swapped on expansion. Leaves draw neither, and a label rendered through `child` draws nothing.",
+		},
+		{
+			prop: "ref",
+			type: "HTMLDivElement | null",
+			default: "null",
+			description: "Bindable reference to the rendered `<div>`. Stays `null` in `child` mode.",
+		},
+		{
+			prop: "class",
+			type: "ClassValue",
+			default: "—",
+			description: "Merged after the root’s own `flex flex-col`, so caller utilities win.",
+		},
+		{
+			prop: "style",
+			type: "string | null",
+			default: "—",
+			description:
+				"Appended after the `--tree-indent` declaration, so a caller value of that variable overrides the `indent` prop for the guide rails without changing the rows’ padding.",
+		},
+		{
+			prop: "child",
+			type: "Snippet<[{ props: TreeChildProps }]>",
+			default: "—",
+			description:
+				'Render the root onto your own element. `props` carries `data-slot`, `role="tree"`, `aria-multiselectable`, the merged `style` and `class`, and every rest attribute. In `child` mode `children` is not rendered and `ref` stays `null`.',
+		},
+		{
+			prop: "children",
+			type: "Snippet",
+			default: "—",
+			description:
+				"The rows — normally an `{#each}` over `tree.getItems()` rendering one `Tree.Item` per instance. Not rendered in `child` mode.",
+		},
+		{
+			prop: "...restProps",
+			type: "HTMLAttributes<HTMLDivElement>",
+			default: "—",
+			description:
+				"Spread onto the element before `style` and `class`, so a caller can override `role` or `aria-multiselectable` but not the two merged attributes.",
+		},
+	];
+
+	const itemProps: PropRow[] = [
+		{
+			prop: "item",
+			type: "TreeItemInstance<T>",
+			default: "—",
+			description:
+				"The row to render, from `tree.getItems()` or `tree.getItemInstance(id)`. Every varying attribute — `aria-expanded`/`selected`, `aria-level`/`posinset`/`setsize`, indent, tab stop, the `data-*` flags — is read off it, and it is published downward, through a live getter, to the `Tree.ItemLabel` this row encloses.",
+		},
+		{
+			prop: "ref",
+			type: "HTMLButtonElement | null",
+			default: "null",
+			description:
+				"Bindable reference to the rendered `<button>`. While set, the element is registered with the tree’s focus registry so keyboard moves can land on it. Stays `null` in `child` mode.",
+		},
+		{
+			prop: "class",
+			type: "ClassValue",
+			default: "—",
+			description:
+				"Merged after the row’s own classes: `ps-(--tree-padding)`, the focus `z-20`, and the `data-[disabled]` dimming.",
+		},
+		{
+			prop: "style",
+			type: "string | null",
+			default: "—",
+			description:
+				"Appended after the `--tree-padding` declaration, so a caller value of that variable wins over the computed indent.",
+		},
+		{
+			prop: "onclick",
+			type: "MouseEventHandler<HTMLButtonElement>",
+			default: "—",
+			description:
+				"Runs after the tree’s own click handling — focus, plain select and folder toggle, Ctrl/Cmd toggle, Shift range — and cannot cancel it. Enter and Space arrive here as the native button click.",
+		},
+		{
+			prop: "onkeydown",
+			type: "KeyboardEventHandler<HTMLButtonElement>",
+			default: "—",
+			description:
+				"Runs after the tree’s Up/Down/Home/End/Left/Right navigation, which has already called `preventDefault()` on any key it handled. Right on a leaf, and every other key, reach it untouched.",
+		},
+		{
+			prop: "onfocus",
+			type: "FocusEventHandler<HTMLButtonElement>",
+			default: "—",
+			description:
+				"Runs after the row has recorded itself as the tree’s focused item. `onFocusedItemChange` has fired before it only when the focused id actually changed — tabbing back onto the row still recorded as focused fires nothing.",
+		},
+		{
+			prop: "child",
+			type: "Snippet<[{ props: TreeItemChildProps }]>",
+			default: "—",
+			description:
+				'Render the row onto your own element. `props` carries `data-slot`, `role="treeitem"`, `type="button"` — drop it when your element is not a button — the aria attributes, `tabindex`, the `data-*` flags, every rest attribute, the merged `style` and `class`, the three handlers, and a `register(element)` callback returning its unregister — call it, or keyboard navigation can no longer land on the row. `children` is not rendered; place your own `Tree.ItemLabel` inside, the item context still reaches it.',
+		},
+		{
+			prop: "children",
+			type: "Snippet",
+			default: "—",
+			description: "The row’s content, normally a `Tree.ItemLabel`. Not rendered in `child` mode.",
+		},
+		{
+			prop: "...restProps",
+			type: "HTMLButtonAttributes",
+			default: "—",
+			description:
+				"Spread onto the `<button>` before `style`, `class` and the handlers, so a caller can override `type`, `tabindex` or any aria attribute. A `data-disabled` attribute dims the row and removes its pointer events; nothing else sets it.",
+		},
+	];
+
+	const itemLabelProps: PropRow[] = [
+		{
+			prop: "item",
+			type: "TreeItemInstance<T>",
+			default: "—",
+			description:
+				"Explicit row override, which lets the label stand outside a `Tree.Item`. When omitted the enclosing `Tree.Item`’s item is used: only the context is looked up at init, its `item` is a live getter, so a later change to that prop is followed. With neither, the label renders no element at all.",
+		},
+		{
+			prop: "ref",
+			type: "HTMLSpanElement | null",
+			default: "null",
+			description: "Bindable reference to the rendered `<span>`. Stays `null` in `child` mode.",
+		},
+		{
+			prop: "class",
+			type: "ClassValue",
+			default: "—",
+			description:
+				"Merged after the label’s own classes — padding, `hover:bg-accent`, the selected fill, the focus ring and the `ps-7` a leaf takes to line up with folder names — so any of them can be undone.",
+		},
+		{
+			prop: "child",
+			type: "Snippet<[{ props: TreeItemLabelChildProps }]>",
+			default: "—",
+			description:
+				"Render the label onto your own element. `props` carries `data-slot`, the merged `class` and every rest attribute. In `child` mode neither `children` nor the toggle icon and name are rendered — the caller owns the whole content.",
+		},
+		{
+			prop: "children",
+			type: "Snippet",
+			default: "—",
+			description:
+				"Replaces the item name only: the folder toggle icon is still drawn before it. Without it the label renders `item.getItemName()`.",
+		},
+		{
+			prop: "...restProps",
+			type: "HTMLAttributes<HTMLSpanElement>",
+			default: "—",
+			description:
+				"Spread onto the `<span>` before `class`; `style` passes through untouched, the label sets none of its own.",
+		},
+	];
+
+	const treeStateOptions: PropRow[] = [
+		{
+			prop: "rootItemId",
+			type: "string",
+			default: "—",
+			description:
+				"Id of the conceptual root. It never renders: its children are the top-level rows (level 0), so it need not appear in `expandedItems`. It also seeds the cycle guard, so a child id pointing back at it is skipped.",
+		},
+		{
+			prop: "dataLoader",
+			type: "TreeDataLoader<T>",
+			default: "—",
+			description:
+				"Synchronous accessors. `getChildren(id)` resolves the ordered child ids (`[]` or `undefined` for a leaf). On each re-derivation of the visible list it runs once for the root and twice for every expanded folder — the default `isItemFolder` asks it before the walk descends and asks again — then twice more per rendered row, for the row’s `aria-expanded` and the default label’s toggle icon; so it must be cheap and pure — an id met twice in one walk is rendered once. `getItem(id)` resolves a payload and runs only when a row’s data is asked for: the default `getItemName`, or `item.getItemData()`.",
+		},
+		{
+			prop: "getItemName",
+			type: "(item: TreeItemInstance<T>) => string",
+			default: "String(item.getItemData())",
+			description:
+				"Display name of a row — what the default `Tree.ItemLabel` prints and `item.getItemName()` returns.",
+		},
+		{
+			prop: "isItemFolder",
+			type: "(item: TreeItemInstance<T>) => boolean",
+			default: "has at least one child id",
+			description:
+				"Whether a row can hold children. Decides `aria-expanded`, the toggle icon, the leaf indent, and whether a click or Right expands it; a folder whose loader returns no children expands to nothing.",
+		},
+		{
+			prop: "initialState",
+			type: "{ expandedItems?: readonly string[]; selectedItems?: readonly string[]; focusedItem?: string | null }",
+			default: "—",
+			description:
+				"Seeds the three pieces of state once, at construction — copied, so later edits to the arrays passed in do nothing. Missing lists start empty and `focusedItem` starts `null`, which makes the first visible row the tab stop.",
+		},
+		{
+			prop: "onExpandedItemsChange",
+			type: "(expandedItems: string[]) => void",
+			default: "—",
+			description:
+				"Fires with a fresh copy after every real change to the expanded set — a plain click on a folder, Right/Left, or `expandItem`/`collapseItem`/`setExpandedItems`. A call that leaves the array identical is dropped without firing.",
+		},
+		{
+			prop: "onSelectedItemsChange",
+			type: "(selectedItems: string[]) => void",
+			default: "—",
+			description:
+				"Fires with a fresh copy after every real change to the selection: a plain click replaces it with one id, Ctrl/Cmd click toggles the id, Shift click replaces it with the visible range from the anchor — the last plain or Ctrl/Cmd click, or the clicked row itself while there is none; an anchor hidden under a collapsed folder selects nothing. Keyboard navigation moves focus only and never fires it.",
+		},
+		{
+			prop: "onFocusedItemChange",
+			type: "(focusedItem: string | null) => void",
+			default: "—",
+			description:
+				"Fires when the focused id changes — on a row’s DOM focus, a click, or a keyboard move — and never for a repeat of the current id. `null` arrives only from an explicit `setFocusedItem(null)`; the tree never clears it itself.",
+		},
+	];
+
+	const keyboard = [
+		{
+			keys: "Tab / Shift + Tab",
+			description:
+				"Enters or leaves the tree, which is a single tab stop: the focused row while it is visible, otherwise the first visible row.",
+		},
+		{
+			keys: "ArrowDown / ArrowUp",
+			description: "Next / previous visible row. The ends clamp rather than wrap.",
+		},
+		{ keys: "Home / End", description: "First / last visible row." },
+		{
+			keys: "ArrowRight",
+			description:
+				'Expands a collapsed folder; on an expanded folder, steps into its first child. On a leaf the key is not handled. Inverted under `dir="rtl"`.',
+		},
+		{
+			keys: "ArrowLeft",
+			description:
+				'Collapses an expanded folder; otherwise moves focus to the parent row, and does nothing on a top-level row. Inverted under `dir="rtl"`.',
+		},
+		{
+			keys: "Enter / Space",
+			description:
+				"Activates the row through the native button click: focuses it, selects it alone, and toggles a folder.",
+		},
+	];
 </script>
 
 <DocPage title="Tree">
@@ -500,5 +769,173 @@
 				</div>
 			</Card.Content>
 		</Card.Root>
+	</DocSection>
+
+	<DocSection title="API reference">
+		<div class="flex flex-col gap-3">
+			<h3 class="text-base font-medium">Tree.Root</h3>
+			<p class="text-sm text-muted-foreground">
+				The <code>role="tree"</code> container, also exported as <code>Tree.Tree</code>. It renders
+				a
+				<code>&lt;div&gt;</code> that publishes <code>indent</code> and <code>toggleIconType</code>
+				to every part beneath it, and declares <code>--tree-indent</code> for anything that wants to draw
+				at the row steps.
+			</p>
+			<Card.Root>
+				<Card.Content class="px-0 [&_[data-slot=table-cell]]:whitespace-normal">
+					<Table.Root>
+						<Table.Header>
+							<Table.Row>
+								<Table.Head>Prop</Table.Head>
+								<Table.Head>Type</Table.Head>
+								<Table.Head>Default</Table.Head>
+								<Table.Head>Description</Table.Head>
+							</Table.Row>
+						</Table.Header>
+						<Table.Body>
+							{#each rootProps as row (row.prop)}
+								<Table.Row>
+									<Table.Cell class="font-medium">{row.prop}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.type}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.default}</Table.Cell>
+									<Table.Cell>{row.description}</Table.Cell>
+								</Table.Row>
+							{/each}
+						</Table.Body>
+					</Table.Root>
+				</Card.Content>
+			</Card.Root>
+		</div>
+
+		<div class="flex flex-col gap-3">
+			<h3 class="text-base font-medium">Tree.Item</h3>
+			<p class="text-sm text-muted-foreground">
+				One <code>role="treeitem"</code> row, also exported as <code>Tree.TreeItem</code>. It
+				renders a
+				<code>&lt;button&gt;</code> that carries the roving tab stop, the aria position attributes
+				and the click, keyboard and focus handling, and it throws outside <code>Tree.Root</code>.
+			</p>
+			<Card.Root>
+				<Card.Content class="px-0 [&_[data-slot=table-cell]]:whitespace-normal">
+					<Table.Root>
+						<Table.Header>
+							<Table.Row>
+								<Table.Head>Prop</Table.Head>
+								<Table.Head>Type</Table.Head>
+								<Table.Head>Default</Table.Head>
+								<Table.Head>Description</Table.Head>
+							</Table.Row>
+						</Table.Header>
+						<Table.Body>
+							{#each itemProps as row (row.prop)}
+								<Table.Row>
+									<Table.Cell class="font-medium">{row.prop}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.type}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.default}</Table.Cell>
+									<Table.Cell>{row.description}</Table.Cell>
+								</Table.Row>
+							{/each}
+						</Table.Body>
+					</Table.Root>
+				</Card.Content>
+			</Card.Root>
+		</div>
+
+		<div class="flex flex-col gap-3">
+			<h3 class="text-base font-medium">Tree.ItemLabel</h3>
+			<p class="text-sm text-muted-foreground">
+				The visible content of a row, also exported as <code>Tree.TreeItemLabel</code>. It renders a
+				<code>&lt;span&gt;</code> holding the folder toggle (chevron or plus/minus, per the root’s
+				<code>toggleIconType</code>) followed by the item name; it reads its row from the enclosing
+				<code>Tree.Item</code>, so it normally takes no props at all, and it throws outside
+				<code>Tree.Root</code>.
+			</p>
+			<Card.Root>
+				<Card.Content class="px-0 [&_[data-slot=table-cell]]:whitespace-normal">
+					<Table.Root>
+						<Table.Header>
+							<Table.Row>
+								<Table.Head>Prop</Table.Head>
+								<Table.Head>Type</Table.Head>
+								<Table.Head>Default</Table.Head>
+								<Table.Head>Description</Table.Head>
+							</Table.Row>
+						</Table.Header>
+						<Table.Body>
+							{#each itemLabelProps as row (row.prop)}
+								<Table.Row>
+									<Table.Cell class="font-medium">{row.prop}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.type}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.default}</Table.Cell>
+									<Table.Cell>{row.description}</Table.Cell>
+								</Table.Row>
+							{/each}
+						</Table.Body>
+					</Table.Root>
+				</Card.Content>
+			</Card.Root>
+		</div>
+
+		<div class="flex flex-col gap-3">
+			<h3 class="text-base font-medium">TreeState</h3>
+			<p class="text-sm text-muted-foreground">
+				The runes-based store behind <code>Tree.Root</code>’s <code>tree</code> prop — one instance
+				per view, constructed with <code>new TreeState(options)</code> wherever that view’s
+				expansion, selection and focus should live. <code>getItems()</code> returns the visible rows
+				in order, and every mutator fires its <code>on*Change</code> callback only on a real change. These
+				are its constructor options.
+			</p>
+			<Card.Root>
+				<Card.Content class="px-0 [&_[data-slot=table-cell]]:whitespace-normal">
+					<Table.Root>
+						<Table.Header>
+							<Table.Row>
+								<Table.Head>Prop</Table.Head>
+								<Table.Head>Type</Table.Head>
+								<Table.Head>Default</Table.Head>
+								<Table.Head>Description</Table.Head>
+							</Table.Row>
+						</Table.Header>
+						<Table.Body>
+							{#each treeStateOptions as row (row.prop)}
+								<Table.Row>
+									<Table.Cell class="font-medium">{row.prop}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.type}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.default}</Table.Cell>
+									<Table.Cell>{row.description}</Table.Cell>
+								</Table.Row>
+							{/each}
+						</Table.Body>
+					</Table.Root>
+				</Card.Content>
+			</Card.Root>
+		</div>
+
+		<div class="flex flex-col gap-3">
+			<h3 class="text-base font-medium">Keyboard interactions</h3>
+			<p class="text-sm text-muted-foreground">
+				The tree follows the WAI-ARIA Tree View pattern, with the keys handled on each row.
+			</p>
+			<Card.Root>
+				<Card.Content class="px-0 [&_[data-slot=table-cell]]:whitespace-normal">
+					<Table.Root>
+						<Table.Header>
+							<Table.Row>
+								<Table.Head>Key</Table.Head>
+								<Table.Head>Description</Table.Head>
+							</Table.Row>
+						</Table.Header>
+						<Table.Body>
+							{#each keyboard as row (row.keys)}
+								<Table.Row>
+									<Table.Cell class="font-medium">{row.keys}</Table.Cell>
+									<Table.Cell>{row.description}</Table.Cell>
+								</Table.Row>
+							{/each}
+						</Table.Body>
+					</Table.Root>
+				</Card.Content>
+			</Card.Root>
+		</div>
 	</DocSection>
 </DocPage>

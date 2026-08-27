@@ -29,6 +29,7 @@
 	import * as Field from "$lib/components/ui/field/index.js";
 	import * as Popover from "$lib/components/ui/popover/index.js";
 	import * as Select from "$lib/components/ui/select/index.js";
+	import * as Table from "$lib/components/ui/table/index.js";
 	import * as Tabs from "$lib/components/ui/tabs/index.js";
 	import { Button } from "$lib/components/ui/button/index.js";
 	import { Input } from "$lib/components/ui/input/index.js";
@@ -842,6 +843,1409 @@
 			}
 		}
 	}
+
+	// API reference
+	type PropRow = { prop: string; type: string; default: string; description: string };
+
+	const rootProps: PropRow[] = [
+		{
+			prop: "events",
+			type: "CalendarEvent<TData>[]",
+			default: "—",
+			description:
+				"Controlled event list. When defined it wins over the internal list, and every api write (setEvents, addEvent, updateEvent, removeEvent) only reaches you through `onEventsChange`.",
+		},
+		{
+			prop: "defaultEvents",
+			type: "CalendarEvent<TData>[]",
+			default: "[]",
+			description:
+				"Seeds the internal list once at construction when `events` is undefined; later changes to it are ignored.",
+		},
+		{
+			prop: "view",
+			type: "CalendarView",
+			default: "—",
+			description:
+				"Controlled view. A value missing from `views` warns once in the console and renders `views[0]` instead.",
+		},
+		{
+			prop: "defaultView",
+			type: "CalendarView",
+			default: "'month'",
+			description: "Initial view when uncontrolled; goes through the same `views` fallback.",
+		},
+		{
+			prop: "date",
+			type: "Date",
+			default: "—",
+			description:
+				"Controlled anchor instant, read in `timeZone`: the month, week, day or N-day window containing it becomes the active range.",
+		},
+		{
+			prop: "defaultDate",
+			type: "Date",
+			default: "new Date()",
+			description: "Initial anchor when uncontrolled.",
+		},
+		{
+			prop: "dayCount",
+			type: "number",
+			default: "—",
+			description: "Controlled column count of the `'days'` view; a value below 1 is read as 1.",
+		},
+		{
+			prop: "defaultDayCount",
+			type: "number",
+			default: "3",
+			description:
+				"Initial column count of the `'days'` view when uncontrolled; a switcher preset replaces it through `setView('days', { dayCount })`.",
+		},
+		{
+			prop: "selection",
+			type: "EventCalendarSelection",
+			default: "—",
+			description:
+				"Controlled selection: `eventKeys` holds occurrence keys (`id::startISO`), `slot` the last committed drag-create range or null. A chip click replaces the keys; `api.selectEvent(key, { additive: true })` toggles one.",
+		},
+		{
+			prop: "defaultSelection",
+			type: "EventCalendarSelection",
+			default: "{ eventKeys: [], slot: null }",
+			description: "Initial selection when uncontrolled.",
+		},
+		{
+			prop: "interactions",
+			type: "Partial<EventCalendarInteractions>",
+			default: "—",
+			description:
+				"Controlled gesture switches, merged over `{ drag: true, resize: true, selectSlot: true }`. Only `selectSlot` does anything in this theme — false disables drag-create on every surface; `drag` and `resize` keep the contract's shape but chips are never dragged or resized.",
+		},
+		{
+			prop: "defaultInteractions",
+			type: "Partial<EventCalendarInteractions>",
+			default: "—",
+			description:
+				"Merged over the same defaults once at construction when `interactions` is undefined.",
+		},
+		{
+			prop: "viewSettings",
+			type: "EventCalendarViewSettings",
+			default: "—",
+			description:
+				"Controlled display toggles. Each undefined field defers to a root prop: `weekends` to true, `weekNumbers` to `showWeekNumbers`, `nowIndicator` to `nowIndicator`, `offDays` to whether `offDays` is set.",
+		},
+		{
+			prop: "defaultViewSettings",
+			type: "EventCalendarViewSettings",
+			default: "{}",
+			description: "Initial toggles when uncontrolled.",
+		},
+		{
+			prop: "loading",
+			type: "boolean",
+			default: "false",
+			description:
+				"Stamps `data-loading` on `EventCalendar.Content`, which then ignores pointer events and dims to 60% opacity. Nothing else changes — a spinner is yours to render.",
+		},
+		{
+			prop: "views",
+			type: "CalendarView[]",
+			default: "EVENT_CALENDAR_BASE_VIEWS",
+			description:
+				"Views the switcher offers and the shortcuts reach: month, week, day, days and agenda, plus resource when `resources` is non-empty. The first entry is the fallback for an unlisted `view`.",
+		},
+		{
+			prop: "timeZone",
+			type: "string",
+			default: "Intl.DateTimeFormat().resolvedOptions().timeZone",
+			description:
+				"IANA display zone. Every day boundary, title, gutter label and today test is computed in it rather than in the browser zone; all-day events must start and end at midnight in this zone.",
+		},
+		{
+			prop: "locale",
+			type: "Locale",
+			default: "—",
+			description:
+				"date-fns locale for every formatted string. Its `options.weekStartsOn` becomes the default `weekStartsOn`, and its `code` drives the date picker's calendar (en-US when unset).",
+		},
+		{
+			prop: "weekStartsOn",
+			type: "WeekStartsOn",
+			default: "0",
+			description:
+				"First column of the month and week grids and the basis of week numbers. Unset, it follows `locale.options.weekStartsOn`, then Sunday.",
+		},
+		{
+			prop: "dayStartHour",
+			type: "number",
+			default: "0",
+			description:
+				"First hour of the timed track in the week, day, N-day and resource views. Chips starting earlier are clipped to it, and a drag-create cannot begin above it.",
+		},
+		{
+			prop: "dayEndHour",
+			type: "number",
+			default: "24",
+			description:
+				"Exclusive last hour of the timed track. The now indicator hides while the current minute lies outside `dayStartHour`–`dayEndHour`.",
+		},
+		{
+			prop: "slotDuration",
+			type: "number",
+			default: "30",
+			description:
+				"Length in minutes of the slot a plain click on empty time-grid space reports to `onSlotClick` (`date` to `date + slotDuration`); the click position is clamped so the slot ends inside the day bounds.",
+		},
+		{
+			prop: "snapDuration",
+			type: "number",
+			default: "15",
+			description:
+				"Minute grid that a click position and each drag-create edge round to; a drag-create draft is never shorter than one snap.",
+		},
+		{
+			prop: "agendaDayCount",
+			type: "number",
+			default: "30",
+			description:
+				"Days the agenda lists from the anchor, and the distance prev/next step in that view. A value below 1 counts as 1.",
+		},
+		{
+			prop: "fixedWeeks",
+			type: "boolean",
+			default: "true",
+			description:
+				"The month grid always spans six rows (42 days) so its height never jumps between months; false renders only the rows the month needs.",
+		},
+		{
+			prop: "showOutsideDays",
+			type: "boolean",
+			default: "true",
+			description:
+				"false makes the leading and trailing cells of neighbouring months invisible; they keep their grid slot, so bars still lane correctly.",
+		},
+		{
+			prop: "i18n",
+			type: "EventCalendarI18nOverrides",
+			default: "—",
+			description:
+				"Per-key overrides of `labels`, `viewNames`, `formats` and `functions`, shallow-merged per section into `DEFAULT_EVENT_CALENDAR_I18N`; a partial section never erases its siblings, and the default functions read the merged labels and formats.",
+		},
+		{
+			prop: "resources",
+			type: "EventCalendarResource[]",
+			default: "[]",
+			description:
+				"Bookable resources. Leaves (no `children`) become the columns of the resource view; a non-empty list also adds `'resource'` to the default `views`.",
+		},
+		{
+			prop: "getEventPriority",
+			type: "(event: CalendarEvent<TData>) => number",
+			default: "(event) => event.priority ?? 0",
+			description:
+				"Packing prominence: a higher number orders and lanes first. Ignored when `eventOrder` is supplied.",
+		},
+		{
+			prop: "eventOrder",
+			type: "(a: EventCalendarOccurrence<TData>, b: EventCalendarOccurrence<TData>) => number",
+			default: "—",
+			description:
+				"Replaces the whole occurrence sort. The default sorts by priority descending, then start ascending, then longer first, then key.",
+		},
+		{
+			prop: "getOccurrences",
+			type: "(event: CalendarEvent<TData>, range: EventCalendarDateRange, ctx: { timeZone: string }) => Array<{ start: Date; end: Date }> | null",
+			default: "—",
+			description:
+				"Custom expansion of an event into instances for the visible range; return null to fall back to the built-in RRULE expansion. Returned instances are flagged `isRecurring`, indexed in order, and still lose any instant a `recurringEventId` override replaces.",
+		},
+		{
+			prop: "weekendDays",
+			type: "number[]",
+			default: "[0, 6]",
+			description:
+				"Weekday numbers (0 = Sunday) the weekends toggle hides in the month, week and N-day grids; also the default off-day set and the `data-weekend` marker on month cells.",
+		},
+		{
+			prop: "onEventClick",
+			type: "(occurrence: EventCalendarOccurrence<TData>, e: MouseEvent) => void",
+			default: "—",
+			description:
+				"Called on every chip click before the built-in selection; `e.preventDefault()` skips the selection. Agenda rows never select. Not called for the click that ends a drag-create.",
+		},
+		{
+			prop: "onEventDoubleClick",
+			type: "(occurrence: EventCalendarOccurrence<TData>, e: MouseEvent) => void",
+			default: "—",
+			description:
+				"Called on a chip double-click after the chip's own `ondblclick`; the event is stopped before it reaches the day cell.",
+		},
+		{
+			prop: "onEventUpdate",
+			type: "(update: EventCalendarProposedUpdate<TData>) => EventCalendarUpdateResult",
+			default: "—",
+			description:
+				"Called when `api.updateEvent` changes `start`, `end` or `allDay` (`source: 'api'` — chips are never dragged here). Return false to reject the write, an object to adjust its start/end/allDay, anything else to accept.",
+		},
+		{
+			prop: "canDropEvent",
+			type: "(update: EventCalendarProposedUpdate<TData>) => boolean",
+			default: "—",
+			description: "Reserved for the move/resize engine this theme does not ship; never called.",
+		},
+		{
+			prop: "onDragBlocked",
+			type: "(occurrence: EventCalendarOccurrence<TData>, info: { gesture: 'move' | 'resize'; reason: 'readOnly' | 'disabled' | 'interactions-off' }) => void",
+			default: "—",
+			description: "Reserved for the same engine; never called.",
+		},
+		{
+			prop: "onSlotClick",
+			type: "(slot: EventCalendarSlotInfo, e: MouseEvent) => void",
+			default: "—",
+			description:
+				"Called on a click on empty space: a month or all-day cell reports an all-day point (no `end`), a time-grid column a snapped timed slot of `slotDuration` with its `resourceId`, the month add button its day. Not called for the click that ends a drag-create or for a press that started on a chip.",
+		},
+		{
+			prop: "onSelectSlot",
+			type: "(slot: EventCalendarSlotDraft) => void",
+			default: "—",
+			description:
+				"Called when a drag-create is released (at least 4px of movement; Escape cancels) and `canSelectSlot` did not refuse it, after `selection.slot` was committed to the same range. Nothing is inserted — creating the event is yours.",
+		},
+		{
+			prop: "canSelectSlot",
+			type: "(slot: EventCalendarSlotDraft) => boolean",
+			default: "—",
+			description:
+				"Consulted with the finished draft; false discards it silently, with no selection change and no `onSelectSlot`.",
+		},
+		{
+			prop: "onRangeChange",
+			type: "(info: EventCalendarRangeInfo) => void",
+			default: "—",
+			description:
+				"Called once after mount and again whenever the view, the visible range or `timeZone` changes, deduped on those three. `range` includes outside days — fetch remote events for that one.",
+		},
+		{
+			prop: "onViewChange",
+			type: "(view: CalendarView) => void",
+			default: "—",
+			description:
+				"Called on a real view change from the switcher, a shortcut or `api.setView`, in both modes, with the value already resolved against `views`.",
+		},
+		{
+			prop: "onDateChange",
+			type: "(date: Date) => void",
+			default: "—",
+			description:
+				"Called when prev/next/today, the date picker or `api.goTo` move the anchor to a different instant; a same-instant write is dropped.",
+		},
+		{
+			prop: "onDayCountChange",
+			type: "(count: number) => void",
+			default: "—",
+			description:
+				"Called when the N-day count changes (a preset, a digit shortcut, `api.setDayCount`) with the clamped value, never below 1.",
+		},
+		{
+			prop: "onSelectionChange",
+			type: "(selection: EventCalendarSelection) => void",
+			default: "—",
+			description:
+				"Called on chip selection, drag-create commit, `api.select`/`selectEvent`/`clearSelection`, and when a timing update re-keys a selected occurrence — that re-key is emitted before the matching `onEventsChange`.",
+		},
+		{
+			prop: "onInteractionsChange",
+			type: "(interactions: EventCalendarInteractions) => void",
+			default: "—",
+			description:
+				"Called by `api.setInteractions` with the full merged object, only when a flag actually changed.",
+		},
+		{
+			prop: "onViewSettingsChange",
+			type: "(viewSettings: EventCalendarViewSettings) => void",
+			default: "—",
+			description:
+				"Called by `api.setViewSettings` with the merged object, only when one of `weekends`, `weekNumbers`, `nowIndicator` or `offDays` changed.",
+		},
+		{
+			prop: "onEventsChange",
+			type: "(events: CalendarEvent<TData>[]) => void",
+			default: "—",
+			description:
+				"Called with the next array on every api write (`setEvents`, `addEvent`, `updateEvent`, `removeEvent`), in both modes; a write handing back the same array reference is dropped.",
+		},
+		{
+			prop: "onMoreClick",
+			type: "(day: Date, occurrences: EventCalendarOccurrence<TData>[], e: MouseEvent) => void | false",
+			default: "—",
+			description:
+				"Called on a “+N more” click with only the hidden occurrences of that cell; return false to keep the built-in popover closed and show your own.",
+		},
+		{
+			prop: "scrollToHour",
+			type: "number",
+			default: "7",
+			description:
+				"Hour the timed track scrolls to when a time-grid or resource view mounts. Contained scroll mode only — page mode has no internal viewport.",
+		},
+		{
+			prop: "nowIndicator",
+			type: "boolean",
+			default: "true",
+			description:
+				"Shows the current-time line across the time-grid and resource views; `viewSettings.nowIndicator` overrides it when set.",
+		},
+		{
+			prop: "interval",
+			type: "number",
+			default: "60",
+			description:
+				"Gutter-slot and gridline spacing in minutes for the time-based views, clamped to 5–240; when it is not a multiple of 60 the gutter labels slots with `formats.timeGutterMinute` instead of `formats.timeGutter`.",
+		},
+		{
+			prop: "maxEventsPerCell",
+			type: "number | 'auto'",
+			default: "'auto'",
+			description:
+				"Rows a month cell shows before “+N more”. `'auto'` measures the cell height in contained scroll mode and falls back to 3 in page mode; multi-day bars consume rows before single-day chips.",
+		},
+		{
+			prop: "showWeekNumbers",
+			type: "boolean",
+			default: "false",
+			description:
+				"Adds the week-number column to the month grid; `viewSettings.weekNumbers` overrides it when set.",
+		},
+		{
+			prop: "enableShortcuts",
+			type: "boolean",
+			default: "true",
+			description:
+				"Single-key view shortcuts on `window` (the letters in `i18n.labels.viewShortcuts`, a digit from `dayCountPresets`) and the `<kbd>` hints in the switcher. Skipped while a text field has focus or a modifier is held; with several calendars mounted the one holding focus answers, otherwise the first mounted.",
+		},
+		{
+			prop: "scrollMode",
+			type: "'contained' | 'page'",
+			default: "'contained'",
+			description:
+				"`'contained'` caps the calendar at its container and scrolls each view internally; `'page'` lets the views grow with their content and the document scroll, which also disables `scrollToHour`, `api.scrollToTime` and the `'auto'` cell cap.",
+		},
+		{
+			prop: "stickyNav",
+			type: "boolean",
+			default: "false",
+			description:
+				"Makes the default `EventCalendar.Nav` stick to the top on a solid background, for the page scroll mode.",
+		},
+		{
+			prop: "dayClassName",
+			type: "(day: Date) => string | undefined",
+			default: "—",
+			description:
+				"Per-day classes appended to month cells, day columns and all-day cells; called with the zoned day start.",
+		},
+		{
+			prop: "todayClassName",
+			type: "string",
+			default: "—",
+			description:
+				"Extra classes for the current day, appended after the built-in highlight on month cells and time-grid day headers — and the only tint a today column gets in the time grid.",
+		},
+		{
+			prop: "showDayAddButton",
+			type: "boolean",
+			default: "false",
+			description:
+				"Reveals a “+” button on month-cell hover and focus next to the day number; it reports the day to `onSlotClick` without bubbling to the cell.",
+		},
+		{
+			prop: "scrollbars",
+			type: "'custom' | 'native'",
+			default: "'custom'",
+			description:
+				"Scroller of the internally scrolling surfaces (time track, agenda, “+N more” popover): the ScrollArea component or native overflow. Switching re-wires the scroll handling and re-measures the scrollbar gutter.",
+		},
+		{
+			prop: "navButtonVariant",
+			type: "'ghost' | 'outline' | 'secondary' | 'default'",
+			default: "'ghost'",
+			description:
+				"Button variant of every nav part (Today, switcher, prev/next, date picker); a `variant` on the part itself wins.",
+		},
+		{
+			prop: "navButtonSize",
+			type: "'sm' | 'default'",
+			default: "'sm'",
+			description:
+				"Button size of the nav parts; the icon buttons (prev, next, date picker) use the matching `icon-sm` / `icon` size.",
+		},
+		{
+			prop: "offDays",
+			type: "boolean | EventCalendarOffDaysConfig",
+			default: "—",
+			description:
+				"Marks non-working days with `data-off` and a muted background: true uses `weekendDays`, an object adds explicit `dates`, an `isOffDay` predicate and its own `className`. Unset means off, unless `viewSettings.offDays` is true — then `weekendDays` are marked.",
+		},
+		{
+			prop: "classNames",
+			type: "EventCalendarClassNames",
+			default: "—",
+			description:
+				"Per-element class hooks merged after the built-in classes of each named element (`nav`, `monthCell`, `timedChip`, …); a part's own `class` is merged after these.",
+		},
+		{
+			prop: "components",
+			type: "Partial<Record<CalendarView, Component>>",
+			default: "—",
+			description:
+				"Replaces the built-in component of a view inside `EventCalendar.Content`; a key holding undefined keeps the default instead of rendering nothing. Content's own `components` wins over this one.",
+		},
+		{
+			prop: "renderEvent",
+			type: "Snippet<[EventCalendarRenderEventProps]>",
+			default: "—",
+			description:
+				"Replaces the chip content in the month, week, day, N-day and resource views — the tinted button wrapper stays. Receives `occurrence`, `segment`, `view`, `isDragging` and `isSelected`.",
+		},
+		{
+			prop: "renderAgendaEvent",
+			type: "Snippet<[EventCalendarRenderEventProps]>",
+			default: "—",
+			description:
+				"The same for agenda rows only; unset, the agenda renders its own time–dot–title row, not `renderEvent`.",
+		},
+		{
+			prop: "renderEventTooltip",
+			type: "Snippet<[{ occurrence: EventCalendarOccurrence; segment: EventCalendarSegment; view: CalendarView; label: string | undefined }]>",
+			default: "—",
+			description:
+				"Content of the styled tooltip that `eventTooltip` enables; `label` is the native title text (title and time range).",
+		},
+		{
+			prop: "renderDayHeader",
+			type: "Snippet<[{ day: Date; view: CalendarView; isToday: boolean }]>",
+			default: "—",
+			description:
+				"Replaces the weekday header cells of the month grid and the day headers of the time grid; `day` is the zoned day start.",
+		},
+		{
+			prop: "renderResourceHeader",
+			type: "Snippet<[{ resource: EventCalendarResource }]>",
+			default: "—",
+			description: "Replaces the column header text (`resource.title`) in the resource view.",
+		},
+		{
+			prop: "renderNoEvents",
+			type: "Snippet",
+			default: "—",
+			description:
+				"Replaces the icon-and-label empty state of the agenda when no day in its window has events.",
+		},
+		{
+			prop: "dayCountPresets",
+			type: "number[]",
+			default: "[5]",
+			description:
+				"Counts the switcher lists as “N days” entries when the `'days'` view is enabled; each is also a digit shortcut.",
+		},
+		{
+			prop: "navTooltips",
+			type: "false | { side?: 'top' | 'bottom' | 'left' | 'right'; delay?: number }",
+			default: "—",
+			description:
+				"Tooltips on the nav buttons: unset shows them on top after 600 ms, false removes them all, an object tunes the side and the first-open delay (moving between buttons is instant).",
+		},
+		{
+			prop: "eventTooltip",
+			type: "boolean | { side?: 'top' | 'bottom' | 'left' | 'right'; delay?: number }",
+			default: "false",
+			description:
+				"Styled tooltip on chip hover and focus. false keeps only the native `title` attribute; true (or an object tuning side and delay) shows the Tooltip component and drops the `title` so the two never stack.",
+		},
+		{
+			prop: "compactEventMinutes",
+			type: "number",
+			default: "45",
+			description:
+				"Timed chips shorter than this render the single-row layout; from this length up the title stacks over the time range and fade-truncates in narrow columns.",
+		},
+		{
+			prop: "morePopoverAlign",
+			type: "'start' | 'center' | 'end'",
+			default: "'start'",
+			description: "Alignment of the “+N more” popover against its trigger.",
+		},
+		{
+			prop: "nowIndicatorInterval",
+			type: "number",
+			default: "30000",
+			description:
+				"Refresh period of the now indicator in milliseconds; it also refreshes on tab focus and visibility change.",
+		},
+		{
+			prop: "api",
+			type: "EventCalendarApi<TData>",
+			default: "undefined",
+			description:
+				"Bindable; assigned the imperative handle once before the first paint (`next`, `prev`, `today`, `goTo`, `setView`, `addEvent`, `updateEvent`, `removeEvent`, `select`, `scrollToTime`, …) and stable for the component's lifetime. Read it; never assign it.",
+		},
+		{
+			prop: "ref",
+			type: "HTMLElement | null",
+			default: "null",
+			description:
+				"Bindable reference to the rendered div. Stays null in `child` mode, so the keyboard shortcuts can no longer be scoped to focus inside this instance.",
+		},
+		{
+			prop: "child",
+			type: "Snippet<[{ props: EventCalendarChildProps; children?: Snippet }]>",
+			default: "—",
+			description:
+				"Renders the calendar onto your own element instead of the default div: spread `props` (`data-slot`, the merged `class`, the rest attributes) and render `children` inside. Replaces upstream's `asChild`.",
+		},
+		{
+			prop: "children",
+			type: "Snippet",
+			default: "—",
+			description:
+				"The parts — typically `EventCalendar.Nav`, `EventCalendar.Toolbar` and `EventCalendar.Content`, in any layout.",
+		},
+		{
+			prop: "class",
+			type: "string",
+			default: "—",
+			description:
+				"Merged after the built-in flex column and the `text-xs` type base, so a `text-*` class here rescales every element that inherits the calendar's type size (portaled surfaces pin their own).",
+		},
+		{
+			prop: "...restProps",
+			type: "HTMLAttributes<HTMLDivElement>",
+			default: "—",
+			description: "Spread onto the div, or handed to `child` inside `props`.",
+		},
+	];
+
+	const contentProps: PropRow[] = [
+		{
+			prop: "components",
+			type: "Partial<Record<CalendarView, Component>>",
+			default: "—",
+			description:
+				"Per-view replacement, resolved per key with a fallback so an undefined entry keeps the default; wins over the root `components`.",
+		},
+		{
+			prop: "children",
+			type: "Snippet",
+			default: "—",
+			description:
+				"Replaces the switchboard entirely; call `getEventCalendarContext()` inside to build a view of your own.",
+		},
+		{
+			prop: "ref",
+			type: "HTMLElement | null",
+			default: "null",
+			description: "Bindable reference to the rendered div.",
+		},
+		{
+			prop: "class",
+			type: "string",
+			default: "—",
+			description: "Merged after the built-in flex classes and `classNames.content`.",
+		},
+		{
+			prop: "...restProps",
+			type: "HTMLAttributes<HTMLDivElement>",
+			default: "—",
+			description: "Spread onto the div.",
+		},
+	];
+
+	const navProps: PropRow[] = [
+		{
+			prop: "showViewSwitcher",
+			type: "boolean",
+			default: "true",
+			description:
+				"false leaves the switcher out of the composed layout (a fixed-view embed); the keyboard shortcuts still switch views unless `enableShortcuts` is off.",
+		},
+		{
+			prop: "children",
+			type: "Snippet",
+			default: "—",
+			description:
+				"Replaces the composed layout entirely, including the shared tooltip provider; compose the nav parts yourself.",
+		},
+		{
+			prop: "ref",
+			type: "HTMLElement | null",
+			default: "null",
+			description: "Bindable reference to the rendered div.",
+		},
+		{
+			prop: "class",
+			type: "string",
+			default: "—",
+			description:
+				"Merged after the built-in wrapping row, the `stickyNav` classes and `classNames.nav`.",
+		},
+		{
+			prop: "...restProps",
+			type: "HTMLAttributes<HTMLDivElement>",
+			default: "—",
+			description: "Spread onto the div.",
+		},
+	];
+
+	const navPrevProps: PropRow[] = [
+		{
+			prop: "tooltip",
+			type: "string | null",
+			default: "—",
+			description:
+				"Tooltip text. Unset shows `i18n.labels.previous`; null removes the tooltip for this button only (`navTooltips={false}` on the root removes them all).",
+		},
+		{
+			prop: "onclick",
+			type: "MouseEventHandler<HTMLButtonElement> & MouseEventHandler<HTMLAnchorElement>",
+			default: "—",
+			description:
+				"Runs before the navigation; `e.preventDefault()` inside it cancels the step. Typed as `Button`'s button-and-anchor intersection because an `href` in the spread turns the button into an anchor.",
+		},
+		{
+			prop: "variant",
+			type: "ButtonVariant",
+			default: "navButtonVariant",
+			description:
+				"Forwarded to the Button; overrides the root `navButtonVariant` for this button.",
+		},
+		{
+			prop: "size",
+			type: "ButtonSize",
+			default: "'icon-sm'",
+			description:
+				"Forwarded to the Button; the default is the icon twin of `navButtonSize` (`'icon'` when that is `'default'`).",
+		},
+		{
+			prop: "children",
+			type: "Snippet",
+			default: "—",
+			description: "Replaces the chevron icon; the `aria-label` stays.",
+		},
+		{
+			prop: "ref",
+			type: "HTMLElement | null",
+			default: "null",
+			description: "Bindable reference to the rendered button.",
+		},
+		{
+			prop: "class",
+			type: "string",
+			default: "—",
+			description: "Merged after `classNames.navButton`.",
+		},
+		{
+			prop: "...restProps",
+			type: "Omit<ButtonProps, 'children'>",
+			default: "—",
+			description:
+				"Merged onto the Button with `mergeProps`, so a caller handler chains with the tooltip trigger's own instead of replacing it.",
+		},
+	];
+
+	const navNextProps: PropRow[] = [
+		{
+			prop: "tooltip",
+			type: "string | null",
+			default: "—",
+			description:
+				"Tooltip text. Unset shows `i18n.labels.next`; null removes the tooltip for this button only.",
+		},
+		{
+			prop: "onclick",
+			type: "MouseEventHandler<HTMLButtonElement> & MouseEventHandler<HTMLAnchorElement>",
+			default: "—",
+			description:
+				"Runs before the navigation; `e.preventDefault()` inside it cancels the step. Typed as `Button`'s button-and-anchor intersection because an `href` in the spread turns the button into an anchor.",
+		},
+		{
+			prop: "variant",
+			type: "ButtonVariant",
+			default: "navButtonVariant",
+			description:
+				"Forwarded to the Button; overrides the root `navButtonVariant` for this button.",
+		},
+		{
+			prop: "size",
+			type: "ButtonSize",
+			default: "'icon-sm'",
+			description:
+				"Forwarded to the Button; the default is the icon twin of `navButtonSize` (`'icon'` when that is `'default'`).",
+		},
+		{
+			prop: "children",
+			type: "Snippet",
+			default: "—",
+			description: "Replaces the chevron icon; the `aria-label` stays.",
+		},
+		{
+			prop: "ref",
+			type: "HTMLElement | null",
+			default: "null",
+			description: "Bindable reference to the rendered button.",
+		},
+		{
+			prop: "class",
+			type: "string",
+			default: "—",
+			description: "Merged after `classNames.navButton`.",
+		},
+		{
+			prop: "...restProps",
+			type: "Omit<ButtonProps, 'children'>",
+			default: "—",
+			description:
+				"Merged onto the Button with `mergeProps`, so a caller handler chains with the tooltip trigger's own instead of replacing it.",
+		},
+	];
+
+	const navTodayProps: PropRow[] = [
+		{
+			prop: "tooltip",
+			type: "string | null",
+			default: "—",
+			description:
+				"Tooltip text. Unset shows today's date formatted with `formats.dayTitle` in the display zone — information the label itself does not carry; null removes this button's tooltip.",
+		},
+		{
+			prop: "onclick",
+			type: "MouseEventHandler<HTMLButtonElement> & MouseEventHandler<HTMLAnchorElement>",
+			default: "—",
+			description:
+				"Runs before the jump to now; `e.preventDefault()` inside it cancels the jump. Typed as `Button`'s button-and-anchor intersection because an `href` in the spread turns the button into an anchor.",
+		},
+		{
+			prop: "variant",
+			type: "ButtonVariant",
+			default: "navButtonVariant",
+			description:
+				"Forwarded to the Button; overrides the root `navButtonVariant` for this button.",
+		},
+		{
+			prop: "size",
+			type: "ButtonSize",
+			default: "navButtonSize",
+			description: "Forwarded to the Button; a text button, so no icon twin.",
+		},
+		{
+			prop: "children",
+			type: "Snippet",
+			default: "—",
+			description: "Replaces the `i18n.labels.today` text.",
+		},
+		{
+			prop: "ref",
+			type: "HTMLElement | null",
+			default: "null",
+			description: "Bindable reference to the rendered button.",
+		},
+		{
+			prop: "class",
+			type: "string",
+			default: "—",
+			description: "Merged after `classNames.navButton`.",
+		},
+		{
+			prop: "...restProps",
+			type: "Omit<ButtonProps, 'children'>",
+			default: "—",
+			description:
+				"Merged onto the Button with `mergeProps`, so a caller handler chains with the tooltip trigger's own instead of replacing it.",
+		},
+	];
+
+	const titleProps: PropRow[] = [
+		{
+			prop: "children",
+			type: "Snippet<[{ title: string }]>",
+			default: "—",
+			description: "Replaces the text; receives the formatted period title to wrap or extend.",
+		},
+		{
+			prop: "ref",
+			type: "HTMLElement | null",
+			default: "null",
+			description: "Bindable reference to the rendered div.",
+		},
+		{
+			prop: "class",
+			type: "string",
+			default: "—",
+			description:
+				"Merged after the built-in one-line truncate and semibold classes and `classNames.title`.",
+		},
+		{
+			prop: "...restProps",
+			type: "Omit<HTMLAttributes<HTMLDivElement>, 'children'>",
+			default: "—",
+			description: "Spread onto the div.",
+		},
+	];
+
+	const viewSwitcherProps: PropRow[] = [
+		{
+			prop: "children",
+			type: "Snippet",
+			default: "—",
+			description: "Replaces the trigger content — the current view's name and the chevron.",
+		},
+		{
+			prop: "variant",
+			type: "ButtonVariant",
+			default: "navButtonVariant",
+			description: "Forwarded to the trigger Button; overrides the root `navButtonVariant`.",
+		},
+		{
+			prop: "size",
+			type: "ButtonSize",
+			default: "navButtonSize",
+			description: "Forwarded to the trigger Button; overrides the root `navButtonSize`.",
+		},
+		{
+			prop: "ref",
+			type: "HTMLElement | null",
+			default: "null",
+			description: "Bindable reference to the trigger button.",
+		},
+		{
+			prop: "class",
+			type: "string",
+			default: "—",
+			description: "Merged after the built-in `gap-1` and `classNames.navButton`.",
+		},
+		{
+			prop: "...restProps",
+			type: "Omit<ButtonProps, 'children'>",
+			default: "—",
+			description:
+				"Spread onto the trigger Button, before the dropdown trigger's own attributes and handlers.",
+		},
+	];
+
+	const datePickerProps: PropRow[] = [
+		{
+			prop: "children",
+			type: "Snippet",
+			default: "—",
+			description: "Replaces the calendar icon; the `aria-label` stays.",
+		},
+		{
+			prop: "variant",
+			type: "ButtonVariant",
+			default: "navButtonVariant",
+			description: "Forwarded to the trigger Button; overrides the root `navButtonVariant`.",
+		},
+		{
+			prop: "size",
+			type: "ButtonSize",
+			default: "'icon-sm'",
+			description:
+				"Forwarded to the trigger Button; the default is the icon twin of `navButtonSize`.",
+		},
+		{
+			prop: "ref",
+			type: "HTMLElement | null",
+			default: "null",
+			description: "Bindable reference to the trigger button.",
+		},
+		{
+			prop: "class",
+			type: "string",
+			default: "—",
+			description: "Merged after `classNames.navButton`.",
+		},
+		{
+			prop: "...restProps",
+			type: "Omit<ButtonProps, 'children'>",
+			default: "—",
+			description:
+				"Spread onto the trigger Button, before the popover trigger's own attributes and handlers.",
+		},
+	];
+
+	const toolbarProps: PropRow[] = [
+		{
+			prop: "children",
+			type: "Snippet",
+			default: "—",
+			description:
+				"The only content of the `flex items-center gap-2` div; the part adds no controls of its own, so without it the div renders empty.",
+		},
+		{
+			prop: "ref",
+			type: "HTMLElement | null",
+			default: "null",
+			description: "Bindable reference to the rendered div.",
+		},
+		{
+			prop: "class",
+			type: "string",
+			default: "—",
+			description: "Merged after the built-in flex row and `classNames.toolbar`.",
+		},
+		{
+			prop: "...restProps",
+			type: "HTMLAttributes<HTMLDivElement>",
+			default: "—",
+			description: "Spread onto the div.",
+		},
+	];
+
+	const monthViewProps: PropRow[] = [
+		{
+			prop: "maxEventsPerCell",
+			type: "number | 'auto'",
+			default: "—",
+			description:
+				"Per-instance cap on the rows a cell shows before “+N more”; unset reads the root `maxEventsPerCell`. `'auto'` measures the first cell with a ResizeObserver in contained mode and is 3 in page mode.",
+		},
+		{
+			prop: "ref",
+			type: "HTMLElement | null",
+			default: "null",
+			description: "Bindable reference to the rendered grid element.",
+		},
+		{
+			prop: "class",
+			type: "string",
+			default: "—",
+			description: "Merged after the built-in classes and `classNames.monthView`.",
+		},
+		{
+			prop: "...restProps",
+			type: "HTMLAttributes<HTMLDivElement>",
+			default: "—",
+			description: "Spread onto the grid element.",
+		},
+	];
+
+	const monthWeekProps: PropRow[] = [
+		{
+			prop: "week",
+			type: "Date[]",
+			default: "—",
+			description:
+				"Zoned day starts of the visible columns, in order. Shorter than seven when weekends are hidden; bars are still positioned from the true row start.",
+		},
+		{
+			prop: "gridTemplateColumns",
+			type: "string",
+			default: "—",
+			description:
+				"The CSS column template shared with the header row, so the cells and the bar overlay line up with it.",
+		},
+		{
+			prop: "showWeekNumber",
+			type: "boolean",
+			default: "—",
+			description:
+				'Renders the leading `role="rowheader"` cell with `i18n.labels.week(n)`, numbered by the locale\'s week rules and `weekStartsOn`.',
+		},
+		{
+			prop: "cap",
+			type: "number",
+			default: "—",
+			description:
+				"Lanes visible per cell; bars in deeper lanes go to that day's overflow popover.",
+		},
+		{
+			prop: "autoFit",
+			type: "boolean",
+			default: "—",
+			description:
+				"Passed to each cell: when it overflows, one chip row is given up to the “+N more” indicator so the content fits the measured height.",
+		},
+	];
+
+	const monthCellProps: PropRow[] = [
+		{
+			prop: "day",
+			type: "Date",
+			default: "—",
+			description:
+				"The zoned day start; also formatted into the cell's `aria-label` with `formats.monthCellAriaLabel`.",
+		},
+		{
+			prop: "cap",
+			type: "number",
+			default: "—",
+			description:
+				"Total rows available: the reserved bar lanes come off first, timed chips fill the rest.",
+		},
+		{
+			prop: "reservedLanes",
+			type: "number",
+			default: "—",
+			description:
+				"Bar lanes passing through this cell, kept as an empty spacer so the timed chips start below the row's overlay bars.",
+		},
+		{
+			prop: "hiddenBarKeys",
+			type: "Set<string>",
+			default: "—",
+			description:
+				"Occurrence keys of the bars the lane cap hid in this column; they are listed first in the overflow popover, never re-listing the visible ones.",
+		},
+		{
+			prop: "isLast",
+			type: "boolean",
+			default: "—",
+			description:
+				"Drops the trailing border on the row's last column; passed explicitly because the bar overlay makes `:last-child` unreliable.",
+		},
+		{
+			prop: "autoFit",
+			type: "boolean",
+			default: "—",
+			description:
+				"When the cell overflows, one timed row is surrendered to the “+N more” indicator so the visible chips fit the clipped height.",
+		},
+	];
+
+	const moreIndicatorProps: PropRow[] = [
+		{
+			prop: "day",
+			type: "Date",
+			default: "—",
+			description:
+				"The day the popover is for; formatted into its header with `formats.moreDayHeader` and passed to `onMoreClick`.",
+		},
+		{
+			prop: "count",
+			type: "number",
+			default: "—",
+			description: "The number in the `i18n.labels.more` label.",
+		},
+		{
+			prop: "segments",
+			type: "EventCalendarSegment[]",
+			default: "—",
+			description:
+				"The hidden segments only, bars first then timed; their occurrences are what `onMoreClick` receives.",
+		},
+	];
+
+	const timeGridProps: PropRow[] = [
+		{
+			prop: "view",
+			type: "Extract<CalendarView, 'week' | 'day' | 'days'>",
+			default: "—",
+			description:
+				"Which view this instance renders and publishes to the view context; `'day'` keeps weekend days even when the weekends toggle hides them elsewhere.",
+		},
+		{
+			prop: "dayStartHour",
+			type: "number",
+			default: "—",
+			description: "First hour of this grid's track; unset reads the root `dayStartHour`.",
+		},
+		{
+			prop: "dayEndHour",
+			type: "number",
+			default: "—",
+			description: "Exclusive last hour of the track; unset reads the root `dayEndHour`.",
+		},
+		{
+			prop: "showAllDay",
+			type: "boolean",
+			default: "true",
+			description:
+				"Renders the all-day row (label plus `EventCalendar.AllDayBars`) between the day headers and the track.",
+		},
+		{
+			prop: "interval",
+			type: "number",
+			default: "—",
+			description:
+				"Gutter and gridline minutes for this grid, clamped to 5–240; unset reads the root `interval`.",
+		},
+		{
+			prop: "style",
+			type: "string | null",
+			default: "—",
+			description:
+				"Appended after the built-in `--ec-hour-height: 4rem`, so redefining that variable here changes this grid's hour height.",
+		},
+		{
+			prop: "ref",
+			type: "HTMLElement | null",
+			default: "null",
+			description: "Bindable reference to the rendered div.",
+		},
+		{
+			prop: "class",
+			type: "string",
+			default: "—",
+			description: "Merged after the built-in classes and `classNames.timeGrid`.",
+		},
+		{
+			prop: "...restProps",
+			type: "HTMLAttributes<HTMLDivElement>",
+			default: "—",
+			description: "Spread onto the div.",
+		},
+	];
+
+	const dayColumnProps: PropRow[] = [
+		{
+			prop: "day",
+			type: "Date",
+			default: "—",
+			description:
+				"The zoned day start whose bucket is rendered; the default `aria-label` formats it with `formats.dayAria`.",
+		},
+		{
+			prop: "startHour",
+			type: "number",
+			default: "—",
+			description:
+				"Start of the rendered bounds in hours; chips starting earlier are clipped to it.",
+		},
+		{
+			prop: "endHour",
+			type: "number",
+			default: "—",
+			description:
+				"End of the bounds; also clipped to the day's real length on a DST day, and the track is never shorter than one hour.",
+		},
+		{
+			prop: "interval",
+			type: "number",
+			default: "—",
+			description: "Gridline spacing in minutes, drawn as a repeating background gradient.",
+		},
+		{
+			prop: "resourceId",
+			type: "string",
+			default: "—",
+			description:
+				"Restricts the column to that resource's events, tags the drag-create draft and the slot clicks with it, stamps `data-ec-resource`, and drops the default `aria-label`.",
+		},
+		{
+			prop: "ariaLabel",
+			type: "string",
+			default: "—",
+			description: "Accessible name override; the resource view passes the resource title.",
+		},
+	];
+
+	const timeGutterProps: PropRow[] = [
+		{
+			prop: "referenceDay",
+			type: "Date",
+			default: "—",
+			description: "The day whose zoned midnight the slot minutes are added to before formatting.",
+		},
+		{
+			prop: "slots",
+			type: "number[]",
+			default: "—",
+			description: "Minutes from the day start of each label row; one row is rendered per entry.",
+		},
+		{
+			prop: "startHour",
+			type: "number",
+			default: "—",
+			description:
+				"The slot at `startHour * 60` renders without a label, so nothing clips at the top edge.",
+		},
+		{
+			prop: "interval",
+			type: "number",
+			default: "—",
+			description:
+				"Row height as a fraction of `--ec-hour-height`; a multiple of 60 formats with `formats.timeGutter`, anything else with `formats.timeGutterMinute`.",
+		},
+	];
+
+	const allDayBarsProps: PropRow[] = [
+		{
+			prop: "days",
+			type: "Date[]",
+			default: "—",
+			description:
+				"Zoned day starts of the columns; a bar reaching beyond them is clipped to the visible span.",
+		},
+		{
+			prop: "gridTemplateColumns",
+			type: "string",
+			default: "—",
+			description:
+				"The column template shared with the day columns below, so cells and bars align.",
+		},
+	];
+
+	const nowIndicatorProps: PropRow[] = [
+		{
+			prop: "days",
+			type: "Date[]",
+			default: "—",
+			description:
+				"The rendered columns; today's index picks which one gets the dot and the stronger segment. Nothing renders when today is not among them.",
+		},
+		{
+			prop: "startHour",
+			type: "number",
+			default: "—",
+			description: "Top of the track the line is offset from; hidden before it.",
+		},
+		{
+			prop: "endHour",
+			type: "number",
+			default: "—",
+			description: "Hidden after this hour.",
+		},
+	];
+
+	const agendaViewProps: PropRow[] = [
+		{
+			prop: "ref",
+			type: "HTMLElement | null",
+			default: "null",
+			description: "Bindable reference to the rendered div.",
+		},
+		{
+			prop: "class",
+			type: "string",
+			default: "—",
+			description: "Merged after the built-in classes and `classNames.agendaView`.",
+		},
+		{
+			prop: "...restProps",
+			type: "HTMLAttributes<HTMLDivElement>",
+			default: "—",
+			description: "Spread onto the div.",
+		},
+	];
+
+	const resourceViewProps: PropRow[] = [
+		{
+			prop: "dayStartHour",
+			type: "number",
+			default: "—",
+			description: "First hour of the track; unset reads the root `dayStartHour`.",
+		},
+		{
+			prop: "dayEndHour",
+			type: "number",
+			default: "—",
+			description: "Exclusive last hour of the track; unset reads the root `dayEndHour`.",
+		},
+		{
+			prop: "showAllDay",
+			type: "boolean",
+			default: "true",
+			description: "Renders the all-day row with one cell per resource above the track.",
+		},
+		{
+			prop: "interval",
+			type: "number",
+			default: "—",
+			description:
+				"Gutter and gridline minutes, clamped to 5–240; unset reads the root `interval`.",
+		},
+		{
+			prop: "style",
+			type: "string | null",
+			default: "—",
+			description:
+				"Appended after the built-in `--ec-hour-height: 4rem`, so redefining that variable here changes this view's hour height.",
+		},
+		{
+			prop: "ref",
+			type: "HTMLElement | null",
+			default: "null",
+			description: "Bindable reference to the rendered div.",
+		},
+		{
+			prop: "class",
+			type: "string",
+			default: "—",
+			description:
+				"Merged after the built-in classes and `classNames.timeGrid` — the resource view shares the time grid's class hook.",
+		},
+		{
+			prop: "...restProps",
+			type: "HTMLAttributes<HTMLDivElement>",
+			default: "—",
+			description: "Spread onto the div.",
+		},
+	];
+
+	const eventProps: PropRow[] = [
+		{
+			prop: "segment",
+			type: "EventCalendarSegment",
+			default: "—",
+			description:
+				"The per-day slice to render; its occurrence and flags drive the label, the squared-off edges of a continuing bar, the time text and the `aria-label`.",
+		},
+		{
+			prop: "children",
+			type: "Snippet",
+			default: "—",
+			description:
+				"Replaces the chip content, winning over `renderEvent` and `renderAgendaEvent`; the tinted wrapper stays.",
+		},
+		{
+			prop: "onpointerdown",
+			type: "PointerEventHandler<HTMLButtonElement>",
+			default: "—",
+			description:
+				"Runs first; the chip then stops propagation and marks the press so the trailing click cannot open a slot-create on the cell beneath.",
+		},
+		{
+			prop: "onclick",
+			type: "MouseEventHandler<HTMLButtonElement>",
+			default: "—",
+			description:
+				"Runs before `onEventClick` and the selection; the event never reaches the day cell.",
+		},
+		{
+			prop: "ondblclick",
+			type: "MouseEventHandler<HTMLButtonElement>",
+			default: "—",
+			description: "Runs before `onEventDoubleClick`.",
+		},
+		{
+			prop: "style",
+			type: "string | null",
+			default: "—",
+			description:
+				"Appended after `--ec-event-color`, so it can add variables but cannot lose the event colour every tint, ring and dot reads.",
+		},
+		{
+			prop: "ref",
+			type: "HTMLButtonElement | null",
+			default: "null",
+			description: "Bindable reference to the rendered button.",
+		},
+		{
+			prop: "class",
+			type: "string",
+			default: "—",
+			description: "Merged after the built-in view-specific classes and `classNames.event`.",
+		},
+		{
+			prop: "...restProps",
+			type: "Omit<HTMLButtonAttributes, 'children'>",
+			default: "—",
+			description:
+				"Spread onto the button after the computed attributes, so a caller `title` or `aria-label` replaces the default one.",
+		},
+	];
 </script>
 
 <!--
@@ -1544,5 +2948,770 @@
 				</p>
 			</Card.Content>
 		</Card.Root>
+	</DocSection>
+	<DocSection title="API reference">
+		<div class="flex flex-col gap-3">
+			<h3 class="text-base font-medium">EventCalendar.Root</h3>
+			<p class="text-sm text-muted-foreground">
+				The container: owns the state class and both contexts, and renders a
+				<code>&lt;div data-slot="event-calendar"&gt;</code> whose <code>text-xs</code> is the type
+				base every part inherits. It also listens on <code>window</code> for the single-key view
+				shortcuts. Controlled/uncontrolled pairs follow one rule: a defined controlled value wins,
+				the
+				<code>default*</code> twin seeds the internal state once, and the paired callback fires in
+				both modes on a real change. <code>TData</code> resolves to <code>unknown</code> on the component
+				— Svelte context cannot carry a type parameter across parts.
+			</p>
+			<Card.Root>
+				<Card.Content class="px-0 [&_[data-slot=table-cell]]:whitespace-normal">
+					<Table.Root>
+						<Table.Header>
+							<Table.Row>
+								<Table.Head>Prop</Table.Head>
+								<Table.Head>Type</Table.Head>
+								<Table.Head>Default</Table.Head>
+								<Table.Head>Description</Table.Head>
+							</Table.Row>
+						</Table.Header>
+						<Table.Body>
+							{#each rootProps as row (row.prop)}
+								<Table.Row>
+									<Table.Cell class="font-medium">{row.prop}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.type}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.default}</Table.Cell>
+									<Table.Cell>{row.description}</Table.Cell>
+								</Table.Row>
+							{/each}
+						</Table.Body>
+					</Table.Root>
+				</Card.Content>
+			</Card.Root>
+		</div>
+
+		<div class="flex flex-col gap-3">
+			<h3 class="text-base font-medium">EventCalendar.Content</h3>
+			<p class="text-sm text-muted-foreground">
+				The view switchboard: a <code>&lt;div&gt;</code> carrying <code>data-view</code> and
+				<code>data-loading</code> that renders the built-in component for the current view — the
+				month view, the agenda, the resource view, or the one time grid parameterised for week, day
+				and N-days. Throws outside <code>EventCalendar.Root</code>.
+			</p>
+			<Card.Root>
+				<Card.Content class="px-0 [&_[data-slot=table-cell]]:whitespace-normal">
+					<Table.Root>
+						<Table.Header>
+							<Table.Row>
+								<Table.Head>Prop</Table.Head>
+								<Table.Head>Type</Table.Head>
+								<Table.Head>Default</Table.Head>
+								<Table.Head>Description</Table.Head>
+							</Table.Row>
+						</Table.Header>
+						<Table.Body>
+							{#each contentProps as row (row.prop)}
+								<Table.Row>
+									<Table.Cell class="font-medium">{row.prop}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.type}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.default}</Table.Cell>
+									<Table.Cell>{row.description}</Table.Cell>
+								</Table.Row>
+							{/each}
+						</Table.Body>
+					</Table.Root>
+				</Card.Content>
+			</Card.Root>
+		</div>
+
+		<div class="flex flex-col gap-3">
+			<h3 class="text-base font-medium">EventCalendar.Nav</h3>
+			<p class="text-sm text-muted-foreground">
+				The composed navigation row: a <code>&lt;div&gt;</code> holding Today, the view switcher,
+				prev/next, the title and a trailing spacer under one shared tooltip provider (the first
+				tooltip waits, moving between buttons is instant). Becomes sticky with
+				<code>stickyNav</code>; pass <code>children</code> to use it as an empty layout shell.
+			</p>
+			<Card.Root>
+				<Card.Content class="px-0 [&_[data-slot=table-cell]]:whitespace-normal">
+					<Table.Root>
+						<Table.Header>
+							<Table.Row>
+								<Table.Head>Prop</Table.Head>
+								<Table.Head>Type</Table.Head>
+								<Table.Head>Default</Table.Head>
+								<Table.Head>Description</Table.Head>
+							</Table.Row>
+						</Table.Header>
+						<Table.Body>
+							{#each navProps as row (row.prop)}
+								<Table.Row>
+									<Table.Cell class="font-medium">{row.prop}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.type}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.default}</Table.Cell>
+									<Table.Cell>{row.description}</Table.Cell>
+								</Table.Row>
+							{/each}
+						</Table.Body>
+					</Table.Root>
+				</Card.Content>
+			</Card.Root>
+		</div>
+
+		<div class="flex flex-col gap-3">
+			<h3 class="text-base font-medium">EventCalendar.NavPrev</h3>
+			<p class="text-sm text-muted-foreground">
+				An icon <code>Button</code> labelled <code>i18n.labels.previous</code> that steps the anchor
+				one period back — a month, a week, a day, <code>dayCount</code> days or
+				<code>agendaDayCount</code> days depending on the view — wrapped in a tooltip unless that is
+				disabled. Throws outside <code>EventCalendar.Root</code>.
+			</p>
+			<Card.Root>
+				<Card.Content class="px-0 [&_[data-slot=table-cell]]:whitespace-normal">
+					<Table.Root>
+						<Table.Header>
+							<Table.Row>
+								<Table.Head>Prop</Table.Head>
+								<Table.Head>Type</Table.Head>
+								<Table.Head>Default</Table.Head>
+								<Table.Head>Description</Table.Head>
+							</Table.Row>
+						</Table.Header>
+						<Table.Body>
+							{#each navPrevProps as row (row.prop)}
+								<Table.Row>
+									<Table.Cell class="font-medium">{row.prop}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.type}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.default}</Table.Cell>
+									<Table.Cell>{row.description}</Table.Cell>
+								</Table.Row>
+							{/each}
+						</Table.Body>
+					</Table.Root>
+				</Card.Content>
+			</Card.Root>
+		</div>
+
+		<div class="flex flex-col gap-3">
+			<h3 class="text-base font-medium">EventCalendar.NavNext</h3>
+			<p class="text-sm text-muted-foreground">
+				The mirror of <code>NavPrev</code>: an icon <code>Button</code> labelled
+				<code>i18n.labels.next</code> that steps the anchor one period forward. Stepping from a month
+				end lands on the next month's end, so next-then-prev returns to the same day.
+			</p>
+			<Card.Root>
+				<Card.Content class="px-0 [&_[data-slot=table-cell]]:whitespace-normal">
+					<Table.Root>
+						<Table.Header>
+							<Table.Row>
+								<Table.Head>Prop</Table.Head>
+								<Table.Head>Type</Table.Head>
+								<Table.Head>Default</Table.Head>
+								<Table.Head>Description</Table.Head>
+							</Table.Row>
+						</Table.Header>
+						<Table.Body>
+							{#each navNextProps as row (row.prop)}
+								<Table.Row>
+									<Table.Cell class="font-medium">{row.prop}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.type}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.default}</Table.Cell>
+									<Table.Cell>{row.description}</Table.Cell>
+								</Table.Row>
+							{/each}
+						</Table.Body>
+					</Table.Root>
+				</Card.Content>
+			</Card.Root>
+		</div>
+
+		<div class="flex flex-col gap-3">
+			<h3 class="text-base font-medium">EventCalendar.NavToday</h3>
+			<p class="text-sm text-muted-foreground">
+				A text <code>Button</code> reading <code>i18n.labels.today</code> that moves the anchor to
+				now; it carries <code>data-active</code> while the active range contains the current instant,
+				re-evaluated at every zoned midnight.
+			</p>
+			<Card.Root>
+				<Card.Content class="px-0 [&_[data-slot=table-cell]]:whitespace-normal">
+					<Table.Root>
+						<Table.Header>
+							<Table.Row>
+								<Table.Head>Prop</Table.Head>
+								<Table.Head>Type</Table.Head>
+								<Table.Head>Default</Table.Head>
+								<Table.Head>Description</Table.Head>
+							</Table.Row>
+						</Table.Header>
+						<Table.Body>
+							{#each navTodayProps as row (row.prop)}
+								<Table.Row>
+									<Table.Cell class="font-medium">{row.prop}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.type}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.default}</Table.Cell>
+									<Table.Cell>{row.description}</Table.Cell>
+								</Table.Row>
+							{/each}
+						</Table.Body>
+					</Table.Root>
+				</Card.Content>
+			</Card.Root>
+		</div>
+
+		<div class="flex flex-col gap-3">
+			<h3 class="text-base font-medium">EventCalendar.Title</h3>
+			<p class="text-sm text-muted-foreground">
+				A <code>&lt;div aria-live="polite"&gt;</code> showing the current period through
+				<code>i18n.functions.formatTitle</code> — the month name, a cross-month week range, the day, or
+				the agenda's range — truncated to one line.
+			</p>
+			<Card.Root>
+				<Card.Content class="px-0 [&_[data-slot=table-cell]]:whitespace-normal">
+					<Table.Root>
+						<Table.Header>
+							<Table.Row>
+								<Table.Head>Prop</Table.Head>
+								<Table.Head>Type</Table.Head>
+								<Table.Head>Default</Table.Head>
+								<Table.Head>Description</Table.Head>
+							</Table.Row>
+						</Table.Header>
+						<Table.Body>
+							{#each titleProps as row (row.prop)}
+								<Table.Row>
+									<Table.Cell class="font-medium">{row.prop}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.type}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.default}</Table.Cell>
+									<Table.Cell>{row.description}</Table.Cell>
+								</Table.Row>
+							{/each}
+						</Table.Body>
+					</Table.Root>
+				</Card.Content>
+			</Card.Root>
+		</div>
+
+		<div class="flex flex-col gap-3">
+			<h3 class="text-base font-medium">EventCalendar.ViewSwitcher</h3>
+			<p class="text-sm text-muted-foreground">
+				A <code>Button</code> opening a dropdown of the root's <code>views</code>: one item per view
+				plus one per <code>dayCountPresets</code> entry for the N-day view, each carrying
+				<code>data-active</code> for the current view and a <code>&lt;kbd&gt;</code> hint while
+				<code>enableShortcuts</code> is on. Choosing an item closes the menu and calls
+				<code>api.setView</code>.
+			</p>
+			<Card.Root>
+				<Card.Content class="px-0 [&_[data-slot=table-cell]]:whitespace-normal">
+					<Table.Root>
+						<Table.Header>
+							<Table.Row>
+								<Table.Head>Prop</Table.Head>
+								<Table.Head>Type</Table.Head>
+								<Table.Head>Default</Table.Head>
+								<Table.Head>Description</Table.Head>
+							</Table.Row>
+						</Table.Header>
+						<Table.Body>
+							{#each viewSwitcherProps as row (row.prop)}
+								<Table.Row>
+									<Table.Cell class="font-medium">{row.prop}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.type}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.default}</Table.Cell>
+									<Table.Cell>{row.description}</Table.Cell>
+								</Table.Row>
+							{/each}
+						</Table.Body>
+					</Table.Root>
+				</Card.Content>
+			</Card.Root>
+		</div>
+
+		<div class="flex flex-col gap-3">
+			<h3 class="text-base font-medium">EventCalendar.DatePicker</h3>
+			<p class="text-sm text-muted-foreground">
+				An icon <code>Button</code> labelled <code>i18n.labels.goToDate</code> opening a popover
+				with the house <code>Calendar</code> on the anchor's wall date in <code>timeZone</code>;
+				picking a day calls <code>api.goTo</code> with that day's zoned midnight and closes. Always
+				a single date, never a range highlight. Not part of the composed <code>Nav</code> — place it yourself.
+			</p>
+			<Card.Root>
+				<Card.Content class="px-0 [&_[data-slot=table-cell]]:whitespace-normal">
+					<Table.Root>
+						<Table.Header>
+							<Table.Row>
+								<Table.Head>Prop</Table.Head>
+								<Table.Head>Type</Table.Head>
+								<Table.Head>Default</Table.Head>
+								<Table.Head>Description</Table.Head>
+							</Table.Row>
+						</Table.Header>
+						<Table.Body>
+							{#each datePickerProps as row (row.prop)}
+								<Table.Row>
+									<Table.Cell class="font-medium">{row.prop}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.type}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.default}</Table.Cell>
+									<Table.Cell>{row.description}</Table.Cell>
+								</Table.Row>
+							{/each}
+						</Table.Body>
+					</Table.Root>
+				</Card.Content>
+			</Card.Root>
+		</div>
+
+		<div class="flex flex-col gap-3">
+			<h3 class="text-base font-medium">EventCalendar.Toolbar</h3>
+			<p class="text-sm text-muted-foreground">
+				A flex-row <code>&lt;div&gt;</code> for your own buttons: a pure layout shell with no
+				behaviour, it only reads <code>classNames.toolbar</code>.
+			</p>
+			<Card.Root>
+				<Card.Content class="px-0 [&_[data-slot=table-cell]]:whitespace-normal">
+					<Table.Root>
+						<Table.Header>
+							<Table.Row>
+								<Table.Head>Prop</Table.Head>
+								<Table.Head>Type</Table.Head>
+								<Table.Head>Default</Table.Head>
+								<Table.Head>Description</Table.Head>
+							</Table.Row>
+						</Table.Header>
+						<Table.Body>
+							{#each toolbarProps as row (row.prop)}
+								<Table.Row>
+									<Table.Cell class="font-medium">{row.prop}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.type}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.default}</Table.Cell>
+									<Table.Cell>{row.description}</Table.Cell>
+								</Table.Row>
+							{/each}
+						</Table.Body>
+					</Table.Root>
+				</Card.Content>
+			</Card.Root>
+		</div>
+
+		<div class="flex flex-col gap-3">
+			<h3 class="text-base font-medium">EventCalendar.MonthView</h3>
+			<p class="text-sm text-muted-foreground">
+				The month grid: a <code>role="grid"</code> element labelled with the month title, a weekday
+				header row, then one <code>EventCalendar.MonthWeek</code> per row of the visible range (six
+				with <code>fixedWeeks</code>). Weekend columns drop out when the weekends toggle is off.
+				Publishes the <code>'month'</code> view context; rendered by <code>Content</code>.
+			</p>
+			<Card.Root>
+				<Card.Content class="px-0 [&_[data-slot=table-cell]]:whitespace-normal">
+					<Table.Root>
+						<Table.Header>
+							<Table.Row>
+								<Table.Head>Prop</Table.Head>
+								<Table.Head>Type</Table.Head>
+								<Table.Head>Default</Table.Head>
+								<Table.Head>Description</Table.Head>
+							</Table.Row>
+						</Table.Header>
+						<Table.Body>
+							{#each monthViewProps as row (row.prop)}
+								<Table.Row>
+									<Table.Cell class="font-medium">{row.prop}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.type}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.default}</Table.Cell>
+									<Table.Cell>{row.description}</Table.Cell>
+								</Table.Row>
+							{/each}
+						</Table.Body>
+					</Table.Root>
+				</Card.Content>
+			</Card.Root>
+		</div>
+
+		<div class="flex flex-col gap-3">
+			<h3 class="text-base font-medium">EventCalendar.MonthWeek</h3>
+			<p class="text-sm text-muted-foreground">
+				One row of the month grid: a <code>role="row"</code> element with the optional week number,
+				one <code>EventCalendar.MonthCell</code> per day, and an absolute overlay where multi-day
+				bars are placed by grid column so a span is one unbroken block. The lanes beyond the cap are
+				handed to each cell for its “+N more”. Rendered by <code>MonthView</code>; takes no HTML
+				attributes.
+			</p>
+			<Card.Root>
+				<Card.Content class="px-0 [&_[data-slot=table-cell]]:whitespace-normal">
+					<Table.Root>
+						<Table.Header>
+							<Table.Row>
+								<Table.Head>Prop</Table.Head>
+								<Table.Head>Type</Table.Head>
+								<Table.Head>Default</Table.Head>
+								<Table.Head>Description</Table.Head>
+							</Table.Row>
+						</Table.Header>
+						<Table.Body>
+							{#each monthWeekProps as row (row.prop)}
+								<Table.Row>
+									<Table.Cell class="font-medium">{row.prop}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.type}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.default}</Table.Cell>
+									<Table.Cell>{row.description}</Table.Cell>
+								</Table.Row>
+							{/each}
+						</Table.Body>
+					</Table.Root>
+				</Card.Content>
+			</Card.Root>
+		</div>
+
+		<div class="flex flex-col gap-3">
+			<h3 class="text-base font-medium">EventCalendar.MonthCell</h3>
+			<p class="text-sm text-muted-foreground">
+				One day of the month grid: a <code>role="gridcell"</code> element carrying
+				<code>data-today</code>, <code>data-outside</code>, <code>data-weekend</code>,
+				<code>data-off</code>, <code>data-draft</code> and <code>data-ec-day</code>, with the
+				single-day timed chips, the overflow indicator, the day number and the optional add button.
+				A press on empty space begins an all-day drag-create; a click reports the day to
+				<code>onSlotClick</code>. Rendered by <code>MonthWeek</code>; takes no HTML attributes.
+			</p>
+			<Card.Root>
+				<Card.Content class="px-0 [&_[data-slot=table-cell]]:whitespace-normal">
+					<Table.Root>
+						<Table.Header>
+							<Table.Row>
+								<Table.Head>Prop</Table.Head>
+								<Table.Head>Type</Table.Head>
+								<Table.Head>Default</Table.Head>
+								<Table.Head>Description</Table.Head>
+							</Table.Row>
+						</Table.Header>
+						<Table.Body>
+							{#each monthCellProps as row (row.prop)}
+								<Table.Row>
+									<Table.Cell class="font-medium">{row.prop}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.type}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.default}</Table.Cell>
+									<Table.Cell>{row.description}</Table.Cell>
+								</Table.Row>
+							{/each}
+						</Table.Body>
+					</Table.Root>
+				</Card.Content>
+			</Card.Root>
+		</div>
+
+		<div class="flex flex-col gap-3">
+			<h3 class="text-base font-medium">EventCalendar.MoreIndicator</h3>
+			<p class="text-sm text-muted-foreground">
+				The “+N more” trigger and its popover listing a day's hidden chips under a
+				<code>formats.moreDayHeader</code> heading, scrolled by the configured
+				<code>scrollbars</code> and aligned by <code>morePopoverAlign</code>. The click calls
+				<code>onMoreClick</code> first; false keeps the popover closed. Rendered by
+				<code>MonthCell</code>; takes no HTML attributes.
+			</p>
+			<Card.Root>
+				<Card.Content class="px-0 [&_[data-slot=table-cell]]:whitespace-normal">
+					<Table.Root>
+						<Table.Header>
+							<Table.Row>
+								<Table.Head>Prop</Table.Head>
+								<Table.Head>Type</Table.Head>
+								<Table.Head>Default</Table.Head>
+								<Table.Head>Description</Table.Head>
+							</Table.Row>
+						</Table.Header>
+						<Table.Body>
+							{#each moreIndicatorProps as row (row.prop)}
+								<Table.Row>
+									<Table.Cell class="font-medium">{row.prop}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.type}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.default}</Table.Cell>
+									<Table.Cell>{row.description}</Table.Cell>
+								</Table.Row>
+							{/each}
+						</Table.Body>
+					</Table.Root>
+				</Card.Content>
+			</Card.Root>
+		</div>
+
+		<div class="flex flex-col gap-3">
+			<h3 class="text-base font-medium">EventCalendar.TimeGrid</h3>
+			<p class="text-sm text-muted-foreground">
+				The week, day and N-day views in one component: a <code>&lt;div&gt;</code> with a day-header
+				row, an optional all-day row, and the scrolling track of a time gutter, one
+				<code>EventCalendar.DayColumn</code> per visible day and the now indicator. In contained
+				mode it scrolls to <code>scrollToHour</code> on mount, registers
+				<code>api.scrollToTime</code>, and mirrors the scrollbar width onto the header rows so the
+				columns stay aligned. Rendered by <code>Content</code> for those three views.
+			</p>
+			<Card.Root>
+				<Card.Content class="px-0 [&_[data-slot=table-cell]]:whitespace-normal">
+					<Table.Root>
+						<Table.Header>
+							<Table.Row>
+								<Table.Head>Prop</Table.Head>
+								<Table.Head>Type</Table.Head>
+								<Table.Head>Default</Table.Head>
+								<Table.Head>Description</Table.Head>
+							</Table.Row>
+						</Table.Header>
+						<Table.Body>
+							{#each timeGridProps as row (row.prop)}
+								<Table.Row>
+									<Table.Cell class="font-medium">{row.prop}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.type}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.default}</Table.Cell>
+									<Table.Cell>{row.description}</Table.Cell>
+								</Table.Row>
+							{/each}
+						</Table.Body>
+					</Table.Root>
+				</Card.Content>
+			</Card.Root>
+		</div>
+
+		<div class="flex flex-col gap-3">
+			<h3 class="text-base font-medium">EventCalendar.DayColumn</h3>
+			<p class="text-sm text-muted-foreground">
+				One day's timed column: a <code>role="group"</code> element carrying
+				<code>data-today</code>,
+				<code>data-off</code>, <code>data-ec-day</code>, <code>data-ec-bounds-start/end</code> and
+				<code>data-ec-resource</code>, positioning the day's timed chips by minute inside the hour
+				bounds and repacking the overlaps the bounds or the resource filter leave visible. A press
+				on empty space begins a timed drag-create; a click reports a <code>slotDuration</code> slot
+				to
+				<code>onSlotClick</code>. Needs a view context; rendered by <code>TimeGrid</code> and
+				<code>ResourceView</code>. Takes no HTML attributes.
+			</p>
+			<Card.Root>
+				<Card.Content class="px-0 [&_[data-slot=table-cell]]:whitespace-normal">
+					<Table.Root>
+						<Table.Header>
+							<Table.Row>
+								<Table.Head>Prop</Table.Head>
+								<Table.Head>Type</Table.Head>
+								<Table.Head>Default</Table.Head>
+								<Table.Head>Description</Table.Head>
+							</Table.Row>
+						</Table.Header>
+						<Table.Body>
+							{#each dayColumnProps as row (row.prop)}
+								<Table.Row>
+									<Table.Cell class="font-medium">{row.prop}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.type}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.default}</Table.Cell>
+									<Table.Cell>{row.description}</Table.Cell>
+								</Table.Row>
+							{/each}
+						</Table.Body>
+					</Table.Root>
+				</Card.Content>
+			</Card.Root>
+		</div>
+
+		<div class="flex flex-col gap-3">
+			<h3 class="text-base font-medium">EventCalendar.TimeGutter</h3>
+			<p class="text-sm text-muted-foreground">
+				The hour-label column beside the day columns, one row per slot sized from
+				<code>--ec-hour-height</code>. Rendered by <code>TimeGrid</code> and
+				<code>ResourceView</code>; takes no HTML attributes.
+			</p>
+			<Card.Root>
+				<Card.Content class="px-0 [&_[data-slot=table-cell]]:whitespace-normal">
+					<Table.Root>
+						<Table.Header>
+							<Table.Row>
+								<Table.Head>Prop</Table.Head>
+								<Table.Head>Type</Table.Head>
+								<Table.Head>Default</Table.Head>
+								<Table.Head>Description</Table.Head>
+							</Table.Row>
+						</Table.Header>
+						<Table.Body>
+							{#each timeGutterProps as row (row.prop)}
+								<Table.Row>
+									<Table.Cell class="font-medium">{row.prop}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.type}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.default}</Table.Cell>
+									<Table.Cell>{row.description}</Table.Cell>
+								</Table.Row>
+							{/each}
+						</Table.Body>
+					</Table.Root>
+				</Card.Content>
+			</Card.Root>
+		</div>
+
+		<div class="flex flex-col gap-3">
+			<h3 class="text-base font-medium">EventCalendar.AllDayBars</h3>
+			<p class="text-sm text-muted-foreground">
+				The all-day row's cell grid plus a bar overlay: consecutive-day segments of one occurrence
+				merge into a single lane-packed bar spanning its columns. Each cell starts an all-day
+				drag-create on press and reports an all-day point to <code>onSlotClick</code> on click.
+				Needs a view context; rendered by <code>TimeGrid</code>. Takes no HTML attributes.
+			</p>
+			<Card.Root>
+				<Card.Content class="px-0 [&_[data-slot=table-cell]]:whitespace-normal">
+					<Table.Root>
+						<Table.Header>
+							<Table.Row>
+								<Table.Head>Prop</Table.Head>
+								<Table.Head>Type</Table.Head>
+								<Table.Head>Default</Table.Head>
+								<Table.Head>Description</Table.Head>
+							</Table.Row>
+						</Table.Header>
+						<Table.Body>
+							{#each allDayBarsProps as row (row.prop)}
+								<Table.Row>
+									<Table.Cell class="font-medium">{row.prop}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.type}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.default}</Table.Cell>
+									<Table.Cell>{row.description}</Table.Cell>
+								</Table.Row>
+							{/each}
+						</Table.Body>
+					</Table.Root>
+				</Card.Content>
+			</Card.Root>
+		</div>
+
+		<div class="flex flex-col gap-3">
+			<h3 class="text-base font-medium">EventCalendar.NowIndicator</h3>
+			<p class="text-sm text-muted-foreground">
+				The current-time line: a hairline across the columns with a stronger segment and a dot over
+				today's column, refreshed every <code>nowIndicatorInterval</code> milliseconds and on tab
+				focus. Rendered by <code>TimeGrid</code> and <code>ResourceView</code>; takes no HTML
+				attributes.
+			</p>
+			<Card.Root>
+				<Card.Content class="px-0 [&_[data-slot=table-cell]]:whitespace-normal">
+					<Table.Root>
+						<Table.Header>
+							<Table.Row>
+								<Table.Head>Prop</Table.Head>
+								<Table.Head>Type</Table.Head>
+								<Table.Head>Default</Table.Head>
+								<Table.Head>Description</Table.Head>
+							</Table.Row>
+						</Table.Header>
+						<Table.Body>
+							{#each nowIndicatorProps as row (row.prop)}
+								<Table.Row>
+									<Table.Cell class="font-medium">{row.prop}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.type}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.default}</Table.Cell>
+									<Table.Cell>{row.description}</Table.Cell>
+								</Table.Row>
+							{/each}
+						</Table.Body>
+					</Table.Root>
+				</Card.Content>
+			</Card.Root>
+		</div>
+
+		<div class="flex flex-col gap-3">
+			<h3 class="text-base font-medium">EventCalendar.AgendaView</h3>
+			<p class="text-sm text-muted-foreground">
+				A read-only list: a <code>role="group"</code> element labelled with its date range, grouping
+				the <code>agendaDayCount</code> days that have events under a sticky weekday-and-date
+				heading, bars first then timed rows. Empty days are dropped; an empty window shows the
+				no-events state. Rows never select on click. Publishes the <code>'agenda'</code> view
+				context; rendered by <code>Content</code>.
+			</p>
+			<Card.Root>
+				<Card.Content class="px-0 [&_[data-slot=table-cell]]:whitespace-normal">
+					<Table.Root>
+						<Table.Header>
+							<Table.Row>
+								<Table.Head>Prop</Table.Head>
+								<Table.Head>Type</Table.Head>
+								<Table.Head>Default</Table.Head>
+								<Table.Head>Description</Table.Head>
+							</Table.Row>
+						</Table.Header>
+						<Table.Body>
+							{#each agendaViewProps as row (row.prop)}
+								<Table.Row>
+									<Table.Cell class="font-medium">{row.prop}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.type}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.default}</Table.Cell>
+									<Table.Cell>{row.description}</Table.Cell>
+								</Table.Row>
+							{/each}
+						</Table.Body>
+					</Table.Root>
+				</Card.Content>
+			</Card.Root>
+		</div>
+
+		<div class="flex flex-col gap-3">
+			<h3 class="text-base font-medium">EventCalendar.ResourceView</h3>
+			<p class="text-sm text-muted-foreground">
+				The bookings-per-resource day view: the time grid's layout with one
+				<code>EventCalendar.DayColumn</code> per leaf resource for the single anchor day, resource
+				titles (or <code>renderResourceHeader</code>) as column headers, and one all-day cell per
+				resource. With an empty <code>resources</code> list every per-resource loop renders nothing:
+				no header cell, all-day cell or day column, only an empty one-column track beside the
+				gutter. Publishes the
+				<code>'resource'</code> view context; rendered by <code>Content</code>.
+			</p>
+			<Card.Root>
+				<Card.Content class="px-0 [&_[data-slot=table-cell]]:whitespace-normal">
+					<Table.Root>
+						<Table.Header>
+							<Table.Row>
+								<Table.Head>Prop</Table.Head>
+								<Table.Head>Type</Table.Head>
+								<Table.Head>Default</Table.Head>
+								<Table.Head>Description</Table.Head>
+							</Table.Row>
+						</Table.Header>
+						<Table.Body>
+							{#each resourceViewProps as row (row.prop)}
+								<Table.Row>
+									<Table.Cell class="font-medium">{row.prop}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.type}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.default}</Table.Cell>
+									<Table.Cell>{row.description}</Table.Cell>
+								</Table.Row>
+							{/each}
+						</Table.Body>
+					</Table.Root>
+				</Card.Content>
+			</Card.Root>
+		</div>
+
+		<div class="flex flex-col gap-3">
+			<h3 class="text-base font-medium">EventCalendar.Event</h3>
+			<p class="text-sm text-muted-foreground">
+				One chip: a <code>&lt;button&gt;</code> carrying <code>data-view</code>,
+				<code>data-all-day</code>, <code>data-recurring</code>, <code>data-selected</code>,
+				<code>data-past</code> and <code>aria-pressed</code>, tinted from the event's
+				<code>color</code> through <code>--ec-event-color</code>. Its content is the default layout,
+				the root <code>renderEvent</code> / <code>renderAgendaEvent</code>, or
+				<code>children</code>. Needs a view context; rendered by every view.
+			</p>
+			<Card.Root>
+				<Card.Content class="px-0 [&_[data-slot=table-cell]]:whitespace-normal">
+					<Table.Root>
+						<Table.Header>
+							<Table.Row>
+								<Table.Head>Prop</Table.Head>
+								<Table.Head>Type</Table.Head>
+								<Table.Head>Default</Table.Head>
+								<Table.Head>Description</Table.Head>
+							</Table.Row>
+						</Table.Header>
+						<Table.Body>
+							{#each eventProps as row (row.prop)}
+								<Table.Row>
+									<Table.Cell class="font-medium">{row.prop}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.type}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.default}</Table.Cell>
+									<Table.Cell>{row.description}</Table.Cell>
+								</Table.Row>
+							{/each}
+						</Table.Body>
+					</Table.Root>
+				</Card.Content>
+			</Card.Root>
+		</div>
 	</DocSection>
 </DocPage>

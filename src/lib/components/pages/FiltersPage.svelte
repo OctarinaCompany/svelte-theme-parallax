@@ -46,6 +46,7 @@
 		type FilterOption,
 		type FilterOptionListRenderProps,
 	} from "$lib/components/ui/filters/index.js";
+	import * as Table from "$lib/components/ui/table/index.js";
 	import DocPage from "$lib/components/layout/DocPage.svelte";
 	import DocSection from "$lib/components/layout/DocSection.svelte";
 	import FiltersDateDialogInput from "$lib/components/pages/filters-date-dialog-input.svelte";
@@ -1665,6 +1666,110 @@
 			},
 		},
 	]);
+
+	// --- API reference -------------------------------------------------------
+	type PropRow = { prop: string; type: string; default: string; description: string };
+
+	const rootProps: PropRow[] = [
+		{
+			prop: "filters",
+			type: "Filter<T>[]",
+			default: "—",
+			description:
+				"Bindable; the active filters, one chip each. The array is never mutated in place: every add, edit or removal assigns a new one here and hands the same one to `onFiltersChange`. A filter whose `field` matches no key in `fields` renders no chip.",
+		},
+		{
+			prop: "fields",
+			type: "FilterFieldsConfig<T>",
+			default: "—",
+			description:
+				"The filterable fields, flat or grouped. Groups are flattened into one Add filter list with no headings; an entry with no `key` or with `type: 'separator'` is never listed, and the list is searched by `label` alone.",
+		},
+		{
+			prop: "onFiltersChange",
+			type: "(filters: Filter<T>[]) => void",
+			default: "—",
+			description:
+				"Called with the next array whenever a filter is added, edited or removed, after `filters` has been assigned — so it fires whether or not `filters` is bound. The one exemption is a chip's own value popover on a field that declares `onValueChange`: that popover reports its picks there instead and does not fire this. Picks for the same field made in the Add filter submenu, its operator change and its removal all still do.",
+		},
+		{
+			prop: "class",
+			type: "string",
+			default: "—",
+			description:
+				"Merged last onto the wrapping row that holds the Add filter button and the chips.",
+		},
+		{
+			prop: "variant",
+			type: "'solid' | 'default'",
+			default: "'default'",
+			description:
+				"Published on the context, but read by nothing. Both values are declared as empty class strings in `filtersVariants`, so `solid` sets no gap and renders exactly as `default` does; kept as public API only.",
+		},
+		{
+			prop: "size",
+			type: "'sm' | 'default' | 'lg'",
+			default: "'default'",
+			description:
+				"The gap between chips (`gap-1.5` / `gap-2.5` / `gap-3.5`), the `Button` size of the default outline `+ Filter` button, and, through context, the `Button` size of a chip's operator button and value popover trigger, the `icon-sm` / `icon` / `icon-lg` `Button` size of its remove button, and the `--control-h-*` height (plus `text-xs` at `sm`) of a `text` field's input. The leading label segment and a `custom` field's control segment are `ButtonGroupText` and read nothing from it — a custom renderer sizes itself — and a custom `trigger` does not receive it.",
+		},
+		{
+			prop: "i18n",
+			type: "Partial<FilterI18nConfig>",
+			default: "—",
+			description:
+				"Merged over the English `DEFAULT_I18N` one level deep — `operators`, `placeholders`, `helpers` and `validation` merge per key, so three translated operators do not blank the other twenty-three. Read live: swapping it relabels the chips already on screen. A field's own `operators` bypass the operator labels entirely.",
+		},
+		{
+			prop: "showSearchInput",
+			type: "boolean",
+			default: "true",
+			description:
+				"Renders the search box at the top of the Add filter menu, which filters the field list by label and drives its arrow-key highlight. Without it the rows are walked by the dropdown's own arrow keys and typeahead, and the `shortcutLabel` hint has nowhere to render.",
+		},
+		{
+			prop: "trigger",
+			type: "Snippet<[{ props: Record<string, unknown> }]>",
+			default: "—",
+			description:
+				"Replaces the outline `+ Filter` button that opens the Add filter menu. Spread `props` onto your own element to keep it a menu trigger; the root's `size` and the `i18n.addFilter` label are not applied to it. Like the default button, it is not rendered while no field is left to add.",
+		},
+		{
+			prop: "allowMultiple",
+			type: "boolean",
+			default: "true",
+			description:
+				"Whether a field stays listed in the Add filter menu after a filter on it exists. With `false` each field can be filtered on once, and once every field has been, the Add filter button is not rendered at all.",
+		},
+		{
+			prop: "menuPopupClass",
+			type: "string",
+			default: "—",
+			description:
+				"Merged onto the Add filter menu's panel, after its `w-[220px]`. The field submenus and the chips' own popovers are not affected: a submenu panel is a fixed `w-[200px]` that nothing styles, and a field's `class` reaches only its chip's value popover or its `text` input.",
+		},
+		{
+			prop: "enableShortcut",
+			type: "boolean",
+			default: "false",
+			description:
+				"Registers a window `keydown` listener that opens the Add filter menu on `shortcutKey`. Presses with Ctrl, Meta or Alt held, presses while an input, textarea or `contenteditable` element has focus, and presses while the menu is already open are ignored; a press that opens the menu is `preventDefault`ed.",
+		},
+		{
+			prop: "shortcutKey",
+			type: "string",
+			default: "'f'",
+			description:
+				"The key the shortcut listens for, compared case-insensitively against `event.key`. Read only while `enableShortcut` is on, and changing it does not change `shortcutLabel`.",
+		},
+		{
+			prop: "shortcutLabel",
+			type: "string",
+			default: "'F'",
+			description:
+				"Rendered in a `Kbd` at the right end of the menu's search box as the hint for the shortcut. Shown only while `enableShortcut` and `showSearchInput` are both on; an empty string hides it.",
+		},
+	];
 </script>
 
 <!-- ================================================================================
@@ -2116,6 +2221,43 @@
 				<Filters bind:filters={searchFilters} fields={searchFields} />
 			</Card.Content>
 		</Card.Root>
+	</DocSection>
+
+	<DocSection title="API reference">
+		<div class="flex flex-col gap-3">
+			<h3 class="text-base font-medium">Filters.Root</h3>
+			<p class="text-sm text-muted-foreground">
+				The whole component — a wrapping row that holds the Add filter menu and one
+				<code>ButtonGroup</code> chip per filter: field label, operator dropdown, value control,
+				remove button — generic over <code>T</code>, the option value type. It is the barrel's only
+				component (<code>Filters</code> is an alias of <code>Root</code>); the chip segments are
+				internal and throw outside it, and no attribute beyond the props below reaches its element.
+			</p>
+			<Card.Root>
+				<Card.Content class="px-0 [&_[data-slot=table-cell]]:whitespace-normal">
+					<Table.Root>
+						<Table.Header>
+							<Table.Row>
+								<Table.Head>Prop</Table.Head>
+								<Table.Head>Type</Table.Head>
+								<Table.Head>Default</Table.Head>
+								<Table.Head>Description</Table.Head>
+							</Table.Row>
+						</Table.Header>
+						<Table.Body>
+							{#each rootProps as row (row.prop)}
+								<Table.Row>
+									<Table.Cell class="font-medium">{row.prop}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.type}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.default}</Table.Cell>
+									<Table.Cell>{row.description}</Table.Cell>
+								</Table.Row>
+							{/each}
+						</Table.Body>
+					</Table.Root>
+				</Card.Content>
+			</Card.Root>
+		</div>
 	</DocSection>
 </DocPage>
 

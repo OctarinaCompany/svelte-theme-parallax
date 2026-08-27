@@ -4,6 +4,7 @@
 	import { Label } from "$lib/components/ui/label/index.js";
 	import { Scroller, type ScrollerTriggerMode } from "$lib/components/ui/scroller/index.js";
 	import { Switch } from "$lib/components/ui/switch/index.js";
+	import * as Table from "$lib/components/ui/table/index.js";
 	import DocPage from "$lib/components/layout/DocPage.svelte";
 	import DocSection from "$lib/components/layout/DocSection.svelte";
 	import { getInitials } from "$lib/shared/get-initials.js";
@@ -93,6 +94,101 @@
 	// Starts hidden so the demo opens in the state the section is named after; the switch brings
 	// the native scrollbar back for comparison.
 	let hideScrollbar = $state(true);
+
+	type PropRow = { prop: string; type: string; default: string; description: string };
+
+	const rootProps: PropRow[] = [
+		{
+			prop: "orientation",
+			type: "'vertical' | 'horizontal'",
+			default: "'vertical'",
+			description:
+				"Picks the overflow axis, the mask class set and the button pair: `vertical` sets `overflow-y-auto`, fades the top and bottom edges and can render up/down buttons; `horizontal` sets `overflow-x-auto`, fades left and right and can render left/right. Both axes are always measured, and only the top/bottom attributes are gated on the orientation — a vertical scroller whose content also overflows on X still carries `data-left-scroll`/`data-right-scroll`/`data-left-right-scroll`, with no mask class acting on them.",
+		},
+		{
+			prop: "hideScrollbar",
+			type: "boolean",
+			default: "false",
+			description:
+				"Hides the native scrollbar (`scrollbar-width: none` plus the WebKit pseudo-element) while the container stays scrollable; the fade is then the only cue, unless `withNavigation` still renders its buttons. Sets `data-hide-scrollbar` on the element.",
+		},
+		{
+			prop: "size",
+			type: "number",
+			default: "40",
+			description:
+				"Depth of the edge fade in px, written as `--scroll-shadow-size` in the element's inline `style` and read by every mask gradient. Does not change how far a navigation step scrolls.",
+		},
+		{
+			prop: "offset",
+			type: "number",
+			default: "0",
+			description:
+				"Hidden pixels an edge must exceed before it fades and before the navigation button toward the content's start appears. The button toward the end ignores it and shows whenever any pixel is hidden — upstream's asymmetry, kept.",
+		},
+		{
+			prop: "withNavigation",
+			type: "boolean",
+			default: "false",
+			description:
+				'Wraps the container in a `relative` `<div data-slot="scroller-wrapper">` and renders a chevron button for each direction of the active orientation that currently hides content; a button unmounts the moment its direction is exhausted. When `false`, no wrapper renders and `scrollStep` and `scrollTriggerMode` are ignored.',
+		},
+		{
+			prop: "scrollStep",
+			type: "number",
+			default: "40",
+			description:
+				"Pixels a navigation button moves `scrollTop`/`scrollLeft` per step. In `press` and `hover` modes a step fires every 50 ms while the button is active; in `click` mode, once per click. Ignored without `withNavigation`.",
+		},
+		{
+			prop: "scrollTriggerMode",
+			type: "'press' | 'hover' | 'click'",
+			default: "'press'",
+			description:
+				"`press` scrolls continuously while a button is held — by pointer, or by Enter/Space; `hover` while the pointer is over it or it has keyboard focus; `click` moves one step per click and never repeats. Ignored without `withNavigation`.",
+		},
+		{
+			prop: "dir",
+			type: "'ltr' | 'rtl'",
+			default: "inherited",
+			description:
+				"Explicit text direction; otherwise the nearest `DirectionProvider`, then `<html dir=\"ltr|rtl\">` (the DOM fallback walks up from the document element, so a `dir` on any closer ancestor is ignored), then `ltr`. The resolved value is written as the element's own `dir` attribute, which is why `dir` is not accepted through the rest spread. Under `rtl` the left fade and left button represent the content's end rather than its start — the attribute names stay physical.",
+		},
+		{
+			prop: "children",
+			type: "Snippet",
+			default: "—",
+			description: "Content of the default `<div>`. Not rendered when `child` is given.",
+		},
+		{
+			prop: "ref",
+			type: "HTMLElement | null",
+			default: "null",
+			description:
+				"Bindable reference to the rendered `<div>`, typed as the base `HTMLElement` rather than `HTMLDivElement`. Stays `null` in `child` mode.",
+		},
+		{
+			prop: "class",
+			type: "ClassValue | null",
+			default: "—",
+			description:
+				"Merged after the variant classes with `cn`, so a caller utility beats the variant's own of the same property and modifier (`overflow-y-hidden` replaces `overflow-y-auto`). The fade is not overridden by a bare `[mask-image:none]`: the variant's masks are scoped as `data-[top-scroll=true]:` and so on, so only a class repeating that modifier replaces them. This is where the container's height or width goes — with no size constraint nothing overflows and nothing fades.",
+		},
+		{
+			prop: "style",
+			type: "string | null",
+			default: "—",
+			description:
+				"Appended after the `--scroll-shadow-size` declaration, so an inline style never drops the fade size and a caller's own `--scroll-shadow-size` wins over `size`.",
+		},
+		{
+			prop: "child",
+			type: "Snippet<[{ props: ScrollerChildProps }]>",
+			default: "—",
+			description:
+				"Render the scroller onto your own element: the snippet receives the merged props (data attributes, `dir`, `style`, `class`, rest props and an attachment) to spread onto it, and that spread is what registers the element for measurement. `children` is not rendered and `ref` stays `null` in this mode.",
+		},
+	];
 </script>
 
 <!--
@@ -244,5 +340,48 @@
 				</Scroller>
 			</Card.Content>
 		</Card.Root>
+	</DocSection>
+
+	<DocSection title="API reference">
+		<div class="flex flex-col gap-3">
+			<h3 class="text-base font-medium">Scroller.Root</h3>
+			<p class="text-sm text-muted-foreground">
+				The scroll container itself: one <code>&lt;div data-slot="scroller"&gt;</code> carrying the
+				overflow, the six mask attributes and <code>--scroll-shadow-size</code>, wrapped in a
+				<code>relative</code> <code>&lt;div&gt;</code> only while <code>withNavigation</code> is on.
+				The barrel also exports it as <code>Scroller</code>, which is what the demos above use; the
+				navigation button is a private part with no import of its own. Any other attribute is spread
+				onto that <code>&lt;div&gt;</code> after the data attributes, so a caller's
+				<code>data-*</code>
+				wins;
+				<code>class</code> and <code>style</code> are merged rather than replaced, and
+				<code>dir</code> is excluded from the spread because the resolved direction is written in its
+				place.
+			</p>
+			<Card.Root>
+				<Card.Content class="px-0 [&_[data-slot=table-cell]]:whitespace-normal">
+					<Table.Root>
+						<Table.Header>
+							<Table.Row>
+								<Table.Head>Prop</Table.Head>
+								<Table.Head>Type</Table.Head>
+								<Table.Head>Default</Table.Head>
+								<Table.Head>Description</Table.Head>
+							</Table.Row>
+						</Table.Header>
+						<Table.Body>
+							{#each rootProps as row (row.prop)}
+								<Table.Row>
+									<Table.Cell class="font-medium">{row.prop}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.type}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.default}</Table.Cell>
+									<Table.Cell>{row.description}</Table.Cell>
+								</Table.Row>
+							{/each}
+						</Table.Body>
+					</Table.Root>
+				</Card.Content>
+			</Card.Root>
+		</div>
 	</DocSection>
 </DocPage>

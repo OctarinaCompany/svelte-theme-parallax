@@ -54,6 +54,7 @@
 	import * as Field from "$lib/components/ui/field/index.js";
 	import * as Item from "$lib/components/ui/item/index.js";
 	import * as Popover from "$lib/components/ui/popover/index.js";
+	import * as Table from "$lib/components/ui/table/index.js";
 	import { Badge, badgeVariants } from "$lib/components/ui/badge/index.js";
 	import { Button, buttonVariants } from "$lib/components/ui/button/index.js";
 	import { Calendar } from "$lib/components/ui/calendar/index.js";
@@ -1349,6 +1350,691 @@
 
 		demoAssignee = option.kind === "member" ? option : null;
 	}
+
+	type PropRow = { prop: string; type: string; default: string; description: string };
+
+	const rootProps: PropRow[] = [
+		{
+			prop: "items",
+			type: "readonly T[]",
+			default: "[]",
+			description:
+				"The data the list is built from. A group-shaped entry (`{ value, items }`) survives the filter while any of its rows matches, and `Combobox.Group items` unpacks it.",
+		},
+		{
+			prop: "value",
+			type: "T | readonly T[] | null",
+			default: "—",
+			description:
+				"Bindable; the selected items themselves, never their string forms — one item or `null` in single mode, an array in `multiple` mode. Seeded from `defaultValue` (else `null`, or `[]` in multiple mode) only while unset; a function binding whose setter declines the write leaves the selection exactly where it was.",
+		},
+		{
+			prop: "defaultValue",
+			type: "T | readonly T[] | null",
+			default: "—",
+			description:
+				"The selection the root seeds itself with when `value` is unset; read once at mount.",
+		},
+		{
+			prop: "onValueChange",
+			type: "(value: T | readonly T[] | null) => void",
+			default: "—",
+			description:
+				"Called after every commit — a selection, a multi-select toggle, a chip removal or a clear — with the value as written back: `T | null` in single mode, `readonly T[]` in multiple.",
+		},
+		{
+			prop: "open",
+			type: "boolean",
+			default: "—",
+			description:
+				"Bindable; whether the popup is open. Seeded from `defaultOpen` while unset. Closing forgets the query and the highlight, so the next open starts from the full list with the field showing the committed selection.",
+		},
+		{
+			prop: "defaultOpen",
+			type: "boolean",
+			default: "false",
+			description: "The open state the root seeds itself with when `open` is unset.",
+		},
+		{
+			prop: "onOpenChange",
+			type: "(open: boolean) => void",
+			default: "—",
+			description:
+				"Called only on a real transition — asking for the state the popup is already in does not fire it.",
+		},
+		{
+			prop: "multiple",
+			type: "boolean",
+			default: "false",
+			description:
+				"Holds an array of items instead of one. Selecting toggles membership, keeps the popup open and clears the query after each pick; the field shows no text, since the chips are the selection's rendering.",
+		},
+		{
+			prop: "filter",
+			type: "ComboboxMatcher | null",
+			default: "defaultFilter",
+			description:
+				"`(itemString: string, query: string) => boolean`, run against each item's string form once the user has typed; the default is a locale-aware `contains` from `createFilter()`. `null` keeps every item, for data that is already the answer such as an async search. An empty query always matches everything.",
+		},
+		{
+			prop: "itemToStringValue",
+			type: "(item: T) => string",
+			default: "defaultItemToStringValue",
+			description:
+				"The string an item filters by, displays as in the field and the form control, and is compared by when `isItemEqualToValue` is unset. Without it a string is itself, an object answers with `value` then `label`, and anything else is stringified.",
+		},
+		{
+			prop: "isItemEqualToValue",
+			type: "(item: T, value: T) => boolean",
+			default: "—",
+			description:
+				"Decides whether a row is part of the selection — for the check indicator, `aria-selected`, multi-select toggling and chip removal. Without it two entries are equal when their string forms are; supply it when two records can share a label.",
+		},
+		{
+			prop: "disabled",
+			type: "boolean",
+			default: "false",
+			description:
+				"Disables every part: typing, keyboard navigation, selection, clearing and chip removal become no-ops, and the field, trigger, clear and form control render disabled.",
+		},
+		{
+			prop: "readonly",
+			type: "boolean",
+			default: "false",
+			description:
+				"The field can be focused and its text read, but typing, selecting, clearing and chip removal are ignored and the trigger will not open the popup. Arrow keys still open it and move the highlight; `Enter` then commits nothing.",
+		},
+		{
+			prop: "autoHighlight",
+			type: "boolean",
+			default: "false",
+			description:
+				"Whether the first enabled match is highlighted after each keystroke. Off, a keystroke leaves nothing highlighted, so `Enter` submits the enclosing form instead of picking whichever row sorted first. Either way, opening onto an existing selection highlights the selected row.",
+		},
+		{
+			prop: "loop",
+			type: "boolean",
+			default: "false",
+			description:
+				"Whether `ArrowDown` on the last row wraps to the first and `ArrowUp` on the first wraps to the last. Off, the highlight stays put at either end.",
+		},
+		{
+			prop: "name",
+			type: "string",
+			default: "—",
+			description:
+				'Renders clipped `type="text"` form controls carrying the selection\'s string forms — one per selected entry in multiple mode, and a single empty one when the selection is empty and `required`. Without it nothing is submitted.',
+		},
+		{
+			prop: "required",
+			type: "boolean",
+			default: "false",
+			description:
+				"Marks the form control required — and does nothing without `name`, since no control renders until one is set. It is a text control rather than a hidden one precisely so an empty combobox fails constraint validation; in multiple mode only the first entry's control carries the flag.",
+		},
+		{
+			prop: "id",
+			type: "string",
+			default: "generated",
+			description:
+				"The base the field and the list derive their ids from — `{id}-input` and `{id}-list`, which the field's `aria-controls` and `aria-activedescendant` point at. Both are `$derived`, so a later change is picked up. Items and group labels do NOT derive from it: each mints its own through `$props.id()`.",
+		},
+		{
+			prop: "children",
+			type: "Snippet",
+			default: "—",
+			description:
+				"The parts: a field or a select-shaped trigger, and the portalled content. Rendered inside the popover primitive's root, with no element of its own.",
+		},
+	];
+
+	const inputProps: PropRow[] = [
+		{
+			prop: "showTrigger",
+			type: "boolean",
+			default: "true",
+			description:
+				"Whether a chevron `Combobox.Trigger` is rendered in the field's inline-end addon. Turn it off when the field lives inside the popup, where a standalone trigger already opens it.",
+		},
+		{
+			prop: "showClear",
+			type: "boolean",
+			default: "false",
+			description:
+				"Whether a `Combobox.Clear` is rendered in the addon. It appears only once there is a selection, and hides the trigger while it does — the two share the field's corner.",
+		},
+		{
+			prop: "disabled",
+			type: "boolean",
+			default: "false",
+			description:
+				"Disables this field alone, OR-ed with the root's `disabled`; the trigger and clear beside it follow.",
+		},
+		{
+			prop: "children",
+			type: "Snippet",
+			default: "—",
+			description:
+				"Extra `InputGroupAddon`s, rendered inside the group after the inline-end addon that holds the trigger and clear.",
+		},
+		{
+			prop: "ref",
+			type: "HTMLInputElement | null",
+			default: "null",
+			description:
+				"Bindable reference to the `<input>` itself, not the wrapping group. It registers as the root's active field, and as the popup's default anchor when no chips container is mounted and the field is not itself inside the popup — a field inside `Combobox.Content` is skipped and the popup anchors to the trigger.",
+		},
+		{
+			prop: "class",
+			type: "string",
+			default: "—",
+			description:
+				"Applied to the wrapping `InputGroup`, not the `<input>` — the group is the field chrome, so width and margin belong here.",
+		},
+		{
+			prop: "...restProps",
+			type: "HTMLInputAttributes",
+			default: "—",
+			description:
+				"Spread onto the `<input>`. `size`, `value`, `type` and `files` are excluded and `readonly` is overwritten by the root's — the text is controlled. A caller `oninput`, `onkeydown` or `onblur` runs first and may `preventDefault()` the field's own handling.",
+		},
+	];
+
+	const triggerProps: PropRow[] = [
+		{
+			prop: "child",
+			type: "Snippet<[{ props: ComboboxTriggerChildProps }]>",
+			default: "—",
+			description:
+				"Render the trigger onto your own element — the select-shaped demos put a `Button` here. Spread `props` onto it: the payload carries an attachment under a symbol key that registers the element as the popup's anchor. `children` is not rendered in this mode.",
+		},
+		{
+			prop: "children",
+			type: "Snippet",
+			default: "—",
+			description:
+				"The button's content, rendered before the chevron. Ignored when `child` is set.",
+		},
+		{
+			prop: "aria-label",
+			type: "string",
+			default: "—",
+			description:
+				'The accessible name. Unset, a trigger with neither `child` nor `children` — the bare chevron beside a field — is named "Show options"; a trigger with content is named by what it renders.',
+		},
+		{
+			prop: "ref",
+			type: "HTMLButtonElement | null",
+			default: "null",
+			description:
+				"Bindable reference to the rendered element — populated in `child` mode too, through the attachment.",
+		},
+		{
+			prop: "class",
+			type: "string",
+			default: "—",
+			description:
+				"Merged into the class the payload carries, so a `child` element receives it through `props.class`.",
+		},
+		{
+			prop: "...restProps",
+			type: "HTMLButtonAttributes",
+			default: "—",
+			description:
+				"Spread onto the button, or handed to `child` through `props`. A caller `onclick` or `onkeydown` runs first and may `preventDefault()` the toggle or the key.",
+		},
+	];
+
+	const clearProps: PropRow[] = [
+		{
+			prop: "children",
+			type: "Snippet",
+			default: "—",
+			description: "Replaces the default `XIcon`.",
+		},
+		{
+			prop: "ref",
+			type: "HTMLElement | null",
+			default: "null",
+			description:
+				"Bindable reference to the rendered button; `null` while the button is not rendered.",
+		},
+		{
+			prop: "class",
+			type: "string",
+			default: "—",
+			description: "Merged after the ghost `icon-xs` styling.",
+		},
+		{
+			prop: "...restProps",
+			type: "ComponentProps<typeof InputGroupButton>",
+			default: "—",
+			description:
+				"Spread onto the `InputGroupButton` after the part's own `variant`, `size`, `aria-label`, `tabindex` and `disabled`, so any of them can be overridden. A caller `onclick` runs first and may `preventDefault()` the clear.",
+		},
+	];
+
+	const valueProps: PropRow[] = [
+		{
+			prop: "placeholder",
+			type: "string",
+			default: "—",
+			description:
+				"What the default `<span>` shows, muted, while nothing is selected. Unused when `children` is set.",
+		},
+		{
+			prop: "children",
+			type: "Snippet<[T]>",
+			default: "—",
+			description:
+				"Renders the selection yourself and replaces the `<span>` entirely, so `ref`, `class` and the rest go unused. Called with the selected item or `null` in single mode, and with the whole selection array in `multiple` mode.",
+		},
+		{
+			prop: "ref",
+			type: "HTMLSpanElement | null",
+			default: "null",
+			description:
+				"Bindable reference to the default `<span>`; stays `null` when `children` is set.",
+		},
+		{
+			prop: "class",
+			type: "string",
+			default: "—",
+			description: "Merged after `truncate` on the default `<span>`.",
+		},
+		{
+			prop: "...restProps",
+			type: "HTMLAttributes<HTMLSpanElement>",
+			default: "—",
+			description: "Spread onto the default `<span>`.",
+		},
+	];
+
+	const contentProps: PropRow[] = [
+		{
+			prop: "side",
+			type: "'top' | 'right' | 'bottom' | 'left'",
+			default: "'bottom'",
+			description:
+				"The preferred side of the anchor. Flipped when it does not fit, and the side actually used is reported as `data-side`, which drives the slide-in.",
+		},
+		{
+			prop: "sideOffset",
+			type: "number",
+			default: "6",
+			description: "Distance in pixels between the anchor and the popup.",
+		},
+		{
+			prop: "align",
+			type: "'start' | 'center' | 'end'",
+			default: "'start'",
+			description: "Alignment along the chosen side.",
+		},
+		{
+			prop: "alignOffset",
+			type: "number",
+			default: "0",
+			description: "Offset in pixels from the `start` or `end` alignment.",
+		},
+		{
+			prop: "anchor",
+			type: "HTMLElement | { readonly current: HTMLElement | null } | null",
+			default: "—",
+			description:
+				"What the popup positions against, and whose width it takes. Accepts an element or the holder `createComboboxAnchor()` returns. Unset, it resolves to the chips container, else the field — unless the field lives inside this popup — else the trigger.",
+		},
+		{
+			prop: "portalTo",
+			type: "Element | string",
+			default: "document.body",
+			description: "Where the popup is portalled to — an element or a selector.",
+		},
+		{
+			prop: "portalDisabled",
+			type: "boolean",
+			default: "false",
+			description: "Leaves the popup where it is in the DOM instead of portalling it.",
+		},
+		{
+			prop: "onEscapeKeydown",
+			type: "(event: KeyboardEvent) => void",
+			default: "—",
+			description:
+				"Called by bits-ui's escape layer on an `Escape` pressed anywhere in the document while the popup is open; `preventDefault()` keeps the popup open as far as the layer is concerned. The fields close the popup on `Escape` themselves, and only a caller `onkeydown` on the field can stop that.",
+		},
+		{
+			prop: "onPointerDownOutside",
+			type: "(event: PointerEvent) => void",
+			default: "—",
+			description:
+				"Called on a pointer press outside the popup that is also outside the widget's own surfaces — the field, the chips container and the trigger never count. `preventDefault()` keeps the popup open.",
+		},
+		{
+			prop: "children",
+			type: "Snippet",
+			default: "—",
+			description:
+				"The popup's parts: normally a `Combobox.Empty` and a `Combobox.List`, with a `Combobox.Input` first in the select-shaped compositions.",
+		},
+		{
+			prop: "ref",
+			type: "HTMLElement | null",
+			default: "null",
+			description:
+				"Bindable reference to the popup element. The root records it as the one place focus may travel without closing the field.",
+		},
+		{
+			prop: "class",
+			type: "string",
+			default: "—",
+			description:
+				"Merged after the popup styling — the anchor-width sizing, the `max-h` clamp and the open/close animation.",
+		},
+		{
+			prop: "...restProps",
+			type: "Popover.ContentProps",
+			default: "—",
+			description:
+				"Spread onto bits-ui's `Popover.Content` after the part's own wiring, so `escapeKeydownBehavior`, `interactOutsideBehavior`, the collision options, `forceMount` and any div attribute pass through. `trapFocus`, `preventScroll`, `customAnchor`, `onFocusOutside`, `onInteractOutside` and the auto-focus callbacks are excluded — DOM focus never enters the popup.",
+		},
+	];
+
+	const listProps: PropRow[] = [
+		{
+			prop: "children",
+			type: "Snippet<[T, number]>",
+			default: "—",
+			description:
+				"Rendered once per top-level entry the filter kept, with the entry and its index — a row in a flat list, a group entry in a grouped one, where the snippet branches to a `Combobox.Group`. `T` defaults to `any`; annotate the parameter to get the check back.",
+		},
+		{
+			prop: "ref",
+			type: "HTMLDivElement | null",
+			default: "null",
+			description:
+				"Bindable reference to the listbox — the scroll container the highlight is kept in view within.",
+		},
+		{
+			prop: "class",
+			type: "string",
+			default: "—",
+			description: "Merged after the scroll styling and the `not-empty:` padding.",
+		},
+		{
+			prop: "...restProps",
+			type: "HTMLAttributes<HTMLDivElement>",
+			default: "—",
+			description: 'Spread onto the `<div role="listbox">`.',
+		},
+	];
+
+	const itemProps: PropRow[] = [
+		{
+			prop: "value",
+			type: "T",
+			default: "—",
+			description:
+				"Required. The record this row stands for — what selecting commits into the root's `value`, and what the selection is searched for through `isItemEqualToValue`.",
+		},
+		{
+			prop: "label",
+			type: "string",
+			default: "—",
+			description:
+				"Overrides the row's string form for its `data-value` and its collection entry alone. Filtering, the field text and selection identity still go through the root's `itemToStringValue`.",
+		},
+		{
+			prop: "disabled",
+			type: "boolean",
+			default: "false",
+			description:
+				"Disables this row alone, OR-ed with the root's. A disabled row is skipped by arrow navigation, ignores clicks and hover, and renders `aria-disabled` with `data-disabled`.",
+		},
+		{
+			prop: "children",
+			type: "Snippet",
+			default: "—",
+			description:
+				"The row's content; the check indicator is appended after it, in the reserved end padding, while the row is selected.",
+		},
+		{
+			prop: "ref",
+			type: "HTMLDivElement | null",
+			default: "null",
+			description:
+				"Bindable reference to the rendered element — the collection key, and what the highlight and `aria-activedescendant` point at.",
+		},
+		{
+			prop: "class",
+			type: "string",
+			default: "—",
+			description:
+				"Merged after the row styling, `data-highlighted` and `data-disabled` variants included.",
+		},
+		{
+			prop: "...restProps",
+			type: "HTMLAttributes<HTMLDivElement>",
+			default: "—",
+			description:
+				'Spread onto the `<div role="option">`. A caller `onclick`, `onpointerdown` or `onpointermove` runs first and may `preventDefault()` the selection, the focus guard or the highlight.',
+		},
+	];
+
+	const groupProps: PropRow[] = [
+		{
+			prop: "items",
+			type: "readonly T[]",
+			default: "[]",
+			description:
+				"The rows this group holds — the `items` of one group-shaped entry. `Combobox.Collection` iterates the ones that survive the root's filter, and the whole group renders nothing while none do.",
+		},
+		{
+			prop: "children",
+			type: "Snippet",
+			default: "—",
+			description: "Normally a `Combobox.Label` and a `Combobox.Collection`.",
+		},
+		{
+			prop: "ref",
+			type: "HTMLDivElement | null",
+			default: "null",
+			description: "Bindable reference to the rendered element; `null` while the group is hidden.",
+		},
+		{
+			prop: "class",
+			type: "string",
+			default: "—",
+			description: "Merged after `group/combobox-group flex flex-col`.",
+		},
+		{
+			prop: "...restProps",
+			type: "HTMLAttributes<HTMLDivElement>",
+			default: "—",
+			description: 'Spread onto the `<div role="group">`.',
+		},
+	];
+
+	const labelProps: PropRow[] = [
+		{
+			prop: "children",
+			type: "Snippet",
+			default: "—",
+			description: "The heading text.",
+		},
+		{
+			prop: "ref",
+			type: "HTMLDivElement | null",
+			default: "null",
+			description: "Bindable reference to the rendered element.",
+		},
+		{
+			prop: "class",
+			type: "string",
+			default: "—",
+			description: "Merged after the muted `text-xs` heading styling.",
+		},
+		{
+			prop: "...restProps",
+			type: "HTMLAttributes<HTMLDivElement>",
+			default: "—",
+			description:
+				"Spread onto the `<div>`. A caller `id` replaces the one the group's `aria-labelledby` points at, and breaks the link.",
+		},
+	];
+
+	const collectionProps: PropRow[] = [
+		{
+			prop: "children",
+			type: "Snippet<[T, number]>",
+			default: "—",
+			description:
+				"Rendered once per row of the enclosing group that survives the filter, with the row and its index among the survivors. `T` defaults to `any`; annotate the parameter to get the check back.",
+		},
+	];
+
+	const emptyProps: PropRow[] = [
+		{
+			prop: "children",
+			type: "Snippet",
+			default: "—",
+			description: "The message.",
+		},
+		{
+			prop: "ref",
+			type: "HTMLDivElement | null",
+			default: "null",
+			description: "Bindable reference to the rendered element; `null` while there are matches.",
+		},
+		{
+			prop: "class",
+			type: "string",
+			default: "—",
+			description: "Merged after the centred, muted message styling.",
+		},
+		{
+			prop: "...restProps",
+			type: "HTMLAttributes<HTMLDivElement>",
+			default: "—",
+			description: "Spread onto the `<div>`.",
+		},
+	];
+
+	const separatorProps: PropRow[] = [
+		{
+			prop: "ref",
+			type: "HTMLDivElement | null",
+			default: "null",
+			description: "Bindable reference to the rendered element.",
+		},
+		{
+			prop: "class",
+			type: "string",
+			default: "—",
+			description: "Merged after the `h-px bg-border` rule styling.",
+		},
+		{
+			prop: "...restProps",
+			type: "HTMLAttributes<HTMLDivElement>",
+			default: "—",
+			description: 'Spread onto the `<div role="separator">`.',
+		},
+	];
+
+	const chipsProps: PropRow[] = [
+		{
+			prop: "children",
+			type: "Snippet",
+			default: "—",
+			description:
+				"Normally a `Combobox.Value` whose snippet renders one `Combobox.Chip` per selected entry, in order, followed by a `Combobox.ChipsInput`.",
+		},
+		{
+			prop: "ref",
+			type: "HTMLDivElement | null",
+			default: "null",
+			description:
+				"Bindable reference to the container. While mounted it is the popup's default anchor; `bind:ref={anchor.current}` on a `createComboboxAnchor()` holder makes that explicit.",
+		},
+		{
+			prop: "class",
+			type: "string",
+			default: "—",
+			description:
+				"Merged after the field chrome — border, focus ring, `has-aria-invalid` and `data-disabled` states, and the `min-h-(--control-h-default)` that lets the row grow as chips wrap.",
+		},
+		{
+			prop: "...restProps",
+			type: "HTMLAttributes<HTMLDivElement>",
+			default: "—",
+			description:
+				'Spread onto the `<div role="group">`. A caller `onpointerdown` runs first and may `preventDefault()` the focus hand-off to the input.',
+		},
+	];
+
+	const chipProps: PropRow[] = [
+		{
+			prop: "value",
+			type: "T",
+			default: "—",
+			description:
+				"The selected entry this chip stands for. Set, removal finds it in the selection by identity — `isItemEqualToValue`, else the string form. Unset, the chip's position among its rendered siblings is taken as its position in the selection, which holds while `Combobox.Value` renders one chip per entry, in order.",
+		},
+		{
+			prop: "showRemove",
+			type: "boolean",
+			default: "true",
+			description:
+				"Whether the ghost `icon-xs` remove button is rendered. Without it the chip is unpicked from the list, or with `Backspace` from an empty chips input — that key belongs to the input, not the chip.",
+		},
+		{
+			prop: "children",
+			type: "Snippet",
+			default: "—",
+			description: "The chip's content, rendered before the remove button.",
+		},
+		{
+			prop: "ref",
+			type: "HTMLSpanElement | null",
+			default: "null",
+			description: "Bindable reference to the `<span>` — also what positional removal locates.",
+		},
+		{
+			prop: "class",
+			type: "string",
+			default: "—",
+			description: "Merged after the `h-6 bg-muted text-xs` pill styling.",
+		},
+		{
+			prop: "...restProps",
+			type: "HTMLAttributes<HTMLSpanElement>",
+			default: "—",
+			description: "Spread onto the `<span>`.",
+		},
+	];
+
+	const chipsInputProps: PropRow[] = [
+		{
+			prop: "ref",
+			type: "HTMLInputElement | null",
+			default: "null",
+			description:
+				"Bindable reference to the `<input>`, which registers itself as the root's active field.",
+		},
+		{
+			prop: "class",
+			type: "string",
+			default: "—",
+			description:
+				"Merged after the bare `h-6 min-w-16 flex-1` styling — no border or ring here; the `Combobox.Chips` container is the field chrome.",
+		},
+		{
+			prop: "...restProps",
+			type: "HTMLInputAttributes",
+			default: "—",
+			description:
+				"Spread onto the `<input>`. `size`, `value` and `type` are excluded, and `disabled` and `readonly` are overwritten by the root's. A caller `oninput`, `onkeydown` or `onblur` runs first and may `preventDefault()` the field's own handling.",
+		},
+	];
 </script>
 
 <!--
@@ -3904,5 +4590,541 @@
 				</Field.Field>
 			</Card.Content>
 		</Card.Root>
+	</DocSection>
+	<DocSection title="API reference">
+		<div class="flex flex-col gap-3">
+			<h3 class="text-base font-medium">Combobox.Root</h3>
+			<p class="text-sm text-muted-foreground">
+				The container for every part. Owns the data, the filter, the selection, the open state and
+				the highlight. It renders no element of its own — only the clipped form controls once
+				<code>name</code> is set — and every other part but <code>Combobox.Separator</code> throws when
+				used outside it.
+			</p>
+			<Card.Root>
+				<Card.Content class="px-0 [&_[data-slot=table-cell]]:whitespace-normal">
+					<Table.Root>
+						<Table.Header>
+							<Table.Row>
+								<Table.Head>Prop</Table.Head>
+								<Table.Head>Type</Table.Head>
+								<Table.Head>Default</Table.Head>
+								<Table.Head>Description</Table.Head>
+							</Table.Row>
+						</Table.Header>
+						<Table.Body>
+							{#each rootProps as row (row.prop)}
+								<Table.Row>
+									<Table.Cell class="font-medium">{row.prop}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.type}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.default}</Table.Cell>
+									<Table.Cell>{row.description}</Table.Cell>
+								</Table.Row>
+							{/each}
+						</Table.Body>
+					</Table.Root>
+				</Card.Content>
+			</Card.Root>
+		</div>
+
+		<div class="flex flex-col gap-3">
+			<h3 class="text-base font-medium">Combobox.Input</h3>
+			<p class="text-sm text-muted-foreground">
+				The field: an <code>InputGroup</code> wrapping the
+				<code>&lt;input role="combobox"&gt;</code>, with the trigger and clear buttons in an
+				inline-end addon. Its text is controlled by the root — the query while typing, the committed
+				selection otherwise — and focus leaving it for anywhere but the widget's own surfaces closes
+				the popup.
+			</p>
+			<Card.Root>
+				<Card.Content class="px-0 [&_[data-slot=table-cell]]:whitespace-normal">
+					<Table.Root>
+						<Table.Header>
+							<Table.Row>
+								<Table.Head>Prop</Table.Head>
+								<Table.Head>Type</Table.Head>
+								<Table.Head>Default</Table.Head>
+								<Table.Head>Description</Table.Head>
+							</Table.Row>
+						</Table.Header>
+						<Table.Body>
+							{#each inputProps as row (row.prop)}
+								<Table.Row>
+									<Table.Cell class="font-medium">{row.prop}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.type}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.default}</Table.Cell>
+									<Table.Cell>{row.description}</Table.Cell>
+								</Table.Row>
+							{/each}
+						</Table.Body>
+					</Table.Root>
+				</Card.Content>
+			</Card.Root>
+		</div>
+
+		<div class="flex flex-col gap-3">
+			<h3 class="text-base font-medium">Combobox.Trigger</h3>
+			<p class="text-sm text-muted-foreground">
+				The <code>&lt;button&gt;</code> that opens the popup. Beside a field it is the chevron
+				affordance; standalone with <code>child</code> it is the whole select-shaped control and the
+				keyboard surface, so the arrows, <code>Enter</code> and <code>Escape</code> work from it. A
+				click toggles the popup and, when opening, hands focus to the outer field; a
+				<code>disabled</code> or <code>readonly</code> root ignores it.
+			</p>
+			<Card.Root>
+				<Card.Content class="px-0 [&_[data-slot=table-cell]]:whitespace-normal">
+					<Table.Root>
+						<Table.Header>
+							<Table.Row>
+								<Table.Head>Prop</Table.Head>
+								<Table.Head>Type</Table.Head>
+								<Table.Head>Default</Table.Head>
+								<Table.Head>Description</Table.Head>
+							</Table.Row>
+						</Table.Header>
+						<Table.Body>
+							{#each triggerProps as row (row.prop)}
+								<Table.Row>
+									<Table.Cell class="font-medium">{row.prop}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.type}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.default}</Table.Cell>
+									<Table.Cell>{row.description}</Table.Cell>
+								</Table.Row>
+							{/each}
+						</Table.Body>
+					</Table.Root>
+				</Card.Content>
+			</Card.Root>
+		</div>
+
+		<div class="flex flex-col gap-3">
+			<h3 class="text-base font-medium">Combobox.Clear</h3>
+			<p class="text-sm text-muted-foreground">
+				The clear affordance: a ghost <code>icon-xs</code> <code>InputGroupButton</code> that empties
+				the selection and the query, then hands focus back to the field — or to the trigger when the field
+				lives inside the popup. It renders only while there is a selection, and its presence is what hides
+				the sibling trigger.
+			</p>
+			<Card.Root>
+				<Card.Content class="px-0 [&_[data-slot=table-cell]]:whitespace-normal">
+					<Table.Root>
+						<Table.Header>
+							<Table.Row>
+								<Table.Head>Prop</Table.Head>
+								<Table.Head>Type</Table.Head>
+								<Table.Head>Default</Table.Head>
+								<Table.Head>Description</Table.Head>
+							</Table.Row>
+						</Table.Header>
+						<Table.Body>
+							{#each clearProps as row (row.prop)}
+								<Table.Row>
+									<Table.Cell class="font-medium">{row.prop}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.type}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.default}</Table.Cell>
+									<Table.Cell>{row.description}</Table.Cell>
+								</Table.Row>
+							{/each}
+						</Table.Body>
+					</Table.Root>
+				</Card.Content>
+			</Card.Root>
+		</div>
+
+		<div class="flex flex-col gap-3">
+			<h3 class="text-base font-medium">Combobox.Value</h3>
+			<p class="text-sm text-muted-foreground">
+				The selection's rendering, inside a select-shaped <code>Combobox.Trigger</code> or a
+				<code>Combobox.Chips</code>. Without a snippet it renders a <code>&lt;span&gt;</code>
+				holding the selection's string forms — joined with commas in <code>multiple</code> mode — or
+				the placeholder, with <code>data-placeholder</code> set while empty.
+			</p>
+			<Card.Root>
+				<Card.Content class="px-0 [&_[data-slot=table-cell]]:whitespace-normal">
+					<Table.Root>
+						<Table.Header>
+							<Table.Row>
+								<Table.Head>Prop</Table.Head>
+								<Table.Head>Type</Table.Head>
+								<Table.Head>Default</Table.Head>
+								<Table.Head>Description</Table.Head>
+							</Table.Row>
+						</Table.Header>
+						<Table.Body>
+							{#each valueProps as row (row.prop)}
+								<Table.Row>
+									<Table.Cell class="font-medium">{row.prop}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.type}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.default}</Table.Cell>
+									<Table.Cell>{row.description}</Table.Cell>
+								</Table.Row>
+							{/each}
+						</Table.Body>
+					</Table.Root>
+				</Card.Content>
+			</Card.Root>
+		</div>
+
+		<div class="flex flex-col gap-3">
+			<h3 class="text-base font-medium">Combobox.Content</h3>
+			<p class="text-sm text-muted-foreground">
+				The portalled popup: bits-ui's <code>Popover.Content</code> supplying the portal, the floating
+				position and the dismissible layer, sized to its anchor's width. Focus never enters it — the fields
+				close on blur, and the popup opts out of focus trapping and auto-focus.
+			</p>
+			<Card.Root>
+				<Card.Content class="px-0 [&_[data-slot=table-cell]]:whitespace-normal">
+					<Table.Root>
+						<Table.Header>
+							<Table.Row>
+								<Table.Head>Prop</Table.Head>
+								<Table.Head>Type</Table.Head>
+								<Table.Head>Default</Table.Head>
+								<Table.Head>Description</Table.Head>
+							</Table.Row>
+						</Table.Header>
+						<Table.Body>
+							{#each contentProps as row (row.prop)}
+								<Table.Row>
+									<Table.Cell class="font-medium">{row.prop}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.type}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.default}</Table.Cell>
+									<Table.Cell>{row.description}</Table.Cell>
+								</Table.Row>
+							{/each}
+						</Table.Body>
+					</Table.Root>
+				</Card.Content>
+			</Card.Root>
+		</div>
+
+		<div class="flex flex-col gap-3">
+			<h3 class="text-base font-medium">Combobox.List</h3>
+			<p class="text-sm text-muted-foreground">
+				The <code>role="listbox"</code> scroll container — the field's <code>aria-controls</code>
+				target, <code>aria-multiselectable</code> in <code>multiple</code> mode. It owns the
+				iteration: the root decides which entries survive, the list renders one
+				<code>children</code> per survivor, and it collapses to no padding when nothing does.
+			</p>
+			<Card.Root>
+				<Card.Content class="px-0 [&_[data-slot=table-cell]]:whitespace-normal">
+					<Table.Root>
+						<Table.Header>
+							<Table.Row>
+								<Table.Head>Prop</Table.Head>
+								<Table.Head>Type</Table.Head>
+								<Table.Head>Default</Table.Head>
+								<Table.Head>Description</Table.Head>
+							</Table.Row>
+						</Table.Header>
+						<Table.Body>
+							{#each listProps as row (row.prop)}
+								<Table.Row>
+									<Table.Cell class="font-medium">{row.prop}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.type}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.default}</Table.Cell>
+									<Table.Cell>{row.description}</Table.Cell>
+								</Table.Row>
+							{/each}
+						</Table.Body>
+					</Table.Root>
+				</Card.Content>
+			</Card.Root>
+		</div>
+
+		<div class="flex flex-col gap-3">
+			<h3 class="text-base font-medium">Combobox.Item</h3>
+			<p class="text-sm text-muted-foreground">
+				One <code>role="option"</code> row, check indicator included. Highlight is not focus: DOM
+				focus stays in the field and the highlighted row is announced through
+				<code>aria-activedescendant</code>, so hovering highlights and clicking commits.
+				<code>aria-selected</code> and <code>data-selected</code> answer the selection question.
+			</p>
+			<Card.Root>
+				<Card.Content class="px-0 [&_[data-slot=table-cell]]:whitespace-normal">
+					<Table.Root>
+						<Table.Header>
+							<Table.Row>
+								<Table.Head>Prop</Table.Head>
+								<Table.Head>Type</Table.Head>
+								<Table.Head>Default</Table.Head>
+								<Table.Head>Description</Table.Head>
+							</Table.Row>
+						</Table.Header>
+						<Table.Body>
+							{#each itemProps as row (row.prop)}
+								<Table.Row>
+									<Table.Cell class="font-medium">{row.prop}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.type}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.default}</Table.Cell>
+									<Table.Cell>{row.description}</Table.Cell>
+								</Table.Row>
+							{/each}
+						</Table.Body>
+					</Table.Root>
+				</Card.Content>
+			</Card.Root>
+		</div>
+
+		<div class="flex flex-col gap-3">
+			<h3 class="text-base font-medium">Combobox.Group</h3>
+			<p class="text-sm text-muted-foreground">
+				A labelled <code>role="group"</code> section of the list, <code>aria-labelledby</code> its
+				<code>Combobox.Label</code>. It hides itself while none of its <code>items</code> match, so an
+				empty heading never renders.
+			</p>
+			<Card.Root>
+				<Card.Content class="px-0 [&_[data-slot=table-cell]]:whitespace-normal">
+					<Table.Root>
+						<Table.Header>
+							<Table.Row>
+								<Table.Head>Prop</Table.Head>
+								<Table.Head>Type</Table.Head>
+								<Table.Head>Default</Table.Head>
+								<Table.Head>Description</Table.Head>
+							</Table.Row>
+						</Table.Header>
+						<Table.Body>
+							{#each groupProps as row (row.prop)}
+								<Table.Row>
+									<Table.Cell class="font-medium">{row.prop}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.type}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.default}</Table.Cell>
+									<Table.Cell>{row.description}</Table.Cell>
+								</Table.Row>
+							{/each}
+						</Table.Body>
+					</Table.Root>
+				</Card.Content>
+			</Card.Root>
+		</div>
+
+		<div class="flex flex-col gap-3">
+			<h3 class="text-base font-medium">Combobox.Label</h3>
+			<p class="text-sm text-muted-foreground">
+				The heading a <code>Combobox.Group</code> names itself with — its id is the group's
+				<code>aria-labelledby</code> target, so it must sit inside one and throws otherwise.
+			</p>
+			<Card.Root>
+				<Card.Content class="px-0 [&_[data-slot=table-cell]]:whitespace-normal">
+					<Table.Root>
+						<Table.Header>
+							<Table.Row>
+								<Table.Head>Prop</Table.Head>
+								<Table.Head>Type</Table.Head>
+								<Table.Head>Default</Table.Head>
+								<Table.Head>Description</Table.Head>
+							</Table.Row>
+						</Table.Header>
+						<Table.Body>
+							{#each labelProps as row (row.prop)}
+								<Table.Row>
+									<Table.Cell class="font-medium">{row.prop}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.type}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.default}</Table.Cell>
+									<Table.Cell>{row.description}</Table.Cell>
+								</Table.Row>
+							{/each}
+						</Table.Body>
+					</Table.Root>
+				</Card.Content>
+			</Card.Root>
+		</div>
+
+		<div class="flex flex-col gap-3">
+			<h3 class="text-base font-medium">Combobox.Collection</h3>
+			<p class="text-sm text-muted-foreground">
+				The rows of the enclosing <code>Combobox.Group</code>. It renders no element of its own —
+				the group is already the labelled container — and throws outside one.
+			</p>
+			<Card.Root>
+				<Card.Content class="px-0 [&_[data-slot=table-cell]]:whitespace-normal">
+					<Table.Root>
+						<Table.Header>
+							<Table.Row>
+								<Table.Head>Prop</Table.Head>
+								<Table.Head>Type</Table.Head>
+								<Table.Head>Default</Table.Head>
+								<Table.Head>Description</Table.Head>
+							</Table.Row>
+						</Table.Header>
+						<Table.Body>
+							{#each collectionProps as row (row.prop)}
+								<Table.Row>
+									<Table.Cell class="font-medium">{row.prop}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.type}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.default}</Table.Cell>
+									<Table.Cell>{row.description}</Table.Cell>
+								</Table.Row>
+							{/each}
+						</Table.Body>
+					</Table.Root>
+				</Card.Content>
+			</Card.Root>
+		</div>
+
+		<div class="flex flex-col gap-3">
+			<h3 class="text-base font-medium">Combobox.Empty</h3>
+			<p class="text-sm text-muted-foreground">
+				What the popup says when the filter kept no row. It renders only then, so it sits beside
+				<code>Combobox.List</code> unconditionally; in grouped data the question is asked of the rows,
+				so a list of empty groups counts as empty.
+			</p>
+			<Card.Root>
+				<Card.Content class="px-0 [&_[data-slot=table-cell]]:whitespace-normal">
+					<Table.Root>
+						<Table.Header>
+							<Table.Row>
+								<Table.Head>Prop</Table.Head>
+								<Table.Head>Type</Table.Head>
+								<Table.Head>Default</Table.Head>
+								<Table.Head>Description</Table.Head>
+							</Table.Row>
+						</Table.Header>
+						<Table.Body>
+							{#each emptyProps as row (row.prop)}
+								<Table.Row>
+									<Table.Cell class="font-medium">{row.prop}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.type}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.default}</Table.Cell>
+									<Table.Cell>{row.description}</Table.Cell>
+								</Table.Row>
+							{/each}
+						</Table.Body>
+					</Table.Root>
+				</Card.Content>
+			</Card.Root>
+		</div>
+
+		<div class="flex flex-col gap-3">
+			<h3 class="text-base font-medium">Combobox.Separator</h3>
+			<p class="text-sm text-muted-foreground">
+				A <code>role="separator"</code> rule between two runs of options. It reads no context, so it renders
+				wherever it is placed.
+			</p>
+			<Card.Root>
+				<Card.Content class="px-0 [&_[data-slot=table-cell]]:whitespace-normal">
+					<Table.Root>
+						<Table.Header>
+							<Table.Row>
+								<Table.Head>Prop</Table.Head>
+								<Table.Head>Type</Table.Head>
+								<Table.Head>Default</Table.Head>
+								<Table.Head>Description</Table.Head>
+							</Table.Row>
+						</Table.Header>
+						<Table.Body>
+							{#each separatorProps as row (row.prop)}
+								<Table.Row>
+									<Table.Cell class="font-medium">{row.prop}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.type}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.default}</Table.Cell>
+									<Table.Cell>{row.description}</Table.Cell>
+								</Table.Row>
+							{/each}
+						</Table.Body>
+					</Table.Root>
+				</Card.Content>
+			</Card.Root>
+		</div>
+
+		<div class="flex flex-col gap-3">
+			<h3 class="text-base font-medium">Combobox.Chips</h3>
+			<p class="text-sm text-muted-foreground">
+				The multi-select's field: a wrapping <code>role="group"</code> row of chips with the search
+				input flowing after them, carrying the <code>Input</code>-style border, ring, invalid and
+				disabled states. A press on its padding focuses the chips input, and while mounted it is the
+				popup's default anchor.
+			</p>
+			<Card.Root>
+				<Card.Content class="px-0 [&_[data-slot=table-cell]]:whitespace-normal">
+					<Table.Root>
+						<Table.Header>
+							<Table.Row>
+								<Table.Head>Prop</Table.Head>
+								<Table.Head>Type</Table.Head>
+								<Table.Head>Default</Table.Head>
+								<Table.Head>Description</Table.Head>
+							</Table.Row>
+						</Table.Header>
+						<Table.Body>
+							{#each chipsProps as row (row.prop)}
+								<Table.Row>
+									<Table.Cell class="font-medium">{row.prop}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.type}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.default}</Table.Cell>
+									<Table.Cell>{row.description}</Table.Cell>
+								</Table.Row>
+							{/each}
+						</Table.Body>
+					</Table.Root>
+				</Card.Content>
+			</Card.Root>
+		</div>
+
+		<div class="flex flex-col gap-3">
+			<h3 class="text-base font-medium">Combobox.Chip</h3>
+			<p class="text-sm text-muted-foreground">
+				One committed selection in the chips row, remove button included. Removal is a no-op on a
+				<code>disabled</code> or <code>readonly</code> root; otherwise it writes the selection back without
+				that entry and returns focus to the chips input.
+			</p>
+			<Card.Root>
+				<Card.Content class="px-0 [&_[data-slot=table-cell]]:whitespace-normal">
+					<Table.Root>
+						<Table.Header>
+							<Table.Row>
+								<Table.Head>Prop</Table.Head>
+								<Table.Head>Type</Table.Head>
+								<Table.Head>Default</Table.Head>
+								<Table.Head>Description</Table.Head>
+							</Table.Row>
+						</Table.Header>
+						<Table.Body>
+							{#each chipProps as row (row.prop)}
+								<Table.Row>
+									<Table.Cell class="font-medium">{row.prop}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.type}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.default}</Table.Cell>
+									<Table.Cell>{row.description}</Table.Cell>
+								</Table.Row>
+							{/each}
+						</Table.Body>
+					</Table.Root>
+				</Card.Content>
+			</Card.Root>
+		</div>
+
+		<div class="flex flex-col gap-3">
+			<h3 class="text-base font-medium">Combobox.ChipsInput</h3>
+			<p class="text-sm text-muted-foreground">
+				The bare search input that flows after the chips: the same controlled text, keyboard
+				handling and blur-close as <code>Combobox.Input</code>, plus the one key the chips flow owns
+				— <code>Backspace</code> on an empty field removes the last chip.
+			</p>
+			<Card.Root>
+				<Card.Content class="px-0 [&_[data-slot=table-cell]]:whitespace-normal">
+					<Table.Root>
+						<Table.Header>
+							<Table.Row>
+								<Table.Head>Prop</Table.Head>
+								<Table.Head>Type</Table.Head>
+								<Table.Head>Default</Table.Head>
+								<Table.Head>Description</Table.Head>
+							</Table.Row>
+						</Table.Header>
+						<Table.Body>
+							{#each chipsInputProps as row (row.prop)}
+								<Table.Row>
+									<Table.Cell class="font-medium">{row.prop}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.type}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.default}</Table.Cell>
+									<Table.Cell>{row.description}</Table.Cell>
+								</Table.Row>
+							{/each}
+						</Table.Body>
+					</Table.Root>
+				</Card.Content>
+			</Card.Root>
+		</div>
 	</DocSection>
 </DocPage>
