@@ -37,6 +37,12 @@
 	 * changes nothing about the element. `mergeProps` rather than a spread, so the trigger's own
 	 * handlers chain with the caller's instead of replacing them (`event-calendar-nav-next.svelte`
 	 * is the precedent).
+	 *
+	 * THE `data-slot` SITS BEFORE `restProps`, not after it, so a part built ON this one can rebadge
+	 * itself: `prompt-input-action-menu-trigger.svelte` is the caller that does. Nothing changes for
+	 * anyone else — the merge is later-wins, so with no `data-slot` in `restProps` the literal still
+	 * stands. `class` stays last, where a call-site class has to be, since it is merged rather than
+	 * overwritten.
 	 */
 	let {
 		ref = $bindable(null),
@@ -58,8 +64,7 @@
 		{variant}
 		{size}
 		{type}
-		{...mergeProps(props, restProps, {
-			"data-slot": "prompt-input-button",
+		{...mergeProps(props, { "data-slot": "prompt-input-button" }, restProps, {
 			class: cn(className),
 		})}
 	>

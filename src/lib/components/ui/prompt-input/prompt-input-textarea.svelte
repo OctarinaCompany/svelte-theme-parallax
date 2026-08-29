@@ -40,6 +40,15 @@
 	 * turn. Resolving the part by its `data-slot` and refusing when it is disabled OR not a submit
 	 * button makes Enter follow the button: while the button says Stop, Enter does nothing. A form
 	 * without the part falls back to the first submit button, as upstream checks.
+	 *
+	 * BACKSPACE IN AN EMPTY DRAFT DELETES THE LAST ATTACHMENT — upstream's behaviour, kept. It is
+	 * checked before Enter, and only while the draft is empty, so it can never eat a character;
+	 * with nothing attached the keystroke is left to the browser.
+	 *
+	 * PASTING A FILE ATTACHES IT. The clipboard's file items are collected and handed to the same
+	 * validating `add` the dialog and the drop use; the paste's default is prevented only when
+	 * there was at least one file, so pasting text is untouched and a paste of BOTH text and a
+	 * file attaches the file and drops the text, as upstream does.
 	 */
 	let {
 		ref = $bindable(null),
@@ -47,6 +56,7 @@
 		placeholder = "What would you like to know?",
 		disabled,
 		onkeydown,
+		onpaste,
 		oncompositionstart,
 		oncompositionend,
 		...restProps
@@ -61,6 +71,15 @@
 	) {
 		onkeydown?.(event);
 		if (event.defaultPrevented) return;
+
+		if (event.key === "Backspace" && input.value === "") {
+			const last = input.attachments.files.at(-1);
+			if (!last) return;
+			event.preventDefault();
+			input.attachments.remove(last.id);
+			return;
+		}
+
 		if (event.key !== "Enter" || event.shiftKey) return;
 		if (composing || event.isComposing) return;
 
@@ -71,6 +90,28 @@
 		const guard = submit ?? form.querySelector<HTMLButtonElement>('button[type="submit"]');
 		if (guard?.disabled || guard?.type === "button") return;
 		form.requestSubmit();
+	}
+
+	function handlePaste(
+		event: ClipboardEvent & { currentTarget: EventTarget & HTMLTextAreaElement },
+	) {
+		onpaste?.(event);
+		if (event.defaultPrevented) return;
+
+		const items = event.clipboardData?.items;
+		if (!items) return;
+
+		// `DataTransferItemList` is array-like rather than an array, so `Array.from` is what gives it
+		// `filter` and `map`. `kind === "file"` is what a screenshot or a copied file arrives as
+		// (MDN, `DataTransferItem.kind`).
+		const files = Array.from(items)
+			.filter((item) => item.kind === "file")
+			.map((item) => item.getAsFile())
+			.filter((file): file is File => file !== null);
+		if (files.length === 0) return;
+
+		event.preventDefault();
+		input.attachments.add(files);
 	}
 </script>
 
@@ -87,6 +128,7 @@
 	disabled={input.disabled || disabled}
 	class={cn("field-sizing-content max-h-48 min-h-16 resize-none", className)}
 	onkeydown={handleKeydown}
+	onpaste={handlePaste}
 	oncompositionstart={(event) => {
 		composing = true;
 		oncompositionstart?.(event);

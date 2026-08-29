@@ -127,6 +127,143 @@ export function useMessage(): MessageState {
 }
 
 /**
+ * Clamp a caller's branch index to something renderable.
+ *
+ * A count of `0` and an index that is not a finite number both resolve to `0`; a fractional index
+ * is truncated. The clamp is READ-ONLY: `Message.Branch` never writes the corrected value back
+ * into `branch`, so a caller whose index is briefly out of range — an array being rebuilt while a
+ * new alternative streams in — gets the nearest branch rendered and keeps the value it wrote.
+ * Upstream clamps nothing; an out-of-range index there renders an empty content box.
+ */
+export function clampBranchIndex(index: number, count: number): number {
+	if (count <= 0 || !Number.isFinite(index)) return 0;
+	return Math.min(Math.max(Math.trunc(index), 0), count - 1);
+}
+
+/**
+ * Reactive inputs for {@link MessageBranchState}. Getters rather than values, the shape
+ * {@link MessageStateProps} uses, so the class keeps tracking the root's props instead of
+ * snapshotting them.
+ */
+export type MessageBranchStateProps = {
+	/** The active index as the root's `branch` prop currently reads. */
+	getBranch: () => number;
+	/** Move to `index`, firing the root's `onBranchChange` on a real change and never otherwise. */
+	setBranch: (index: number) => void;
+	/** Whether stepping past an end wraps around to the other one. */
+	getLoop: () => boolean;
+};
+
+/**
+ * One instance per `<Message.Branch>`: which alternative answer is on screen, how many there are,
+ * and the two steps between them. Published on context — `Message.BranchContent` writes the count,
+ * and the selector, the two buttons and the counter read it.
+ *
+ * WHERE THE COUNT COMES FROM. Upstream turns its React children into an array
+ * (`Children.toArray`) inside `MessageBranchContent` and pushes that array back up to the root.
+ * Svelte has no inspectable children — a snippet is a render function, not a list — so
+ * `Message.BranchContent` takes the alternatives as a `branches: Snippet[]` prop and publishes
+ * `branches.length` here. That part's own comment states the choice and what it was weighed
+ * against.
+ *
+ * The count is `$state` written by a child rather than `$derived` over the root's own props,
+ * because the root does not hold the branches. It therefore arrives one flush after the render
+ * that created it — the same lag `<Stepper.Item>`'s registration has in `ui/stepper` — and
+ * nothing depends on the first pass: `Message.BranchSelector` renders nothing below two branches
+ * and `Message.BranchPage` reads `0 of 0`, and both settle in the effect flush that follows the
+ * mount.
+ */
+export class MessageBranchState {
+	// $derived below is lazy at runtime (evaluated only when a member is read), but svelte-check's
+	// static analysis cannot see that and flags the field as used before its constructor assignment.
+	#props!: MessageBranchStateProps;
+
+	#count = $state(0);
+
+	/** How many alternatives `Message.BranchContent` is holding. `0` until it has registered. */
+	get count(): number {
+		return this.#count;
+	}
+
+	/** The index actually rendered: the caller's `branch`, clamped by {@link clampBranchIndex}. */
+	readonly activeIndex: number = $derived(clampBranchIndex(this.#props.getBranch(), this.count));
+
+	/** The one-based position the counter prints, and `0` while there is nothing to count. */
+	readonly position: number = $derived(this.count === 0 ? 0 : this.activeIndex + 1);
+
+	/**
+	 * Whether stepping back is possible: never with fewer than two branches, always while the root
+	 * loops, and otherwise only away from the first. Upstream disables its buttons on the first test
+	 * alone, because it always loops.
+	 */
+	readonly canGoPrevious: boolean = $derived(
+		this.count > 1 && (this.#props.getLoop() || this.activeIndex > 0),
+	);
+
+	/** The mirror of {@link canGoPrevious} at the other end. */
+	readonly canGoNext: boolean = $derived(
+		this.count > 1 && (this.#props.getLoop() || this.activeIndex < this.count - 1),
+	);
+
+	constructor(props: MessageBranchStateProps) {
+		this.#props = props;
+	}
+
+	/**
+	 * Publish how many alternatives are being held. A write of the count already held is dropped, so
+	 * a caller that rebuilds its snippet array on every render does not invalidate every reader.
+	 *
+	 * ONE `Message.BranchContent` PER `<Message.Branch>` is the contract: a second one overwrites
+	 * the first one's count and the counter then describes the wrong part. Upstream has the same
+	 * single-writer assumption and does not check it either.
+	 */
+	setCount(next: number): void {
+		if (next === this.#count) return;
+		this.#count = next;
+	}
+
+	/**
+	 * Step back one alternative, wrapping to the last when the root loops. A no-op when
+	 * {@link canGoPrevious} is false, which is also what disables `Message.BranchPrevious` — so the
+	 * guard is only ever reached by a caller driving the state itself.
+	 */
+	goPrevious(): void {
+		if (!this.canGoPrevious) return;
+		this.#props.setBranch(this.activeIndex > 0 ? this.activeIndex - 1 : this.count - 1);
+	}
+
+	/** The mirror of {@link goPrevious}: forward one, wrapping to the first when the root loops. */
+	goNext(): void {
+		if (!this.canGoNext) return;
+		this.#props.setBranch(this.activeIndex < this.count - 1 ? this.activeIndex + 1 : 0);
+	}
+}
+
+const MESSAGE_BRANCH_CONTEXT_KEY = Symbol("message-branch");
+
+export function setMessageBranchContext(state: MessageBranchState): MessageBranchState {
+	return setContext(MESSAGE_BRANCH_CONTEXT_KEY, state);
+}
+
+export function hasMessageBranchContext(): boolean {
+	return hasContext(MESSAGE_BRANCH_CONTEXT_KEY);
+}
+
+export function getMessageBranchContext(part?: string): MessageBranchState {
+	if (!hasMessageBranchContext()) {
+		throw new Error(
+			`${part ?? "`<Message.Branch>` part"} must be used within \`<Message.Branch>\`.`,
+		);
+	}
+	return getContext<MessageBranchState>(MESSAGE_BRANCH_CONTEXT_KEY);
+}
+
+/** Parity name for the selector-hook shape the other ports expose. Delegates to the getter. */
+export function useMessageBranch(): MessageBranchState {
+	return getMessageBranchContext();
+}
+
+/**
  * The shape of a Streamdown theme override — every group optional, every class inside it
  * optional. Reached through the props type rather than imported by name because
  * `svelte-streamdown` exports `Theme` but not its partial form.

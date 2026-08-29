@@ -708,7 +708,7 @@ npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-para
 
 ## parallax-message
 
-One turn of a chat — a user bubble or an assistant answer — with a Markdown response rendered through svelte-streamdown, actions and a toolbar. Installing it brings svelte-streamdown and needs one `@source` line in the stylesheet.
+One turn of a chat — a user bubble or an assistant answer — with a Markdown response rendered through svelte-streamdown, actions, a toolbar, and a pager for walking the alternatives a regenerate leaves behind. Installing it brings svelte-streamdown and needs one `@source` line in the stylesheet.
 
 ```sh
 npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-message.json
@@ -798,7 +798,7 @@ npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-para
 
 ## parallax-prompt-input
 
-The composer: an auto-growing textarea that submits on Enter, a header and footer for tools, borderless selects, and a submit button that becomes a stop button while a reply is in flight.
+The composer: an auto-growing textarea that submits on Enter, a header and footer for tools, borderless selects, and a submit button that becomes a stop button while a reply is in flight. Files attach from its action menu, a drop or a paste, validated against `accept`, `maxFiles` and `maxFileSize`.
 
 ```sh
 npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-prompt-input.json

@@ -18,6 +18,17 @@ ships today is listed here.
   selector — ported from Vercel's AI Elements to this kit's primitives, each published as a
   `parallax-<name>` registry item and documented by a page with an API reference. `code-block`
   gains a `filename` prop and a `CodeBlock.DownloadButton`.
+- Attachments and an action menu on `prompt-input`, the follow-up its first release named:
+  `PromptInput.Attachments` and `.Attachment` above the textarea, `.ActionMenu` with
+  `.ActionAddAttachments`, and files arriving from the menu, a drop or a paste. `accept` (media
+  types **and** extensions), `multiple` as a real ceiling, `maxFiles` and `maxFileSize` are
+  enforced in code rather than left to the input's attributes, and a partial rejection is
+  reported rather than swallowed. `onSubmit` receives `{ text, files }`, each file carrying the
+  picked `File` beside the object URL the composer owns and revokes.
+- Branch navigation on `message`: `Message.Branch` around the alternatives a regenerate leaves
+  behind, with `.BranchContent`, `.BranchSelector`, `.BranchPrevious`, `.BranchNext` and an
+  announced `.BranchPage` counter. The alternatives are a `branches: Snippet[]` prop — Svelte
+  cannot count children the way the React original does — and only the active one is mounted.
 - Four languages in `code-block`: `csv`, `md`, `sql` and `yaml`, each with the label, registered
   MIME type and extension its downloads need — a ```` ```csv customers.csv ```` fence in a chat
   answer used to render under the label `Text` and save as `text/plain`. SQL brings the `--` line

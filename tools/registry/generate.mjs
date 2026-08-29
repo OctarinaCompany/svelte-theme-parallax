@@ -833,7 +833,7 @@ const UI_DESCRIPTIONS = {
 	menubar:
 		"The house menubar: shadcn's API with the flat row treatment, ring-drawn popovers and indicators on the leading edge.",
 	message:
-		"One turn of a chat — a user bubble or an assistant answer — with a Markdown response rendered through svelte-streamdown, actions and a toolbar. Installing it brings svelte-streamdown and needs one `@source` line in the stylesheet.",
+		"One turn of a chat — a user bubble or an assistant answer — with a Markdown response rendered through svelte-streamdown, actions, a toolbar, and a pager for walking the alternatives a regenerate leaves behind. Installing it brings svelte-streamdown and needs one `@source` line in the stylesheet.",
 	"model-selector":
 		"A command palette for choosing a model: searchable groups per provider, provider logos, a name slot. Chosen values are the caller's; the component only presents the list.",
 	"native-select":
@@ -854,7 +854,7 @@ const UI_DESCRIPTIONS = {
 		"The house popover: shadcn's API plus `Header`, `Title` and `Description` parts, so a popover with a heading is composed rather than hand-laid.",
 	progress: "The house progress bar: shadcn's API as a slim rounded track on the muted ground.",
 	"prompt-input":
-		"The composer: an auto-growing textarea that submits on Enter, a header and footer for tools, borderless selects, and a submit button that becomes a stop button while a reply is in flight.",
+		"The composer: an auto-growing textarea that submits on Enter, a header and footer for tools, borderless selects, and a submit button that becomes a stop button while a reply is in flight. Files attach from its action menu, a drop or a paste, validated against `accept`, `maxFiles` and `maxFileSize`.",
 	"qr-code":
 		"A QR code you compose: the same value rendered as SVG, canvas or image, with a centre overlay, a loading skeleton and a download control.",
 	question:

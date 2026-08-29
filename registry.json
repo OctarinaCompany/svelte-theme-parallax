@@ -5973,9 +5973,10 @@
 			"name": "parallax-message",
 			"type": "registry:ui",
 			"title": "Message",
-			"description": "One turn of a chat — a user bubble or an assistant answer — with a Markdown response rendered through svelte-streamdown, actions and a toolbar. Installing it brings svelte-streamdown and needs one `@source` line in the stylesheet.",
+			"description": "One turn of a chat — a user bubble or an assistant answer — with a Markdown response rendered through svelte-streamdown, actions, a toolbar, and a pager for walking the alternatives a regenerate leaves behind. Installing it brings svelte-streamdown and needs one `@source` line in the stylesheet.",
 			"docs": "Markdown renders through svelte-streamdown, whose classes live in node_modules: add `@source \"../node_modules/svelte-streamdown/**/*\";` next to the imports of your global stylesheet (`../../node_modules/…` from src/routes/layout.css). Without it answers render unstyled and nothing errors.",
 			"dependencies": [
+				"@lucide/svelte@^1.34.0",
 				"bits-ui@^2.19.0",
 				"svelte-streamdown@^3.1.2",
 				"tailwind-variants@^3.3.1"
@@ -5983,6 +5984,7 @@
 			"devDependencies": [],
 			"registryDependencies": [
 				"https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-appearance.json",
+				"https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-button-group.json",
 				"https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-button.json",
 				"https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-code-block.json",
 				"https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-primitives.json",
@@ -6003,6 +6005,36 @@
 					"path": "src/lib/components/ui/message/message-actions.svelte",
 					"type": "registry:ui",
 					"target": "~/src/lib/components/ui/message/message-actions.svelte"
+				},
+				{
+					"path": "src/lib/components/ui/message/message-branch-content.svelte",
+					"type": "registry:ui",
+					"target": "~/src/lib/components/ui/message/message-branch-content.svelte"
+				},
+				{
+					"path": "src/lib/components/ui/message/message-branch-next.svelte",
+					"type": "registry:ui",
+					"target": "~/src/lib/components/ui/message/message-branch-next.svelte"
+				},
+				{
+					"path": "src/lib/components/ui/message/message-branch-page.svelte",
+					"type": "registry:ui",
+					"target": "~/src/lib/components/ui/message/message-branch-page.svelte"
+				},
+				{
+					"path": "src/lib/components/ui/message/message-branch-previous.svelte",
+					"type": "registry:ui",
+					"target": "~/src/lib/components/ui/message/message-branch-previous.svelte"
+				},
+				{
+					"path": "src/lib/components/ui/message/message-branch-selector.svelte",
+					"type": "registry:ui",
+					"target": "~/src/lib/components/ui/message/message-branch-selector.svelte"
+				},
+				{
+					"path": "src/lib/components/ui/message/message-branch.svelte",
+					"type": "registry:ui",
+					"target": "~/src/lib/components/ui/message/message-branch.svelte"
 				},
 				{
 					"path": "src/lib/components/ui/message/message-content.svelte",
@@ -6512,7 +6544,7 @@
 			"name": "parallax-prompt-input",
 			"type": "registry:ui",
 			"title": "Prompt input",
-			"description": "The composer: an auto-growing textarea that submits on Enter, a header and footer for tools, borderless selects, and a submit button that becomes a stop button while a reply is in flight.",
+			"description": "The composer: an auto-growing textarea that submits on Enter, a header and footer for tools, borderless selects, and a submit button that becomes a stop button while a reply is in flight. Files attach from its action menu, a drop or a paste, validated against `accept`, `maxFiles` and `maxFileSize`.",
 			"dependencies": [
 				"@lucide/svelte@^1.34.0",
 				"bits-ui@^2.19.0"
@@ -6520,6 +6552,7 @@
 			"devDependencies": [],
 			"registryDependencies": [
 				"https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-button.json",
+				"https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-dropdown-menu.json",
 				"https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-input-group.json",
 				"https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-kbd.json",
 				"https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-primitives.json",
@@ -6532,6 +6565,41 @@
 					"path": "src/lib/components/ui/prompt-input/index.ts",
 					"type": "registry:ui",
 					"target": "~/src/lib/components/ui/prompt-input/index.ts"
+				},
+				{
+					"path": "src/lib/components/ui/prompt-input/prompt-input-action-add-attachments.svelte",
+					"type": "registry:ui",
+					"target": "~/src/lib/components/ui/prompt-input/prompt-input-action-add-attachments.svelte"
+				},
+				{
+					"path": "src/lib/components/ui/prompt-input/prompt-input-action-menu-content.svelte",
+					"type": "registry:ui",
+					"target": "~/src/lib/components/ui/prompt-input/prompt-input-action-menu-content.svelte"
+				},
+				{
+					"path": "src/lib/components/ui/prompt-input/prompt-input-action-menu-item.svelte",
+					"type": "registry:ui",
+					"target": "~/src/lib/components/ui/prompt-input/prompt-input-action-menu-item.svelte"
+				},
+				{
+					"path": "src/lib/components/ui/prompt-input/prompt-input-action-menu-trigger.svelte",
+					"type": "registry:ui",
+					"target": "~/src/lib/components/ui/prompt-input/prompt-input-action-menu-trigger.svelte"
+				},
+				{
+					"path": "src/lib/components/ui/prompt-input/prompt-input-action-menu.svelte",
+					"type": "registry:ui",
+					"target": "~/src/lib/components/ui/prompt-input/prompt-input-action-menu.svelte"
+				},
+				{
+					"path": "src/lib/components/ui/prompt-input/prompt-input-attachment.svelte",
+					"type": "registry:ui",
+					"target": "~/src/lib/components/ui/prompt-input/prompt-input-attachment.svelte"
+				},
+				{
+					"path": "src/lib/components/ui/prompt-input/prompt-input-attachments.svelte",
+					"type": "registry:ui",
+					"target": "~/src/lib/components/ui/prompt-input/prompt-input-attachments.svelte"
 				},
 				{
 					"path": "src/lib/components/ui/prompt-input/prompt-input-body.svelte",

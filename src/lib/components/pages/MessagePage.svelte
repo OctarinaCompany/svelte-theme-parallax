@@ -107,6 +107,31 @@ If you plan to summarise a stack of them every week, switch to Sonnet 5 and batc
 
 	const toolbarAnswer = textOf(AI_CHAT_TRANSCRIPT[3]);
 
+	/**
+	 * Three answers to the same question — what a "regenerate" button leaves behind. Written out
+	 * rather than taken from the transcript because the point of the demo is that they DIFFER: the
+	 * reader is choosing between them, not reading one twice.
+	 */
+	const branchDrafts = [
+		"**Opus 5.** 300 pages is roughly 150K tokens, which leaves room in the window for the summary itself, and the reasoning holds up across chapters. You run this once, so the price difference is a rounding error.",
+		"**Sonnet 5**, if this is a weekly job. It fits the same document, costs a fraction of Opus per run, and the two summaries differ mostly on the chapters nobody reads. Batch the PDFs and spend the difference on a second pass.",
+		`Either fits — the document is roughly 150K tokens.
+
+- **Opus 5** — holds a long document together better; worth it for a one-off.
+- **Sonnet 5** — cheaper per run; the pick if you summarise a stack every week.
+
+Start on Opus, and move to Sonnet once the prompt has settled.`,
+	];
+
+	/** Which draft the branch demo is showing. Bound, so the page can print the callback's count. */
+	let draft = $state(0);
+
+	/**
+	 * How many times `onBranchChange` has fired. The callback is the demo's point: it counts steps,
+	 * not renders, and the seed never counts as one.
+	 */
+	let draftMoves = $state(0);
+
 	/** `MESSAGE_RESPONSE_THEME` flattened to `group.part` rows for the mapping table. */
 	function flattenTheme(node: object, prefix = ""): { key: string; classes: string }[] {
 		return Object.entries(node).flatMap(([key, value]) =>
@@ -331,17 +356,227 @@ If you plan to summarise a stack of them every week, switch to Sonnet 5 and batc
 		},
 	];
 
+	const branchProps: PropRow[] = [
+		{
+			prop: "branch",
+			type: "number",
+			default: "—",
+			description:
+				"Which alternative is on screen, zero-based. Bindable. An index outside 0…count-1 renders the nearest branch and is not corrected in place, so a value the parent owns is never rewritten from inside; a fractional index is truncated and a non-finite one renders the first.",
+		},
+		{
+			prop: "defaultBranch",
+			type: "number",
+			default: "0",
+			description:
+				"Where to start when branch is not bound. A seed, read once at init — changing it later moves nothing, and it is clamped at render like any other index rather than at seed time.",
+		},
+		{
+			prop: "onBranchChange",
+			type: "(branch: number) => void",
+			default: "—",
+			description:
+				"Fired when a step actually moves the index. Never for a parent's write through the binding, never for the initial seed, and never for a step the ends refused.",
+		},
+		{
+			prop: "loop",
+			type: "boolean",
+			default: "true",
+			description:
+				"Whether stepping past an end wraps to the other one — upstream's behaviour, which has no opt-out there. false disables Message.BranchPrevious on the first branch and Message.BranchNext on the last instead.",
+		},
+		{
+			prop: "ref",
+			type: "HTMLDivElement | null",
+			default: "null",
+			description: "Bindable reference to the rendered div.",
+		},
+		{
+			prop: "class",
+			type: "string",
+			default: "—",
+			description: "Merged after the column classes.",
+		},
+		{
+			prop: "...restProps",
+			type: "HTMLAttributes<HTMLDivElement>",
+			default: "—",
+			description: "Spread onto the div after data-slot, data-branch and data-branch-count.",
+		},
+	];
+
+	const branchContentProps: PropRow[] = [
+		{
+			prop: "branches",
+			type: "Snippet[]",
+			default: "—",
+			description:
+				"The alternatives in the order the pager walks them, each usually a whole Message.Root. Only the active one is rendered — stepping away destroys a branch and stepping back rebuilds it. The array's length is the count every other branch part reads, so appending to it adds a page; an empty array renders nothing and leaves the counter at 0 of 0.",
+		},
+		{
+			prop: "ref",
+			type: "HTMLDivElement | null",
+			default: "null",
+			description: "Bindable reference to the wrapper div, not to the active branch.",
+		},
+		{
+			prop: "class",
+			type: "string",
+			default: "—",
+			description:
+				"Merged after the column classes and the rule that flattens a nested turn's bottom padding. Throws if rendered outside Message.Branch.",
+		},
+		{
+			prop: "...restProps",
+			type: "HTMLAttributes<HTMLDivElement>",
+			default: "—",
+			description: "Spread onto the wrapper div after data-slot and data-branch.",
+		},
+	];
+
+	const branchSelectorProps: PropRow[] = [
+		{
+			prop: "orientation",
+			type: "ButtonGroupOrientation",
+			default: '"horizontal"',
+			description:
+				"Forwarded to ButtonGroup, which is what decides whether the three controls sit in a row or a column.",
+		},
+		{
+			prop: "ref",
+			type: "HTMLDivElement | null",
+			default: "null",
+			description:
+				"Bindable reference to the group's div — null for as long as the selector renders nothing.",
+		},
+		{
+			prop: "class",
+			type: "string",
+			default: "—",
+			description:
+				"Merged after the rule that puts the children's corners back, so a caller's class wins over it.",
+		},
+		{
+			prop: "...restProps",
+			type: "ComponentProps<typeof ButtonGroup>",
+			default: "—",
+			description:
+				"Spread onto ButtonGroup before data-slot is restated, so every group prop is reachable and the slot name is not.",
+		},
+	];
+
+	const branchPreviousProps: PropRow[] = [
+		{
+			prop: "variant",
+			type: "ButtonVariant",
+			default: '"ghost"',
+			description: "Forwarded to Button.",
+		},
+		{
+			prop: "size",
+			type: "ButtonSize",
+			default: '"icon-sm"',
+			description: "Forwarded to Button; the 32px rung of the control ramp.",
+		},
+		{
+			prop: "children",
+			type: "Snippet",
+			default: "—",
+			description:
+				"Replaces the default chevron. The accessible name is the aria-label either way, so an icon of the caller's needs no label of its own.",
+		},
+		{
+			prop: "disabled",
+			type: "boolean",
+			default: "—",
+			description:
+				"Merged over the computed state and wins it. The button disables itself with fewer than two branches, and on the first branch when the root was given loop={false}; a caller's false re-enables it there, and a caller's true disables it anywhere.",
+		},
+		{
+			prop: "ref",
+			type: "HTMLElement | null",
+			default: "null",
+			description: "Bindable reference to the button. href is omitted, so it is never an anchor.",
+		},
+		{
+			prop: "class",
+			type: "string",
+			default: "—",
+			description: "Forwarded to Button as its class.",
+		},
+		{
+			prop: "...restProps",
+			type: 'Omit<ButtonProps, "href">',
+			default: "—",
+			description:
+				"Merged onto the Button with mergeProps, so a caller's onclick chains after the step instead of replacing it — a pager that no longer pages is not something a handler should be able to cause by accident.",
+		},
+	];
+
+	/** The two buttons take the same props; only which end disables them differs. */
+	const branchNextProps: PropRow[] = branchPreviousProps.map((row) =>
+		row.prop === "disabled"
+			? {
+					...row,
+					description:
+						"Merged over the computed state and wins it. The button disables itself with fewer than two branches, and on the last branch when the root was given loop={false}; a caller's false re-enables it there, and a caller's true disables it anywhere.",
+				}
+			: row,
+	);
+
+	const branchPageProps: PropRow[] = [
+		{
+			prop: "label",
+			type: "string",
+			default: '"Branch"',
+			description:
+				"The noun the announced counter opens with — Branch 2 of 3. Read by a screen reader only; the visible text stays the bare 2 of 3. Name what the alternatives are wherever branch is not the page's own word for them.",
+		},
+		{
+			prop: "ref",
+			type: "HTMLSpanElement | null",
+			default: "null",
+			description: "Bindable reference to the span the counter renders as.",
+		},
+		{
+			prop: "class",
+			type: "string",
+			default: "—",
+			description:
+				"Merged after the three classes that strip ButtonGroupText's border, ground and shadow.",
+		},
+		{
+			prop: "...restProps",
+			type: "HTMLAttributes<HTMLSpanElement>",
+			default: "—",
+			description:
+				"Spread onto the span after ButtonGroupText's own props and before data-slot, role and the two aria attributes — which are therefore the four a caller cannot override.",
+		},
+	];
+
 	const dataAttributes = [
 		{
 			attribute: "data-slot",
 			part: "every part",
 			values:
-				'"message", "message-content", "message-response", "message-actions", "message-action", "message-toolbar"',
+				'"message", "message-content", "message-response", "message-actions", "message-action", "message-toolbar", "message-branch", "message-branch-content", "message-branch-selector", "message-branch-previous", "message-branch-next", "message-branch-page"',
 		},
 		{
 			attribute: "data-from",
 			part: "Root, Content",
 			values: '"user" | "assistant" | "system" — the resolved role',
+		},
+		{
+			attribute: "data-branch",
+			part: "Branch, BranchContent",
+			values:
+				"The index actually rendered: the caller's branch, clamped into range and never written back to the prop.",
+		},
+		{
+			attribute: "data-branch-count",
+			part: "Branch",
+			values:
+				"How many alternatives BranchContent is holding. 0 until the effect flush after the mount registers them.",
 		},
 		{
 			attribute: "data-animating",
@@ -505,6 +740,66 @@ If you plan to summarise a stack of them every week, switch to Sonnet 5 and batc
 						</span>
 					</Message.Toolbar>
 				</Message.Root>
+			</Card.Content>
+		</Card.Root>
+	</DocSection>
+
+	<DocSection title="Branches">
+		{#snippet blurb()}
+			Three answers to one prompt, one of them on screen, with a pager underneath — what a
+			regenerate button leaves behind. The alternatives are snippets handed to
+			<code>Message.BranchContent</code> as an array, because Svelte cannot count children the way
+			the React original does. Only the active one is mounted;
+			<code>onBranchChange</code> fires on a step and never on the seed, and the counter is a polite live
+			region so the step is announced.
+		{/snippet}
+		<Card.Root>
+			<Card.Content>
+				<div class="flex flex-col">
+					{#snippet opusDraft()}
+						<Message.Root from="assistant">
+							<Message.Content>
+								<Message.Response content={branchDrafts[0]} />
+							</Message.Content>
+						</Message.Root>
+					{/snippet}
+
+					{#snippet sonnetDraft()}
+						<Message.Root from="assistant">
+							<Message.Content>
+								<Message.Response content={branchDrafts[1]} />
+							</Message.Content>
+						</Message.Root>
+					{/snippet}
+
+					{#snippet eitherDraft()}
+						<Message.Root from="assistant">
+							<Message.Content>
+								<Message.Response content={branchDrafts[2]} />
+							</Message.Content>
+						</Message.Root>
+					{/snippet}
+
+					<Message.Root from="user">
+						<Message.Content>
+							<Message.Response content={textOf(turns[0])} />
+						</Message.Content>
+					</Message.Root>
+
+					<Message.Branch bind:branch={draft} onBranchChange={() => (draftMoves += 1)}>
+						<Message.BranchContent branches={[opusDraft, sonnetDraft, eitherDraft]} />
+						<Message.BranchSelector>
+							<Message.BranchPrevious />
+							<Message.BranchPage label="Draft" />
+							<Message.BranchNext />
+						</Message.BranchSelector>
+					</Message.Branch>
+
+					<span class="mt-3 text-xs tracking-label text-muted-foreground uppercase">
+						onBranchChange fired {draftMoves}
+						{draftMoves === 1 ? "time" : "times"}
+					</span>
+				</div>
 			</Card.Content>
 		</Card.Root>
 	</DocSection>
@@ -722,6 +1017,205 @@ If you plan to summarise a stack of them every week, switch to Sonnet 5 and batc
 						</Table.Header>
 						<Table.Body>
 							{#each toolbarProps as row (row.prop)}
+								<Table.Row>
+									<Table.Cell class="font-medium">{row.prop}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.type}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.default}</Table.Cell>
+									<Table.Cell>{row.description}</Table.Cell>
+								</Table.Row>
+							{/each}
+						</Table.Body>
+					</Table.Root>
+				</Card.Content>
+			</Card.Root>
+		</div>
+
+		<div class="flex flex-col gap-3">
+			<h3 class="text-base font-medium">Message.Branch</h3>
+			<p class="text-sm text-muted-foreground">
+				Several answers to one prompt. Renders a full-width <code>div</code> column that stacks the
+				alternatives over their pager, and owns the active index — it goes around whole
+				<code>Message.Root</code> turns rather than inside one.
+			</p>
+			<Card.Root>
+				<Card.Content class="px-0 [&_[data-slot=table-cell]]:whitespace-normal">
+					<Table.Root>
+						<Table.Header>
+							<Table.Row>
+								<Table.Head>Prop</Table.Head>
+								<Table.Head>Type</Table.Head>
+								<Table.Head>Default</Table.Head>
+								<Table.Head>Description</Table.Head>
+							</Table.Row>
+						</Table.Header>
+						<Table.Body>
+							{#each branchProps as row (row.prop)}
+								<Table.Row>
+									<Table.Cell class="font-medium">{row.prop}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.type}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.default}</Table.Cell>
+									<Table.Cell>{row.description}</Table.Cell>
+								</Table.Row>
+							{/each}
+						</Table.Body>
+					</Table.Root>
+				</Card.Content>
+			</Card.Root>
+		</div>
+
+		<div class="flex flex-col gap-3">
+			<h3 class="text-base font-medium">Message.BranchContent</h3>
+			<p class="text-sm text-muted-foreground">
+				The alternatives. Renders a <code>div</code> holding the active branch and nothing else — the
+				snippets are a prop because a Svelte component cannot read its children as a list, which is also
+				what makes the count, the pager and the counter agree.
+			</p>
+			<Card.Root>
+				<Card.Content class="px-0 [&_[data-slot=table-cell]]:whitespace-normal">
+					<Table.Root>
+						<Table.Header>
+							<Table.Row>
+								<Table.Head>Prop</Table.Head>
+								<Table.Head>Type</Table.Head>
+								<Table.Head>Default</Table.Head>
+								<Table.Head>Description</Table.Head>
+							</Table.Row>
+						</Table.Header>
+						<Table.Body>
+							{#each branchContentProps as row (row.prop)}
+								<Table.Row>
+									<Table.Cell class="font-medium">{row.prop}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.type}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.default}</Table.Cell>
+									<Table.Cell>{row.description}</Table.Cell>
+								</Table.Row>
+							{/each}
+						</Table.Body>
+					</Table.Root>
+				</Card.Content>
+			</Card.Root>
+		</div>
+
+		<div class="flex flex-col gap-3">
+			<h3 class="text-base font-medium">Message.BranchSelector</h3>
+			<p class="text-sm text-muted-foreground">
+				The pager. Renders a <code>ButtonGroup</code> around the previous button, the counter and the
+				next button, with each child's corners put back. Renders nothing at all below two branches, so
+				the buttons are absent from the tab order rather than merely disabled.
+			</p>
+			<Card.Root>
+				<Card.Content class="px-0 [&_[data-slot=table-cell]]:whitespace-normal">
+					<Table.Root>
+						<Table.Header>
+							<Table.Row>
+								<Table.Head>Prop</Table.Head>
+								<Table.Head>Type</Table.Head>
+								<Table.Head>Default</Table.Head>
+								<Table.Head>Description</Table.Head>
+							</Table.Row>
+						</Table.Header>
+						<Table.Body>
+							{#each branchSelectorProps as row (row.prop)}
+								<Table.Row>
+									<Table.Cell class="font-medium">{row.prop}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.type}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.default}</Table.Cell>
+									<Table.Cell>{row.description}</Table.Cell>
+								</Table.Row>
+							{/each}
+						</Table.Body>
+					</Table.Root>
+				</Card.Content>
+			</Card.Root>
+		</div>
+
+		<div class="flex flex-col gap-3">
+			<h3 class="text-base font-medium">Message.BranchPrevious</h3>
+			<p class="text-sm text-muted-foreground">
+				One step back. Renders a ghost <code>icon-sm</code> <code>Button</code> named
+				<code>Previous branch</code>, holding a chevron unless given children, and disabled when the
+				step cannot happen.
+			</p>
+			<Card.Root>
+				<Card.Content class="px-0 [&_[data-slot=table-cell]]:whitespace-normal">
+					<Table.Root>
+						<Table.Header>
+							<Table.Row>
+								<Table.Head>Prop</Table.Head>
+								<Table.Head>Type</Table.Head>
+								<Table.Head>Default</Table.Head>
+								<Table.Head>Description</Table.Head>
+							</Table.Row>
+						</Table.Header>
+						<Table.Body>
+							{#each branchPreviousProps as row (row.prop)}
+								<Table.Row>
+									<Table.Cell class="font-medium">{row.prop}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.type}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.default}</Table.Cell>
+									<Table.Cell>{row.description}</Table.Cell>
+								</Table.Row>
+							{/each}
+						</Table.Body>
+					</Table.Root>
+				</Card.Content>
+			</Card.Root>
+		</div>
+
+		<div class="flex flex-col gap-3">
+			<h3 class="text-base font-medium">Message.BranchNext</h3>
+			<p class="text-sm text-muted-foreground">
+				One step forward, the mirror of <code>Message.BranchPrevious</code>: the same ghost
+				<code>icon-sm</code> <code>Button</code>, named <code>Next branch</code> and carrying the other
+				chevron.
+			</p>
+			<Card.Root>
+				<Card.Content class="px-0 [&_[data-slot=table-cell]]:whitespace-normal">
+					<Table.Root>
+						<Table.Header>
+							<Table.Row>
+								<Table.Head>Prop</Table.Head>
+								<Table.Head>Type</Table.Head>
+								<Table.Head>Default</Table.Head>
+								<Table.Head>Description</Table.Head>
+							</Table.Row>
+						</Table.Header>
+						<Table.Body>
+							{#each branchNextProps as row (row.prop)}
+								<Table.Row>
+									<Table.Cell class="font-medium">{row.prop}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.type}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.default}</Table.Cell>
+									<Table.Cell>{row.description}</Table.Cell>
+								</Table.Row>
+							{/each}
+						</Table.Body>
+					</Table.Root>
+				</Card.Content>
+			</Card.Root>
+		</div>
+
+		<div class="flex flex-col gap-3">
+			<h3 class="text-base font-medium">Message.BranchPage</h3>
+			<p class="text-sm text-muted-foreground">
+				Where the reader is. Renders a <code>ButtonGroupText</code> as a <code>span</code> printing
+				<code>2 of 3</code>, and announces itself: the span is a polite, atomic live region whose
+				spoken text is a hidden <code>Branch 2 of 3</code> whilst the visible pair is
+				<code>aria-hidden</code>, so a step is reported once and with a noun.
+			</p>
+			<Card.Root>
+				<Card.Content class="px-0 [&_[data-slot=table-cell]]:whitespace-normal">
+					<Table.Root>
+						<Table.Header>
+							<Table.Row>
+								<Table.Head>Prop</Table.Head>
+								<Table.Head>Type</Table.Head>
+								<Table.Head>Default</Table.Head>
+								<Table.Head>Description</Table.Head>
+							</Table.Row>
+						</Table.Header>
+						<Table.Body>
+							{#each branchPageProps as row (row.prop)}
 								<Table.Row>
 									<Table.Cell class="font-medium">{row.prop}</Table.Cell>
 									<Table.Cell class="text-muted-foreground">{row.type}</Table.Cell>

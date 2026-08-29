@@ -9,7 +9,10 @@
 	import { Button } from "$lib/components/ui/button/index.js";
 	import * as Card from "$lib/components/ui/card/index.js";
 	import * as PromptInput from "$lib/components/ui/prompt-input/index.js";
-	import type { PromptInputMessage } from "$lib/components/ui/prompt-input/index.js";
+	import type {
+		PromptInputError,
+		PromptInputMessage,
+	} from "$lib/components/ui/prompt-input/index.js";
 	import * as Table from "$lib/components/ui/table/index.js";
 	import * as ToggleGroup from "$lib/components/ui/toggle-group/index.js";
 	import DocPage from "$lib/components/layout/DocPage.svelte";
@@ -26,10 +29,15 @@
 	 * chat status is driven by a toggle group here and by a simulated round trip on send, since
 	 * there is no backend behind a gallery page.
 	 *
-	 * NOT ON THIS PAGE, because not in the component yet: attachments (the chip list, paste and
-	 * drop, the hidden file input) and the action menu that opens the file dialog. Both are the
-	 * documented follow-up of the lean port — `prompt-input.svelte`'s header comment says what
-	 * lands and where.
+	 * The Attachments and Action menu sections show the follow-up that landed after the lean port:
+	 * the chip list, the hidden file input, drop and paste, the validation callbacks, and the menu
+	 * over the house `DropdownMenu`. `prompt-input.svelte`'s header comment lists what is still
+	 * deliberately absent from upstream — the global provider, referenced sources, the screenshot
+	 * action — and why.
+	 *
+	 * NO IMAGE SHIPS WITH THIS REPOSITORY, so the chip previews on this page are whatever the
+	 * reader picks from their own disk; with nothing attached, the sections show the empty
+	 * composer, which is exactly what `PromptInput.Attachments` renders then — nothing at all.
 	 */
 
 	// ---------------------------------------------------------------------------
@@ -131,6 +139,45 @@
 	let webSearch = $state(false);
 
 	// ---------------------------------------------------------------------------
+	// Attachments
+	// ---------------------------------------------------------------------------
+
+	/** 2 MB, in bytes — small enough that a photograph from a phone is refused on purpose. */
+	const MAX_ATTACHMENT_SIZE = 2 * 1024 * 1024;
+
+	type AttachmentTurn = { text: string; files: string[] };
+
+	let attachmentErrors = $state<PromptInputError[]>([]);
+	let attachmentSent = $state<AttachmentTurn | null>(null);
+
+	/** `onError` fires once per rejection reason, so one drop can add more than one line here. */
+	function noteAttachmentError(error: PromptInputError) {
+		attachmentErrors = [...attachmentErrors, error];
+	}
+
+	/**
+	 * Only the NAMES are kept.
+	 *
+	 * `message.files[].url` is an object URL the composer owns, and a clearing submission revokes
+	 * it as soon as this handler returns — so a page that wanted to keep the thumbnail would have
+	 * to copy the bytes here, not hold the URL. The composer's own chips are where the previews
+	 * live.
+	 */
+	function sendWithAttachments(message: PromptInputMessage) {
+		attachmentErrors = [];
+		attachmentSent = {
+			text: message.text,
+			files: message.files.map((file) => file.filename ?? "attachment"),
+		};
+	}
+
+	// ---------------------------------------------------------------------------
+	// Action menu
+	// ---------------------------------------------------------------------------
+
+	let menuAction = $state<string | null>(null);
+
+	// ---------------------------------------------------------------------------
 	// API reference
 	// ---------------------------------------------------------------------------
 
@@ -169,21 +216,56 @@
 			type: "boolean",
 			default: "true",
 			description:
-				"Whether an accepted submission empties the draft. With a promise-returning `onSubmit` the draft is cleared only once the promise resolves, and only if it still equals the text that was sent — a draft the reader edited while the promise was pending is kept; a rejection keeps it and propagates.",
+				"Whether an accepted submission empties the draft and the attachment list. With a promise-returning `onSubmit` both are cleared only once the promise resolves, and each only if it is unchanged — a draft the reader edited, or a file attached, while the promise was pending is kept; a rejection keeps both and propagates. Clearing the attachments revokes their object URLs.",
 		},
 		{
 			prop: "disabled",
 			type: "boolean",
 			default: "false",
 			description:
-				"Inerts the composer: the textarea and submit button are disabled, `submit()` refuses, and `data-disabled` is stamped on the form and on the input group (which dims the header and footer). Tool buttons and selects are not touched.",
+				"Inerts the composer: the textarea and submit button are disabled, `submit()` refuses, no path attaches a file (the dialog will not open, and a drop or paste is swallowed rather than added), and `data-disabled` is stamped on the form and on the input group (which dims the header, the chips and the footer). Tool buttons and selects are not touched.",
+		},
+		{
+			prop: "accept",
+			type: "string",
+			default: "—",
+			description:
+				"Which files may be attached, in the `accept` attribute's grammar: comma-separated media types (`image/png`), groups (`image/*`) and extensions (`.pdf`). Set on the hidden file input and enforced again in code, because the attribute binds the file dialog only — a drop and a paste bypass it. A file the browser could not type matches no media-type pattern; unset or empty accepts everything.",
+		},
+		{
+			prop: "multiple",
+			type: "boolean",
+			default: "false",
+			description:
+				"Whether more than one file may be held. It is a real ceiling, not just an attribute: dropping five files on a single-file composer attaches the first and reports `max_files`. Upstream only sets the attribute, so a drop there attaches all five.",
+		},
+		{
+			prop: "maxFiles",
+			type: "number",
+			default: "—",
+			description:
+				"How many files may be held at once, counted against the live list so a removal makes room again. Read only while `multiple` is true; a single-file composer is capped at one whatever this says. Files over the ceiling are dropped and reported as `max_files` — the ones that fit are still attached.",
+		},
+		{
+			prop: "maxFileSize",
+			type: "number",
+			default: "—",
+			description:
+				"The per-file ceiling in bytes. `undefined` and `0` both mean no ceiling. Oversized files are dropped and reported as `max_file_size`.",
+		},
+		{
+			prop: "onError",
+			type: "(error: PromptInputError) => void",
+			default: "—",
+			description:
+				"Called with `{ code, message }` once per rejection reason of a single add, in the order `accept`, `max_file_size`, `max_files` — so one drop can call it more than once. Unlike upstream it fires for partial failures too, not only when every file was rejected; whatever passed is still attached.",
 		},
 		{
 			prop: "onSubmit",
 			type: "(message: PromptInputMessage, event: SubmitEvent) => void | Promise<void>",
 			default: "— (required)",
 			description:
-				"Called with `{ text }` on every accepted submission. Not called for a whitespace-only draft, while disabled, or while a previous promise is still pending. `text` is untrimmed.",
+				"Called with `{ text, files }` on every accepted submission. Not called while disabled, while a previous promise is still pending, or for a whitespace-only draft with nothing attached — a file on its own is a message. `text` is untrimmed, and each file's `url` stays valid only until the handler settles.",
 		},
 		{
 			prop: "class",
@@ -218,7 +300,8 @@
 			prop: "children",
 			type: "Snippet",
 			default: "—",
-			description: "The textarea, and the attachment list once it exists.",
+			description:
+				"The textarea. `PromptInput.Attachments` is a block addon and sits beside this part, not inside it.",
 		},
 		restRow("HTMLAttributes<HTMLDivElement>", "rendered element"),
 	];
@@ -247,7 +330,14 @@
 			type: "KeyboardEventHandler<HTMLTextAreaElement>",
 			default: "—",
 			description:
-				"Runs before the part's own handler. Calling `event.preventDefault()` in it vetoes the Enter-to-submit behaviour for that keystroke.",
+				"Runs before the part's own handler. Calling `event.preventDefault()` in it vetoes both the Enter-to-submit and the Backspace-removes-the-last-attachment behaviour for that keystroke.",
+		},
+		{
+			prop: "onpaste",
+			type: "ClipboardEventHandler<HTMLTextAreaElement>",
+			default: "—",
+			description:
+				"Runs before the part's own handler, which attaches every file on the clipboard through the same validation the dialog uses. `event.preventDefault()` in it vetoes that. A paste carrying no file is left entirely alone; a paste carrying both a file and text attaches the file and drops the text.",
 		},
 		{
 			prop: "oncompositionstart / oncompositionend",
@@ -546,6 +636,208 @@
 		restRow("ComponentProps<typeof Select.Item>", "item"),
 	];
 
+	const attachmentsProps: PropRow[] = [
+		{
+			prop: "ref",
+			type: "HTMLElement | null",
+			default: "null",
+			description:
+				"Bindable reference to the addon element — `null` while the list is empty, since nothing is rendered then.",
+		},
+		{
+			prop: "children",
+			type: "Snippet<[PromptInputFile]>",
+			default: "—",
+			description:
+				"Rendered once per attachment, in the order they were added, with that attachment as its argument. Omitted, each one is drawn by `PromptInput.Attachment`.",
+		},
+		{
+			prop: "class",
+			type: "ClassValue",
+			default: "—",
+			description: "Merged after `flex-wrap gap-1` on the addon.",
+		},
+		{
+			prop: "onclick",
+			type: "MouseEventHandler<HTMLDivElement>",
+			default: "—",
+			description:
+				"Runs before the part's own handler, which focuses the textarea when the empty space beside the chips is clicked. `event.preventDefault()` vetoes the focus; clicks on a chip's remove button are left alone.",
+		},
+		restRow(
+			"Omit<ComponentProps<typeof InputGroup.Addon>, 'align' | 'children'>",
+			"addon. `align` is fixed to `block-start`",
+		),
+	];
+
+	const attachmentProps: PropRow[] = [
+		{
+			prop: "attachment",
+			type: "PromptInputFile",
+			default: "— (required)",
+			description:
+				"The entry to draw: `{ id, type, filename?, mediaType, url, file }`. `PromptInput.Attachments` hands each one to this part; `mediaType` picks the thumbnail over the glyph, `filename` is the label (falling back to “Attachment”), and `id` is what the remove button removes. `url` is an object URL the composer revokes on clear — `file` is the picked `File` and outlives it, so a submit handler keeps that one.",
+		},
+		{
+			prop: "ref",
+			type: "HTMLDivElement | null",
+			default: "null",
+			description: "Bindable reference to the chip.",
+		},
+		{
+			prop: "class",
+			type: "ClassValue",
+			default: "—",
+			description: "Merged after the chip's own frame, type and icon sizing.",
+		},
+		restRow("HTMLAttributes<HTMLDivElement>", "chip"),
+	];
+
+	const actionMenuProps: PropRow[] = [
+		{
+			prop: "open",
+			type: "boolean",
+			default: "false",
+			description: "Bindable. Whether the menu is shown.",
+		},
+		{
+			prop: "onOpenChange",
+			type: "(open: boolean) => void",
+			default: "—",
+			description:
+				"Fired by Bits UI whenever it opens or closes the menu, never for a parent write.",
+		},
+		restRow(
+			"ComponentProps<typeof DropdownMenu.Root>",
+			"Bits UI root, which renders no element — there is no `class` or `data-slot` here",
+		),
+	];
+
+	const actionMenuTriggerProps: PropRow[] = [
+		{
+			prop: "ref",
+			type: "HTMLElement | null",
+			default: "null",
+			description: "Bindable reference to the button.",
+		},
+		{
+			prop: "size",
+			type: "ButtonSize",
+			default: '"icon-sm"',
+			description: "The 32px rung, matching the tools and the submit button beside it.",
+		},
+		{
+			prop: "tooltip",
+			type: "string | { content: string; shortcut?: string; side?: 'top' | 'right' | 'bottom' | 'left' }",
+			default: "—",
+			description:
+				"`PromptInput.Button`'s tooltip, unchanged. It describes rather than names, so it does not replace the `aria-label`.",
+		},
+		{
+			prop: "children",
+			type: "Snippet",
+			default: "—",
+			description: "Replaces the plus icon entirely when supplied.",
+		},
+		restRow("PromptInputButtonProps", "`PromptInput.Button`, merged with the trigger's own props"),
+	];
+
+	const actionMenuContentProps: PropRow[] = [
+		{
+			prop: "ref",
+			type: "HTMLElement | null",
+			default: "null",
+			description: "Bindable reference to the panel, typed as Bits UI types it.",
+		},
+		{
+			prop: "align",
+			type: "'start' | 'center' | 'end'",
+			default: '"start"',
+			description:
+				"Which edge of the trigger the panel aligns to. The default is the registry `DropdownMenu.Content`'s own, which already matches upstream, so this part restates nothing.",
+		},
+		{
+			prop: "children",
+			type: "Snippet",
+			default: "—",
+			description: "The items.",
+		},
+		{
+			prop: "class",
+			type: "ClassValue",
+			default: "—",
+			description: "Merged last onto the panel.",
+		},
+		restRow("ComponentProps<typeof DropdownMenu.Content>", "panel, which renders in a portal"),
+	];
+
+	const actionMenuItemProps: PropRow[] = [
+		{
+			prop: "ref",
+			type: "HTMLElement | null",
+			default: "null",
+			description: "Bindable reference to the item, typed as Bits UI types it.",
+		},
+		{
+			prop: "onSelect",
+			type: "(event: Event) => void",
+			default: "—",
+			description:
+				"Fired when the item is chosen by click or by Enter. `event.preventDefault()` in it keeps the menu open — that is Bits UI's contract, not this part's.",
+		},
+		{
+			prop: "disabled",
+			type: "boolean",
+			default: "—",
+			description:
+				"The item is shown dimmed, is skipped by the arrow keys, and cannot be selected.",
+		},
+		{
+			prop: "children",
+			type: "Snippet",
+			default: "—",
+			description:
+				"The item's content. An icon among them is sized and spaced by the item itself — give it no class of its own.",
+		},
+		restRow("ComponentProps<typeof DropdownMenu.Item>", "item"),
+	];
+
+	const actionAddAttachmentsProps: PropRow[] = [
+		{
+			prop: "label",
+			type: "string",
+			default: '"Add photos or files"',
+			description: "The item's text. Ignored when `children` are given.",
+		},
+		{
+			prop: "onSelect",
+			type: "(event: Event) => void",
+			default: "—",
+			description:
+				"Runs before the file dialog opens. `event.preventDefault()` in it is the veto: the dialog does not open and, by Bits UI's contract, the menu stays open.",
+		},
+		{
+			prop: "disabled",
+			type: "boolean",
+			default: "—",
+			description:
+				"Dims the item and makes it unselectable. The root's `disabled` does not reach it — pass this as well to grey it out — but a disabled composer refuses to open the dialog anyway.",
+		},
+		{
+			prop: "children",
+			type: "Snippet",
+			default: "—",
+			description: "Replaces the icon and the label entirely when supplied.",
+		},
+		{
+			prop: "ref",
+			type: "HTMLElement | null",
+			default: "null",
+			description: "Bindable reference to the item, typed as Bits UI types it.",
+		},
+		restRow("ComponentProps<typeof DropdownMenu.Item>", "item"),
+	];
+
 	const keyboard = [
 		{
 			keys: "Enter",
@@ -565,6 +857,16 @@
 			keys: "Enter with `event.preventDefault()` in `onkeydown`",
 			description: "Does nothing. The caller's handler runs first and its veto wins.",
 		},
+		{
+			keys: "Backspace in an empty draft",
+			description:
+				"Removes the last attachment and releases its object URL. Checked before Enter and only while the draft is empty, so it can never eat a character; with nothing attached the keystroke is left to the browser.",
+		},
+		{
+			keys: "⌘V / Ctrl+V carrying a file",
+			description:
+				"Attaches every file on the clipboard — a screenshot, a copied file — through the same `accept`, size and count checks the dialog and a drop go through, and prevents the paste's default. A clipboard with no file on it is untouched.",
+		},
 	];
 
 	const dataAttributes = [
@@ -583,6 +885,23 @@
 		{ attribute: "[data-slot]", part: "PromptInput.Submit", values: "prompt-input-submit" },
 		{
 			attribute: "[data-slot]",
+			part: "PromptInput.Attachments / .Attachment",
+			values: "prompt-input-attachments / prompt-input-attachment",
+		},
+		{
+			attribute: "[data-slot]",
+			part: "PromptInput.ActionMenuTrigger",
+			values:
+				"prompt-input-action-menu-trigger — restated over `PromptInput.Button`'s and the Bits UI trigger's, neither of which any rule keys on",
+		},
+		{
+			attribute: "[data-slot]",
+			part: "PromptInput.ActionMenuContent / .ActionMenuItem / .ActionAddAttachments",
+			values:
+				"dropdown-menu-content / dropdown-menu-item — kept from `ui/dropdown-menu`: `app.css` de-shadows the panel by that name",
+		},
+		{
+			attribute: "[data-slot]",
 			part: "PromptInput.SelectTrigger / .SelectContent / .SelectItem",
 			values:
 				"select-trigger / select-content / select-item — kept from `ui/select`: `app.css` sizes and de-shadows them by name",
@@ -596,6 +915,12 @@
 			attribute: "[data-pending]",
 			part: "PromptInput.Root",
 			values: "true while a promise-returning `onSubmit` is awaited | absent",
+		},
+		{
+			attribute: "[data-dragging]",
+			part: "PromptInput.Root",
+			values:
+				"true while a drag CARRYING FILES is over the form (never for a text drag, never while disabled) | absent — the input group draws its focus ring from it",
 		},
 		{
 			attribute: "[data-status]",
@@ -623,8 +948,10 @@
 		</a>
 		with a growing textarea, rows of tools above and below it, and a submit button that becomes a stop
 		button while a turn is generating. Enter submits, Shift+Enter breaks the line, and IME composition
-		is left alone. Attachments and the action menu that opens the file dialog are the documented follow-up
-		of this port.
+		is left alone. Files are attached from the action menu, by dropping them on the composer or by pasting
+		them, validated against
+		<code>accept</code>, <code>maxFiles</code> and <code>maxFileSize</code>, and handed to
+		<code>onSubmit</code> beside the text.
 	{/snippet}
 
 	<DocSection title="Composer">
@@ -838,6 +1165,124 @@
 						<PromptInput.Submit />
 					</PromptInput.Footer>
 				</PromptInput.Root>
+			</Card.Content>
+		</Card.Root>
+	</DocSection>
+
+	<DocSection title="Attachments">
+		{#snippet blurb()}
+			Three ways in and one list out: the <code>+</code> menu opens the file dialog, files dropped
+			anywhere on the composer land in it — the frame lights up while a file drag is over it — and
+			pasting a screenshot attaches it. This one takes images and PDFs, at most four, at most 2 MB
+			each; anything refused is reported through <code>onError</code> with a code, and whatever
+			passed is still attached. Backspace in an empty draft removes the last chip.
+			<code>PromptInput.Attachments</code> renders nothing at all until there is something to show.
+		{/snippet}
+		<Card.Root>
+			<Card.Content class="flex flex-col gap-4">
+				<PromptInput.Root
+					accept="image/*,.pdf"
+					multiple
+					maxFiles={4}
+					maxFileSize={MAX_ATTACHMENT_SIZE}
+					onError={noteAttachmentError}
+					onSubmit={sendWithAttachments}
+				>
+					<PromptInput.Attachments />
+					<PromptInput.Body>
+						<PromptInput.Textarea
+							placeholder="Drop a file here, paste a screenshot, or use the + menu"
+						/>
+					</PromptInput.Body>
+					<PromptInput.Footer>
+						<PromptInput.Tools>
+							<PromptInput.ActionMenu>
+								<PromptInput.ActionMenuTrigger tooltip="Add photos or files" />
+								<PromptInput.ActionMenuContent>
+									<PromptInput.ActionAddAttachments />
+								</PromptInput.ActionMenuContent>
+							</PromptInput.ActionMenu>
+						</PromptInput.Tools>
+						<PromptInput.Submit />
+					</PromptInput.Footer>
+				</PromptInput.Root>
+
+				{#if attachmentErrors.length > 0}
+					<ul class="flex flex-col gap-1">
+						{#each attachmentErrors as error, index (`${error.code}-${index}`)}
+							<li class="flex items-center gap-2 text-sm text-destructive">
+								<Badge variant="destructive-subtle">{error.code}</Badge>
+								{error.message}
+							</li>
+						{/each}
+					</ul>
+				{/if}
+
+				{#if attachmentSent}
+					<p class="text-sm text-muted-foreground">
+						Sent
+						<span class="text-foreground">“{attachmentSent.text}”</span>
+						with
+						{attachmentSent.files.length === 0
+							? "no attachments"
+							: attachmentSent.files.join(", ")}.
+					</p>
+				{:else}
+					<p class="text-sm text-muted-foreground">
+						Nothing sent yet. Only the file names are kept here: the chips' previews are object URLs
+						the composer revokes as soon as the handler returns.
+					</p>
+				{/if}
+			</Card.Content>
+		</Card.Root>
+	</DocSection>
+
+	<DocSection title="Action menu">
+		{#snippet blurb()}
+			<code>PromptInput.ActionMenu</code> is the house
+			<a class="text-primary underline underline-offset-3" href={href("/components/dropdown-menu")}>
+				dropdown menu
+			</a>
+			with the composer's own trigger button on it. <code>PromptInput.ActionAddAttachments</code> is
+			the one item that acts on the composer — it opens the file dialog and lets the menu close,
+			where upstream holds the menu open behind it. Every other item is an ordinary
+			<code>ActionMenuItem</code> doing whatever the page needs.
+		{/snippet}
+		<Card.Root>
+			<Card.Content class="flex flex-col gap-4">
+				<PromptInput.Root accept="image/*" multiple onSubmit={() => {}}>
+					<PromptInput.Attachments />
+					<PromptInput.Body>
+						<PromptInput.Textarea placeholder="Open the menu with the plus button" />
+					</PromptInput.Body>
+					<PromptInput.Footer>
+						<PromptInput.Tools>
+							<PromptInput.ActionMenu>
+								<PromptInput.ActionMenuTrigger
+									aria-label="Add to this message"
+									tooltip={{ content: "Add to this message", shortcut: "⌘⇧A" }}
+								/>
+								<PromptInput.ActionMenuContent>
+									<PromptInput.ActionAddAttachments
+										onSelect={() => (menuAction = "Opened the file dialog")}
+									/>
+									<PromptInput.ActionMenuItem onSelect={() => (menuAction = "Started dictating")}>
+										<MicIcon />
+										Dictate a note
+									</PromptInput.ActionMenuItem>
+									<PromptInput.ActionMenuItem onSelect={() => (menuAction = "Attached a web page")}>
+										<GlobeIcon />
+										Add a link
+									</PromptInput.ActionMenuItem>
+								</PromptInput.ActionMenuContent>
+							</PromptInput.ActionMenu>
+						</PromptInput.Tools>
+						<PromptInput.Submit />
+					</PromptInput.Footer>
+				</PromptInput.Root>
+				<p class="text-sm text-muted-foreground">
+					{menuAction ?? "No action chosen yet."}
+				</p>
 			</Card.Content>
 		</Card.Root>
 	</DocSection>
@@ -1271,10 +1716,248 @@
 		</div>
 
 		<div class="flex flex-col gap-3">
+			<h3 class="text-base font-medium">PromptInput.Attachments</h3>
+			<p class="text-sm text-muted-foreground">
+				The chip list above the textarea. Renders an <code>InputGroup.Addon</code> aligned
+				<code>block-start</code> that wraps its chips — and renders
+				<strong>nothing at all</strong> while nothing is attached, so it can sit in the tree
+				unconditionally. Put it directly under <code>PromptInput.Root</code>, beside
+				<code>PromptInput.Body</code>: the input group reads <code>data-align</code> off its DOM
+				children, and the body's <code>display: contents</code> hides it from that selector.
+			</p>
+			<Card.Root>
+				<Card.Content class="px-0 [&_[data-slot=table-cell]]:whitespace-normal">
+					<Table.Root>
+						<Table.Header>
+							<Table.Row>
+								<Table.Head>Prop</Table.Head>
+								<Table.Head>Type</Table.Head>
+								<Table.Head>Default</Table.Head>
+								<Table.Head>Description</Table.Head>
+							</Table.Row>
+						</Table.Header>
+						<Table.Body>
+							{#each attachmentsProps as row (row.prop)}
+								<Table.Row>
+									<Table.Cell class="font-medium">{row.prop}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.type}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.default}</Table.Cell>
+									<Table.Cell>{row.description}</Table.Cell>
+								</Table.Row>
+							{/each}
+						</Table.Body>
+					</Table.Root>
+				</Card.Content>
+			</Card.Root>
+		</div>
+
+		<div class="flex flex-col gap-3">
+			<h3 class="text-base font-medium">PromptInput.Attachment</h3>
+			<p class="text-sm text-muted-foreground">
+				One chip. Renders a bordered row holding a thumbnail for an image media type or a file glyph
+				for anything else, the file's name, and a ghost button that removes it — which also revokes
+				that attachment's object URL.
+			</p>
+			<Card.Root>
+				<Card.Content class="px-0 [&_[data-slot=table-cell]]:whitespace-normal">
+					<Table.Root>
+						<Table.Header>
+							<Table.Row>
+								<Table.Head>Prop</Table.Head>
+								<Table.Head>Type</Table.Head>
+								<Table.Head>Default</Table.Head>
+								<Table.Head>Description</Table.Head>
+							</Table.Row>
+						</Table.Header>
+						<Table.Body>
+							{#each attachmentProps as row (row.prop)}
+								<Table.Row>
+									<Table.Cell class="font-medium">{row.prop}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.type}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.default}</Table.Cell>
+									<Table.Cell>{row.description}</Table.Cell>
+								</Table.Row>
+							{/each}
+						</Table.Body>
+					</Table.Root>
+				</Card.Content>
+			</Card.Root>
+		</div>
+
+		<div class="flex flex-col gap-3">
+			<h3 class="text-base font-medium">PromptInput.ActionMenu</h3>
+			<p class="text-sm text-muted-foreground">
+				The action menu. Renders no element — it is
+				<a
+					class="text-primary underline underline-offset-3"
+					href={href("/components/dropdown-menu")}
+				>
+					DropdownMenu
+				</a>'s root, published as a composer part so a footer reads as one family.
+			</p>
+			<Card.Root>
+				<Card.Content class="px-0 [&_[data-slot=table-cell]]:whitespace-normal">
+					<Table.Root>
+						<Table.Header>
+							<Table.Row>
+								<Table.Head>Prop</Table.Head>
+								<Table.Head>Type</Table.Head>
+								<Table.Head>Default</Table.Head>
+								<Table.Head>Description</Table.Head>
+							</Table.Row>
+						</Table.Header>
+						<Table.Body>
+							{#each actionMenuProps as row (row.prop)}
+								<Table.Row>
+									<Table.Cell class="font-medium">{row.prop}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.type}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.default}</Table.Cell>
+									<Table.Cell>{row.description}</Table.Cell>
+								</Table.Row>
+							{/each}
+						</Table.Body>
+					</Table.Root>
+				</Card.Content>
+			</Card.Root>
+		</div>
+
+		<div class="flex flex-col gap-3">
+			<h3 class="text-base font-medium">PromptInput.ActionMenuTrigger</h3>
+			<p class="text-sm text-muted-foreground">
+				The button that opens the menu. Renders a <code>PromptInput.Button</code> through the Bits
+				UI trigger's <code>child</code> snippet — so the menu is anchored to the button itself, with
+				no wrapper in the frame — showing a plus when it is given no children. It names itself
+				<code>aria-label="Add attachment"</code>; a menu offering more than attachments should say
+				so instead.
+			</p>
+			<Card.Root>
+				<Card.Content class="px-0 [&_[data-slot=table-cell]]:whitespace-normal">
+					<Table.Root>
+						<Table.Header>
+							<Table.Row>
+								<Table.Head>Prop</Table.Head>
+								<Table.Head>Type</Table.Head>
+								<Table.Head>Default</Table.Head>
+								<Table.Head>Description</Table.Head>
+							</Table.Row>
+						</Table.Header>
+						<Table.Body>
+							{#each actionMenuTriggerProps as row (row.prop)}
+								<Table.Row>
+									<Table.Cell class="font-medium">{row.prop}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.type}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.default}</Table.Cell>
+									<Table.Cell>{row.description}</Table.Cell>
+								</Table.Row>
+							{/each}
+						</Table.Body>
+					</Table.Root>
+				</Card.Content>
+			</Card.Root>
+		</div>
+
+		<div class="flex flex-col gap-3">
+			<h3 class="text-base font-medium">PromptInput.ActionMenuContent</h3>
+			<p class="text-sm text-muted-foreground">
+				The menu's panel. Renders <code>DropdownMenu.Content</code> untouched, in a portal.
+			</p>
+			<Card.Root>
+				<Card.Content class="px-0 [&_[data-slot=table-cell]]:whitespace-normal">
+					<Table.Root>
+						<Table.Header>
+							<Table.Row>
+								<Table.Head>Prop</Table.Head>
+								<Table.Head>Type</Table.Head>
+								<Table.Head>Default</Table.Head>
+								<Table.Head>Description</Table.Head>
+							</Table.Row>
+						</Table.Header>
+						<Table.Body>
+							{#each actionMenuContentProps as row (row.prop)}
+								<Table.Row>
+									<Table.Cell class="font-medium">{row.prop}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.type}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.default}</Table.Cell>
+									<Table.Cell>{row.description}</Table.Cell>
+								</Table.Row>
+							{/each}
+						</Table.Body>
+					</Table.Root>
+				</Card.Content>
+			</Card.Root>
+		</div>
+
+		<div class="flex flex-col gap-3">
+			<h3 class="text-base font-medium">PromptInput.ActionMenuItem</h3>
+			<p class="text-sm text-muted-foreground">
+				One command in the menu. Renders <code>DropdownMenu.Item</code> untouched, which lays an
+				icon and its text out with <code>gap-2</code> and sizes the icon itself.
+			</p>
+			<Card.Root>
+				<Card.Content class="px-0 [&_[data-slot=table-cell]]:whitespace-normal">
+					<Table.Root>
+						<Table.Header>
+							<Table.Row>
+								<Table.Head>Prop</Table.Head>
+								<Table.Head>Type</Table.Head>
+								<Table.Head>Default</Table.Head>
+								<Table.Head>Description</Table.Head>
+							</Table.Row>
+						</Table.Header>
+						<Table.Body>
+							{#each actionMenuItemProps as row (row.prop)}
+								<Table.Row>
+									<Table.Cell class="font-medium">{row.prop}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.type}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.default}</Table.Cell>
+									<Table.Cell>{row.description}</Table.Cell>
+								</Table.Row>
+							{/each}
+						</Table.Body>
+					</Table.Root>
+				</Card.Content>
+			</Card.Root>
+		</div>
+
+		<div class="flex flex-col gap-3">
+			<h3 class="text-base font-medium">PromptInput.ActionAddAttachments</h3>
+			<p class="text-sm text-muted-foreground">
+				The item that opens the file dialog of the composer it is inside. Renders a
+				<code>PromptInput.ActionMenuItem</code> with an image glyph and a label. The dialog is
+				opened from inside <code>onSelect</code>, while the click is still the user gesture a
+				browser requires, and the menu then closes as any other menu does.
+			</p>
+			<Card.Root>
+				<Card.Content class="px-0 [&_[data-slot=table-cell]]:whitespace-normal">
+					<Table.Root>
+						<Table.Header>
+							<Table.Row>
+								<Table.Head>Prop</Table.Head>
+								<Table.Head>Type</Table.Head>
+								<Table.Head>Default</Table.Head>
+								<Table.Head>Description</Table.Head>
+							</Table.Row>
+						</Table.Header>
+						<Table.Body>
+							{#each actionAddAttachmentsProps as row (row.prop)}
+								<Table.Row>
+									<Table.Cell class="font-medium">{row.prop}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.type}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.default}</Table.Cell>
+									<Table.Cell>{row.description}</Table.Cell>
+								</Table.Row>
+							{/each}
+						</Table.Body>
+					</Table.Root>
+				</Card.Content>
+			</Card.Root>
+		</div>
+
+		<div class="flex flex-col gap-3">
 			<h3 class="text-base font-medium">Keyboard interactions</h3>
 			<p class="text-sm text-muted-foreground">
-				All in <code>PromptInput.Textarea</code>. The selects and tooltips keep Bits UI's own
-				contracts.
+				All in <code>PromptInput.Textarea</code>. The selects, the action menu and the tooltips keep
+				Bits UI's own contracts.
 			</p>
 			<Card.Root>
 				<Card.Content class="px-0 [&_[data-slot=table-cell]]:whitespace-normal">

@@ -30,8 +30,10 @@
 	 *
 	 * A port of the AI Elements `Message` family. What the kit must render is the transcript loop
 	 * in the origin's `chat.tsx` — `<Message from={role}><MessageContent>…parts…</MessageContent>
-	 * </Message>` with `<MessageResponse isAnimating>` for text parts — and that is what the six
-	 * parts here cover.
+	 * </Message>` with `<MessageResponse isAnimating>` for text parts — and that is what these six
+	 * parts cover. The six `Message.Branch*` parts beside them are the other half of the family:
+	 * several answers to one prompt with a pager between them, whose own divergences are listed in
+	 * `message-branch.svelte`.
 	 *
 	 * WHAT DIVERGES FROM UPSTREAM, AND WHY:
 	 *
@@ -45,11 +47,11 @@
 	 *    as React children because a string is a valid child there. A Svelte snippet is a render
 	 *    function, not a value, so the text has to arrive as a prop — see the part's own comment.
 	 *
-	 * 3. THE BRANCH PARTS ARE NOT PORTED. `MessageBranch`, `MessageBranchContent`, `Selector`,
-	 *    `Previous`, `Next` and `Page` switch between alternative answers to one prompt. The
-	 *    origin's chat never renders them, and the mechanism — counting and hiding sibling
-	 *    elements from a parent — is a separate component's worth of state. Left out rather than
-	 *    ported half-way.
+	 * 3. THE BRANCH PARTS TAKE THEIR ALTERNATIVES AS VALUES. Upstream counts its React children
+	 *    and hides all but one; Svelte has no inspectable children, so `Message.BranchContent`
+	 *    takes a `branches: Snippet[]` prop and mounts only the active one. `message-branch.svelte`
+	 *    carries that family's five divergences, and `MessageBranchState` in `message.svelte.ts`
+	 *    says what the choice costs.
 	 *
 	 * 4. `Message.Action` REQUIRES `label`. Upstream names the button `label || tooltip` and lets
 	 *    both be absent, which is an icon button with no accessible name. Here the label is the
