@@ -85,6 +85,7 @@
 
 <Button
 	bind:ref
+	data-slot="code-block-copy-button"
 	variant="ghost"
 	size="icon-sm"
 	aria-label={copied ? "Code copied" : "Copy code"}

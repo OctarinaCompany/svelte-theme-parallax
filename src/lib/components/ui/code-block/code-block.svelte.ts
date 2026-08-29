@@ -1,5 +1,6 @@
 import { getContext, hasContext, setContext } from "svelte";
 import { tv } from "tailwind-variants";
+import { downloadText, sanitiseFilename } from "$lib/shared/download-text.js";
 
 /**
  * Every language the highlighter knows, in upstream declaration order.
@@ -61,6 +62,88 @@ export const codeBlockLanguageLabels: Record<CodeBlockLanguage, string> = {
 	curl: "cURL",
 	text: "Text",
 };
+
+/**
+ * The MIME type a downloaded snippet is stamped with, per language — what `CodeBlock.DownloadButton`
+ * hands to `downloadText` when the root sets no `mediaType` of its own.
+ *
+ * Every entry carries `;charset=utf-8`: the Blob is built from a JavaScript string, which the
+ * Blob constructor encodes as UTF-8, and a type without the parameter leaves the consumer to
+ * guess (https://developer.mozilla.org/en-US/docs/Web/API/Blob/Blob).
+ *
+ * TYPESCRIPT IS `text/plain`, NOT A TYPE OF ITS OWN. No registered MIME type exists for it, and
+ * the one servers commonly infer from a `.ts` extension is `video/mp2t` — MPEG transport stream
+ * (https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/MIME_types/Common_types). Stamping a
+ * source file as video is worse than stamping it as text; the extension in
+ * {@link CODE_BLOCK_EXTENSIONS} is what tells an editor what it is. JavaScript and JSX take
+ * `text/javascript`, the type the HTML standard designates for scripts. cURL is a shell line but
+ * not a script, so it stays plain.
+ */
+export const CODE_BLOCK_MEDIA_TYPES: Record<CodeBlockLanguage, string> = {
+	tsx: "text/plain;charset=utf-8",
+	ts: "text/plain;charset=utf-8",
+	jsx: "text/javascript;charset=utf-8",
+	js: "text/javascript;charset=utf-8",
+	json: "application/json;charset=utf-8",
+	css: "text/css;charset=utf-8",
+	bash: "text/x-shellscript;charset=utf-8",
+	python: "text/x-python;charset=utf-8",
+	curl: "text/plain;charset=utf-8",
+	text: "text/plain;charset=utf-8",
+};
+
+/**
+ * The extension `snippet.<ext>` takes in {@link codeBlockFilename} when a download name carries
+ * none. `bash` and `curl` both land as `.sh`: a cURL sample is a shell line, and there is no
+ * extension for one.
+ */
+export const CODE_BLOCK_EXTENSIONS: Record<CodeBlockLanguage, string> = {
+	tsx: "tsx",
+	ts: "ts",
+	jsx: "jsx",
+	js: "js",
+	json: "json",
+	css: "css",
+	bash: "sh",
+	python: "py",
+	curl: "sh",
+	text: "txt",
+};
+
+/**
+ * What counts as "already has an extension": a trailing dot followed by a letter and up to
+ * fifteen more letters or digits. The leading letter is deliberate — `release-1.2` is a stem
+ * with a version in it, not a file with extension `2`.
+ */
+const FILENAME_EXTENSION = /\.[A-Za-z][A-Za-z0-9]{0,15}$/;
+
+/**
+ * The name a snippet downloads under.
+ *
+ * A label that already carries an extension is a filename and wins as it is — `app.css` stays
+ * `app.css` whatever language is on screen. One that carries none is NOT a filename and is
+ * replaced outright by `snippet.<ext>` for the active language, so `request` over a TSX/Python
+ * selector downloads as `snippet.tsx` and then as `snippet.py` when the reader switches. No
+ * label at all, or a blank one, yields the same.
+ *
+ * REPLACED, NOT EXTENDED. Appending the extension to an extension-less label instead — `request`
+ * saving as `request.tsx` — reads well for a stem and badly for anything else: a caption-shaped
+ * name like `Component request` would become `Component request.tsx`, a file named after prose.
+ * A caller who wants a name of their own writes it with its extension, and then it is used
+ * verbatim.
+ *
+ * THE HAZARD IS THE FIRST RULE: a caller who names a multi-snippet block `request.tsx` has pinned
+ * the extension, and the Python snippet downloads as `.tsx` too. Leave the extension off to let
+ * it follow the selector.
+ *
+ * Path separators and reserved punctuation are NOT handled here — the root runs the result
+ * through `sanitiseFilename` (`$lib/shared/download-text.js`), which is where that rule lives.
+ */
+export function codeBlockFilename(label: string | undefined, language: CodeBlockLanguage): string {
+	const name = label?.trim() ?? "";
+	if (FILENAME_EXTENSION.test(name)) return name;
+	return `snippet.${CODE_BLOCK_EXTENSIONS[language]}`;
+}
 
 /**
  * The words each language paints as keywords, kept verbatim.
@@ -459,6 +542,15 @@ export type CodeBlockStateProps = {
 	getAllowLanguageSelection: () => boolean;
 	/** The caption in the header. */
 	getLabel: () => string;
+	/**
+	 * The download name as the caller wrote it, or `undefined` for no download affordance at all.
+	 * Resolved and sanitised by {@link CodeBlockState.filename}.
+	 */
+	getFilename: () => string | undefined;
+	/** The caller's MIME type for the download, or `undefined` to take the active language's. */
+	getMediaType: () => string | undefined;
+	/** Called after {@link CodeBlockState.download} has handed the file to the browser. */
+	notifyDownload: (filename: string) => void;
 };
 
 /**
@@ -528,6 +620,44 @@ export class CodeBlockState {
 		this.#props.getAllowLanguageSelection() && this.snippets.length > 1,
 	);
 
+	/**
+	 * The name the download button saves under, or `undefined` when the root set none — which is
+	 * the header's cue to leave the button out.
+	 *
+	 * Two passes. {@link codeBlockFilename} settles the extension against the language on screen,
+	 * so a name without one follows the selector; `sanitiseFilename` then strips what a browser's
+	 * `download` attribute would misread — a path separator becomes a dash, reserved punctuation
+	 * goes — and falls back to `snippet.<ext>` should nothing survive. The result is never the
+	 * empty string, so `{#if block.filename}` is a sound test for presence.
+	 */
+	readonly filename: string | undefined = $derived.by(() => {
+		const requested = this.#props.getFilename();
+		if (requested === undefined) return undefined;
+		const language = this.activeLanguage;
+		return sanitiseFilename(
+			codeBlockFilename(requested, language),
+			codeBlockFilename(undefined, language),
+		);
+	});
+
+	/**
+	 * What {@link CodeBlockState.download} actually saves under: {@link CodeBlockState.filename}
+	 * when the root set one, else `snippet.<ext>` for the language on screen. Exists so a download
+	 * button composed by hand — outside the header's `{#if}` — still has a name to work with.
+	 */
+	readonly downloadName: string = $derived(
+		this.filename ?? codeBlockFilename(undefined, this.activeLanguage),
+	);
+
+	/**
+	 * The MIME type the download is stamped with: the caller's when set, else the active
+	 * language's entry in {@link CODE_BLOCK_MEDIA_TYPES}. Follows the selector for the same reason
+	 * the filename does — the Python snippet of a multi-language block is not `text/javascript`.
+	 */
+	readonly mediaType: string = $derived(
+		this.#props.getMediaType() ?? CODE_BLOCK_MEDIA_TYPES[this.activeLanguage],
+	);
+
 	constructor(props: CodeBlockStateProps) {
 		this.#props = props;
 	}
@@ -541,6 +671,21 @@ export class CodeBlockState {
 	/** What the copy button writes: the active snippet's code, exactly as the caller supplied it. */
 	copyText(): string {
 		return this.activeCode;
+	}
+
+	/**
+	 * Hand the active snippet to the browser as a file, and say which name it went under.
+	 *
+	 * The content is {@link CodeBlockState.copyText} — the source verbatim, for the reason the
+	 * clipboard gets it verbatim: a file that differs from what it claims to be is worse than one
+	 * with a blank last line. The root's `onDownload` hears about it here, so a caller who never
+	 * touches the header still gets the receipt; the button's own hook fires after, in the button.
+	 */
+	download(): string {
+		const filename = this.downloadName;
+		downloadText(filename, this.copyText(), this.mediaType);
+		this.#props.notifyDownload(filename);
+		return filename;
 	}
 
 	/** One line, classified for the language currently on screen. */

@@ -41,6 +41,29 @@ is demo chrome that `parallax-shell` does not ship.
 The interface typeface, self-hosted via `@fontsource-variable/hanken-grotesk`. The font itself
 is published under the SIL Open Font License 1.1; the Fontsource packaging is MIT.
 
+## Vercel AI Elements
+
+The AI chat family under `src/lib/components/ui/` — `conversation`, `message`, `prompt-input`,
+`suggestion`, `reasoning`, `tool`, `chain-of-thought`, `task`, `confirmation`, `question`,
+`context-usage`, `model-selector`, and the download affordance on `code-block` — ports the
+behaviour and part structure of [AI Elements](https://elements.ai-sdk.dev) by Vercel, Inc.,
+published under the Apache License 2.0. The Svelte code here is a rewrite against this kit's
+primitives rather than a translation; where a part keeps upstream's name or contract, the comment
+at the top of the part says so.
+
+## Svelte AI Elements
+
+[Svelte AI Elements](https://svelte-ai-elements.vercel.app), a community port of the above to
+shadcn-svelte, was read for the shapes of the same components in Svelte 5 — in particular the
+scroll-tracking of its conversation part. It is published under the MIT licence. No file from it
+is redistributed.
+
+## svelte-streamdown
+
+`ui/message` renders Markdown through [svelte-streamdown](https://github.com/beynar/svelte-streamdown),
+published under the MIT licence and installed as a dependency of the `parallax-message` registry
+item rather than copied.
+
 ## Everything else
 
 The remaining runtime and build dependencies (Svelte, Vite, Tailwind CSS, LayerChart,

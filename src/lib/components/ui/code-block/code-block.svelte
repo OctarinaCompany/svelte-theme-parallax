@@ -47,6 +47,32 @@
 		 * @default true
 		 */
 		allowLanguageSelection?: boolean;
+		/**
+		 * The name the snippet downloads under. PRESENCE IS THE AFFORDANCE: set it and the header
+		 * shows a download button; leave it out and there is none.
+		 *
+		 * A name with an extension is used as it is, whatever language is on screen. One without an
+		 * extension is replaced by `snippet.<ext>` for the active language (`CODE_BLOCK_EXTENSIONS`)
+		 * and so follows the selector — `snippet.tsx`, then `snippet.py` once Python is on screen —
+		 * where `request.tsx` would not. The result is sanitised: path separators become dashes
+		 * (`src/app.css` saves as `src-app.css`, because a browser reads a separator in `download`
+		 * as a directory hint), the punctuation Windows reserves is stripped, and a name with nothing
+		 * left falls back to `snippet.<ext>`.
+		 */
+		filename?: string;
+		/**
+		 * The MIME type the download is stamped with. Ignored unless
+		 * {@link CodeBlockRootProps.filename} is set — without a name there is no download button to
+		 * stamp.
+		 * @default the active language's entry in `CODE_BLOCK_MEDIA_TYPES`
+		 */
+		mediaType?: string;
+		/**
+		 * Fired after the download button has handed the file to the browser, with the sanitised
+		 * name it was saved under. On the root because the root renders its own header: a caller
+		 * has no other way to reach the button.
+		 */
+		onDownload?: (filename: string) => void;
 	};
 
 	/** Alias of {@link CodeBlockRootProps}, present for parity with the upstream type name. */
@@ -71,7 +97,7 @@
 	 * agree construct for construct, and `codeBlockTokenVariants` in `code-block.svelte.ts` says
 	 * why: one parses its payload and this one does not.
 	 *
-	 * SIX THINGS DIVERGE FROM UPSTREAM:
+	 * SEVEN THINGS DIVERGE FROM UPSTREAM:
 	 *
 	 * 1. THE GROUND IS `bg-muted/50`, NOT `bg-card`. Upstream paints the block in the card colour
 	 *    with a `bg-muted/30` header bar (`code-block.tsx:265`, `:269`). Every demo in this kit puts
@@ -111,12 +137,22 @@
 	 *    reason it is a fix rather than a preference, is written over the table it belongs to in
 	 *    `code-block.svelte.ts`.
 	 *
+	 * 7. THERE IS A DOWNLOAD BUTTON, which upstream does not have. Set `filename` and the header
+	 *    offers to save the active snippet as a file, stamped with the language's MIME type or the
+	 *    caller's `mediaType`. Presence of the name is the whole switch — no separate boolean —
+	 *    because a download without a name to save under is not an affordance a reader can use.
+	 *    The root takes an `onDownload` receipt of its own as well as the button: the root renders
+	 *    its own header and `CodeBlockRootProps` is `WithoutChildren`, so a caller has no other way
+	 *    to reach the button's hook — one click fires the root's, then the button's. The mechanics
+	 *    are `$lib/shared/download-text.js`, shared with `Conversation.Download`
+	 *    (`ui/conversation/conversation-download.svelte`).
+	 *
 	 * SMALLER ONES, recorded so they are not read as oversights: the code is `text-sm` and the
 	 * corner `rounded-md`, matching `ui/json-viewer` rather than upstream's `text-xs` and
 	 * `rounded-lg`; the gutter is `aria-hidden` and the content is focusable, neither of which
-	 * upstream does; and the root carries `data-language`, the language actually on screen, because
-	 * every other component in this kit publishes its state as a data attribute and this is that
-	 * state.
+	 * upstream does; and the root carries `data-language`, the language actually on screen, and
+	 * `data-downloadable` when a filename is set, because every other component in this kit
+	 * publishes its state as data attributes and these are that state.
 	 *
 	 * WHAT IS NOT FIXED, because it is the approach rather than a defect: highlighting runs one
 	 * line at a time, so no construct that spans lines — a block comment, a multi-line template
@@ -135,6 +171,9 @@
 		label = "Code",
 		showLineNumbers = true,
 		allowLanguageSelection = true,
+		filename,
+		mediaType,
+		onDownload,
 		...restProps
 	}: CodeBlockRootProps = $props();
 
@@ -157,6 +196,9 @@
 		getShowLineNumbers: () => showLineNumbers,
 		getAllowLanguageSelection: () => allowLanguageSelection,
 		getLabel: () => label,
+		getFilename: () => filename,
+		getMediaType: () => mediaType,
+		notifyDownload: (name) => onDownload?.(name),
 	});
 
 	setCodeBlockContext(state);
@@ -172,6 +214,7 @@
 	bind:this={ref}
 	data-slot="code-block"
 	data-language={state.activeLanguage}
+	data-downloadable={state.filename !== undefined ? "" : undefined}
 	role="group"
 	aria-label={state.label}
 	class={cn(

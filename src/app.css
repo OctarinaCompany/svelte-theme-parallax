@@ -38,6 +38,20 @@
  */
 @import "./themes.css";
 
+/*
+ * Tailwind scans this project's own source, and `svelte-streamdown` — the Markdown renderer
+ * `ui/message` wraps — ships PRE-BUILT class strings in its `dist`, which no file here mentions.
+ * Without this line Tailwind never emits those utilities and a rendered answer arrives unstyled:
+ * no table rules, no list indents, no code ground. The package's README states the requirement.
+ *
+ * A PROJECT THAT INSTALLS `parallax-message` NEEDS ITS OWN COPY of this line, resolved against
+ * ITS stylesheet — `../node_modules/…` from `src/app.css`, `../../node_modules/…` from
+ * `src/routes/layout.css`. A registry item cannot patch an existing file, so the item carries the
+ * sentence in its `docs` (`tools/registry/generate.mjs`, `UI_DOCS`) and the skill repeats it in
+ * `skills/parallax/references/install.md`.
+ */
+@source "../node_modules/svelte-streamdown/**/*";
+
 @custom-variant dark (&:is(.dark *));
 
 :root {

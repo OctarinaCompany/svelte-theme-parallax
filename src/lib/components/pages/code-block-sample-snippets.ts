@@ -169,3 +169,16 @@ Don't colour an apostrophe, don't colour a 10:30, don't colour a "quote".
 Every character below reads in the page's own ink.`,
 	},
 ];
+
+/**
+ * The "Download" demo's payload: a small customer export, as `text` — CSV is not a language the
+ * highlighter knows, and a comma-separated table has nothing worth colouring. The block names
+ * itself `customers.csv` and stamps `text/csv`, which is the demo's point: the filename and MIME
+ * type are the caller's, and neither needs a grammar behind it.
+ */
+export const CUSTOMER_EXPORT_CSV = `id,name,plan,seats,renews_on
+1041,Ada Lovelace,team,12,2027-01-15
+1042,Grace Hopper,enterprise,240,2026-11-30
+1043,Katherine Johnson,starter,3,2026-09-08
+1044,Margaret Hamilton,team,25,2027-03-21
+`;

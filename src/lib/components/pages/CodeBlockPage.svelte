@@ -7,12 +7,16 @@
 	import * as ToggleGroup from "$lib/components/ui/toggle-group/index.js";
 	import { href } from "$lib/hooks/route.svelte.js";
 	import {
+		CODE_BLOCK_EXTENSIONS,
 		CODE_BLOCK_LANGUAGES,
+		CODE_BLOCK_MEDIA_TYPES,
 		CODE_BLOCK_TOKEN_KINDS,
+		codeBlockLanguageLabels,
 		resolveCodeBlockLanguage,
 		type CodeBlockLanguage,
 	} from "$lib/components/ui/code-block/index.js";
 	import {
+		CUSTOMER_EXPORT_CSV,
 		LANGUAGE_TOUR,
 		REGISTRY_REQUEST_CURL,
 		REGISTRY_REQUEST_SNIPPETS,
@@ -51,6 +55,12 @@
 
 	/** The controlled demo's language, owned by the page rather than by the block. */
 	let boundLanguage = $state<CodeBlockLanguage>("python");
+
+	/**
+	 * The "Download" demo's receipt: the name the last click saved under. The button shows none of
+	 * its own — the browser's save UI is the receipt — so this is what `onDownload` is for.
+	 */
+	let lastDownload = $state<string | undefined>();
 
 	const rootProps = [
 		{
@@ -119,6 +129,27 @@
 				"With this off, or with a single snippet, the header shows the language as a static tag instead of a selector.",
 		},
 		{
+			prop: "filename",
+			type: "string",
+			default: "undefined",
+			description:
+				"The download name; setting it is what makes the header show a download button. A name with an extension is kept as it is; one without is replaced by `snippet.<ext>` for the active language, so it follows the selector. The result is sanitised: path separators become dashes, reserved punctuation is stripped, and an empty result falls back to `snippet.<ext>`.",
+		},
+		{
+			prop: "mediaType",
+			type: "string",
+			default: "CODE_BLOCK_MEDIA_TYPES[activeLanguage]",
+			description:
+				"The MIME type the download is stamped with. Left unset, it follows the active language, so a multi-language block saves each snippet under its own type. Ignored unless `filename` is set — without a name there is no download button to stamp.",
+		},
+		{
+			prop: "onDownload",
+			type: "(filename: string) => void",
+			default: "undefined",
+			description:
+				"Fired after the download button has handed the file to the browser, with the sanitised name it was saved under. The root renders its own header, so this is where a caller hears about it.",
+		},
+		{
 			prop: "class",
 			type: "ClassValue",
 			default: "—",
@@ -133,6 +164,190 @@
 		},
 	];
 
+	const headerProps = [
+		{
+			prop: "ref",
+			type: "HTMLDivElement | null",
+			default: "null",
+			description: "Bindable reference to the rendered element.",
+		},
+		{
+			prop: "class",
+			type: "ClassValue",
+			default: "—",
+			description: "Merged last, so it overrides the built-in classes.",
+		},
+		{
+			prop: "...restProps",
+			type: "HTMLAttributes<HTMLDivElement>",
+			default: "—",
+			description: "Every other attribute is forwarded to the header element.",
+		},
+	];
+
+	const languageSelectProps = [
+		{
+			prop: "ref",
+			type: "HTMLButtonElement | null",
+			default: "null",
+			description: "Bindable reference to the rendered trigger.",
+		},
+		{
+			prop: "align",
+			type: 'ComponentProps<typeof Select.Content>["align"]',
+			default: "'end'",
+			description:
+				"Which edge of the trigger the list aligns to. `end` keeps the list inside the block when the trigger sits at its right edge, which in the header it always does.",
+		},
+		{
+			prop: "...restProps",
+			type: "WithoutChildren<ComponentProps<typeof Select.Trigger>>",
+			default: "—",
+			description:
+				"Forwarded to the Select trigger after `size` and the `aria-label`, so each can be overridden. `children` is blocked: the trigger's text is the active label, which carries the control's value into its accessible name.",
+		},
+	];
+
+	const copyButtonProps = [
+		{
+			prop: "ref",
+			type: "HTMLElement | null",
+			default: "null",
+			description: "Bindable reference to the rendered button.",
+		},
+		{
+			prop: "...restProps",
+			type: "WithoutChildren<ComponentProps<typeof Button>>",
+			default: "—",
+			description:
+				"Forwarded to the Button after `variant`, `size` and the `aria-label`, so each can be overridden. `children` is blocked: the part draws its own icon, and swaps it for the receipt.",
+		},
+	];
+
+	const downloadButtonProps = [
+		{
+			prop: "ref",
+			type: "HTMLElement | null",
+			default: "null",
+			description: "Bindable reference to the rendered button.",
+		},
+		{
+			prop: "onDownload",
+			type: "(filename: string) => void",
+			default: "undefined",
+			description:
+				"The button's own hook, fired after the root's `onDownload` with the same sanitised name. Reachable only when the button is rendered by hand, since the root's header takes none.",
+		},
+		{
+			prop: "...restProps",
+			type: "WithoutChildren<ComponentProps<typeof Button>>",
+			default: "—",
+			description:
+				"Forwarded to the Button after `variant`, `size` and the `aria-label`, so each can be overridden. `children` is blocked: the part draws its own icon.",
+		},
+	];
+
+	const contentProps = [
+		{
+			prop: "ref",
+			type: "HTMLPreElement | null",
+			default: "null",
+			description: "Bindable reference to the rendered `<pre>`.",
+		},
+		{
+			prop: "class",
+			type: "ClassValue",
+			default: "—",
+			description:
+				"Merged last, so it overrides the built-in classes. The height is not here — it lives on the root, and the content fills what the header leaves.",
+		},
+		{
+			prop: "...restProps",
+			type: "HTMLAttributes<HTMLPreElement>",
+			default: "—",
+			description:
+				"Every other attribute is forwarded to the `<pre>`, after `tabindex={0}`, so a caller can remove the tab stop — and with it keyboard access to anything below the fold.",
+		},
+	];
+
+	const lineProps = [
+		{
+			prop: "ref",
+			type: "HTMLSpanElement | null",
+			default: "null",
+			description: "Bindable reference to the rendered row.",
+		},
+		{
+			prop: "line",
+			type: "string",
+			default: "—",
+			description:
+				"Required. The raw line, tokenised against the block's active language. An empty string renders a single space so the row keeps its height.",
+		},
+		{
+			prop: "lineNumber",
+			type: "number",
+			default: "—",
+			description:
+				"Required. What the gutter shows — one-based, as a reader counts. Rendered only while the root's `showLineNumbers` is on, and hidden from assistive technology and the clipboard either way.",
+		},
+		{
+			prop: "class",
+			type: "ClassValue",
+			default: "—",
+			description: "Merged last, so it overrides the built-in `table-row`.",
+		},
+		{
+			prop: "...restProps",
+			type: "HTMLAttributes<HTMLSpanElement>",
+			default: "—",
+			description: "Every other attribute is forwarded to the row.",
+		},
+	];
+
+	/**
+	 * The header's tab order is what the download button changes: it inserts a stop between the
+	 * language affordance and the copy button, so the copy button is no longer always second.
+	 */
+	const keyboard = [
+		{
+			keys: "Tab",
+			description:
+				"Moves through the header's stops in reading order — the language selector when there is one, the download button when the root has a `filename`, then the copy button — and on into the content, which is a stop of its own because it scrolls (WCAG 2.1.1).",
+		},
+		{
+			keys: "Shift + Tab",
+			description: "Moves back through the same stops.",
+		},
+		{
+			keys: "Enter, Space",
+			description:
+				"On the copy or download button, activates it. On the language selector, opens the list.",
+		},
+		{
+			keys: "Arrow Up, Arrow Down",
+			description:
+				"On the language selector, open the list and move through the languages. In the content, scroll the code once it has focus.",
+		},
+		{
+			keys: "Escape",
+			description: "Closes the language list.",
+		},
+		{
+			keys: "A character",
+			description:
+				"With the language list open, jumps to the entry whose label starts with it — the label on screen, not the raw language name.",
+		},
+	];
+
+	/** One row per language: what a name without an extension downloads as, and what the file is stamped with. */
+	const downloadNames = CODE_BLOCK_LANGUAGES.map((language) => ({
+		language,
+		label: codeBlockLanguageLabels[language],
+		extension: CODE_BLOCK_EXTENSIONS[language],
+		mediaType: CODE_BLOCK_MEDIA_TYPES[language],
+	}));
+
 	const parts = [
 		{
 			part: "CodeBlock.Root",
@@ -142,7 +357,7 @@
 		{
 			part: "CodeBlock.Header",
 			description:
-				"The caption, the language affordance — selector or static tag — and the copy button.",
+				"The caption, the language affordance — selector or static tag — the download button when the root has a `filename`, and the copy button. The `{#if}` for the download button lives here, not in the button.",
 		},
 		{
 			part: "CodeBlock.LanguageSelect",
@@ -153,6 +368,11 @@
 			part: "CodeBlock.CopyButton",
 			description:
 				"Writes the active snippet verbatim. The receipt appears only once `writeText` resolves, and is dropped when the snippet changes.",
+		},
+		{
+			part: "CodeBlock.DownloadButton",
+			description:
+				"Saves the active snippet verbatim as a file. Rendered by the header only when the root has a `filename`; composed by hand it always renders, and falls back to `snippet.<ext>`.",
 		},
 		{
 			part: "CodeBlock.Content",
@@ -170,7 +390,12 @@
 			attribute: "[data-slot]",
 			part: "every part it draws itself",
 			values:
-				"code-block, code-block-header, code-block-content, code-block-line, code-block-line-number, code-block-line-code",
+				"code-block, code-block-header, code-block-copy-button, code-block-download-button, code-block-content, code-block-line, code-block-line-number, code-block-line-code",
+		},
+		{
+			attribute: "[data-downloadable]",
+			part: "CodeBlock.Root",
+			values: "present when `filename` is set, absent otherwise",
 		},
 		{
 			attribute: "[data-kind]",
@@ -364,6 +589,41 @@
 		</Card.Root>
 	</DocSection>
 
+	<DocSection title="Download">
+		{#snippet blurb()}
+			Set <code>filename</code> and the header offers to save the snippet as a file — the name is
+			the whole switch. This export is plain <code>text</code>, since CSV is not a grammar the
+			highlighter knows, and it is stamped <code>text/csv</code> through <code>mediaType</code>;
+			left unset, the type follows the language. A name with an extension is saved as it is; one
+			without is replaced by <code>snippet.&lt;ext&gt;</code> for the language on screen, so over a
+			selector the extension follows the reader's choice. Path separators in a name are replaced, so
+			<code>exports/customers.csv</code>
+			would save as <code>exports-customers.csv</code>.
+		{/snippet}
+		<Card.Root>
+			<Card.Content>
+				<div class="flex flex-col gap-4">
+					<CodeBlock.Root
+						label="Customer export"
+						language="text"
+						code={CUSTOMER_EXPORT_CSV}
+						filename="customers.csv"
+						mediaType="text/csv;charset=utf-8"
+						showLineNumbers={false}
+						onDownload={(name) => (lastDownload = name)}
+					/>
+					<p class="text-sm text-muted-foreground" aria-live="polite">
+						{#if lastDownload}
+							Last saved as <code>{lastDownload}</code>.
+						{:else}
+							Nothing saved yet — the block reports through <code>onDownload</code>.
+						{/if}
+					</p>
+				</div>
+			</Card.Content>
+		</Card.Root>
+	</DocSection>
+
 	<DocSection title="API reference">
 		<div class="flex flex-col gap-3">
 			<h3 class="text-base font-medium">CodeBlock.Root</h3>
@@ -389,6 +649,240 @@
 									<Table.Cell class="text-muted-foreground">{row.type}</Table.Cell>
 									<Table.Cell class="text-muted-foreground">{row.default}</Table.Cell>
 									<Table.Cell>{row.description}</Table.Cell>
+								</Table.Row>
+							{/each}
+						</Table.Body>
+					</Table.Root>
+				</Card.Content>
+			</Card.Root>
+		</div>
+
+		<div class="flex flex-col gap-3">
+			<h3 class="text-base font-medium">CodeBlock.Header</h3>
+			<p class="text-sm text-muted-foreground">
+				The caption row: a <code>&lt;div&gt;</code> with the label, the language affordance, the
+				download button when the root has a <code>filename</code>, and the copy button. It owns both
+				<code>{"{#if}"}</code>s — the one that picks a selector over a static tag, and the one that
+				leaves the download button out.
+			</p>
+			<Card.Root>
+				<Card.Content class="px-0 [&_[data-slot=table-cell]]:whitespace-normal">
+					<Table.Root>
+						<Table.Header>
+							<Table.Row>
+								<Table.Head>Prop</Table.Head>
+								<Table.Head>Type</Table.Head>
+								<Table.Head>Default</Table.Head>
+								<Table.Head>Description</Table.Head>
+							</Table.Row>
+						</Table.Header>
+						<Table.Body>
+							{#each headerProps as row (row.prop)}
+								<Table.Row>
+									<Table.Cell class="font-medium">{row.prop}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.type}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.default}</Table.Cell>
+									<Table.Cell>{row.description}</Table.Cell>
+								</Table.Row>
+							{/each}
+						</Table.Body>
+					</Table.Root>
+				</Card.Content>
+			</Card.Root>
+		</div>
+
+		<div class="flex flex-col gap-3">
+			<h3 class="text-base font-medium">CodeBlock.LanguageSelect</h3>
+			<p class="text-sm text-muted-foreground">
+				The language picker: a house <code>Select</code> on the <code>sm</code> rung, rendered by the
+				header only when there is more than one snippet and the root allows switching. Its value is the
+				language actually on screen, and its accessible name carries that label.
+			</p>
+			<Card.Root>
+				<Card.Content class="px-0 [&_[data-slot=table-cell]]:whitespace-normal">
+					<Table.Root>
+						<Table.Header>
+							<Table.Row>
+								<Table.Head>Prop</Table.Head>
+								<Table.Head>Type</Table.Head>
+								<Table.Head>Default</Table.Head>
+								<Table.Head>Description</Table.Head>
+							</Table.Row>
+						</Table.Header>
+						<Table.Body>
+							{#each languageSelectProps as row (row.prop)}
+								<Table.Row>
+									<Table.Cell class="font-medium">{row.prop}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.type}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.default}</Table.Cell>
+									<Table.Cell>{row.description}</Table.Cell>
+								</Table.Row>
+							{/each}
+						</Table.Body>
+					</Table.Root>
+				</Card.Content>
+			</Card.Root>
+		</div>
+
+		<div class="flex flex-col gap-3">
+			<h3 class="text-base font-medium">CodeBlock.CopyButton</h3>
+			<p class="text-sm text-muted-foreground">
+				The copy button: a ghost <code>icon-sm</code> Button that writes the active snippet verbatim
+				to the clipboard and swaps its glyph for a check mark for
+				<code>CODE_BLOCK_COPY_RECEIPT_MS</code> (1400ms) once <code>writeText</code> resolves. The receipt
+				never appears for a copy the browser refused, and is dropped when the snippet changes.
+			</p>
+			<Card.Root>
+				<Card.Content class="px-0 [&_[data-slot=table-cell]]:whitespace-normal">
+					<Table.Root>
+						<Table.Header>
+							<Table.Row>
+								<Table.Head>Prop</Table.Head>
+								<Table.Head>Type</Table.Head>
+								<Table.Head>Default</Table.Head>
+								<Table.Head>Description</Table.Head>
+							</Table.Row>
+						</Table.Header>
+						<Table.Body>
+							{#each copyButtonProps as row (row.prop)}
+								<Table.Row>
+									<Table.Cell class="font-medium">{row.prop}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.type}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.default}</Table.Cell>
+									<Table.Cell>{row.description}</Table.Cell>
+								</Table.Row>
+							{/each}
+						</Table.Body>
+					</Table.Root>
+				</Card.Content>
+			</Card.Root>
+		</div>
+
+		<div class="flex flex-col gap-3">
+			<h3 class="text-base font-medium">CodeBlock.DownloadButton</h3>
+			<p class="text-sm text-muted-foreground">
+				The download button: a ghost <code>icon-sm</code> Button that saves the active snippet under
+				the root's resolved <code>filename</code>, stamped with its <code>mediaType</code>. The
+				header renders it only when a filename is set; the part itself never hides.
+			</p>
+			<Card.Root>
+				<Card.Content class="px-0 [&_[data-slot=table-cell]]:whitespace-normal">
+					<Table.Root>
+						<Table.Header>
+							<Table.Row>
+								<Table.Head>Prop</Table.Head>
+								<Table.Head>Type</Table.Head>
+								<Table.Head>Default</Table.Head>
+								<Table.Head>Description</Table.Head>
+							</Table.Row>
+						</Table.Header>
+						<Table.Body>
+							{#each downloadButtonProps as row (row.prop)}
+								<Table.Row>
+									<Table.Cell class="font-medium">{row.prop}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.type}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.default}</Table.Cell>
+									<Table.Cell>{row.description}</Table.Cell>
+								</Table.Row>
+							{/each}
+						</Table.Body>
+					</Table.Root>
+				</Card.Content>
+			</Card.Root>
+		</div>
+
+		<div class="flex flex-col gap-3">
+			<h3 class="text-base font-medium">CodeBlock.Content</h3>
+			<p class="text-sm text-muted-foreground">
+				The scroller: a focusable <code>&lt;pre&gt;&lt;code&gt;</code> laid out as a table, one
+				<code>CodeBlock.Line</code> per row of the active snippet. It fills whatever height the root leaves
+				after the header, and scrolls in both directions rather than wrapping.
+			</p>
+			<Card.Root>
+				<Card.Content class="px-0 [&_[data-slot=table-cell]]:whitespace-normal">
+					<Table.Root>
+						<Table.Header>
+							<Table.Row>
+								<Table.Head>Prop</Table.Head>
+								<Table.Head>Type</Table.Head>
+								<Table.Head>Default</Table.Head>
+								<Table.Head>Description</Table.Head>
+							</Table.Row>
+						</Table.Header>
+						<Table.Body>
+							{#each contentProps as row (row.prop)}
+								<Table.Row>
+									<Table.Cell class="font-medium">{row.prop}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.type}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.default}</Table.Cell>
+									<Table.Cell>{row.description}</Table.Cell>
+								</Table.Row>
+							{/each}
+						</Table.Body>
+					</Table.Root>
+				</Card.Content>
+			</Card.Root>
+		</div>
+
+		<div class="flex flex-col gap-3">
+			<h3 class="text-base font-medium">CodeBlock.Line</h3>
+			<p class="text-sm text-muted-foreground">
+				One row: a <code>&lt;span&gt;</code> in <code>table-row</code> layout holding the gutter
+				cell and the line's classified runs, each a <code>&lt;span&gt;</code> stamped with its
+				<code>data-kind</code>. Rendered by the content; composed by hand it still reads the active
+				language from context.
+			</p>
+			<Card.Root>
+				<Card.Content class="px-0 [&_[data-slot=table-cell]]:whitespace-normal">
+					<Table.Root>
+						<Table.Header>
+							<Table.Row>
+								<Table.Head>Prop</Table.Head>
+								<Table.Head>Type</Table.Head>
+								<Table.Head>Default</Table.Head>
+								<Table.Head>Description</Table.Head>
+							</Table.Row>
+						</Table.Header>
+						<Table.Body>
+							{#each lineProps as row (row.prop)}
+								<Table.Row>
+									<Table.Cell class="font-medium">{row.prop}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.type}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">{row.default}</Table.Cell>
+									<Table.Cell>{row.description}</Table.Cell>
+								</Table.Row>
+							{/each}
+						</Table.Body>
+					</Table.Root>
+				</Card.Content>
+			</Card.Root>
+		</div>
+
+		<div class="flex flex-col gap-3">
+			<h3 class="text-base font-medium">Download names</h3>
+			<p class="text-sm text-muted-foreground">
+				What a <code>filename</code> without an extension saves as, per language, and the MIME type
+				it is stamped with when <code>mediaType</code> is unset — <code>CODE_BLOCK_EXTENSIONS</code>
+				and
+				<code>CODE_BLOCK_MEDIA_TYPES</code>. TypeScript is <code>text/plain</code> because no
+				registered type exists for it and the one servers infer from <code>.ts</code> is an MPEG stream.
+			</p>
+			<Card.Root>
+				<Card.Content class="px-0 [&_[data-slot=table-cell]]:whitespace-normal">
+					<Table.Root>
+						<Table.Header>
+							<Table.Row>
+								<Table.Head>Language</Table.Head>
+								<Table.Head>Saves as</Table.Head>
+								<Table.Head>Media type</Table.Head>
+							</Table.Row>
+						</Table.Header>
+						<Table.Body>
+							{#each downloadNames as row (row.language)}
+								<Table.Row>
+									<Table.Cell class="font-medium">{row.label}</Table.Cell>
+									<Table.Cell class="text-muted-foreground">snippet.{row.extension}</Table.Cell>
+									<Table.Cell>{row.mediaType}</Table.Cell>
 								</Table.Row>
 							{/each}
 						</Table.Body>
@@ -506,6 +1000,35 @@
 									<Table.Cell class="font-medium">{row.attribute}</Table.Cell>
 									<Table.Cell class="text-muted-foreground">{row.part}</Table.Cell>
 									<Table.Cell>{row.values}</Table.Cell>
+								</Table.Row>
+							{/each}
+						</Table.Body>
+					</Table.Root>
+				</Card.Content>
+			</Card.Root>
+		</div>
+
+		<div class="flex flex-col gap-3">
+			<h3 class="text-base font-medium">Keyboard interactions</h3>
+			<p class="text-sm text-muted-foreground">
+				The block has no key handling of its own: the stops are native buttons, a Select, and a
+				focusable scroller. The download button, when present, is one more stop between the language
+				affordance and the copy button.
+			</p>
+			<Card.Root>
+				<Card.Content class="px-0 [&_[data-slot=table-cell]]:whitespace-normal">
+					<Table.Root>
+						<Table.Header>
+							<Table.Row>
+								<Table.Head>Key</Table.Head>
+								<Table.Head>Description</Table.Head>
+							</Table.Row>
+						</Table.Header>
+						<Table.Body>
+							{#each keyboard as row (row.keys)}
+								<Table.Row>
+									<Table.Cell class="font-medium">{row.keys}</Table.Cell>
+									<Table.Cell>{row.description}</Table.Cell>
 								</Table.Row>
 							{/each}
 						</Table.Body>

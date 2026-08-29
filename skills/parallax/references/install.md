@@ -112,6 +112,19 @@ animate through. Both are spelled out, with their symptoms, in
 checks in [its step 7](bootstrap.md#7-validate) tell you in one paste whether this project
 has them.
 
+A fourth applies after `parallax-message` (directly or through `parallax-reasoning`, which
+depends on it). The item installs `svelte-streamdown`, whose Markdown renderer ships pre-built
+Tailwind classes in its `dist` that no project file mentions, so the stylesheet must tell
+Tailwind to scan the package — one line, next to the imports:
+
+```css
+@source "../node_modules/svelte-streamdown/**/*";
+```
+
+Resolve the path against the stylesheet's own directory: `../node_modules/…` from `src/app.css`,
+`../../node_modules/…` from `src/routes/layout.css`. The symptom of forgetting it is silent: the
+answer renders, but tables lose their rules, lists their indents and code blocks their ground.
+
 Then wire the shell at the app root — the Key Patterns block in SKILL.md is the canonical
 shape (data as props, `isActive` predicate, content beside `PageHeader`).
 
