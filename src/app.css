@@ -1145,6 +1145,46 @@
 }
 
 /*
+ * The fixed rail is sized by the LAYOUT viewport, never by `svh`.
+ *
+ * THE BUG, reported on iPadOS Safari: scroll the page and the sidebar drifts upward with it,
+ * leaving an empty strip of page background along the bottom of the rail — the rest of the
+ * chrome stays put, so the rail reads as the broken thing.
+ *
+ * WHY. `sidebar-container` is `fixed inset-y-0 ... h-svh` upstream, and those two are
+ * over-constrained: with `top`, `bottom` AND `height` all set, `bottom` is the one dropped, so
+ * the height is 100svh — the SMALL viewport, i.e. the viewport as it stands with the browser
+ * toolbars fully EXPANDED. A fixed element is laid out against the layout viewport, which on iOS
+ * and iPadOS is the LARGE one. The moment Safari collapses its toolbar the visible area grows to
+ * the large viewport while the rail is still cut to the small one, and the difference — the
+ * toolbar's own height — is the strip at the bottom. Nothing scrolls; the rail was always that
+ * short, and the collapse is what uncovers it.
+ *
+ * Both desktop variants carry the same class and so the same shortfall. It reads as a defect in
+ * the flush rail, whose column and border stop mid-air against the page, and as mere margin under
+ * the floating panel, which already sits 8px off every edge with its own ring and rounded corners
+ * closing the shape — same geometry, different legibility.
+ *
+ * THE FIX is to stop naming a height at all and let `inset-y-0` resolve it: `top: 0; bottom: 0`
+ * on a fixed box fills the layout viewport exactly, which is the large one on iOS and the only
+ * one anywhere else. `100dvh` also closes the gap but re-lays out the rail on every toolbar
+ * animation, and that is a jump on the one axis a navigation rail must hold still.
+ *
+ * The mobile drawer never had this: `sheet-content` sizes itself `h-full`, which on a fixed box
+ * resolves against that same layout viewport — the shape this rule gives the desktop rail.
+ *
+ * WRITTEN HERE, not in `sidebar.svelte`: that file is a verbatim shadcn-svelte port, and this is
+ * a correction to an upstream default rather than a Parallax opinion — the same reasoning the
+ * `sidebar-inset` rule below states at length. Unlayered, so it outranks the `h-svh` utility
+ * whatever their specificity — and `:where()` holds that specificity at zero, so a rail that
+ * genuinely needs a height of its own (one seated under a fixed masthead, say) takes it back with
+ * the `!` a utility needs against an unlayered rule: `class="h-[calc(100lvh-4rem)]!"`.
+ */
+:where([data-slot="sidebar-container"]) {
+	height: auto;
+}
+
+/*
  * The page canvas may not be widened by what it holds.
  *
  * `SidebarInset` is the flex item beside the rail — `flex-1`, and therefore `min-width: auto`,

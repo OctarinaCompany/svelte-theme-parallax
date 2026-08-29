@@ -539,6 +539,9 @@
 				"[data-collapsible=\"icon\"] [data-slot=\"sidebar-group\"], [data-collapsible=\"icon\"] [data-slot=\"sidebar-header\"], [data-collapsible=\"icon\"] [data-slot=\"sidebar-footer\"]": {
 					"padding-inline": "0.5rem"
 				},
+				":where([data-slot=\"sidebar-container\"])": {
+					"height": "auto"
+				},
 				":where([data-slot=\"sidebar-inset\"])": {
 					"min-width": "0"
 				},
