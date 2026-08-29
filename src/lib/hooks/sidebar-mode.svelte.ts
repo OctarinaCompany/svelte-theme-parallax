@@ -67,6 +67,8 @@ let current = $state<SidebarMode>(read());
 
 // Normalise storage once, so a migrated legacy value is stored under its new name.
 // `persist` carries its own guards; a bare `typeof localStorage` here would throw when blocked.
+// The initial value is exactly what this wants — Svelte 5.57 warns on any module-level read.
+// svelte-ignore state_referenced_locally
 persist(current);
 
 /**
