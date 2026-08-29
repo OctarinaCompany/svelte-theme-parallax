@@ -118,6 +118,43 @@ export const CATEGORIES = [
 	},
 	{
 		/**
+		 * Does it render one side of a dialogue with a model — a turn, a reasoning trace, a tool
+		 * call, an approval — or collect the next one?
+		 *
+		 * A DOMAIN RUNG, like `Dates and time` above it, and placed this high for the same reason
+		 * that one is: read against the rungs below, the family scatters. `prompt-input` and
+		 * `question` are form controls by every other test, `model-selector` is a picker,
+		 * `suggestion` exists to be pressed, `confirmation` reports state, `context-usage` is a
+		 * measured value, and `conversation`, `message`, `reasoning`, `tool`, `task` and
+		 * `chain-of-thought` arrange content. Six homes for twelve components that are only ever
+		 * used together is the situation a rung exists to prevent, so the rung sits above every
+		 * group that would otherwise claim one of them.
+		 *
+		 * The test is the DIALOGUE, not the vocabulary. The generic pieces a chat surface composes —
+		 * `code-block`, `collapsible`, `scroll-area`, `textarea` — keep their homes: a code block
+		 * is a code block whether or not a model wrote it. Ordered as the family is read: the
+		 * transcript and its turn, then what a turn can contain, then what a turn can ask for.
+		 */
+		title: "AI chat",
+		slug: "ai-chat",
+		test: "It renders one side of a dialogue with a model — a turn, a reasoning trace, a tool call, an approval — or collects the next one.",
+		items: [
+			{ title: "Conversation", slug: "/components/conversation" },
+			{ title: "Message", slug: "/components/message" },
+			{ title: "Prompt input", slug: "/components/prompt-input" },
+			{ title: "Suggestion", slug: "/components/suggestion" },
+			{ title: "Reasoning", slug: "/components/reasoning" },
+			{ title: "Tool", slug: "/components/tool" },
+			{ title: "Chain of thought", slug: "/components/chain-of-thought" },
+			{ title: "Task", slug: "/components/task" },
+			{ title: "Confirmation", slug: "/components/confirmation" },
+			{ title: "Question", slug: "/components/question" },
+			{ title: "Context usage", slug: "/components/context-usage" },
+			{ title: "Model selector", slug: "/components/model-selector" },
+		],
+	},
+	{
+		/**
 		 * Does the user choose from a set of options the component PRESENTS as a list?
 		 *
 		 * Above `Form controls`, or every one of these is swallowed by it; above `Overlays`, or
@@ -400,7 +437,7 @@ export const CATALOG_PATH = "/components" as const;
  *
  * THREE SEGMENTS, and the third one is the point. `/components/patterns` would read better and is
  * not available: `CONVENTIONS.md` §9 states `ui/<slug>` ↔ `/components/<slug>` as an invariant
- * with named exceptions, and twelve more exceptions would hollow it out. Worse, it would be a
+ * with named exceptions, and thirteen more exceptions would hollow it out. Worse, it would be a
  * collision waiting to happen — nothing stops a future component being called `layout` or
  * `navigation`, and the day one is, a group page would silently shadow it. A component slug is
  * always one segment, so a group page that takes three can never be mistaken for one.
@@ -426,7 +463,7 @@ export type RoutePath =
  *
  * `App.svelte` types its page map as `Record<RoutePath, …>`, so adding an entry to
  * {@link CATEGORIES} without adding its dynamic import there is a compile error — and removing
- * one without removing the import is too. The twelve group routes are covered by the same rule,
+ * one without removing the import is too. The thirteen group routes are covered by the same rule,
  * which is why they are derived here rather than listed.
  */
 export const ROUTES: readonly RoutePath[] = [

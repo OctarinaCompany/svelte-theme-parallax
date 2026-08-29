@@ -12,7 +12,7 @@
 	 * until now its first two steps went nowhere. That is correct in the SIDEBAR — a group there
 	 * reveals its children, and giving it a destination too would make one click carry two meanings
 	 * — and wrong in a breadcrumb, whose whole job is to be the way back up. So this page and the
-	 * twelve group pages exist, reachable from the trail and from nowhere else.
+	 * thirteen group pages exist, reachable from the trail and from nowhere else.
 	 *
 	 * IT IS THE LADDER, NOT A LIST. The groups are shown in their declared order with their
 	 * admission tests, because the order is the taxonomy: a component belongs to the FIRST group
@@ -65,8 +65,8 @@
 
 						<!--
 							The members are listed here as well as on the group page, because the index is
-							where someone lands not knowing which group a thing is in — scanning twelve short
-							lists is how they find it, and a page that made them open twelve pages to do that
+							where someone lands not knowing which group a thing is in — scanning thirteen short
+							lists is how they find it, and a page that made them open thirteen pages to do that
 							would be an index that indexes nothing.
 						-->
 						<div class="flex flex-wrap gap-x-3 gap-y-1">
@@ -85,7 +85,7 @@
 	<DocSection title="Outside the ladder">
 		{#snippet blurb()}
 			An entry with children is a category, not a place — so a page that has to be clickable cannot
-			be a group. These are hoisted above the twelve and sit in the sidebar as plain links.
+			be a group. These are hoisted above the thirteen and sit in the sidebar as plain links.
 		{/snippet}
 		<Card.Root>
 			<Card.Content class="flex flex-wrap gap-x-3 gap-y-1">

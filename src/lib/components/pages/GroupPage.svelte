@@ -9,8 +9,8 @@
 	 * One group of the ladder: what it admits, what it excludes, and everything filed under it.
 	 *
 	 * ONE COMPONENT FOR TWELVE ROUTES. `App.svelte` maps every `/components/group/*` path to this
-	 * file, which reads the current route to find out which group it is. The alternative — twelve
-	 * near-identical page files — would be twelve places to forget when a group is renamed, and the
+	 * file, which reads the current route to find out which group it is. The alternative — thirteen
+	 * near-identical page files — would be thirteen places to forget when a group is renamed, and the
 	 * group data already lives in `CATEGORIES` where both the router and the sidebar read it.
 	 *
 	 * ITS PLACE IN THE LADDER IS THE HEADLINE, because that is what the group means. A group is not
@@ -25,7 +25,7 @@
 	/**
 	 * Widened to `number` on purpose.
 	 *
-	 * `CATEGORIES` is `as const`, so `items.length` is a union of the twelve literal counts — and
+	 * `CATEGORIES` is `as const`, so `items.length` is a union of the thirteen literal counts — and
 	 * `=== 1` against it is a type error today, because no group currently holds exactly one. The
 	 * pluralisation still has to be right the day one does, so the comparison is kept and the type
 	 * is loosened rather than the branch being deleted as unreachable.
@@ -36,7 +36,7 @@
 </script>
 
 <!--
-	`{#key}` on the route: the component is shared by twelve paths, so without it Svelte reuses the
+	`{#key}` on the route: the component is shared by thirteen paths, so without it Svelte reuses the
 	instance and only the derived text changes — which is correct, but it also means `DocPage`'s
 	intro keeps its scroll position and any future per-group state would leak between groups.
 	Re-mounting on the path makes each group a fresh page, which is what the URL says it is.

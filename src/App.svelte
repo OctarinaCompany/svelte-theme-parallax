@@ -43,13 +43,14 @@
 	 * old chain would have silently fallen through to whichever page came last.
 	 */
 	const pages: Record<RoutePath, () => Promise<{ default: Component }>> = {
-		// The catalog index and the twelve group pages, which exist because the breadcrumb
+		// The catalog index and the thirteen group pages, which exist because the breadcrumb
 		// promises them. Every group route resolves to the SAME component: it reads the current
-		// path to find its group, so twelve near-identical page files never have to be kept in
+		// path to find its group, so thirteen near-identical page files never have to be kept in
 		// step with `CATEGORIES`.
 		"/components": () => import("$lib/components/pages/CatalogPage.svelte"),
 		"/components/group/patterns": () => import("$lib/components/pages/GroupPage.svelte"),
 		"/components/group/dates-and-time": () => import("$lib/components/pages/GroupPage.svelte"),
+		"/components/group/ai-chat": () => import("$lib/components/pages/GroupPage.svelte"),
 		"/components/group/pickers": () => import("$lib/components/pages/GroupPage.svelte"),
 		"/components/group/form-controls": () => import("$lib/components/pages/GroupPage.svelte"),
 		"/components/group/form-layout": () => import("$lib/components/pages/GroupPage.svelte"),
@@ -93,6 +94,18 @@
 		"/components/copy-button": () => import("$lib/components/pages/CopyButtonPage.svelte"),
 		"/components/data-grid": () => import("$lib/components/pages/DataGridPage.svelte"),
 		"/components/data-table": () => import("$lib/components/pages/DataTablePage.svelte"),
+		"/components/conversation": () => import("$lib/components/pages/ConversationPage.svelte"),
+		"/components/message": () => import("$lib/components/pages/MessagePage.svelte"),
+		"/components/prompt-input": () => import("$lib/components/pages/PromptInputPage.svelte"),
+		"/components/suggestion": () => import("$lib/components/pages/SuggestionPage.svelte"),
+		"/components/reasoning": () => import("$lib/components/pages/ReasoningPage.svelte"),
+		"/components/tool": () => import("$lib/components/pages/ToolPage.svelte"),
+		"/components/chain-of-thought": () => import("$lib/components/pages/ChainOfThoughtPage.svelte"),
+		"/components/task": () => import("$lib/components/pages/TaskPage.svelte"),
+		"/components/confirmation": () => import("$lib/components/pages/ConfirmationPage.svelte"),
+		"/components/question": () => import("$lib/components/pages/QuestionPage.svelte"),
+		"/components/context-usage": () => import("$lib/components/pages/ContextUsagePage.svelte"),
+		"/components/model-selector": () => import("$lib/components/pages/ModelSelectorPage.svelte"),
 		"/components/date-selector": () => import("$lib/components/pages/DateSelectorPage.svelte"),
 		"/components/dialog": () => import("$lib/components/pages/DialogPage.svelte"),
 		"/components/drawer": () => import("$lib/components/pages/DrawerPage.svelte"),
@@ -275,7 +288,7 @@
 	 * and silently wrong. This effect waits for `loaded` to hold the chunk, which is the same
 	 * condition that renders `<Page />`, so by the time it runs the real page is in the DOM.
 	 *
-	 * It reads `route.current` as well as `loaded`, because the twelve group routes share ONE
+	 * It reads `route.current` as well as `loaded`, because the thirteen group routes share ONE
 	 * component: navigating between them leaves `current` identical and would never re-run an
 	 * effect that only watched the component.
 	 *

@@ -290,6 +290,14 @@ The house carousel: shadcn's Embla wrapper with the previous and next controls r
 npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-carousel.json
 ```
 
+## parallax-chain-of-thought
+
+The steps a model took to an answer, as a collapsible trace: labelled steps with a status each, search-result chips and an optional image. Reach for it to show the WORK; Timeline is for events that happened to a system.
+
+```sh
+npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-chain-of-thought.json
+```
+
 ## parallax-chart
 
 The house chart frame: shadcn's LayerChart container, tooltip and legend on the theme's grid, axis and tooltip treatment, driven by a per-series colour config.
@@ -324,7 +332,7 @@ npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-para
 
 ## parallax-code-block
 
-A copyable code sample with a line-number gutter, a language selector and lightweight language-aware highlighting. Reach for it for an opaque string to read and copy; JSON viewer parses a live value instead.
+A copyable — and, given a filename, downloadable — code sample with a line-number gutter, a language selector and lightweight language-aware highlighting. Reach for it for an opaque string to read and copy; JSON viewer parses a live value instead.
 
 ```sh
 npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-code-block.json
@@ -370,12 +378,36 @@ Two versions of one image and a divider that wipes between them, by pointer, by 
 npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-compare-slider.json
 ```
 
+## parallax-confirmation
+
+The approval gate on a tool call: the request while a decision is open, then the accepted or rejected receipt, painted from the status ramp. Renders nothing until there is a decision to show.
+
+```sh
+npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-confirmation.json
+```
+
 ## parallax-context-menu
 
 The house context menu: shadcn's API with the flat row treatment, ring-drawn popovers and an RTL-aware submenu chevron.
 
 ```sh
 npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-context-menu.json
+```
+
+## parallax-context-usage
+
+How much of a model's context window a conversation has used — a ring in the composer, a hover card of token counts and, when the caller supplies one, the cost. Numbers and cost are the caller's; the component only formats them.
+
+```sh
+npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-context-usage.json
+```
+
+## parallax-conversation
+
+The transcript viewport: sticks to the bottom while a reply streams, offers a scroll-to-bottom button once the reader has scrolled away, an empty state, and a Markdown download of the whole exchange.
+
+```sh
+npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-conversation.json
 ```
 
 ## parallax-copy-button
@@ -674,6 +706,24 @@ The house menubar: shadcn's API with the flat row treatment, ring-drawn popovers
 npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-menubar.json
 ```
 
+## parallax-message
+
+One turn of a chat — a user bubble or an assistant answer — with a Markdown response rendered through svelte-streamdown, actions and a toolbar. Installing it brings svelte-streamdown and needs one `@source` line in the stylesheet.
+
+```sh
+npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-message.json
+```
+
+Markdown renders through svelte-streamdown, whose classes live in node_modules: add `@source "../node_modules/svelte-streamdown/**/*";` next to the imports of your global stylesheet (`../../node_modules/…` from src/routes/layout.css). Without it answers render unstyled and nothing errors.
+
+## parallax-model-selector
+
+A command palette for choosing a model: searchable groups per provider, provider logos, a name slot. Chosen values are the caller's; the component only presents the list.
+
+```sh
+npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-model-selector.json
+```
+
 ## parallax-native-select
 
 The house native select: the browser's own dropdown at the theme's field height, with a `sm` or `default` size stamped as `data-size`.
@@ -746,12 +796,28 @@ The house progress bar: shadcn's API as a slim rounded track on the muted ground
 npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-progress.json
 ```
 
+## parallax-prompt-input
+
+The composer: an auto-growing textarea that submits on Enter, a header and footer for tools, borderless selects, and a submit button that becomes a stop button while a reply is in flight.
+
+```sh
+npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-prompt-input.json
+```
+
 ## parallax-qr-code
 
 A QR code you compose: the same value rendered as SVG, canvas or image, with a centre overlay, a loading skeleton and a download control.
 
 ```sh
 npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-qr-code.json
+```
+
+## parallax-question
+
+A clarifying question from the model, as a form: single or multiple choice, a free-text answer, and a submit that stays disabled until there is a response. Its shape is the AskUserQuestion tool call.
+
+```sh
+npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-question.json
 ```
 
 ## parallax-radio-group
@@ -776,6 +842,14 @@ A star rating that displays whole, half and fractional scores, and — when edit
 
 ```sh
 npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-rating.json
+```
+
+## parallax-reasoning
+
+The model's reasoning summary in a collapsible panel that opens while it streams, reports how long the thinking took, and closes itself once the answer starts. Reach for it over Collapsible when the content is a thought, not a section.
+
+```sh
+npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-reasoning.json
 ```
 
 ## parallax-relative-time-card
@@ -946,6 +1020,14 @@ A multi-step flow with visible progress: a list of steps with indicator, title, 
 npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-stepper.json
 ```
 
+## parallax-suggestion
+
+A row of follow-up prompts as pill buttons, scrolling sideways when they overflow. Each pill hands its text to the caller; reach for Badge when the chips are labels rather than actions.
+
+```sh
+npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-suggestion.json
+```
+
 ## parallax-switch
 
 The house switch: shadcn's API with the theme's track and thumb, stamped `data-size` so the control ramp reaches it.
@@ -976,6 +1058,14 @@ Free-text values entered as removable chips, with paste, split-on-delimiter, edi
 
 ```sh
 npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-tags-input.json
+```
+
+## parallax-task
+
+A model's todo item as a collapsible: a title, sub-items and file chips, open by default so progress reads at a glance.
+
+```sh
+npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-task.json
 ```
 
 ## parallax-text-gradient
@@ -1016,6 +1106,14 @@ The house toggle group: shadcn's API with a `spacing` axis — fused into one sh
 
 ```sh
 npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-toggle-group.json
+```
+
+## parallax-tool
+
+One tool call as a card: name, a status badge from the seven AI SDK states, the parameters it was called with and the result it returned — structured payloads through JSON viewer, text through code block.
+
+```sh
+npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-tool.json
 ```
 
 ## parallax-tooltip

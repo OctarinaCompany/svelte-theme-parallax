@@ -12,6 +12,7 @@
 
 import AudioWaveformIcon from "@lucide/svelte/icons/audio-waveform";
 import BlocksIcon from "@lucide/svelte/icons/blocks";
+import BotIcon from "@lucide/svelte/icons/bot";
 import CalendarDaysIcon from "@lucide/svelte/icons/calendar-days";
 import CircleAlertIcon from "@lucide/svelte/icons/circle-alert";
 import CommandIcon from "@lucide/svelte/icons/command";
@@ -85,6 +86,7 @@ export type DashboardData = {
 const CATEGORY_ICONS: Record<CategoryTitle, NavIcon> = {
 	Patterns: BlocksIcon,
 	"Dates and time": CalendarDaysIcon,
+	"AI chat": BotIcon,
 	Pickers: ListChecksIcon,
 	"Form controls": SlidersHorizontalIcon,
 	"Form layout": GroupIcon,

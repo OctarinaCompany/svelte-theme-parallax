@@ -646,6 +646,8 @@ const SHARED_OWNERS = {
 	"src/lib/shared/tanstack-table-bridge.svelte.ts": "parallax-primitives",
 	"src/lib/shared/scroll-position.svelte.ts": "parallax-primitives",
 	"src/lib/shared/dom-ordered-collection.svelte.ts": "parallax-primitives",
+	"src/lib/shared/chat-parts.ts": "parallax-primitives",
+	"src/lib/shared/download-text.ts": "parallax-primitives",
 	"src/lib/shared/reduced-motion.svelte.ts": "parallax-appearance",
 	"src/lib/shared/nav.ts": "parallax-shell",
 	"src/lib/shared/get-initials.ts": "parallax-shell",
@@ -729,6 +731,8 @@ const UI_DESCRIPTIONS = {
 	card: "The house card: shadcn's API plus a `size` prop that retunes `--card-spacing`, and the ring-drawn outline.",
 	carousel:
 		"The house carousel: shadcn's Embla wrapper with the previous and next controls rebuilt as round icon-sm Buttons on the house ramp.",
+	"chain-of-thought":
+		"The steps a model took to an answer, as a collapsible trace: labelled steps with a status each, search-result chips and an optional image. Reach for it to show the WORK; Timeline is for events that happened to a system.",
 	chart:
 		"The house chart frame: shadcn's LayerChart container, tooltip and legend on the theme's grid, axis and tooltip treatment, driven by a per-series colour config.",
 	checkbox:
@@ -738,7 +742,7 @@ const UI_DESCRIPTIONS = {
 	"circular-progress":
 		"A progress ring: a closed circle, 48px on a 4px stroke, determinate or indeterminate. Reach for Gauge when the arc itself carries meaning — the two share their geometry.",
 	"code-block":
-		"A copyable code sample with a line-number gutter, a language selector and lightweight language-aware highlighting. Reach for it for an opaque string to read and copy; JSON viewer parses a live value instead.",
+		"A copyable — and, given a filename, downloadable — code sample with a line-number gutter, a language selector and lightweight language-aware highlighting. Reach for it for an opaque string to read and copy; JSON viewer parses a live value instead.",
 	"color-picker":
 		"A full colour picker: a saturation and brightness area, hue and alpha sliders, the native eyedropper, and per-channel fields in hex, rgb, hsl or hsb.",
 	"color-swatch":
@@ -749,8 +753,14 @@ const UI_DESCRIPTIONS = {
 		"The house command menu: shadcn's cmdk wrapper with the input rebuilt on Input group, a rounded popover ground and the selected-row treatment the palette uses.",
 	"compare-slider":
 		"Two versions of one image and a divider that wipes between them, by pointer, by touch or from the keyboard.",
+	confirmation:
+		"The approval gate on a tool call: the request while a decision is open, then the accepted or rejected receipt, painted from the status ramp. Renders nothing until there is a decision to show.",
 	"context-menu":
 		"The house context menu: shadcn's API with the flat row treatment, ring-drawn popovers and an RTL-aware submenu chevron.",
+	"context-usage":
+		"How much of a model's context window a conversation has used — a ring in the composer, a hover card of token counts and, when the caller supplies one, the cost. Numbers and cost are the caller's; the component only formats them.",
+	conversation:
+		"The transcript viewport: sticks to the bottom while a reply streams, offers a scroll-to-bottom button once the reader has scrolled away, an empty state, and a Markdown download of the whole exchange.",
 	"copy-button":
 		"A button that writes text to the clipboard and swaps its icon for a tick — once the write has actually resolved. The swap is a Svelte transition, with no animation library.",
 	cropper:
@@ -822,6 +832,10 @@ const UI_DESCRIPTIONS = {
 		"A text field that suggests and inserts mentions when a trigger character is typed at a word boundary. The popup follows the caret, and each inserted mention behaves as one atomic unit of text.",
 	menubar:
 		"The house menubar: shadcn's API with the flat row treatment, ring-drawn popovers and indicators on the leading edge.",
+	message:
+		"One turn of a chat — a user bubble or an assistant answer — with a Markdown response rendered through svelte-streamdown, actions and a toolbar. Installing it brings svelte-streamdown and needs one `@source` line in the stylesheet.",
+	"model-selector":
+		"A command palette for choosing a model: searchable groups per provider, provider logos, a name slot. Chosen values are the caller's; the component only presents the list.",
 	"native-select":
 		"The house native select: the browser's own dropdown at the theme's field height, with a `sm` or `default` size stamped as `data-size`.",
 	"navigation-menu":
@@ -839,14 +853,20 @@ const UI_DESCRIPTIONS = {
 	popover:
 		"The house popover: shadcn's API plus `Header`, `Title` and `Description` parts, so a popover with a heading is composed rather than hand-laid.",
 	progress: "The house progress bar: shadcn's API as a slim rounded track on the muted ground.",
+	"prompt-input":
+		"The composer: an auto-growing textarea that submits on Enter, a header and footer for tools, borderless selects, and a submit button that becomes a stop button while a reply is in flight.",
 	"qr-code":
 		"A QR code you compose: the same value rendered as SVG, canvas or image, with a centre overlay, a loading skeleton and a download control.",
+	question:
+		"A clarifying question from the model, as a form: single or multiple choice, a free-text answer, and a submit that stays disabled until there is a response. Its shape is the AskUserQuestion tool call.",
 	"radio-group":
 		"The house radio group: shadcn's API with the theme's ring, dot indicator and row rhythm.",
 	"range-calendar":
 		"The house range calendar: shadcn's API plus the `rangeCalendar`, `rangeCalendarFlush` and `rangeDay` class recipes, so a range picker reads the same in a card, in a popover, or flush to a panel edge.",
 	rating:
 		"A star rating that displays whole, half and fractional scores, and — when editable — collects one by mouse or keyboard.",
+	reasoning:
+		"The model's reasoning summary in a collapsible panel that opens while it streams, reports how long the thinking took, and closes itself once the answer starts. Reach for it over Collapsible when the content is a thought, not a section.",
 	"relative-time-card":
 		"A hover card that shows a moment as relative time, with the absolute time and its zone underneath.",
 	resizable:
@@ -889,6 +909,8 @@ const UI_DESCRIPTIONS = {
 		"The uptime strip from a public status page: one bar per period, coloured by state, with a tooltip per bar.",
 	stepper:
 		"A multi-step flow with visible progress: a list of steps with indicator, title, description and separator, horizontal or vertical, each carrying its own state.",
+	suggestion:
+		"A row of follow-up prompts as pill buttons, scrolling sideways when they overflow. Each pill hands its text to the caller; reach for Badge when the chips are labels rather than actions.",
 	switch:
 		"The house switch: shadcn's API with the theme's track and thumb, stamped `data-size` so the control ramp reaches it.",
 	table:
@@ -896,6 +918,7 @@ const UI_DESCRIPTIONS = {
 	tabs: "The house tabs: shadcn's API plus the `line` list variant and its `sm` size, both stamped as `data-*` so `app.css` owns the look.",
 	"tags-input":
 		"Free-text values entered as removable chips, with paste, split-on-delimiter, edit in place and per-tag validation.",
+	task: "A model's todo item as a collapsible: a title, sub-items and file chips, open by default so progress reads at a glance.",
 	"text-gradient":
 		"A highlight that sweeps through text — the label that says a machine is still working.",
 	textarea:
@@ -906,6 +929,7 @@ const UI_DESCRIPTIONS = {
 		"The house toggle: shadcn's API on the --control-h-* ramp with the data-icon slots, so a toggle and a button share a line.",
 	"toggle-group":
 		"The house toggle group: shadcn's API with a `spacing` axis — fused into one shape, or spaced apart — and an orientation.",
+	tool: "One tool call as a card: name, a status badge from the seven AI SDK states, the parameters it was called with and the result it returned — structured payloads through JSON viewer, text through code block.",
 	tooltip:
 		"The house tooltip: shadcn's API on the inverted foreground ground, with the arrow the theme draws.",
 	tour: "A guided tour: highlight an element, step through the instructions, and teach a screen the first time somebody sees it.",
@@ -919,6 +943,22 @@ const UI_DESCRIPTIONS = {
  * only arrangement in which that cannot come back is one where adding a component and
  * describing it are the same commit.
  */
+/*
+ * Post-install prose the registry shows after an `add`, for the items whose install is not
+ * finished by copying files. `docs` is the registry-item field shadcn-svelte prints once the
+ * files land. Keyed by ui/ folder, with the same orphan rule as the descriptions: an entry for a
+ * folder that is not published is a sentence nobody reads.
+ */
+const UI_DOCS = {
+	message:
+		'Markdown renders through svelte-streamdown, whose classes live in node_modules: add `@source "../node_modules/svelte-streamdown/**/*";` next to the imports of your global stylesheet (`../../node_modules/…` from src/routes/layout.css). Without it answers render unstyled and nothing errors.',
+};
+for (const dir of Object.keys(UI_DOCS)) {
+	if (!PUBLISHED_UI.includes(dir)) {
+		throw new Error(`UI_DOCS has an entry for ui/${dir}, which is not a published item`);
+	}
+}
+
 const describeUi = (dir) => {
 	const description = UI_DESCRIPTIONS[dir];
 	if (!description) {
@@ -1093,6 +1133,7 @@ const UI_ITEMS = PUBLISHED_UI.map((dir) => {
 		type: "registry:ui",
 		title: titleOf(dir),
 		description: describeUi(dir),
+		...(UI_DOCS[dir] && { docs: UI_DOCS[dir] }),
 		dependencies: graph.dependencies.map(pinned),
 		devDependencies: typesFor(graph.dependencies),
 		registryDependencies: graph.registryDependencies,

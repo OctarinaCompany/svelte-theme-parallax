@@ -673,9 +673,19 @@
 					"target": "~/src/lib/hooks/is-mobile.svelte.ts"
 				},
 				{
+					"path": "src/lib/shared/chat-parts.ts",
+					"type": "registry:lib",
+					"target": "~/src/lib/shared/chat-parts.ts"
+				},
+				{
 					"path": "src/lib/shared/dom-ordered-collection.svelte.ts",
 					"type": "registry:lib",
 					"target": "~/src/lib/shared/dom-ordered-collection.svelte.ts"
+				},
+				{
+					"path": "src/lib/shared/download-text.ts",
+					"type": "registry:lib",
+					"target": "~/src/lib/shared/download-text.ts"
 				},
 				{
 					"path": "src/lib/shared/form-control.svelte.ts",
@@ -1868,6 +1878,69 @@
 			]
 		},
 		{
+			"name": "parallax-chain-of-thought",
+			"type": "registry:ui",
+			"title": "Chain of thought",
+			"description": "The steps a model took to an answer, as a collapsible trace: labelled steps with a status each, search-result chips and an optional image. Reach for it to show the WORK; Timeline is for events that happened to a system.",
+			"dependencies": [
+				"@lucide/svelte@^1.34.0",
+				"bits-ui@^2.19.0",
+				"tailwind-variants@^3.3.1"
+			],
+			"devDependencies": [],
+			"registryDependencies": [
+				"collapsible",
+				"https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-badge.json"
+			],
+			"files": [
+				{
+					"path": "src/lib/components/ui/chain-of-thought/chain-of-thought-content.svelte",
+					"type": "registry:ui",
+					"target": "~/src/lib/components/ui/chain-of-thought/chain-of-thought-content.svelte"
+				},
+				{
+					"path": "src/lib/components/ui/chain-of-thought/chain-of-thought-header.svelte",
+					"type": "registry:ui",
+					"target": "~/src/lib/components/ui/chain-of-thought/chain-of-thought-header.svelte"
+				},
+				{
+					"path": "src/lib/components/ui/chain-of-thought/chain-of-thought-image.svelte",
+					"type": "registry:ui",
+					"target": "~/src/lib/components/ui/chain-of-thought/chain-of-thought-image.svelte"
+				},
+				{
+					"path": "src/lib/components/ui/chain-of-thought/chain-of-thought-search-result.svelte",
+					"type": "registry:ui",
+					"target": "~/src/lib/components/ui/chain-of-thought/chain-of-thought-search-result.svelte"
+				},
+				{
+					"path": "src/lib/components/ui/chain-of-thought/chain-of-thought-search-results.svelte",
+					"type": "registry:ui",
+					"target": "~/src/lib/components/ui/chain-of-thought/chain-of-thought-search-results.svelte"
+				},
+				{
+					"path": "src/lib/components/ui/chain-of-thought/chain-of-thought-step.svelte",
+					"type": "registry:ui",
+					"target": "~/src/lib/components/ui/chain-of-thought/chain-of-thought-step.svelte"
+				},
+				{
+					"path": "src/lib/components/ui/chain-of-thought/chain-of-thought.svelte",
+					"type": "registry:ui",
+					"target": "~/src/lib/components/ui/chain-of-thought/chain-of-thought.svelte"
+				},
+				{
+					"path": "src/lib/components/ui/chain-of-thought/chain-of-thought.svelte.ts",
+					"type": "registry:ui",
+					"target": "~/src/lib/components/ui/chain-of-thought/chain-of-thought.svelte.ts"
+				},
+				{
+					"path": "src/lib/components/ui/chain-of-thought/index.ts",
+					"type": "registry:ui",
+					"target": "~/src/lib/components/ui/chain-of-thought/index.ts"
+				}
+			]
+		},
+		{
 			"name": "parallax-chart",
 			"type": "registry:ui",
 			"title": "Chart",
@@ -2046,7 +2119,7 @@
 			"name": "parallax-code-block",
 			"type": "registry:ui",
 			"title": "Code block",
-			"description": "A copyable code sample with a line-number gutter, a language selector and lightweight language-aware highlighting. Reach for it for an opaque string to read and copy; JSON viewer parses a live value instead.",
+			"description": "A copyable — and, given a filename, downloadable — code sample with a line-number gutter, a language selector and lightweight language-aware highlighting. Reach for it for an opaque string to read and copy; JSON viewer parses a live value instead.",
 			"dependencies": [
 				"@lucide/svelte@^1.34.0",
 				"tailwind-variants@^3.3.1"
@@ -2055,6 +2128,7 @@
 			"registryDependencies": [
 				"https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-badge.json",
 				"https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-button.json",
+				"https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-primitives.json",
 				"https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-select.json"
 			],
 			"files": [
@@ -2067,6 +2141,11 @@
 					"path": "src/lib/components/ui/code-block/code-block-copy-button.svelte",
 					"type": "registry:ui",
 					"target": "~/src/lib/components/ui/code-block/code-block-copy-button.svelte"
+				},
+				{
+					"path": "src/lib/components/ui/code-block/code-block-download-button.svelte",
+					"type": "registry:ui",
+					"target": "~/src/lib/components/ui/code-block/code-block-download-button.svelte"
 				},
 				{
 					"path": "src/lib/components/ui/code-block/code-block-header.svelte",
@@ -2454,6 +2533,66 @@
 			]
 		},
 		{
+			"name": "parallax-confirmation",
+			"type": "registry:ui",
+			"title": "Confirmation",
+			"description": "The approval gate on a tool call: the request while a decision is open, then the accepted or rejected receipt, painted from the status ramp. Renders nothing until there is a decision to show.",
+			"dependencies": [],
+			"devDependencies": [],
+			"registryDependencies": [
+				"https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-alert.json",
+				"https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-button.json",
+				"https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-primitives.json"
+			],
+			"files": [
+				{
+					"path": "src/lib/components/ui/confirmation/confirmation-accepted.svelte",
+					"type": "registry:ui",
+					"target": "~/src/lib/components/ui/confirmation/confirmation-accepted.svelte"
+				},
+				{
+					"path": "src/lib/components/ui/confirmation/confirmation-action.svelte",
+					"type": "registry:ui",
+					"target": "~/src/lib/components/ui/confirmation/confirmation-action.svelte"
+				},
+				{
+					"path": "src/lib/components/ui/confirmation/confirmation-actions.svelte",
+					"type": "registry:ui",
+					"target": "~/src/lib/components/ui/confirmation/confirmation-actions.svelte"
+				},
+				{
+					"path": "src/lib/components/ui/confirmation/confirmation-rejected.svelte",
+					"type": "registry:ui",
+					"target": "~/src/lib/components/ui/confirmation/confirmation-rejected.svelte"
+				},
+				{
+					"path": "src/lib/components/ui/confirmation/confirmation-request.svelte",
+					"type": "registry:ui",
+					"target": "~/src/lib/components/ui/confirmation/confirmation-request.svelte"
+				},
+				{
+					"path": "src/lib/components/ui/confirmation/confirmation-title.svelte",
+					"type": "registry:ui",
+					"target": "~/src/lib/components/ui/confirmation/confirmation-title.svelte"
+				},
+				{
+					"path": "src/lib/components/ui/confirmation/confirmation.svelte",
+					"type": "registry:ui",
+					"target": "~/src/lib/components/ui/confirmation/confirmation.svelte"
+				},
+				{
+					"path": "src/lib/components/ui/confirmation/confirmation.svelte.ts",
+					"type": "registry:ui",
+					"target": "~/src/lib/components/ui/confirmation/confirmation.svelte.ts"
+				},
+				{
+					"path": "src/lib/components/ui/confirmation/index.ts",
+					"type": "registry:ui",
+					"target": "~/src/lib/components/ui/confirmation/index.ts"
+				}
+			]
+		},
+		{
 			"name": "parallax-context-menu",
 			"type": "registry:ui",
 			"title": "Context menu",
@@ -2549,6 +2688,142 @@
 					"path": "src/lib/components/ui/context-menu/index.ts",
 					"type": "registry:ui",
 					"target": "~/src/lib/components/ui/context-menu/index.ts"
+				}
+			]
+		},
+		{
+			"name": "parallax-context-usage",
+			"type": "registry:ui",
+			"title": "Context usage",
+			"description": "How much of a model's context window a conversation has used — a ring in the composer, a hover card of token counts and, when the caller supplies one, the cost. Numbers and cost are the caller's; the component only formats them.",
+			"dependencies": [
+				"bits-ui@^2.19.0"
+			],
+			"devDependencies": [],
+			"registryDependencies": [
+				"https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-button.json",
+				"https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-circular-progress.json",
+				"https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-hover-card.json",
+				"https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-progress.json"
+			],
+			"files": [
+				{
+					"path": "src/lib/components/ui/context-usage/context-usage-cache-usage.svelte",
+					"type": "registry:ui",
+					"target": "~/src/lib/components/ui/context-usage/context-usage-cache-usage.svelte"
+				},
+				{
+					"path": "src/lib/components/ui/context-usage/context-usage-content-body.svelte",
+					"type": "registry:ui",
+					"target": "~/src/lib/components/ui/context-usage/context-usage-content-body.svelte"
+				},
+				{
+					"path": "src/lib/components/ui/context-usage/context-usage-content-footer.svelte",
+					"type": "registry:ui",
+					"target": "~/src/lib/components/ui/context-usage/context-usage-content-footer.svelte"
+				},
+				{
+					"path": "src/lib/components/ui/context-usage/context-usage-content-header.svelte",
+					"type": "registry:ui",
+					"target": "~/src/lib/components/ui/context-usage/context-usage-content-header.svelte"
+				},
+				{
+					"path": "src/lib/components/ui/context-usage/context-usage-content.svelte",
+					"type": "registry:ui",
+					"target": "~/src/lib/components/ui/context-usage/context-usage-content.svelte"
+				},
+				{
+					"path": "src/lib/components/ui/context-usage/context-usage-icon.svelte",
+					"type": "registry:ui",
+					"target": "~/src/lib/components/ui/context-usage/context-usage-icon.svelte"
+				},
+				{
+					"path": "src/lib/components/ui/context-usage/context-usage-input-usage.svelte",
+					"type": "registry:ui",
+					"target": "~/src/lib/components/ui/context-usage/context-usage-input-usage.svelte"
+				},
+				{
+					"path": "src/lib/components/ui/context-usage/context-usage-output-usage.svelte",
+					"type": "registry:ui",
+					"target": "~/src/lib/components/ui/context-usage/context-usage-output-usage.svelte"
+				},
+				{
+					"path": "src/lib/components/ui/context-usage/context-usage-reasoning-usage.svelte",
+					"type": "registry:ui",
+					"target": "~/src/lib/components/ui/context-usage/context-usage-reasoning-usage.svelte"
+				},
+				{
+					"path": "src/lib/components/ui/context-usage/context-usage-trigger.svelte",
+					"type": "registry:ui",
+					"target": "~/src/lib/components/ui/context-usage/context-usage-trigger.svelte"
+				},
+				{
+					"path": "src/lib/components/ui/context-usage/context-usage.svelte",
+					"type": "registry:ui",
+					"target": "~/src/lib/components/ui/context-usage/context-usage.svelte"
+				},
+				{
+					"path": "src/lib/components/ui/context-usage/context-usage.svelte.ts",
+					"type": "registry:ui",
+					"target": "~/src/lib/components/ui/context-usage/context-usage.svelte.ts"
+				},
+				{
+					"path": "src/lib/components/ui/context-usage/index.ts",
+					"type": "registry:ui",
+					"target": "~/src/lib/components/ui/context-usage/index.ts"
+				}
+			]
+		},
+		{
+			"name": "parallax-conversation",
+			"type": "registry:ui",
+			"title": "Conversation",
+			"description": "The transcript viewport: sticks to the bottom while a reply streams, offers a scroll-to-bottom button once the reader has scrolled away, an empty state, and a Markdown download of the whole exchange.",
+			"dependencies": [
+				"@lucide/svelte@^1.34.0"
+			],
+			"devDependencies": [],
+			"registryDependencies": [
+				"https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-appearance.json",
+				"https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-button.json",
+				"https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-empty.json",
+				"https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-primitives.json"
+			],
+			"files": [
+				{
+					"path": "src/lib/components/ui/conversation/conversation-content.svelte",
+					"type": "registry:ui",
+					"target": "~/src/lib/components/ui/conversation/conversation-content.svelte"
+				},
+				{
+					"path": "src/lib/components/ui/conversation/conversation-download.svelte",
+					"type": "registry:ui",
+					"target": "~/src/lib/components/ui/conversation/conversation-download.svelte"
+				},
+				{
+					"path": "src/lib/components/ui/conversation/conversation-empty-state.svelte",
+					"type": "registry:ui",
+					"target": "~/src/lib/components/ui/conversation/conversation-empty-state.svelte"
+				},
+				{
+					"path": "src/lib/components/ui/conversation/conversation-scroll-button.svelte",
+					"type": "registry:ui",
+					"target": "~/src/lib/components/ui/conversation/conversation-scroll-button.svelte"
+				},
+				{
+					"path": "src/lib/components/ui/conversation/conversation.svelte",
+					"type": "registry:ui",
+					"target": "~/src/lib/components/ui/conversation/conversation.svelte"
+				},
+				{
+					"path": "src/lib/components/ui/conversation/conversation.svelte.ts",
+					"type": "registry:ui",
+					"target": "~/src/lib/components/ui/conversation/conversation.svelte.ts"
+				},
+				{
+					"path": "src/lib/components/ui/conversation/index.ts",
+					"type": "registry:ui",
+					"target": "~/src/lib/components/ui/conversation/index.ts"
 				}
 			]
 		},
@@ -5695,6 +5970,139 @@
 			]
 		},
 		{
+			"name": "parallax-message",
+			"type": "registry:ui",
+			"title": "Message",
+			"description": "One turn of a chat — a user bubble or an assistant answer — with a Markdown response rendered through svelte-streamdown, actions and a toolbar. Installing it brings svelte-streamdown and needs one `@source` line in the stylesheet.",
+			"docs": "Markdown renders through svelte-streamdown, whose classes live in node_modules: add `@source \"../node_modules/svelte-streamdown/**/*\";` next to the imports of your global stylesheet (`../../node_modules/…` from src/routes/layout.css). Without it answers render unstyled and nothing errors.",
+			"dependencies": [
+				"bits-ui@^2.19.0",
+				"svelte-streamdown@^3.1.2",
+				"tailwind-variants@^3.3.1"
+			],
+			"devDependencies": [],
+			"registryDependencies": [
+				"https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-appearance.json",
+				"https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-button.json",
+				"https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-code-block.json",
+				"https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-primitives.json",
+				"https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-tooltip.json"
+			],
+			"files": [
+				{
+					"path": "src/lib/components/ui/message/index.ts",
+					"type": "registry:ui",
+					"target": "~/src/lib/components/ui/message/index.ts"
+				},
+				{
+					"path": "src/lib/components/ui/message/message-action.svelte",
+					"type": "registry:ui",
+					"target": "~/src/lib/components/ui/message/message-action.svelte"
+				},
+				{
+					"path": "src/lib/components/ui/message/message-actions.svelte",
+					"type": "registry:ui",
+					"target": "~/src/lib/components/ui/message/message-actions.svelte"
+				},
+				{
+					"path": "src/lib/components/ui/message/message-content.svelte",
+					"type": "registry:ui",
+					"target": "~/src/lib/components/ui/message/message-content.svelte"
+				},
+				{
+					"path": "src/lib/components/ui/message/message-response.svelte",
+					"type": "registry:ui",
+					"target": "~/src/lib/components/ui/message/message-response.svelte"
+				},
+				{
+					"path": "src/lib/components/ui/message/message-toolbar.svelte",
+					"type": "registry:ui",
+					"target": "~/src/lib/components/ui/message/message-toolbar.svelte"
+				},
+				{
+					"path": "src/lib/components/ui/message/message.svelte",
+					"type": "registry:ui",
+					"target": "~/src/lib/components/ui/message/message.svelte"
+				},
+				{
+					"path": "src/lib/components/ui/message/message.svelte.ts",
+					"type": "registry:ui",
+					"target": "~/src/lib/components/ui/message/message.svelte.ts"
+				}
+			]
+		},
+		{
+			"name": "parallax-model-selector",
+			"type": "registry:ui",
+			"title": "Model selector",
+			"description": "A command palette for choosing a model: searchable groups per provider, provider logos, a name slot. Chosen values are the caller's; the component only presents the list.",
+			"dependencies": [
+				"bits-ui@^2.19.0"
+			],
+			"devDependencies": [],
+			"registryDependencies": [
+				"https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-command.json",
+				"https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-dialog.json"
+			],
+			"files": [
+				{
+					"path": "src/lib/components/ui/model-selector/index.ts",
+					"type": "registry:ui",
+					"target": "~/src/lib/components/ui/model-selector/index.ts"
+				},
+				{
+					"path": "src/lib/components/ui/model-selector/model-selector-content.svelte",
+					"type": "registry:ui",
+					"target": "~/src/lib/components/ui/model-selector/model-selector-content.svelte"
+				},
+				{
+					"path": "src/lib/components/ui/model-selector/model-selector-dialog.svelte",
+					"type": "registry:ui",
+					"target": "~/src/lib/components/ui/model-selector/model-selector-dialog.svelte"
+				},
+				{
+					"path": "src/lib/components/ui/model-selector/model-selector-input.svelte",
+					"type": "registry:ui",
+					"target": "~/src/lib/components/ui/model-selector/model-selector-input.svelte"
+				},
+				{
+					"path": "src/lib/components/ui/model-selector/model-selector-item.svelte",
+					"type": "registry:ui",
+					"target": "~/src/lib/components/ui/model-selector/model-selector-item.svelte"
+				},
+				{
+					"path": "src/lib/components/ui/model-selector/model-selector-logo-group.svelte",
+					"type": "registry:ui",
+					"target": "~/src/lib/components/ui/model-selector/model-selector-logo-group.svelte"
+				},
+				{
+					"path": "src/lib/components/ui/model-selector/model-selector-logo.svelte",
+					"type": "registry:ui",
+					"target": "~/src/lib/components/ui/model-selector/model-selector-logo.svelte"
+				},
+				{
+					"path": "src/lib/components/ui/model-selector/model-selector-name.svelte",
+					"type": "registry:ui",
+					"target": "~/src/lib/components/ui/model-selector/model-selector-name.svelte"
+				},
+				{
+					"path": "src/lib/components/ui/model-selector/model-selector-trigger.svelte",
+					"type": "registry:ui",
+					"target": "~/src/lib/components/ui/model-selector/model-selector-trigger.svelte"
+				},
+				{
+					"path": "src/lib/components/ui/model-selector/model-selector.svelte",
+					"type": "registry:ui",
+					"target": "~/src/lib/components/ui/model-selector/model-selector.svelte"
+				},
+				{
+					"path": "src/lib/components/ui/model-selector/model-selector.svelte.ts",
+					"type": "registry:ui",
+					"target": "~/src/lib/components/ui/model-selector/model-selector.svelte.ts"
+				}
+			]
+		},
+		{
 			"name": "parallax-native-select",
 			"type": "registry:ui",
 			"title": "Native select",
@@ -6101,6 +6509,98 @@
 			]
 		},
 		{
+			"name": "parallax-prompt-input",
+			"type": "registry:ui",
+			"title": "Prompt input",
+			"description": "The composer: an auto-growing textarea that submits on Enter, a header and footer for tools, borderless selects, and a submit button that becomes a stop button while a reply is in flight.",
+			"dependencies": [
+				"@lucide/svelte@^1.34.0",
+				"bits-ui@^2.19.0"
+			],
+			"devDependencies": [],
+			"registryDependencies": [
+				"https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-button.json",
+				"https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-input-group.json",
+				"https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-kbd.json",
+				"https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-primitives.json",
+				"https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-select.json",
+				"https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-spinner.json",
+				"https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-tooltip.json"
+			],
+			"files": [
+				{
+					"path": "src/lib/components/ui/prompt-input/index.ts",
+					"type": "registry:ui",
+					"target": "~/src/lib/components/ui/prompt-input/index.ts"
+				},
+				{
+					"path": "src/lib/components/ui/prompt-input/prompt-input-body.svelte",
+					"type": "registry:ui",
+					"target": "~/src/lib/components/ui/prompt-input/prompt-input-body.svelte"
+				},
+				{
+					"path": "src/lib/components/ui/prompt-input/prompt-input-button.svelte",
+					"type": "registry:ui",
+					"target": "~/src/lib/components/ui/prompt-input/prompt-input-button.svelte"
+				},
+				{
+					"path": "src/lib/components/ui/prompt-input/prompt-input-footer.svelte",
+					"type": "registry:ui",
+					"target": "~/src/lib/components/ui/prompt-input/prompt-input-footer.svelte"
+				},
+				{
+					"path": "src/lib/components/ui/prompt-input/prompt-input-header.svelte",
+					"type": "registry:ui",
+					"target": "~/src/lib/components/ui/prompt-input/prompt-input-header.svelte"
+				},
+				{
+					"path": "src/lib/components/ui/prompt-input/prompt-input-select-content.svelte",
+					"type": "registry:ui",
+					"target": "~/src/lib/components/ui/prompt-input/prompt-input-select-content.svelte"
+				},
+				{
+					"path": "src/lib/components/ui/prompt-input/prompt-input-select-item.svelte",
+					"type": "registry:ui",
+					"target": "~/src/lib/components/ui/prompt-input/prompt-input-select-item.svelte"
+				},
+				{
+					"path": "src/lib/components/ui/prompt-input/prompt-input-select-trigger.svelte",
+					"type": "registry:ui",
+					"target": "~/src/lib/components/ui/prompt-input/prompt-input-select-trigger.svelte"
+				},
+				{
+					"path": "src/lib/components/ui/prompt-input/prompt-input-select.svelte",
+					"type": "registry:ui",
+					"target": "~/src/lib/components/ui/prompt-input/prompt-input-select.svelte"
+				},
+				{
+					"path": "src/lib/components/ui/prompt-input/prompt-input-submit.svelte",
+					"type": "registry:ui",
+					"target": "~/src/lib/components/ui/prompt-input/prompt-input-submit.svelte"
+				},
+				{
+					"path": "src/lib/components/ui/prompt-input/prompt-input-textarea.svelte",
+					"type": "registry:ui",
+					"target": "~/src/lib/components/ui/prompt-input/prompt-input-textarea.svelte"
+				},
+				{
+					"path": "src/lib/components/ui/prompt-input/prompt-input-tools.svelte",
+					"type": "registry:ui",
+					"target": "~/src/lib/components/ui/prompt-input/prompt-input-tools.svelte"
+				},
+				{
+					"path": "src/lib/components/ui/prompt-input/prompt-input.svelte",
+					"type": "registry:ui",
+					"target": "~/src/lib/components/ui/prompt-input/prompt-input.svelte"
+				},
+				{
+					"path": "src/lib/components/ui/prompt-input/prompt-input.svelte.ts",
+					"type": "registry:ui",
+					"target": "~/src/lib/components/ui/prompt-input/prompt-input.svelte.ts"
+				}
+			]
+		},
+		{
 			"name": "parallax-qr-code",
 			"type": "registry:ui",
 			"title": "Qr code",
@@ -6157,6 +6657,72 @@
 					"path": "src/lib/components/ui/qr-code/qr-code.svelte.ts",
 					"type": "registry:ui",
 					"target": "~/src/lib/components/ui/qr-code/qr-code.svelte.ts"
+				}
+			]
+		},
+		{
+			"name": "parallax-question",
+			"type": "registry:ui",
+			"title": "Question",
+			"description": "A clarifying question from the model, as a form: single or multiple choice, a free-text answer, and a submit that stays disabled until there is a response. Its shape is the AskUserQuestion tool call.",
+			"dependencies": [],
+			"devDependencies": [],
+			"registryDependencies": [
+				"https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-button.json",
+				"https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-direction-provider.json",
+				"https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-primitives.json",
+				"https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-textarea.json"
+			],
+			"files": [
+				{
+					"path": "src/lib/components/ui/question/index.ts",
+					"type": "registry:ui",
+					"target": "~/src/lib/components/ui/question/index.ts"
+				},
+				{
+					"path": "src/lib/components/ui/question/question-actions.svelte",
+					"type": "registry:ui",
+					"target": "~/src/lib/components/ui/question/question-actions.svelte"
+				},
+				{
+					"path": "src/lib/components/ui/question/question-description.svelte",
+					"type": "registry:ui",
+					"target": "~/src/lib/components/ui/question/question-description.svelte"
+				},
+				{
+					"path": "src/lib/components/ui/question/question-input.svelte",
+					"type": "registry:ui",
+					"target": "~/src/lib/components/ui/question/question-input.svelte"
+				},
+				{
+					"path": "src/lib/components/ui/question/question-option.svelte",
+					"type": "registry:ui",
+					"target": "~/src/lib/components/ui/question/question-option.svelte"
+				},
+				{
+					"path": "src/lib/components/ui/question/question-options.svelte",
+					"type": "registry:ui",
+					"target": "~/src/lib/components/ui/question/question-options.svelte"
+				},
+				{
+					"path": "src/lib/components/ui/question/question-prompt.svelte",
+					"type": "registry:ui",
+					"target": "~/src/lib/components/ui/question/question-prompt.svelte"
+				},
+				{
+					"path": "src/lib/components/ui/question/question-submit.svelte",
+					"type": "registry:ui",
+					"target": "~/src/lib/components/ui/question/question-submit.svelte"
+				},
+				{
+					"path": "src/lib/components/ui/question/question.svelte",
+					"type": "registry:ui",
+					"target": "~/src/lib/components/ui/question/question.svelte"
+				},
+				{
+					"path": "src/lib/components/ui/question/question.svelte.ts",
+					"type": "registry:ui",
+					"target": "~/src/lib/components/ui/question/question.svelte.ts"
 				}
 			]
 		},
@@ -6333,6 +6899,50 @@
 					"path": "src/lib/components/ui/rating/rating.svelte.ts",
 					"type": "registry:ui",
 					"target": "~/src/lib/components/ui/rating/rating.svelte.ts"
+				}
+			]
+		},
+		{
+			"name": "parallax-reasoning",
+			"type": "registry:ui",
+			"title": "Reasoning",
+			"description": "The model's reasoning summary in a collapsible panel that opens while it streams, reports how long the thinking took, and closes itself once the answer starts. Reach for it over Collapsible when the content is a thought, not a section.",
+			"dependencies": [
+				"@lucide/svelte@^1.34.0",
+				"bits-ui@^2.19.0"
+			],
+			"devDependencies": [],
+			"registryDependencies": [
+				"collapsible",
+				"https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-appearance.json",
+				"https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-message.json",
+				"https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-text-gradient.json"
+			],
+			"files": [
+				{
+					"path": "src/lib/components/ui/reasoning/index.ts",
+					"type": "registry:ui",
+					"target": "~/src/lib/components/ui/reasoning/index.ts"
+				},
+				{
+					"path": "src/lib/components/ui/reasoning/reasoning-content.svelte",
+					"type": "registry:ui",
+					"target": "~/src/lib/components/ui/reasoning/reasoning-content.svelte"
+				},
+				{
+					"path": "src/lib/components/ui/reasoning/reasoning-trigger.svelte",
+					"type": "registry:ui",
+					"target": "~/src/lib/components/ui/reasoning/reasoning-trigger.svelte"
+				},
+				{
+					"path": "src/lib/components/ui/reasoning/reasoning.svelte",
+					"type": "registry:ui",
+					"target": "~/src/lib/components/ui/reasoning/reasoning.svelte"
+				},
+				{
+					"path": "src/lib/components/ui/reasoning/reasoning.svelte.ts",
+					"type": "registry:ui",
+					"target": "~/src/lib/components/ui/reasoning/reasoning.svelte.ts"
 				}
 			]
 		},
@@ -7399,6 +8009,37 @@
 			]
 		},
 		{
+			"name": "parallax-suggestion",
+			"type": "registry:ui",
+			"title": "Suggestion",
+			"description": "A row of follow-up prompts as pill buttons, scrolling sideways when they overflow. Each pill hands its text to the caller; reach for Badge when the chips are labels rather than actions.",
+			"dependencies": [
+				"tailwind-variants@^3.3.1"
+			],
+			"devDependencies": [],
+			"registryDependencies": [
+				"https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-button.json",
+				"https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-scroller.json"
+			],
+			"files": [
+				{
+					"path": "src/lib/components/ui/suggestion/index.ts",
+					"type": "registry:ui",
+					"target": "~/src/lib/components/ui/suggestion/index.ts"
+				},
+				{
+					"path": "src/lib/components/ui/suggestion/suggestion-item.svelte",
+					"type": "registry:ui",
+					"target": "~/src/lib/components/ui/suggestion/suggestion-item.svelte"
+				},
+				{
+					"path": "src/lib/components/ui/suggestion/suggestion.svelte",
+					"type": "registry:ui",
+					"target": "~/src/lib/components/ui/suggestion/suggestion.svelte"
+				}
+			]
+		},
+		{
 			"name": "parallax-switch",
 			"type": "registry:ui",
 			"title": "Switch",
@@ -7621,6 +8262,53 @@
 			]
 		},
 		{
+			"name": "parallax-task",
+			"type": "registry:ui",
+			"title": "Task",
+			"description": "A model's todo item as a collapsible: a title, sub-items and file chips, open by default so progress reads at a glance.",
+			"dependencies": [
+				"@lucide/svelte@^1.34.0",
+				"bits-ui@^2.19.0"
+			],
+			"devDependencies": [],
+			"registryDependencies": [
+				"collapsible",
+				"https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-badge.json"
+			],
+			"files": [
+				{
+					"path": "src/lib/components/ui/task/index.ts",
+					"type": "registry:ui",
+					"target": "~/src/lib/components/ui/task/index.ts"
+				},
+				{
+					"path": "src/lib/components/ui/task/task-content.svelte",
+					"type": "registry:ui",
+					"target": "~/src/lib/components/ui/task/task-content.svelte"
+				},
+				{
+					"path": "src/lib/components/ui/task/task-item-file.svelte",
+					"type": "registry:ui",
+					"target": "~/src/lib/components/ui/task/task-item-file.svelte"
+				},
+				{
+					"path": "src/lib/components/ui/task/task-item.svelte",
+					"type": "registry:ui",
+					"target": "~/src/lib/components/ui/task/task-item.svelte"
+				},
+				{
+					"path": "src/lib/components/ui/task/task-trigger.svelte",
+					"type": "registry:ui",
+					"target": "~/src/lib/components/ui/task/task-trigger.svelte"
+				},
+				{
+					"path": "src/lib/components/ui/task/task.svelte",
+					"type": "registry:ui",
+					"target": "~/src/lib/components/ui/task/task.svelte"
+				}
+			]
+		},
+		{
 			"name": "parallax-text-gradient",
 			"type": "registry:ui",
 			"title": "Text gradient",
@@ -7789,6 +8477,62 @@
 					"path": "src/lib/components/ui/toggle-group/toggle-group.svelte",
 					"type": "registry:ui",
 					"target": "~/src/lib/components/ui/toggle-group/toggle-group.svelte"
+				}
+			]
+		},
+		{
+			"name": "parallax-tool",
+			"type": "registry:ui",
+			"title": "Tool",
+			"description": "One tool call as a card: name, a status badge from the seven AI SDK states, the parameters it was called with and the result it returned — structured payloads through JSON viewer, text through code block.",
+			"dependencies": [
+				"@lucide/svelte@^1.34.0",
+				"bits-ui@^2.19.0"
+			],
+			"devDependencies": [],
+			"registryDependencies": [
+				"collapsible",
+				"https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-appearance.json",
+				"https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-code-block.json",
+				"https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-json-viewer.json",
+				"https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-primitives.json",
+				"https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-status.json"
+			],
+			"files": [
+				{
+					"path": "src/lib/components/ui/tool/index.ts",
+					"type": "registry:ui",
+					"target": "~/src/lib/components/ui/tool/index.ts"
+				},
+				{
+					"path": "src/lib/components/ui/tool/tool-content.svelte",
+					"type": "registry:ui",
+					"target": "~/src/lib/components/ui/tool/tool-content.svelte"
+				},
+				{
+					"path": "src/lib/components/ui/tool/tool-header.svelte",
+					"type": "registry:ui",
+					"target": "~/src/lib/components/ui/tool/tool-header.svelte"
+				},
+				{
+					"path": "src/lib/components/ui/tool/tool-input.svelte",
+					"type": "registry:ui",
+					"target": "~/src/lib/components/ui/tool/tool-input.svelte"
+				},
+				{
+					"path": "src/lib/components/ui/tool/tool-output.svelte",
+					"type": "registry:ui",
+					"target": "~/src/lib/components/ui/tool/tool-output.svelte"
+				},
+				{
+					"path": "src/lib/components/ui/tool/tool.svelte",
+					"type": "registry:ui",
+					"target": "~/src/lib/components/ui/tool/tool.svelte"
+				},
+				{
+					"path": "src/lib/components/ui/tool/tool.svelte.ts",
+					"type": "registry:ui",
+					"target": "~/src/lib/components/ui/tool/tool.svelte.ts"
 				}
 			]
 		},
