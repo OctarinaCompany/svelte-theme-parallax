@@ -11,7 +11,7 @@ import type { CodeBlockSnippet } from "$lib/components/ui/code-block/index.js";
  * and backtick it contains — which would make the sample a poor sample of itself.
  *
  * {@link LANGUAGE_TOUR} is this page's own, and it is the one to look at across the twelve
- * palettes: ten snippets chosen so that every rule in the highlighter fires at least once —
+ * palettes: fourteen snippets chosen so that every rule in the highlighter fires at least once —
  * comment, string, keyword, JSON literal, number, capitalised type, CSS custom property,
  * punctuation, and plain text that must stay plain.
  */
@@ -168,13 +168,57 @@ print(palette["name"], len(palette) // 2)`,
 Don't colour an apostrophe, don't colour a 10:30, don't colour a "quote".
 Every character below reads in the page's own ink.`,
 	},
+	{
+		language: "csv",
+		code: `id,name,plan,seats,note
+1041,Ada Lovelace,team,12,"Renews in January, invoiced yearly"
+1042,Grace Hopper,enterprise,240,
+1043,Katherine Johnson,starter,3,"Trial extended twice"`,
+	},
+	{
+		language: "md",
+		code: `# Release notes
+
+The kit's own answer to "what changed": prose, and prose stays prose.
+Don't colour an apostrophe here either — a heading's \`#\` is a heading,
+not a comment, and *emphasis* is not a string.
+
+- One bullet, no ink of its own.
+- [A link](https://example.test) reads as the line it sits in.`,
+	},
+	{
+		language: "sql",
+		code: `-- Seats in use per plan, busiest first.
+select plan, count(*) as accounts, sum(seats) as seats
+from subscriptions
+where status = 'active' and canceled_at is null
+group by plan
+order by seats desc
+limit 10;`,
+	},
+	{
+		language: "yaml",
+		code: `# The two gates that guard a push.
+name: CI
+on:
+  push:
+    branches: [main]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    continue-on-error: false
+    steps:
+      - run: npm run check
+      - run: npm run themes:audit`,
+	},
 ];
 
 /**
- * The "Download" demo's payload: a small customer export, as `text` — CSV is not a language the
- * highlighter knows, and a comma-separated table has nothing worth colouring. The block names
- * itself `customers.csv` and stamps `text/csv`, which is the demo's point: the filename and MIME
- * type are the caller's, and neither needs a grammar behind it.
+ * The "Download" demo's payload: a small customer export. Its language is `csv`, which is what
+ * makes the header read CSV and the download stamp `text/csv` with no `mediaType` from the
+ * caller — the demo's point is that the filename is the affordance, and the type follows the
+ * language unless the caller overrides it.
  */
 export const CUSTOMER_EXPORT_CSV = `id,name,plan,seats,renews_on
 1041,Ada Lovelace,team,12,2027-01-15

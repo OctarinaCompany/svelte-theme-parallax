@@ -18,6 +18,11 @@ ships today is listed here.
   selector — ported from Vercel's AI Elements to this kit's primitives, each published as a
   `parallax-<name>` registry item and documented by a page with an API reference. `code-block`
   gains a `filename` prop and a `CodeBlock.DownloadButton`.
+- Four languages in `code-block`: `csv`, `md`, `sql` and `yaml`, each with the label, registered
+  MIME type and extension its downloads need — a ```` ```csv customers.csv ```` fence in a chat
+  answer used to render under the label `Text` and save as `text/plain`. SQL brings the `--` line
+  comment and a case-insensitive keyword table; YAML shares JSON's literal rule; Markdown, like
+  `text`, declares no grammar at all, because prose is where a highlighter does damage.
 - The component library under `src/lib/components/ui/` — the shadcn-svelte registry set plus
   the house components (kanban, data grid, sortable, editable, gauge, phone input, media
   player, and many more), all under one token set.

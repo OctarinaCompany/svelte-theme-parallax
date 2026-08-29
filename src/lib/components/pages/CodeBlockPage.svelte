@@ -46,8 +46,8 @@
 	 * expression can recognise. Reach for JSON viewer when the reader needs to navigate a payload;
 	 * for Code block when they need to read and copy a sample exactly as it was written.
 	 *
-	 * The section to look at across the twelve palettes is "Every language": ten snippets picked so
-	 * that every rule in the highlighter fires at least once, on one screen.
+	 * The section to look at across the twelve palettes is "Every language": fourteen snippets picked
+	 * so that every rule in the highlighter fires at least once, on one screen.
 	 */
 
 	/** The "Every language" tour opens on TSX rather than on nothing in particular. */
@@ -531,12 +531,14 @@
 
 	<DocSection title="Every language">
 		{#snippet blurb()}
-			All ten languages the highlighter knows, chosen so that every rule fires at least once —
+			All fourteen languages the highlighter knows — upstream's ten, then the four this theme adds
+			for the formats a reader is handed as a file — chosen so that every rule fires at least once:
 			comment, string, keyword, JSON literal, number, capitalised type, CSS custom property,
-			punctuation, and, in <code>text</code>, nothing at all. This is the section to walk across the
-			twelve palettes: the four coloured families have to stay distinguishable from each other and
-			from the page ink in every one of them. The height is fixed rather than fitted, so switching
-			language does not move the rest of the page under the reader.
+			punctuation, and, in <code>text</code> and <code>md</code>, nothing at all. This is the
+			section to walk across the twelve palettes: the four coloured families have to stay
+			distinguishable from each other and from the page ink in every one of them. The height is
+			fixed rather than fitted, so switching language does not move the rest of the page under the
+			reader.
 		{/snippet}
 		<Card.Root>
 			<Card.Content>
@@ -592,11 +594,11 @@
 	<DocSection title="Download">
 		{#snippet blurb()}
 			Set <code>filename</code> and the header offers to save the snippet as a file — the name is
-			the whole switch. This export is plain <code>text</code>, since CSV is not a grammar the
-			highlighter knows, and it is stamped <code>text/csv</code> through <code>mediaType</code>;
-			left unset, the type follows the language. A name with an extension is saved as it is; one
-			without is replaced by <code>snippet.&lt;ext&gt;</code> for the language on screen, so over a
-			selector the extension follows the reader's choice. Path separators in a name are replaced, so
+			the whole switch. This export sets no <code>mediaType</code>: its language is
+			<code>csv</code>, so the download is stamped <code>text/csv</code> on its own, and a caller
+			only passes a type to override that. A name with an extension is saved as it is; one without
+			is replaced by <code>snippet.&lt;ext&gt;</code> for the language on screen, so over a selector
+			the extension follows the reader's choice. Path separators in a name are replaced, so
 			<code>exports/customers.csv</code>
 			would save as <code>exports-customers.csv</code>.
 		{/snippet}
@@ -605,10 +607,9 @@
 				<div class="flex flex-col gap-4">
 					<CodeBlock.Root
 						label="Customer export"
-						language="text"
+						language="csv"
 						code={CUSTOMER_EXPORT_CSV}
 						filename="customers.csv"
-						mediaType="text/csv;charset=utf-8"
 						showLineNumbers={false}
 						onDownload={(name) => (lastDownload = name)}
 					/>

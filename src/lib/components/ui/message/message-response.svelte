@@ -90,7 +90,7 @@
 	 * download saves every block as `file.<ext>`. The kit already has a code block on the same
 	 * token ramp as everything else, with a copy button, a download button that takes a name and
 	 * a `label`; a fence that says ```` ```csv models.csv ```` downloads as `models.csv` from it.
-	 * The trade is real and stated: the house highlighter knows ten grammars and colours one line
+	 * The trade is real and stated: the house highlighter knows fourteen grammars and colours one line
 	 * at a time (`code-block.svelte.ts` says what that costs); a caller who wants Shiki passes
 	 * Streamdown's `Code` through `components` and the house snippet steps aside.
 	 *

@@ -280,21 +280,18 @@ export function mergeMessageResponseTheme(theme?: MessageResponseTheme): Message
  * The file extension a fenced block downloads under, keyed by the fence's language word.
  *
  * Two sources. The code-block grammars come from `CODE_BLOCK_EXTENSIONS` in `ui/code-block`, so a
- * language added there is known here without a second edit. The rest are the formats a model is
- * asked for and a reader wants AS A FILE — data (`csv`, `json` is already above, `yaml`, `toml`,
- * `xml`, `sql`), markup (`html`, `md`, `svelte`) and plain text — plus the aliases models
- * actually write for grammars the highlighter knows under another name (`sh`, `py`,
- * `javascript`, `typescript`, `markdown`). Lower-case keys; {@link messageFenceFilename}
- * lower-cases the lookup.
+ * language added there is known here without a second edit — which is exactly what happened to
+ * `csv`, `md`, `sql` and `yaml`: they were listed here by hand until the code block learned them,
+ * and their entries were then deleted rather than kept as a second, drifting copy. What is left
+ * is the formats a model is asked for that the highlighter does NOT know — `toml`, `xml`, `html`,
+ * `svelte` — plus the aliases models actually write for grammars it knows under another name
+ * (`yml`, `sh`, `py`, `javascript`, `typescript`, `markdown`). Lower-case keys;
+ * {@link messageFenceFilename} lower-cases the lookup.
  */
 export const MESSAGE_FENCE_EXTENSIONS: Record<string, string> = {
 	...CODE_BLOCK_EXTENSIONS,
-	csv: "csv",
-	yaml: "yaml",
 	yml: "yml",
 	html: "html",
-	sql: "sql",
-	md: "md",
 	svelte: "svelte",
 	xml: "xml",
 	toml: "toml",

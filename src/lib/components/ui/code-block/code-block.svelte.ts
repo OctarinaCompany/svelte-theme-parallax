@@ -3,7 +3,22 @@ import { tv } from "tailwind-variants";
 import { downloadText, sanitiseFilename } from "$lib/shared/download-text.js";
 
 /**
- * Every language the highlighter knows, in upstream declaration order.
+ * Every language the highlighter knows: upstream's ten in its declaration order, then the four
+ * this theme adds, appended rather than interleaved so the first half stays diffable against
+ * upstream.
+ *
+ * WHY THESE FOUR. They are the formats a reader is handed AS A FILE rather than as a sample —
+ * `csv` and `yaml` are what a dashboard exports and configures with, `sql` is the query behind a
+ * table, `md` is what a chat answer is written in — and each one arriving here rather than
+ * falling back to `text` is what gives it a name in the header, a real MIME type in
+ * {@link CODE_BLOCK_MEDIA_TYPES} and an extension in {@link CODE_BLOCK_EXTENSIONS}. Before them a
+ * ```` ```csv customers.csv ```` fence in a message rendered under the label `Text` and saved as
+ * `text/plain`.
+ *
+ * Markup languages are deliberately NOT here. `html` and `xml` would take a label and a MIME type
+ * and gain nothing else: the line tokeniser has no tag rule, so a tag would come out as
+ * punctuation and identifiers, and giving one a rule is writing a parser rather than extending a
+ * table.
  */
 export const CODE_BLOCK_LANGUAGES = [
 	"tsx",
@@ -16,6 +31,10 @@ export const CODE_BLOCK_LANGUAGES = [
 	"python",
 	"curl",
 	"text",
+	"csv",
+	"md",
+	"sql",
+	"yaml",
 ] as const;
 
 /** Which grammar a snippet is highlighted against. */
@@ -61,6 +80,10 @@ export const codeBlockLanguageLabels: Record<CodeBlockLanguage, string> = {
 	python: "Python",
 	curl: "cURL",
 	text: "Text",
+	csv: "CSV",
+	md: "Markdown",
+	sql: "SQL",
+	yaml: "YAML",
 };
 
 /**
@@ -78,6 +101,11 @@ export const codeBlockLanguageLabels: Record<CodeBlockLanguage, string> = {
  * {@link CODE_BLOCK_EXTENSIONS} is what tells an editor what it is. JavaScript and JSX take
  * `text/javascript`, the type the HTML standard designates for scripts. cURL is a shell line but
  * not a script, so it stays plain.
+ *
+ * THE FOUR HOUSE LANGUAGES ALL HAVE A REGISTERED TYPE, which is half the reason they are in the
+ * tuple: `text/csv` (RFC 4180), `text/markdown` (RFC 7763), `application/sql` (RFC 6922) and
+ * `application/yaml` (RFC 9512). A spreadsheet opens a `text/csv` download and does not open a
+ * `text/plain` one, so the type is not decoration.
  */
 export const CODE_BLOCK_MEDIA_TYPES: Record<CodeBlockLanguage, string> = {
 	tsx: "text/plain;charset=utf-8",
@@ -90,6 +118,10 @@ export const CODE_BLOCK_MEDIA_TYPES: Record<CodeBlockLanguage, string> = {
 	python: "text/x-python;charset=utf-8",
 	curl: "text/plain;charset=utf-8",
 	text: "text/plain;charset=utf-8",
+	csv: "text/csv;charset=utf-8",
+	md: "text/markdown;charset=utf-8",
+	sql: "application/sql;charset=utf-8",
+	yaml: "application/yaml;charset=utf-8",
 };
 
 /**
@@ -108,6 +140,10 @@ export const CODE_BLOCK_EXTENSIONS: Record<CodeBlockLanguage, string> = {
 	python: "py",
 	curl: "sh",
 	text: "txt",
+	csv: "csv",
+	md: "md",
+	sql: "sql",
+	yaml: "yaml",
 };
 
 /**
@@ -210,10 +246,58 @@ export const codeBlockLanguageKeywords: Record<CodeBlockLanguage, readonly strin
 	],
 	curl: ["curl", "GET", "POST", "PUT", "PATCH", "DELETE"],
 	text: [],
+	// Three of the four house languages have no keyword worth the name: a CSV row is data, a
+	// Markdown document is prose, and YAML's `true` / `false` / `null` are literals rather than
+	// keywords — they are painted by {@link LITERAL_LANGUAGES} instead, which is the same
+	// treatment JSON gets.
+	csv: [],
+	md: [],
+	// SQL is the opposite case: a statement is made almost entirely of keywords, so the list is
+	// longer than the others and still stops at the words that give a statement its SHAPE. Joins
+	// keep `join` and `on` but not every flavour word before them (`left`, `inner`, `outer`), and
+	// the control-flow group (`case` / `when` / `then` / `else` / `end`) is left out for the same
+	// reason: a longer list is a dictionary, not a better highlighter. Lower case is the stored
+	// form — {@link CASE_INSENSITIVE_KEYWORD_LANGUAGES} is what makes `SELECT` match it.
+	sql: [
+		"select",
+		"from",
+		"where",
+		"join",
+		"on",
+		"group",
+		"order",
+		"by",
+		"having",
+		"limit",
+		"insert",
+		"into",
+		"values",
+		"update",
+		"set",
+		"delete",
+		"create",
+		"table",
+		"alter",
+		"drop",
+		"as",
+		"and",
+		"or",
+		"not",
+		"null",
+		"distinct",
+		"union",
+		"with",
+	],
+	yaml: [],
 };
 
-/** How a language opens a comment. `block` is the slash-star form, matched to end of line only. */
-export type CodeBlockCommentSyntax = "double-slash" | "hash" | "block";
+/**
+ * How a language opens a comment. `block` is the slash-star form, matched to end of line only.
+ *
+ * `double-dash` is this theme's, added with `sql`: `-- comment` is SQL's line comment, and it is
+ * the one marker in the set that no other member of the tuple uses.
+ */
+export type CodeBlockCommentSyntax = "double-slash" | "hash" | "block" | "double-dash";
 
 /** How a language quotes a string. */
 export type CodeBlockStringSyntax = "double" | "single" | "backtick";
@@ -257,6 +341,13 @@ export const CODE_BLOCK_COMMENT_SYNTAX: Record<
 	python: ["hash"],
 	curl: ["hash"],
 	text: [],
+	// A CSV file has no comment syntax — a `#` row is a row whose first field starts with `#`.
+	csv: [],
+	// Markdown's only comment is the HTML one, `<!-- -->`, which no marker here spells. Giving it
+	// `hash` instead would grey every ATX heading in the document.
+	md: [],
+	sql: ["double-dash", "block"],
+	yaml: ["hash"],
 };
 
 /**
@@ -284,6 +375,22 @@ export const CODE_BLOCK_STRING_SYNTAX: Record<CodeBlockLanguage, readonly CodeBl
 		python: ["double", "single"],
 		curl: ["double", "single"],
 		text: [],
+		// A quoted CSV field is the only run in the format that is not read literally (RFC 4180),
+		// so it is the only one worth painting. The escape form is a doubled quote, which comes
+		// out as two adjacent strings rather than one — both green, so the line still reads.
+		csv: ["double"],
+		// Markdown is prose, and prose is where the apostrophe hazard `text` documents lives:
+		// `Don't stop, can't stop` would render `'t stop, can'` in string ink. No markers at all
+		// means {@link tokenizeCodeBlockLine} short-circuits the whole line to one plain run.
+		md: [],
+		// SQL's string is single-quoted. The double quote delimits an IDENTIFIER in standard SQL
+		// (`"order"` is a column named order, not a string), so it is deliberately not listed, and
+		// the effect is exactly that: no alternative claims the quote characters, so they fall
+		// through as plain and the word between them is tokenised on its own. A column called
+		// `order` then wears keyword ink, which is the keyword list's own documented limit rather
+		// than this table's.
+		sql: ["single"],
+		yaml: ["double", "single"],
 	};
 
 /** Which languages paint a capitalised identifier as a type. */
@@ -307,6 +414,10 @@ const COMMENT_PATTERNS: Record<CodeBlockCommentSyntax, string> = {
 	// worse answer than upstream's (it has no block-comment rule at all, so it colours the line as
 	// code). The lazy `.*?` finds the FIRST `*/`, so two comments on one line stay two comments.
 	block: /\/\*(?:.*?\*\/|.*)/.source,
+	// SQL's line comment. It sits before the identifier and punctuation alternatives like every
+	// other comment marker, which is what keeps `-- rows returned` a comment rather than two
+	// minus signs; a lone `-` is still punctuation, since this pattern needs two.
+	"double-dash": /--.*/.source,
 };
 
 const STRING_PATTERNS: Record<CodeBlockStringSyntax, string> = {
@@ -334,8 +445,28 @@ const PUNCTUATION = /[{}()[\].,;:<>/=+\-*|&!]/.source;
 /** One character of {@link PUNCTUATION}, anchored — the classifier's own test (`:156`). */
 const SINGLE_PUNCTUATION = /^[{}()[\].,;:<>/=+\-*|&!]$/;
 
-/** JSON's three bare literals (`:144`). */
+/** JSON's three bare literals (`:144`), which YAML's core schema spells the same way. */
 const JSON_LITERAL = /^(true|false|null)$/;
+
+/**
+ * Which languages paint `true` / `false` / `null` as a literal rather than as a keyword.
+ *
+ * JSON is upstream's; YAML is this theme's, and it is the same three words — YAML 1.2's core
+ * schema resolves them exactly as JSON does. Only the lower-case spelling is claimed: YAML also
+ * accepts `True` and `TRUE`, which come out plain, because widening the test would change what
+ * JSON does with a capitalised word for the sake of a spelling YAML style guides discourage.
+ */
+const LITERAL_LANGUAGES: readonly CodeBlockLanguage[] = ["json", "yaml"];
+
+/**
+ * Which languages match their keyword table without regard to case.
+ *
+ * SQL alone. The standard defines its keywords case-insensitively and both houses are idiomatic —
+ * upper case in most style guides, lower case in plenty of real code — so a case-sensitive list
+ * would colour one and ignore the other. Every other member of the tuple is a case-sensitive
+ * language, where `True` and `true` are genuinely different tokens.
+ */
+const CASE_INSENSITIVE_KEYWORD_LANGUAGES: readonly CodeBlockLanguage[] = ["sql"];
 
 const tokenPatterns = new Map<CodeBlockLanguage, RegExp | null>();
 
@@ -358,8 +489,9 @@ function getCodeBlockTokenPattern(language: CodeBlockLanguage): RegExp | null {
 	const comments = CODE_BLOCK_COMMENT_SYNTAX[language];
 	const strings = CODE_BLOCK_STRING_SYNTAX[language];
 
-	// A language with neither comments nor strings has no grammar worth scanning for: `text` is
-	// the only member, and every alternative left would be a false positive on prose.
+	// A language with neither comments nor strings has no grammar worth scanning for: `text` and
+	// `md` are the members, both of them prose, and every alternative left would be a false
+	// positive on it.
 	if (comments.length === 0 && strings.length === 0) {
 		tokenPatterns.set(language, null);
 		return null;
@@ -407,8 +539,21 @@ function isCodeBlockComment(token: string, language: CodeBlockLanguage): boolean
 		if (syntax === "double-slash" && token.startsWith("//")) return true;
 		if (syntax === "hash" && token.startsWith("#")) return true;
 		if (syntax === "block" && token.startsWith("/*")) return true;
+		if (syntax === "double-dash" && token.startsWith("--")) return true;
 	}
 	return false;
+}
+
+/**
+ * Whether `token` is one of `language`'s keywords — a plain lookup, except for the languages
+ * {@link CASE_INSENSITIVE_KEYWORD_LANGUAGES} names, whose tables are stored lower-case and are
+ * looked up lower-cased.
+ */
+function matchesCodeBlockKeyword(token: string, language: CodeBlockLanguage): boolean {
+	const keywords = codeBlockLanguageKeywords[language];
+	return CASE_INSENSITIVE_KEYWORD_LANGUAGES.includes(language)
+		? keywords.includes(token.toLowerCase())
+		: keywords.includes(token);
 }
 
 /**
@@ -432,8 +577,8 @@ export function classifyCodeBlockToken(
 ): CodeBlockTokenKind {
 	if (isCodeBlockComment(token, language)) return "comment";
 	if (token.startsWith('"') || token.startsWith("'") || token.startsWith("`")) return "string";
-	if (language === "json" && JSON_LITERAL.test(token)) return "literal";
-	if (codeBlockLanguageKeywords[language].includes(token)) return "keyword";
+	if (LITERAL_LANGUAGES.includes(language) && JSON_LITERAL.test(token)) return "literal";
+	if (matchesCodeBlockKeyword(token, language)) return "keyword";
 	if (/^\d/.test(token)) return "number";
 	if (/^[A-Z]/.test(token) && TYPE_CASED_LANGUAGES.includes(language)) return "type";
 	if (SINGLE_PUNCTUATION.test(token)) return "punctuation";
