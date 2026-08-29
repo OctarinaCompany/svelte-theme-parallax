@@ -1,7 +1,11 @@
 <script lang="ts" module>
 	import { cn, type WithElementRef, type WithoutChildren } from "$lib/utils.js";
 	import type { HTMLAttributes } from "svelte/elements";
-	import type { CodeBlockLanguage, CodeBlockSnippet } from "./code-block.svelte.js";
+	import type {
+		CodeBlockHighlighter,
+		CodeBlockLanguageId,
+		CodeBlockSnippet,
+	} from "./code-block.svelte.js";
 
 	export type CodeBlockRootProps = WithoutChildren<
 		WithElementRef<HTMLAttributes<HTMLDivElement>>
@@ -9,10 +13,15 @@
 		/** A single snippet's code. Ignored when {@link CodeBlockRootProps.snippets} is non-empty. */
 		code?: string;
 		/**
-		 * The grammar {@link CodeBlockRootProps.code} is highlighted against.
+		 * The grammar {@link CodeBlockRootProps.code} is highlighted against. ANY id, not only the
+		 * fourteen in `CODE_BLOCK_LANGUAGES`: the id is trimmed, lower-cased and folded through
+		 * `CODE_BLOCK_LANGUAGE_ALIASES` (so `JavaScript`, `javascript` and `js` are one language),
+		 * the fourteen then have a house grammar, and anything else keeps its name, takes an
+		 * extension of its own in the download, and renders as plain text until a
+		 * {@link CodeBlockRootProps.highlighter} is installed.
 		 * @default "tsx"
 		 */
-		language?: CodeBlockLanguage;
+		language?: CodeBlockLanguageId;
 		/**
 		 * Several snippets of the same thing, switchable from the header. Languages must be unique
 		 * — the language is a snippet's identity here, as it is upstream.
@@ -23,14 +32,14 @@
 		 * reader's own choice alone.
 		 * @default the first snippet's language
 		 */
-		defaultLanguage?: CodeBlockLanguage;
+		defaultLanguage?: CodeBlockLanguageId;
 		/**
 		 * The snippet on screen. Bind it to drive the block from outside, or to follow the reader's
 		 * choice. A language the current list does not carry falls back to the first snippet.
 		 */
-		activeLanguage?: CodeBlockLanguage;
+		activeLanguage?: CodeBlockLanguageId;
 		/** Fired when the selector picks another language, never for a parent-driven write. */
-		onActiveLanguageChange?: (language: CodeBlockLanguage) => void;
+		onActiveLanguageChange?: (language: CodeBlockLanguageId) => void;
 		/**
 		 * The caption in the header — a filename, a request name, whatever names the payload.
 		 * @default "Code"
@@ -52,9 +61,10 @@
 		 * shows a download button; leave it out and there is none.
 		 *
 		 * A name with an extension is used as it is, whatever language is on screen. One without an
-		 * extension is replaced by `snippet.<ext>` for the active language (`CODE_BLOCK_EXTENSIONS`)
-		 * and so follows the selector — `snippet.tsx`, then `snippet.py` once Python is on screen —
-		 * where `request.tsx` would not. The result is sanitised: path separators become dashes
+		 * extension is replaced by `snippet.<ext>` for the active language (`codeBlockExtension`,
+		 * which answers for ANY id, not only the fourteen: `rust` saves as `snippet.rs`) and so
+		 * follows the selector — `snippet.tsx`, then `snippet.py` once Python is on screen — where
+		 * `request.tsx` would not. The result is sanitised: path separators become dashes
 		 * (`src/app.css` saves as `src-app.css`, because a browser reads a separator in `download`
 		 * as a directory hint), the punctuation Windows reserves is stripped, and a name with nothing
 		 * left falls back to `snippet.<ext>`.
@@ -64,7 +74,8 @@
 		 * The MIME type the download is stamped with. Ignored unless
 		 * {@link CodeBlockRootProps.filename} is set — without a name there is no download button to
 		 * stamp.
-		 * @default the active language's entry in `CODE_BLOCK_MEDIA_TYPES`
+		 * @default `codeBlockMediaType(activeLanguage)` — the registered type for one of the
+		 * fourteen, `text/plain;charset=utf-8` for every other id
 		 */
 		mediaType?: string;
 		/**
@@ -73,6 +84,14 @@
 		 * has no other way to reach the button.
 		 */
 		onDownload?: (filename: string) => void;
+		/**
+		 * What paints this block. An object is USED and outranks any provider above; `null` opts
+		 * this block out and keeps the house tokenizer whatever is installed; left unset, the
+		 * nearest provider is taken, read once at initialisation. Rules 1-3 of the ten in the
+		 * component's own comment below.
+		 * @default the nearest installed highlighter, if any
+		 */
+		highlighter?: CodeBlockHighlighter | null;
 	};
 
 	/** Alias of {@link CodeBlockRootProps}, present for parity with the upstream type name. */
@@ -83,7 +102,12 @@
 	import { untrack } from "svelte";
 	import CodeBlockContent from "./code-block-content.svelte";
 	import CodeBlockHeader from "./code-block-header.svelte";
-	import { CodeBlockState, setCodeBlockContext } from "./code-block.svelte.js";
+	import {
+		CodeBlockState,
+		resolveCodeBlockLanguage,
+		setCodeBlockContext,
+		useCodeBlockHighlighter,
+	} from "./code-block.svelte.js";
 
 	/**
 	 * A copyable code sample with a line-number gutter, a language selector and lightweight
@@ -150,14 +174,50 @@
 	 * SMALLER ONES, recorded so they are not read as oversights: the code is `text-sm` and the
 	 * corner `rounded-md`, matching `ui/json-viewer` rather than upstream's `text-xs` and
 	 * `rounded-lg`; the gutter is `aria-hidden` and the content is focusable, neither of which
-	 * upstream does; and the root carries `data-language`, the language actually on screen, and
-	 * `data-downloadable` when a filename is set, because every other component in this kit
-	 * publishes its state as data attributes and these are that state.
+	 * upstream does; and the root carries `data-language`, the language actually on screen,
+	 * `data-downloadable` when a filename is set and `data-highlighted` when an installed
+	 * highlighter's answer was accepted for the block — rule 9 below is the exact statement —
+	 * because every other component in this kit publishes its state as data attributes and these
+	 * are that state.
 	 *
-	 * WHAT IS NOT FIXED, because it is the approach rather than a defect: highlighting runs one
-	 * line at a time, so no construct that spans lines — a block comment, a multi-line template
-	 * literal, a docstring — is coloured past its first line; and a keyword list is not a parser,
-	 * so a keyword used as an identifier still lights up.
+	 * WHAT THE HOUSE TOKENIZER STILL WILL NOT DO, because it is that tokenizer's approach rather
+	 * than a defect in it: it runs one line at a time, so no construct that spans lines — a block
+	 * comment, a multi-line template literal, a docstring — is coloured past its first line; and a
+	 * keyword list is not a parser, so a keyword used as an identifier still lights up. Both are
+	 * what the seam below lifts, by handing the whole snippet to something that does parse.
+	 *
+	 * THE HIGHLIGHT SEAM, IN TEN RULES. A `CodeBlockHighlighter` (`code-block.svelte.ts`) may
+	 * replace the house tokenizer for a block, and this is the whole contract:
+	 *
+	 *  1. `highlighter={null}` paints with the house tokenizer, whatever provider is above.
+	 *  2. `highlighter={someObject}` uses that object; providers above are ignored.
+	 *  3. `highlighter` unset takes the nearest provider, read ONCE at initialisation; with no
+	 *     provider above, the house tokenizer.
+	 *  4. Only this root's `$effect` calls `prepare`, once per language it shows. No part does, and
+	 *     the state does not.
+	 *  5. `highlight` runs inside a `$derived`. It MAY read reactive state — that is how a grammar
+	 *     that finishes loading later repaints the block — must write none, and a throw is caught
+	 *     and read as `undefined`.
+	 *  6. `undefined` from `highlight` means the house tokenizer paints the WHOLE block.
+	 *  7. A row count that differs from the line count means the same: house, whole block. Nothing
+	 *     lines up, and a striped mix over rows that are not this line's is worse than either
+	 *     highlighter alone. Rule 8's per-line fallback is NOT that mix — there the row is this
+	 *     line's, and only its text disagreed.
+	 *  8. Per line, the highlighter's row is used only when it is non-empty AND its token texts
+	 *     concatenate to that line exactly — so the text on screen is always the source text,
+	 *     whatever the highlighter did to it.
+	 *  9. `data-highlighted` is present exactly when rule 7 passed: the highlighter answered with
+	 *     one row per line. It says that ANSWER was accepted for the block, NOT that every line is
+	 *     painted by it — rule 8 is per line, an empty line normally falls back to the house, and
+	 *     a highlighter every one of whose rows rule 8 rejects still carries the attribute.
+	 * 10. First paint is whatever `highlight` returns synchronously. No skeleton, no `await` in
+	 *     this folder — a block that renders nothing while a grammar loads is worse than one that
+	 *     renders house colours and improves.
+	 *
+	 * NOTHING IMPLEMENTS THE CONTRACT YET, deliberately: a `ui/code-highlighter/` folder will,
+	 * installing itself through `setCodeBlockHighlighterContext` and importing this barrel to do
+	 * it. The edge runs one way — this folder never imports that one — which is what keeps the
+	 * code block installable without a grammar bundle behind it.
 	 */
 	let {
 		ref = $bindable(null),
@@ -174,21 +234,44 @@
 		filename,
 		mediaType,
 		onDownload,
+		highlighter,
 		...restProps
 	}: CodeBlockRootProps = $props();
 
-	/** Upstream's `availableSnippets` memo: a bare `code` is one entry. */
-	const resolvedSnippets = $derived(snippets?.length ? snippets : [{ language, code: code ?? "" }]);
+	// Rule 3: the nearest provider, read ONCE, here, because `getContext` is only legal during
+	// initialisation. A block whose ancestors change later keeps the highlighter it opened with,
+	// which is the same contract every other context in the kit offers.
+	const inheritedHighlighter = useCodeBlockHighlighter();
+
+	/**
+	 * Upstream's `availableSnippets` memo: a bare `code` is one entry.
+	 *
+	 * The language is canonicalised HERE, once, before anything downstream sees it — the snippet
+	 * list is what `activeSnippet` matches against, what the selector keys and labels, and what the
+	 * download name is derived from, so a list holding both `JavaScript` and `js` would be two
+	 * entries of one language wearing two names.
+	 */
+	const resolvedSnippets = $derived(
+		(snippets?.length ? snippets : [{ language, code: code ?? "" }]).map((snippet) => ({
+			...snippet,
+			language: resolveCodeBlockLanguage(snippet.language),
+		})),
+	);
 
 	// Upstream's `initialLanguage`, read through `untrack` so it is
 	// unambiguously a seed: nothing here subscribes to `defaultLanguage` or to the snippet list.
-	activeLanguage ??= untrack(
-		() => defaultLanguage ?? (snippets?.length ? snippets[0].language : language),
+	// Canonicalised for the reason the list is: a seed of `javascript` must find the `js` snippet.
+	activeLanguage ??= untrack(() =>
+		resolveCodeBlockLanguage(
+			defaultLanguage ?? (snippets?.length ? snippets[0].language : language),
+		),
 	);
 
 	const state = new CodeBlockState({
 		getSnippets: () => resolvedSnippets,
-		getActiveLanguage: () => activeLanguage ?? language,
+		// Canonicalised on READ, not written back: a caller who binds `activeLanguage` and sets it to
+		// `Python` gets the Python snippet, and keeps the spelling they wrote in their own variable.
+		getActiveLanguage: () => resolveCodeBlockLanguage(activeLanguage ?? language),
 		setActiveLanguage: (next) => {
 			activeLanguage = next;
 			onActiveLanguageChange?.(next);
@@ -198,10 +281,21 @@
 		getLabel: () => label,
 		getFilename: () => filename,
 		getMediaType: () => mediaType,
+		// Rules 1 and 2: `null` is an opt-out and must not fall through to the provider, which is
+		// why it is tested before the `??` rather than folded into it.
+		getHighlighter: () =>
+			highlighter === null ? undefined : (highlighter ?? inheritedHighlighter),
 		notifyDownload: (name) => onDownload?.(name),
 	});
 
 	setCodeBlockContext(state);
+
+	// Rule 4. Reading both members is what re-runs this when the reader switches snippet or when a
+	// caller swaps the highlighter; nothing is awaited, because a highlighter that loads a grammar
+	// reports by making `highlight` answer differently, not by resolving to this effect (rule 10).
+	$effect(() => {
+		state.highlighter?.prepare?.(state.activeLanguage);
+	});
 </script>
 
 <!--
@@ -215,6 +309,7 @@
 	data-slot="code-block"
 	data-language={state.activeLanguage}
 	data-downloadable={state.filename !== undefined ? "" : undefined}
+	data-highlighted={state.highlighted ? "" : undefined}
 	role="group"
 	aria-label={state.label}
 	class={cn(

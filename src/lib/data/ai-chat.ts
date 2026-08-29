@@ -28,7 +28,18 @@ export type AiChatPart = AiChatTextPart | AiChatReasoningPart | AiChatToolPart;
 
 export type AiChatMessage = { id: string; role: MessageRole; parts: AiChatPart[] };
 
-/** The Markdown answer every renderer test needs: a table, a link, a downloadable fence. */
+/**
+ * The Markdown answer every renderer test needs: a table, a link, a quote, and two fences.
+ *
+ * THE TWO FENCES ARE NOT A DUPLICATE. The first is opened ```` ```csv models.csv ````, so it
+ * exercises a fence that names its own file. The second is opened with the LONG spelling
+ * ```` ```javascript ````, which is what a model actually writes and what the code block used to
+ * resolve to `text` — captioned `javascript`, badged `Text`, uncoloured — while a ```` ```js ````
+ * fence in the same answer was coloured. It is the demo the alias table exists for. Its comment
+ * deliberately spans two lines: the house tokenizer colours the opening line and leaves the
+ * second one plain, which is the limit a `CodeBlockHighlighter` installed over the block lifts,
+ * and this fence is where that difference will be visible.
+ */
 export const AI_CHAT_MARKDOWN_ANSWER = `Here is the comparison you asked for.
 
 | Model | Context window | Best for |
@@ -44,6 +55,16 @@ model,context_window,best_for
 Sonnet 5,1000000,everyday questions
 Opus 5,1000000,long reasoning
 Haiku 4.5,200000,short lookups
+\`\`\`
+
+Or as a check you can run before sending a long document:
+
+\`\`\`javascript
+/* The window is a ceiling on the whole exchange, not on the prompt:
+   what you send and what comes back share the numbers below. */
+const CONTEXT = { "Sonnet 5": 1000000, "Opus 5": 1000000, "Haiku 4.5": 200000 };
+
+export const fitsInContext = (model, tokens) => tokens <= CONTEXT[model];
 \`\`\`
 
 > Note: context windows are subscription-dependent; the 1M window on Opus is included on Max.`;

@@ -7,16 +7,17 @@
 	import * as ToggleGroup from "$lib/components/ui/toggle-group/index.js";
 	import { href } from "$lib/hooks/route.svelte.js";
 	import {
-		CODE_BLOCK_EXTENSIONS,
 		CODE_BLOCK_LANGUAGES,
-		CODE_BLOCK_MEDIA_TYPES,
 		CODE_BLOCK_TOKEN_KINDS,
-		codeBlockLanguageLabels,
+		codeBlockExtension,
+		codeBlockLanguageLabel,
+		codeBlockMediaType,
 		resolveCodeBlockLanguage,
-		type CodeBlockLanguage,
+		type CodeBlockLanguageId,
 	} from "$lib/components/ui/code-block/index.js";
 	import {
 		CUSTOMER_EXPORT_CSV,
+		HEALTH_CHECK_RUST,
 		LANGUAGE_TOUR,
 		REGISTRY_REQUEST_CURL,
 		REGISTRY_REQUEST_SNIPPETS,
@@ -47,14 +48,16 @@
 	 * for Code block when they need to read and copy a sample exactly as it was written.
 	 *
 	 * The section to look at across the twelve palettes is "Every language": fourteen snippets picked
-	 * so that every rule in the highlighter fires at least once, on one screen.
+	 * so that every rule in the HOUSE TOKENIZER fires at least once, on one screen. Fourteen is what
+	 * that tokenizer knows, not what the component accepts — a caller may name any language, and
+	 * "Unknown language" below is what one without a house grammar looks like.
 	 */
 
 	/** The "Every language" tour opens on TSX rather than on nothing in particular. */
-	let tourLanguage = $state<CodeBlockLanguage>("tsx");
+	let tourLanguage = $state<CodeBlockLanguageId>("tsx");
 
 	/** The controlled demo's language, owned by the page rather than by the block. */
-	let boundLanguage = $state<CodeBlockLanguage>("python");
+	let boundLanguage = $state<CodeBlockLanguageId>("python");
 
 	/**
 	 * The "Download" demo's receipt: the name the last click saved under. The button shows none of
@@ -77,9 +80,10 @@
 		},
 		{
 			prop: "language",
-			type: CODE_BLOCK_LANGUAGES.map((language) => `'${language}'`).join(" | "),
+			type: "CodeBlockLanguageId",
 			default: "'tsx'",
-			description: "The grammar `code` is highlighted against.",
+			description:
+				"The language `code` is written in — any id, not only the fourteen. It is trimmed, lower-cased and folded through `CODE_BLOCK_LANGUAGE_ALIASES`, so `JavaScript`, `javascript` and `js` are one language; the fourteen in `CODE_BLOCK_LANGUAGES` then have a house grammar, and anything else keeps its own name and extension and renders as plain text until a `highlighter` is installed. A blank or whitespace-only string falls back to `text`; leaving the prop out does not — it takes the default above, so an unset `language` is painted with the TSX grammar.",
 		},
 		{
 			prop: "snippets",
@@ -90,21 +94,21 @@
 		},
 		{
 			prop: "defaultLanguage",
-			type: "CodeBlockLanguage",
+			type: "CodeBlockLanguageId",
 			default: "the first snippet's language",
 			description:
 				"Seed for `activeLanguage`, read once — changing it later leaves the reader's own choice alone.",
 		},
 		{
 			prop: "activeLanguage",
-			type: "CodeBlockLanguage",
+			type: "CodeBlockLanguageId",
 			default: "—",
 			description:
 				"Bindable. The snippet on screen: a language the current list does not carry falls back to the first, and the selector follows the fallback rather than the request.",
 		},
 		{
 			prop: "onActiveLanguageChange",
-			type: "(language: CodeBlockLanguage) => void",
+			type: "(language: CodeBlockLanguageId) => void",
 			default: "undefined",
 			description: "Fired when the selector picks another language, never for a parent write.",
 		},
@@ -133,14 +137,14 @@
 			type: "string",
 			default: "undefined",
 			description:
-				"The download name; setting it is what makes the header show a download button. A name with an extension is kept as it is; one without is replaced by `snippet.<ext>` for the active language, so it follows the selector. The result is sanitised: path separators become dashes, reserved punctuation is stripped, and an empty result falls back to `snippet.<ext>`.",
+				"The download name; setting it is what makes the header show a download button. A name with an extension is kept as it is; one without is replaced by `snippet.<ext>` for the active language, so it follows the selector — including for a language with no house grammar, which takes its own extension (`rust` saves as `snippet.rs`). The result is sanitised: path separators become dashes, reserved punctuation is stripped, and an empty result falls back to `snippet.<ext>`.",
 		},
 		{
 			prop: "mediaType",
 			type: "string",
-			default: "CODE_BLOCK_MEDIA_TYPES[activeLanguage]",
+			default: "codeBlockMediaType(activeLanguage)",
 			description:
-				"The MIME type the download is stamped with. Left unset, it follows the active language, so a multi-language block saves each snippet under its own type. Ignored unless `filename` is set — without a name there is no download button to stamp.",
+				"The MIME type the download is stamped with. Left unset, it follows the active language, so a multi-language block saves each snippet under its own type — the registered type for a language with a house grammar, `text/plain;charset=utf-8` for every other id. Ignored unless `filename` is set — without a name there is no download button to stamp.",
 		},
 		{
 			prop: "onDownload",
@@ -148,6 +152,13 @@
 			default: "undefined",
 			description:
 				"Fired after the download button has handed the file to the browser, with the sanitised name it was saved under. The root renders its own header, so this is where a caller hears about it.",
+		},
+		{
+			prop: "highlighter",
+			type: "CodeBlockHighlighter | null",
+			default: "the nearest installed highlighter, if any",
+			description:
+				"What paints this block. An object is used and outranks any provider above it; `null` opts this block out and keeps the house tokenizer whatever is installed; left unset, the nearest provider is taken — read once, at initialisation, so a provider that appears later is not picked up. A highlighter that declines, throws, or answers with a row count other than the block's line count is ignored for the whole block, and each row it does return is used only when its text concatenates to the line exactly.",
 		},
 		{
 			prop: "class",
@@ -292,6 +303,13 @@
 				"Required. What the gutter shows — one-based, as a reader counts. Rendered only while the root's `showLineNumbers` is on, and hidden from assistive technology and the clipboard either way.",
 		},
 		{
+			prop: "index",
+			type: "number",
+			default: "undefined",
+			description:
+				"Which row of the block this is, zero-based — what matches the line to an installed highlighter's output for it. `CodeBlock.Content` passes it; a line composed by hand without one is painted by the house tokenizer whatever is installed, because there is no row to line it up against.",
+		},
+		{
 			prop: "class",
 			type: "ClassValue",
 			default: "—",
@@ -340,12 +358,17 @@
 		},
 	];
 
-	/** One row per language: what a name without an extension downloads as, and what the file is stamped with. */
+	/**
+	 * One row per language with a house grammar: what a name without an extension downloads as, and
+	 * what the file is stamped with. Read through the three lookups rather than out of the tables
+	 * they consult, because the lookups are the API — they answer for any id, and for these
+	 * fourteen the answer IS the table row.
+	 */
 	const downloadNames = CODE_BLOCK_LANGUAGES.map((language) => ({
 		language,
-		label: codeBlockLanguageLabels[language],
-		extension: CODE_BLOCK_EXTENSIONS[language],
-		mediaType: CODE_BLOCK_MEDIA_TYPES[language],
+		label: codeBlockLanguageLabel(language),
+		extension: codeBlockExtension(language),
+		mediaType: codeBlockMediaType(language),
 	}));
 
 	const parts = [
@@ -403,9 +426,15 @@
 			values: CODE_BLOCK_TOKEN_KINDS.join(" | "),
 		},
 		{
+			attribute: "[data-highlighted]",
+			part: "CodeBlock.Root",
+			values:
+				"present when an installed highlighter's answer was accepted for the block — it returned one row per line — absent otherwise. It does not promise every line is painted by it: a row that is empty, or whose text does not reproduce its line, falls back to the house tokenizer on its own, and an empty line normally does — it is rendered as a single space, which the row for it does not spell.",
+		},
+		{
 			attribute: "[data-language]",
 			part: "CodeBlock.Root",
-			values: CODE_BLOCK_LANGUAGES.join(" | "),
+			values: `the canonical id on screen — ${CODE_BLOCK_LANGUAGES.join(" | ")}, or any other language a caller named`,
 		},
 	];
 
@@ -531,14 +560,15 @@
 
 	<DocSection title="Every language">
 		{#snippet blurb()}
-			All fourteen languages the highlighter knows — upstream's ten, then the four this theme adds
-			for the formats a reader is handed as a file — chosen so that every rule fires at least once:
-			comment, string, keyword, JSON literal, number, capitalised type, CSS custom property,
-			punctuation, and, in <code>text</code> and <code>md</code>, nothing at all. This is the
-			section to walk across the twelve palettes: the four coloured families have to stay
-			distinguishable from each other and from the page ink in every one of them. The height is
-			fixed rather than fitted, so switching language does not move the rest of the page under the
-			reader.
+			All fourteen languages the house tokenizer knows — upstream's ten, then the four this theme
+			adds for the formats a reader is handed as a file — chosen so that every rule fires at least
+			once: comment, string, keyword, JSON literal, number, capitalised type, CSS custom property,
+			punctuation, and, in <code>text</code> and <code>md</code>, nothing at all. Fourteen is what
+			this tokenizer paints, not what the block accepts: any other language is legal and arrives
+			plain, as the next section shows. This is the section to walk across the twelve palettes: the
+			four coloured families have to stay distinguishable from each other and from the page ink in
+			every one of them. The height is fixed rather than fitted, so switching language does not move
+			the rest of the page under the reader.
 		{/snippet}
 		<Card.Root>
 			<Card.Content>
@@ -547,6 +577,32 @@
 					snippets={LANGUAGE_TOUR}
 					bind:activeLanguage={tourLanguage}
 					class="h-[380px]"
+				/>
+			</Card.Content>
+		</Card.Root>
+	</DocSection>
+
+	<DocSection title="Unknown language">
+		{#snippet blurb()}
+			A language the house tokenizer has no grammar for is still a language. The id is kept rather
+			than folded into <code>text</code>: the tag in the header reads <code>rust</code>, and because
+			<code>filename</code>
+			carries no extension the download becomes
+			<code>snippet.rs</code> — the extension Rust actually uses, not <code>.rust</code> and not
+			<code>.txt</code>. What it does not get is colour, and the block says so by not carrying
+			<code>data-highlighted</code>. Installing a <code>CodeBlockHighlighter</code> above it — the
+			seam the root takes as its <code>highlighter</code> prop or inherits from context — is what
+			paints this snippet, and nothing on this page would change to allow it. Before this, a
+			<code>rust</code> block read <code>Text</code> in the header and saved as
+			<code>snippet.txt</code>.
+		{/snippet}
+		<Card.Root>
+			<Card.Content>
+				<CodeBlock.Root
+					label="Health check"
+					language="rust"
+					code={HEALTH_CHECK_RUST}
+					filename="health check"
 				/>
 			</Card.Content>
 		</Card.Root>
@@ -862,11 +918,18 @@
 		<div class="flex flex-col gap-3">
 			<h3 class="text-base font-medium">Download names</h3>
 			<p class="text-sm text-muted-foreground">
-				What a <code>filename</code> without an extension saves as, per language, and the MIME type
-				it is stamped with when <code>mediaType</code> is unset — <code>CODE_BLOCK_EXTENSIONS</code>
-				and
+				What a <code>filename</code> without an extension saves as, per language with a house
+				grammar, and the MIME type it is stamped with when <code>mediaType</code> is unset —
+				<code>codeBlockExtension</code> and <code>codeBlockMediaType</code>, which for these
+				fourteen answer straight out of <code>CODE_BLOCK_EXTENSIONS</code> and
 				<code>CODE_BLOCK_MEDIA_TYPES</code>. TypeScript is <code>text/plain</code> because no
-				registered type exists for it and the one servers infer from <code>.ts</code> is an MPEG stream.
+				registered type exists for it and the one servers infer from <code>.ts</code> is an MPEG
+				stream. Any other language takes <code>text/plain</code> too, and an extension of its own:
+				the seven in <code>CODE_BLOCK_FOREIGN_EXTENSIONS</code> whose suffix is not their id (<code
+					>rust</code
+				>
+				saves as <code>.rs</code>), then the id itself when it is shaped like an extension, then
+				<code>txt</code>.
 			</p>
 			<Card.Root>
 				<Card.Content class="px-0 [&_[data-slot=table-cell]]:whitespace-normal">

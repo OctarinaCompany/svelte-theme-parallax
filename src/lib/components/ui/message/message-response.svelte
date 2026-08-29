@@ -57,9 +57,12 @@
 		/**
 		 * Streamdown's opt-in heavy renderers. `math` is honoured as it is. `code` REPLACES the
 		 * house code block: pass Streamdown's own `Code` for Shiki highlighting and the house
-		 * snippet steps aside. `mermaid` is reachable only through the same `code` key, because
-		 * Streamdown routes a mermaid fence through the code slot — the house snippet renders its
-		 * source as a labelled block.
+		 * snippet steps aside, with its label, its filename and its download button. Replacing the
+		 * renderer is not the only way to a real grammar — a `CodeBlockHighlighter` installed above
+		 * these messages (`ui/code-block`) keeps the house block and changes only what paints it.
+		 * `mermaid` is reachable only through the same `code` key, because Streamdown routes a
+		 * mermaid fence through the code slot — the house snippet renders its source as a labelled
+		 * block.
 		 */
 		components?: StreamdownProps["components"];
 		/**
@@ -90,9 +93,12 @@
 	 * download saves every block as `file.<ext>`. The kit already has a code block on the same
 	 * token ramp as everything else, with a copy button, a download button that takes a name and
 	 * a `label`; a fence that says ```` ```csv models.csv ```` downloads as `models.csv` from it.
-	 * The trade is real and stated: the house highlighter knows fourteen grammars and colours one line
-	 * at a time (`code-block.svelte.ts` says what that costs); a caller who wants Shiki passes
-	 * Streamdown's `Code` through `components` and the house snippet steps aside.
+	 * The trade is real and stated: the house TOKENIZER knows fourteen grammars and colours one line
+	 * at a time (`code-block.svelte.ts` says what that costs). It is no longer the only thing that
+	 * can paint the block, and neither way out touches this file: install a `CodeBlockHighlighter`
+	 * above these messages and the house block keeps everything it has while something that reads
+	 * the whole snippet does the colouring, or pass Streamdown's own `Code` through `components`
+	 * and the house snippet steps aside entirely.
 	 *
 	 * HOW THE OVERRIDE WORKS, verified against the package rather than assumed: Streamdown's
 	 * `Element.svelte` wraps every fenced-code token in `<Slot render={snippets.code}>`, and

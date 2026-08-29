@@ -16,7 +16,7 @@
 
 <script lang="ts">
 	import {
-		codeBlockLanguageLabels,
+		codeBlockLanguageLabel,
 		getCodeBlockContext,
 		resolveCodeBlockLanguage,
 	} from "./code-block.svelte.js";
@@ -59,7 +59,7 @@
 	<Select.Content {align}>
 		<Select.Group>
 			{#each block.snippets as snippet (snippet.language)}
-				{@const label = snippet.label ?? codeBlockLanguageLabels[snippet.language]}
+				{@const label = snippet.label ?? codeBlockLanguageLabel(snippet.language)}
 				<!-- `label` as well as children: bits-ui types ahead against it, and without it the
 				     typeahead matches the raw language rather than the text on screen. -->
 				<Select.Item value={snippet.language} {label}>{label}</Select.Item>

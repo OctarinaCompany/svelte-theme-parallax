@@ -3,9 +3,14 @@ import { tv } from "tailwind-variants";
 import { downloadText, sanitiseFilename } from "$lib/shared/download-text.js";
 
 /**
- * Every language the highlighter knows: upstream's ten in its declaration order, then the four
- * this theme adds, appended rather than interleaved so the first half stays diffable against
+ * Every language the HOUSE TOKENIZER knows: upstream's ten in its declaration order, then the
+ * four this theme adds, appended rather than interleaved so the first half stays diffable against
  * upstream.
+ *
+ * IT IS NOT THE SET OF IDS A CALLER MAY NAME. {@link CodeBlockLanguageId} is that set — any word
+ * at all — and this tuple is what the six tables below stay exhaustive over: the grammars this
+ * file can paint unaided. Any other id renders as plain text under its own name until a
+ * {@link CodeBlockHighlighter} is installed above the block.
  *
  * WHY THESE FOUR. They are the formats a reader is handed AS A FILE rather than as a sample —
  * `csv` and `yaml` are what a dashboard exports and configures with, `sql` is the query behind a
@@ -18,7 +23,8 @@ import { downloadText, sanitiseFilename } from "$lib/shared/download-text.js";
  * Markup languages are deliberately NOT here. `html` and `xml` would take a label and a MIME type
  * and gain nothing else: the line tokeniser has no tag rule, so a tag would come out as
  * punctuation and identifiers, and giving one a rule is writing a parser rather than extending a
- * table.
+ * table. They are still legal ids — `language="html"` keeps its name in the header and downloads
+ * as `snippet.html`; what it does not get from this file is colour.
  */
 export const CODE_BLOCK_LANGUAGES = [
 	"tsx",
@@ -37,38 +43,136 @@ export const CODE_BLOCK_LANGUAGES = [
 	"yaml",
 ] as const;
 
-/** Which grammar a snippet is highlighted against. */
+/** One of the fourteen grammars the house tokenizer carries. */
 export type CodeBlockLanguage = (typeof CODE_BLOCK_LANGUAGES)[number];
 
 /**
- * Normalise a possibly untyped runtime value to a known language.
- * Anything outside {@link CODE_BLOCK_LANGUAGES} falls back to `"text"` — the member that claims
- * no grammar, so an unrecognised name degrades to plain code rather than to somebody else's rules.
+ * ANY language a caller may name — the fourteen above, or a grammar somebody else knows.
+ *
+ * `(string & {})` rather than a bare `string`, which would swallow the literal union and leave an
+ * editor with nothing to suggest. The distinction it draws is the one this component now rests
+ * on: the fourteen are what the house tokenizer paints and what the six per-language tables are
+ * exhaustive over, and every other id is a legal value that reaches
+ * {@link codeBlockLanguageLabel}, {@link codeBlockExtension} and {@link codeBlockMediaType}
+ * instead of a table index.
  */
-export function resolveCodeBlockLanguage(value?: string): CodeBlockLanguage {
-	return CODE_BLOCK_LANGUAGES.includes(value as CodeBlockLanguage)
-		? (value as CodeBlockLanguage)
-		: "text";
+export type CodeBlockLanguageId = CodeBlockLanguage | (string & {});
+
+/** Whether `value` is one of the fourteen — the test that decides house grammar or no grammar. */
+export function isCodeBlockLanguage(value: string): value is CodeBlockLanguage {
+	return CODE_BLOCK_LANGUAGES.includes(value as CodeBlockLanguage);
+}
+
+/**
+ * One entry of a string-keyed table, or `undefined` — the OWN property only.
+ *
+ * An object literal inherits `Object.prototype`, so a bare `table[key]` answers a function for
+ * `constructor` or `toString` and the prototype object for `__proto__`. These tables are indexed
+ * with whatever word a fence's info string carried, so the guard is not theoretical.
+ */
+function ownEntry<T extends string>(table: Record<string, T>, key: string): T | undefined {
+	return Object.hasOwn(table, key) ? table[key] : undefined;
+}
+
+/**
+ * Other spellings of a language, folded onto the id this component canonicalises to.
+ *
+ * WHY IT EXISTS. {@link resolveCodeBlockLanguage} used to NARROW — anything outside the fourteen
+ * became `text` — so a ```` ```javascript ```` fence in a chat answer rendered captioned
+ * `javascript`, badged `Text` and uncoloured, while a ```` ```js ```` fence two messages later was
+ * coloured. The language word is what a model or an author writes, not what this tuple happens to
+ * spell.
+ *
+ * TWO GROUPS, ONE RULE: the id on the right is the canonical one.
+ *   - For a grammar the house knows, canonical is the HOUSE id, so the long spellings fold onto
+ *     the short ones (`javascript` -> `js`, `yml` -> `yaml`, `sh` -> `bash`).
+ *   - For one it does not, canonical is the name Shiki registers the grammar under, so an adapter
+ *     over the {@link CodeBlockHighlighter} seam can pass the id straight to its loader instead of
+ *     carrying a second alias table. Read out of `@shikijs/langs` rather than remembered — it is
+ *     a dependency of `svelte-streamdown`, which is what `Message.Response` renders Markdown with:
+ *     `rust` lists alias `rs`, `csharp` lists `c#` and `cs`, `kotlin` lists `kt` and `kts`,
+ *     `objective-c` lists `objc`, `graphql` lists `gql`, `cpp` lists `c++`, `mermaid` lists
+ *     `mmd`, `powershell` lists `ps` and `ps1`. `dockerfile` is the one inversion: Shiki registers
+ *     `docker` and lists `dockerfile` as ITS alias, and resolves either, so the longer
+ *     self-describing spelling is kept because it is also the better label for a header.
+ *
+ * Keys are lower-case because the lookup lower-cases. No value is also a key, which is what makes
+ * {@link resolveCodeBlockLanguage} idempotent: resolving an already-resolved id returns it.
+ */
+export const CODE_BLOCK_LANGUAGE_ALIASES: Record<string, CodeBlockLanguageId> = {
+	javascript: "js",
+	typescript: "ts",
+	py: "python",
+	sh: "bash",
+	shell: "bash",
+	shellscript: "bash",
+	zsh: "bash",
+	yml: "yaml",
+	markdown: "md",
+	txt: "text",
+	plaintext: "text",
+	rs: "rust",
+	rb: "ruby",
+	kt: "kotlin",
+	kts: "kotlin",
+	cs: "csharp",
+	"c#": "csharp",
+	"c++": "cpp",
+	golang: "go",
+	ps: "powershell",
+	ps1: "powershell",
+	pwsh: "powershell",
+	docker: "dockerfile",
+	gql: "graphql",
+	patch: "diff",
+	htm: "html",
+	objc: "objective-c",
+	mmd: "mermaid",
+};
+
+/**
+ * Canonicalise a language word: trim, lower-case, then fold through
+ * {@link CODE_BLOCK_LANGUAGE_ALIASES}.
+ *
+ * IT NORMALISES, IT DOES NOT NARROW — the whole point of the rewrite. Only a blank or absent value
+ * becomes `text`; an id the house has no grammar for passes through as itself, so it keeps its
+ * name in the header, an extension of its own in the download, and its chance of being painted by
+ * an installed {@link CodeBlockHighlighter}. Which ids the house can actually tokenise is decided
+ * later and separately, by {@link CodeBlockState.grammar}.
+ */
+export function resolveCodeBlockLanguage(value?: string): CodeBlockLanguageId {
+	const id = value?.trim().toLowerCase() ?? "";
+	if (id === "") return "text";
+	return ownEntry(CODE_BLOCK_LANGUAGE_ALIASES, id) ?? id;
 }
 
 /** One selectable snippet — upstream's `CodeBlockSnippet`. */
 export type CodeBlockSnippet = {
 	/**
-	 * The grammar this snippet is highlighted against, and its IDENTITY in the selector: the
-	 * language is what the selector's value carries and what `activeLanguage` names, so two
-	 * snippets in one list may not share one. Upstream shares the constraint and is silent about
+	 * The language this snippet is written in, and its IDENTITY in the selector: it is what the
+	 * selector's value carries and what `activeLanguage` names, so two snippets in one list may not
+	 * share one. Upstream shares the constraint and is silent about
 	 * it — two `bash` entries there produce a duplicate React key and a permanently unreachable
 	 * second snippet. Here the selector's keyed `{#each}` raises Svelte's duplicate-key error
-	 * instead, which says so.
+	 * instead, which says so. The comparison is made on the CANONICAL id — `<CodeBlock.Root>` runs
+	 * every entry through {@link resolveCodeBlockLanguage} before the state sees it — so
+	 * `JavaScript` and `js` are one language here, and listing both is the duplicate that error
+	 * names.
 	 */
-	language: CodeBlockLanguage;
-	/** Overrides {@link codeBlockLanguageLabels} in the selector and on the static tag. */
+	language: CodeBlockLanguageId;
+	/** Overrides the language's label in the selector and on the static tag. */
 	label?: string;
-	/** The snippet itself. Split on `\n`; every line is highlighted on its own. */
+	/**
+	 * The snippet itself. Split on `\n`; the house tokenizer paints each line on its own, and an
+	 * installed {@link CodeBlockHighlighter} is handed the whole thing at once.
+	 */
 	code: string;
 };
 
-/** The selector's display name for each language. */
+/**
+ * The selector's display name for each of the fourteen. {@link codeBlockLanguageLabel} is how a
+ * wider id reads it.
+ */
 export const codeBlockLanguageLabels: Record<CodeBlockLanguage, string> = {
 	tsx: "TSX",
 	ts: "TypeScript",
@@ -85,6 +189,19 @@ export const codeBlockLanguageLabels: Record<CodeBlockLanguage, string> = {
 	sql: "SQL",
 	yaml: "YAML",
 };
+
+/**
+ * The label for any language id: {@link codeBlockLanguageLabels} for the fourteen, the id itself
+ * for everything else.
+ *
+ * THE ID IS ITS OWN LABEL because there is nothing better to show. A foreign id arrives already
+ * lower-cased and canonical, and `rust` over a block of Rust is what its author wrote; a second
+ * casing table would have to be maintained beside this one and would disagree with it within a
+ * month. A caller who wants `Rust` writes `label` on the snippet, which wins over both.
+ */
+export function codeBlockLanguageLabel(language: CodeBlockLanguageId): string {
+	return isCodeBlockLanguage(language) ? codeBlockLanguageLabels[language] : language;
+}
 
 /**
  * The MIME type a downloaded snippet is stamped with, per language — what `CodeBlock.DownloadButton`
@@ -125,6 +242,22 @@ export const CODE_BLOCK_MEDIA_TYPES: Record<CodeBlockLanguage, string> = {
 };
 
 /**
+ * The MIME type any language id is stamped with: {@link CODE_BLOCK_MEDIA_TYPES} for the fourteen,
+ * `text/plain;charset=utf-8` for everything else.
+ *
+ * PLAIN TEXT IS THE ONLY HONEST ANSWER for a language this file knows nothing about — minting
+ * `text/x-<id>` out of an arbitrary word would stamp files with types no registry lists. The
+ * `charset` parameter is kept for the reason every row above carries it, and the specificity a
+ * foreign id does get is its extension: {@link codeBlockExtension} is what tells an editor that
+ * `snippet.rs` is Rust.
+ */
+export function codeBlockMediaType(language: CodeBlockLanguageId): string {
+	return isCodeBlockLanguage(language)
+		? CODE_BLOCK_MEDIA_TYPES[language]
+		: "text/plain;charset=utf-8";
+}
+
+/**
  * The extension `snippet.<ext>` takes in {@link codeBlockFilename} when a download name carries
  * none. `bash` and `curl` both land as `.sh`: a cURL sample is a shell line, and there is no
  * extension for one.
@@ -147,6 +280,71 @@ export const CODE_BLOCK_EXTENSIONS: Record<CodeBlockLanguage, string> = {
 };
 
 /**
+ * The extension for a language the house has no grammar for and whose file suffix is NOT its own
+ * id. Seven rows, and each earns its place by being a name a reader would not otherwise
+ * recognise: `snippet.rust` is not a Rust file, `snippet.rs` is.
+ *
+ * EVERY OTHER FOREIGN ID IS ITS OWN EXTENSION — `go`, `java`, `php`, `html`, `toml`, `swift` —
+ * and needs no row here; {@link codeBlockExtension} passes those through rather than listing a
+ * hundred languages in a table this component could not keep current.
+ *
+ * MERMAID IS THE SEVENTH, and it is the case the first six describe rather than a new one: an id
+ * simply LONGER THAN ITS OWN SUFFIX, exactly as `rust` is longer than `rs`. Without a row it spent
+ * its own id and saved as `snippet.mermaid`, not the `.mmd` a Mermaid file carries. It is also the
+ * foreign id THIS KIT sends here rather than an author: `Message.Response` withholds Streamdown's
+ * own mermaid path — `controls.mermaid` is off and no `components.code` is passed — so a mermaid
+ * fence takes the same slot as every other fence and the house block draws its source
+ * (`ui/message/message-response.svelte`). `mmd` is its short spelling, so the alias table folds
+ * `mmd` onto `mermaid` and both fences save one file — the relationship every other row here has
+ * with its own short spelling.
+ *
+ * DOCKERFILE IS DELIBERATELY ABSENT, and it is the question this table had to answer. Docker's
+ * file has no extension at all — the name IS `Dockerfile` — so there is nothing to map the id to.
+ * Left out, it falls through to the pass-through and saves as `snippet.dockerfile`, which is the
+ * spelling a project already uses when it needs a second one; a row would either repeat the id or
+ * invent a suffix Docker does not define.
+ */
+export const CODE_BLOCK_FOREIGN_EXTENSIONS: Record<string, string> = {
+	rust: "rs",
+	ruby: "rb",
+	kotlin: "kt",
+	csharp: "cs",
+	powershell: "ps1",
+	"objective-c": "m",
+	mermaid: "mmd",
+};
+
+/**
+ * What may be spent as an extension AS IT IS: a lower-case word of at most twelve characters,
+ * starting with a letter. Deliberately narrower than a language id — `f#` and `objective-c++` are
+ * legal ids and neither is a legal suffix — so an id carrying punctuation lands on `txt` instead
+ * of on a filename a shell would have to be told about.
+ *
+ * `objective-c` AND `c#` ARE NOT EXAMPLES OF THAT, though they look like the obvious two: this
+ * test is the THIRD step of {@link codeBlockExtension} and both are answered before it —
+ * `objective-c` by the row above (`m`), `c#` by {@link CODE_BLOCK_LANGUAGE_ALIASES} folding it to
+ * `csharp` (`cs`). A punctuated id reaches `txt` only when no table knows it.
+ */
+const EXTENSION_SHAPED = /^[a-z][a-z0-9]{0,11}$/;
+
+/**
+ * The extension `snippet.<ext>` takes for any language id, in four steps: the house table, then
+ * {@link CODE_BLOCK_FOREIGN_EXTENSIONS}, then the id itself when it is {@link EXTENSION_SHAPED},
+ * then `txt`.
+ *
+ * `txt` is the floor rather than no extension at all, for the reason `messageFenceFilename`
+ * (`ui/message/message.svelte.ts`) already gave: a reader can rename a `.txt`, and cannot open a
+ * file with no extension.
+ */
+export function codeBlockExtension(language: CodeBlockLanguageId): string {
+	if (isCodeBlockLanguage(language)) return CODE_BLOCK_EXTENSIONS[language];
+	return (
+		ownEntry(CODE_BLOCK_FOREIGN_EXTENSIONS, language) ??
+		(EXTENSION_SHAPED.test(language) ? language : "txt")
+	);
+}
+
+/**
  * What counts as "already has an extension": a trailing dot followed by a letter and up to
  * fifteen more letters or digits. The leading letter is deliberate — `release-1.2` is a stem
  * with a version in it, not a file with extension `2`.
@@ -158,9 +356,10 @@ const FILENAME_EXTENSION = /\.[A-Za-z][A-Za-z0-9]{0,15}$/;
  *
  * A label that already carries an extension is a filename and wins as it is — `app.css` stays
  * `app.css` whatever language is on screen. One that carries none is NOT a filename and is
- * replaced outright by `snippet.<ext>` for the active language, so `request` over a TSX/Python
- * selector downloads as `snippet.tsx` and then as `snippet.py` when the reader switches. No
- * label at all, or a blank one, yields the same.
+ * replaced outright by `snippet.<ext>` for the active language ({@link codeBlockExtension}, so a
+ * language with no house grammar still saves under a suffix of its own: `rust` gives
+ * `snippet.rs`), so `request` over a TSX/Python selector downloads as `snippet.tsx` and then as
+ * `snippet.py` when the reader switches. No label at all, or a blank one, yields the same.
  *
  * REPLACED, NOT EXTENDED. Appending the extension to an extension-less label instead — `request`
  * saving as `request.tsx` — reads well for a stem and badly for anything else: a caption-shaped
@@ -175,10 +374,13 @@ const FILENAME_EXTENSION = /\.[A-Za-z][A-Za-z0-9]{0,15}$/;
  * Path separators and reserved punctuation are NOT handled here — the root runs the result
  * through `sanitiseFilename` (`$lib/shared/download-text.js`), which is where that rule lives.
  */
-export function codeBlockFilename(label: string | undefined, language: CodeBlockLanguage): string {
+export function codeBlockFilename(
+	label: string | undefined,
+	language: CodeBlockLanguageId,
+): string {
 	const name = label?.trim() ?? "";
 	if (FILENAME_EXTENSION.test(name)) return name;
-	return `snippet.${CODE_BLOCK_EXTENSIONS[language]}`;
+	return `snippet.${codeBlockExtension(language)}`;
 }
 
 /**
@@ -323,9 +525,10 @@ export type CodeBlockStringSyntax = "double" | "single" | "backtick";
  *
  * A block comment is matched to its own closing marker when it has one, and to the end of the line
  * when it does not — see {@link COMMENT_PATTERNS}. What no table can fix is one that spans lines: a
- * highlighter colouring one line at a time cannot know it is inside a slash-star block that opened
- * three lines up, so the opening line greys and the continuation lines do not. That limit is the
- * architecture.
+ * tokenizer colouring one line at a time cannot know it is inside a slash-star block that opened
+ * three lines up, so the opening line greys and the continuation lines do not. That limit belongs
+ * to THIS tokenizer rather than to the component: a {@link CodeBlockHighlighter} is handed the
+ * whole snippet at once, and lifting exactly this is what the seam exists for.
  */
 export const CODE_BLOCK_COMMENT_SYNTAX: Record<
 	CodeBlockLanguage,
@@ -671,16 +874,93 @@ export const codeBlockTokenVariants = tv({
 });
 
 /**
+ * The seam a real highlighter installs itself through.
+ *
+ * `highlight` is handed the WHOLE snippet — {@link CodeBlockState.text}, which is the rendered
+ * lines rejoined — and answers one row of {@link CodeBlockToken}s per line, in the kit's own
+ * shape, so a construct that spans lines (a block comment, a template literal, a docstring) can
+ * be coloured past its first line: exactly what {@link tokenizeCodeBlockLine} cannot do.
+ * `undefined` means "not mine to paint", which is the answer for a grammar still loading as much
+ * as for one that will never load — the house tokenizer paints instead, and the block repaints on
+ * its own when the answer changes, because `highlight` is called from inside a `$derived`.
+ *
+ * `prepare` is the optional other half: start loading whatever `language` needs. Only
+ * `<CodeBlock.Root>`'s effect calls it (rule 4 of the ten in `code-block.svelte`), once per
+ * language it shows.
+ *
+ * OWNERSHIP RUNS ONE WAY. The contract and its context key live HERE, in the folder that consumes
+ * them; a separate `ui/code-highlighter/` folder will IMPLEMENT this type and install itself
+ * through {@link setCodeBlockHighlighterContext}, importing this barrel to do it. This folder must
+ * never import that one — that edge is what keeps the code block installable on its own, without
+ * dragging a grammar bundle into a project that only wanted a copyable snippet.
+ *
+ * NOTHING IMPLEMENTS IT YET, and that is deliberate: the adapter is the next milestone. Until it
+ * lands the seam is inert and every block paints exactly as it did before.
+ */
+export type CodeBlockHighlighter = {
+	/**
+	 * Paint a whole snippet: one row per line of `code`, or `undefined` to decline it. May read
+	 * reactive state, must not write any, and must not block — see rules 5 and 10.
+	 */
+	highlight(code: string, language: CodeBlockLanguageId): CodeBlockToken[][] | undefined;
+	/** Optional. Start loading whatever this language needs; called by the root's effect only. */
+	prepare?(language: CodeBlockLanguageId): void;
+};
+
+/**
+ * A key of its own rather than a corner of the block's context: a provider is an ANCESTOR of many
+ * blocks and is not itself a block, so the two must not collide on one key.
+ */
+const CODE_BLOCK_HIGHLIGHTER_CONTEXT_KEY = Symbol("code-block-highlighter");
+
+/**
+ * Install a highlighter for every `<CodeBlock.Root>` below this component that sets no
+ * `highlighter` prop of its own. Call it during component initialisation, as `setContext` requires.
+ */
+export function setCodeBlockHighlighterContext(
+	highlighter: CodeBlockHighlighter,
+): CodeBlockHighlighter {
+	return setContext(CODE_BLOCK_HIGHLIGHTER_CONTEXT_KEY, highlighter);
+}
+
+export function hasCodeBlockHighlighterContext(): boolean {
+	return hasContext(CODE_BLOCK_HIGHLIGHTER_CONTEXT_KEY);
+}
+
+/**
+ * The installed highlighter, or a thrown error naming the consumer — the shape
+ * `getDirectionContext` uses in `ui/direction-provider`. For the ordinary case, where a block with
+ * no provider above it is not an error at all, {@link useCodeBlockHighlighter} is the accessor to
+ * reach for.
+ */
+export function getCodeBlockHighlighterContext(consumer?: string): CodeBlockHighlighter {
+	if (!hasCodeBlockHighlighterContext()) {
+		const label = consumer ?? "`<CodeBlock>` highlighter consumer";
+		throw new Error(`${label} must be used within a code-block highlighter provider.`);
+	}
+	return getContext<CodeBlockHighlighter>(CODE_BLOCK_HIGHLIGHTER_CONTEXT_KEY);
+}
+
+/**
+ * The nearest installed highlighter, or `undefined` when there is none. Never throws when no
+ * provider is present, and must be called during component initialisation — `ui/direction-provider`'s
+ * `useDirection` is the same shape for the same two reasons.
+ */
+export function useCodeBlockHighlighter(): CodeBlockHighlighter | undefined {
+	return hasCodeBlockHighlighterContext() ? getCodeBlockHighlighterContext() : undefined;
+}
+
+/**
  * Reactive inputs for {@link CodeBlockState}. Getters rather than values, so the class keeps
  * tracking the root's props instead of snapshotting them.
  */
 export type CodeBlockStateProps = {
 	/** The resolved snippet list — never empty; the root wraps a bare `code` into one entry. */
 	getSnippets: () => readonly CodeBlockSnippet[];
-	/** The language the caller currently wants shown. */
-	getActiveLanguage: () => CodeBlockLanguage;
+	/** The language the caller currently wants shown. Any id; the root canonicalises it. */
+	getActiveLanguage: () => CodeBlockLanguageId;
 	/** Called when the selector picks another language. */
-	setActiveLanguage: (language: CodeBlockLanguage) => void;
+	setActiveLanguage: (language: CodeBlockLanguageId) => void;
 	/** Whether the gutter renders. */
 	getShowLineNumbers: () => boolean;
 	/** Whether more than one snippet may be switched between. */
@@ -694,6 +974,15 @@ export type CodeBlockStateProps = {
 	getFilename: () => string | undefined;
 	/** The caller's MIME type for the download, or `undefined` to take the active language's. */
 	getMediaType: () => string | undefined;
+	/**
+	 * What paints this block, or `undefined` for the house tokenizer.
+	 *
+	 * A GETTER RATHER THAN A CONTEXT READ OF ITS OWN. This class is a plain object and may be
+	 * constructed outside a component, where `getContext` throws; and the precedence between an
+	 * explicit prop, an opt-out and an inherited provider is the ROOT's to decide (rules 1-3). The
+	 * state only consumes the answer.
+	 */
+	getHighlighter: () => CodeBlockHighlighter | undefined;
 	/** Called after {@link CodeBlockState.download} has handed the file to the browser. */
 	notifyDownload: (filename: string) => void;
 };
@@ -726,19 +1015,35 @@ export class CodeBlockState {
 	/**
 	 * What is actually rendered — the selector's value, so it can never show a missing entry.
 	 *
-	 * Resolved rather than taken. The tokenizer indexes three per-language tables, so a snippet
-	 * carrying a language outside the union — which TypeScript forbids and untyped JavaScript does
-	 * not — would throw where upstream's single pattern merely mis-highlighted. It degrades to
-	 * `text`, which is the member that claims no grammar.
+	 * Resolved rather than taken, and {@link resolveCodeBlockLanguage} NORMALISES rather than
+	 * narrows: a snippet carrying `JavaScript` is shown, downloaded and reported as `js`. The root
+	 * already canonicalised the list, so this pass is idempotent and exists to catch a state
+	 * constructed by hand.
+	 *
+	 * It is NOT what protects the per-language tables from a key they do not have — an id outside
+	 * the fourteen is legal here. {@link CodeBlockState.grammar} is.
 	 */
-	readonly activeLanguage: CodeBlockLanguage = $derived(
+	readonly activeLanguage: CodeBlockLanguageId = $derived(
 		resolveCodeBlockLanguage(this.activeSnippet?.language),
+	);
+
+	/**
+	 * The house grammar this block is tokenised against: the active id when it is one of the
+	 * fourteen, else `text` — the member that claims no grammar.
+	 *
+	 * It is the only value ever handed to {@link tokenizeCodeBlockLine}, which indexes three
+	 * `Record<CodeBlockLanguage, …>` tables and would read `undefined` for anything else. So an
+	 * unknown language degrades to plain text instead of throwing, which is also the right picture
+	 * of what it is: a snippet nothing in this file knows how to paint.
+	 */
+	readonly grammar: CodeBlockLanguage = $derived(
+		isCodeBlockLanguage(this.activeLanguage) ? this.activeLanguage : "text",
 	);
 	readonly activeCode: string = $derived(this.activeSnippet?.code ?? "");
 
-	/** The active snippet's own label, or its language's. */
+	/** The active snippet's own label, or its language's — the id itself when the house has none. */
 	readonly activeLabel: string = $derived(
-		this.activeSnippet?.label ?? codeBlockLanguageLabels[this.activeLanguage],
+		this.activeSnippet?.label ?? codeBlockLanguageLabel(this.activeLanguage),
 	);
 
 	/**
@@ -759,6 +1064,66 @@ export class CodeBlockState {
 	readonly lines: string[] = $derived(
 		this.activeCode.replace(/\r\n?/g, "\n").replace(/\n$/, "").split("\n"),
 	);
+
+	/**
+	 * What a highlighter is handed: the rows on screen, rejoined.
+	 *
+	 * DERIVED FROM `lines`, NOT FROM `activeCode`. The two differ — `lines` has already folded CRLF
+	 * and dropped one trailing newline — and a highlighter fed the raw code could answer with one
+	 * row more than the block renders, which is rule 7's whole failure mode. Rejoining what is
+	 * actually rendered makes the two counts agree by construction rather than by luck.
+	 */
+	readonly text: string = $derived(this.lines.join("\n"));
+
+	/** What paints this block, as the root resolved it: `undefined` means the house tokenizer. */
+	readonly highlighter: CodeBlockHighlighter | undefined = $derived(this.#props.getHighlighter());
+
+	/**
+	 * The installed highlighter's answer for the whole snippet, or `undefined` when there is none,
+	 * when it declined, when it threw, or when it produced a row count the block cannot use.
+	 *
+	 * THE COUNT TEST IS THE BLOCK-LEVEL GUARD (rule 7). A row list shorter than `lines` would leave
+	 * the tail unpainted and a longer one would hide rows, and either way the mismatch says the
+	 * highlighter and this component disagree about what the text IS — a disagreement no per-line
+	 * check can repair, so the whole block falls back at once rather than painting a striped mix.
+	 *
+	 * THE CATCH IS DELIBERATE (rule 5). A grammar bundle is third-party code loaded at runtime; a
+	 * throw from it must degrade this block to house colours, not break the render of the page the
+	 * block is on. Reading reactive state inside `highlight` is not just allowed but expected — it
+	 * is how a grammar that finishes loading later re-runs this derivation and repaints the block.
+	 */
+	readonly rows: CodeBlockToken[][] | undefined = $derived.by(() => {
+		const highlighter = this.highlighter;
+		if (!highlighter) return undefined;
+
+		let produced: CodeBlockToken[][] | undefined;
+		try {
+			produced = highlighter.highlight(this.text, this.activeLanguage);
+		} catch {
+			return undefined;
+		}
+
+		return produced && produced.length === this.lines.length ? produced : undefined;
+	});
+
+	/**
+	 * Whether the installed highlighter's ANSWER WAS ACCEPTED for this block — rule 7 passed, so
+	 * {@link CodeBlockState.rows} holds one row per line. Stamped as `data-highlighted`.
+	 *
+	 * IT IS NOT A PROMISE THAT EVERY LINE IS PAINTED BY IT, and the difference has to be stated
+	 * because this attribute is the only signal the seam publishes. Rule 8 is a separate, per-line
+	 * test in {@link CodeBlockState.tokenize}: a row that is empty, or whose token texts do not
+	 * concatenate to the line, falls back to the house tokenizer on its own. An EMPTY LINE normally
+	 * does — `CodeBlock.Line` renders `line || " "`, and a row that faithfully spells the empty
+	 * line cannot concatenate to a space (`code-block-line.svelte`) — so a mixed block is ordinary
+	 * rather than exotic, and a highlighter whose rows are ALL rejected leaves this true over a
+	 * block the house painted entirely.
+	 *
+	 * NARROWING IT WAS CONSIDERED AND REJECTED. Requiring rows to survive rule 8 would have to
+	 * exempt blank lines to mean anything at all, and would still not amount to "every line": it
+	 * would buy a second almost-invariant in place of saying plainly what this one is.
+	 */
+	readonly highlighted: boolean = $derived(this.rows !== undefined);
 
 	/** Whether the header renders a selector rather than a static tag. */
 	readonly selectable: boolean = $derived(
@@ -795,20 +1160,26 @@ export class CodeBlockState {
 	);
 
 	/**
-	 * The MIME type the download is stamped with: the caller's when set, else the active
-	 * language's entry in {@link CODE_BLOCK_MEDIA_TYPES}. Follows the selector for the same reason
-	 * the filename does — the Python snippet of a multi-language block is not `text/javascript`.
+	 * The MIME type the download is stamped with: the caller's when set, else
+	 * {@link codeBlockMediaType} for the language on screen — the registered type for one of the
+	 * fourteen, `text/plain;charset=utf-8` for every other id, because
+	 * {@link CODE_BLOCK_MEDIA_TYPES} is keyed by the fourteen and has no `rust` row to read.
+	 * Follows the selector for the same reason the filename does — the Python snippet of a
+	 * multi-language block is not `text/javascript`.
 	 */
 	readonly mediaType: string = $derived(
-		this.#props.getMediaType() ?? CODE_BLOCK_MEDIA_TYPES[this.activeLanguage],
+		this.#props.getMediaType() ?? codeBlockMediaType(this.activeLanguage),
 	);
 
 	constructor(props: CodeBlockStateProps) {
 		this.#props = props;
 	}
 
-	/** Show another snippet. Ignores a language the current list does not carry. */
-	select(language: CodeBlockLanguage): void {
+	/**
+	 * Show another snippet. Ignores a language the current list does not carry — and the list is
+	 * canonical, so the id has to be too: pass it through {@link resolveCodeBlockLanguage} first.
+	 */
+	select(language: CodeBlockLanguageId): void {
 		if (!this.snippets.some((snippet) => snippet.language === language)) return;
 		this.#props.setActiveLanguage(language);
 	}
@@ -833,9 +1204,23 @@ export class CodeBlockState {
 		return filename;
 	}
 
-	/** One line, classified for the language currently on screen. */
-	tokenize(line: string): CodeBlockToken[] {
-		return tokenizeCodeBlockLine(line, this.activeLanguage);
+	/**
+	 * One line, classified for the block as it stands.
+	 *
+	 * WITH AN INDEX, the installed highlighter's row for that line is used — but only if it is
+	 * non-empty AND its token texts concatenate to `line` exactly (rule 8). That test is not
+	 * defensive decoration: it is what guarantees the characters on screen are the source
+	 * characters, whatever an adapter did with tabs, entities or trailing space. It is the same
+	 * invariant {@link tokenizeCodeBlockLine} holds by construction, enforced on code this folder
+	 * does not own.
+	 *
+	 * WITHOUT ONE — a `<CodeBlock.Line>` composed by hand — there is no row to line the text up
+	 * against, so the house tokenizer paints it whatever is installed.
+	 */
+	tokenize(line: string, index?: number): CodeBlockToken[] {
+		const row = index === undefined ? undefined : this.rows?.[index];
+		if (row && row.length > 0 && row.map((token) => token.text).join("") === line) return row;
+		return tokenizeCodeBlockLine(line, this.grammar);
 	}
 }
 

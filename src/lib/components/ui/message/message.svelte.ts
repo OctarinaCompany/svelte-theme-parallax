@@ -3,7 +3,10 @@ import { tv } from "tailwind-variants";
 import type { StreamdownProps } from "svelte-streamdown";
 import { cn } from "$lib/utils.js";
 import { buttonVariants } from "$lib/components/ui/button/index.js";
-import { CODE_BLOCK_EXTENSIONS } from "$lib/components/ui/code-block/index.js";
+import {
+	codeBlockFilename,
+	resolveCodeBlockLanguage,
+} from "$lib/components/ui/code-block/index.js";
 import { MESSAGE_ROLES, type MessageRole } from "$lib/shared/chat-parts.js";
 
 /**
@@ -413,43 +416,25 @@ export function mergeMessageResponseTheme(theme?: MessageResponseTheme): Message
 	) as MessageResponseTheme;
 }
 
-/**
- * The file extension a fenced block downloads under, keyed by the fence's language word.
- *
- * Two sources. The code-block grammars come from `CODE_BLOCK_EXTENSIONS` in `ui/code-block`, so a
- * language added there is known here without a second edit — which is exactly what happened to
- * `csv`, `md`, `sql` and `yaml`: they were listed here by hand until the code block learned them,
- * and their entries were then deleted rather than kept as a second, drifting copy. What is left
- * is the formats a model is asked for that the highlighter does NOT know — `toml`, `xml`, `html`,
- * `svelte` — plus the aliases models actually write for grammars it knows under another name
- * (`yml`, `sh`, `py`, `javascript`, `typescript`, `markdown`). Lower-case keys;
- * {@link messageFenceFilename} lower-cases the lookup.
- */
-export const MESSAGE_FENCE_EXTENSIONS: Record<string, string> = {
-	...CODE_BLOCK_EXTENSIONS,
-	yml: "yml",
-	html: "html",
-	svelte: "svelte",
-	xml: "xml",
-	toml: "toml",
-	txt: "txt",
-	sh: "sh",
-	shell: "sh",
-	zsh: "sh",
-	py: "py",
-	javascript: "js",
-	typescript: "ts",
-	markdown: "md",
-};
-
 /** The `title="x.ts"` / `filename=x.ts` forms some documentation tools put in a fence's info string. */
 const FENCE_TITLE_ATTRIBUTE = /^(?:title|filename|file)=["']?([^"']+)["']?$/;
 
 /** A bare word that reads as a filename: it has an extension and is not a `{1,3}` line-range. */
 const FENCE_BARE_FILENAME = /^[^{}=\s"']+\.[A-Za-z0-9]+$/;
 
-/** The opening fence — three or more backticks or tildes, then the info string. */
-const FENCE_OPENING = /^\s*(?:`{3,}|~{3,})\s*([^\n]*)/;
+/**
+ * The opening fence — three or more backticks or tildes, then the info string.
+ *
+ * THE WHITESPACE CLASSES ARE `[ \t]`, NOT `\s`, AND THAT IS THE WHOLE POINT. `\s` matches a
+ * newline, so `\s*` after the backticks walked off the fence line and into the code, and the
+ * capture became the FIRST WORD OF THE SNIPPET. That is not a corner case: marked reports
+ * `lang: ""` for a fence carrying no info string, which is falsy, so {@link messageFenceInfo}
+ * took this fallback for every bare ```` ``` ```` fence — the shape a model emits for a log, a
+ * stack trace, command output. A log opening `plain text line` was then published as the
+ * language `plain`: captioned `plain`, badged `plain`, downloaded as `snippet.plain`. An info
+ * string cannot span lines, so neither may this.
+ */
+const FENCE_OPENING = /^[ \t]*(?:`{3,}|~{3,})[ \t]*([^\n]*)/;
 
 /**
  * What a fence's info string says: its language word and, when it carries one, a filename.
@@ -490,15 +475,26 @@ export function messageFenceLanguage(lang: string | undefined, raw = ""): string
  * The name a fenced block downloads under.
  *
  * A fence that names its file (```` ```csv customers.csv ````) downloads as that file. One that
- * names only a language downloads as `snippet.<ext>`, the extension read from
- * {@link MESSAGE_FENCE_EXTENSIONS} and falling back to `txt` for a language the table does not
- * know — a reader can rename a `.txt`, and cannot open a file with no extension at all. A fence
- * with NO language is a block of unknown content and yields `undefined`, which is
+ * names only a language downloads as `snippet.<ext>`, and the extension is the code block's own
+ * answer: `resolveCodeBlockLanguage` canonicalises the fence's word (case, and every alias a model
+ * writes) and `codeBlockFilename` settles the suffix, falling back to `txt` for a word that is not
+ * even extension-shaped — a reader can rename a `.txt`, and cannot open a file with no extension
+ * at all. A fence with NO language is a block of unknown content and yields `undefined`, which is
  * `CodeBlock.Root`'s cue to offer no download button.
+ *
+ * THERE USED TO BE A TABLE HERE. `MESSAGE_FENCE_EXTENSIONS` held the fourteen house grammars, the
+ * formats a model is asked for that the house tokenizer does not know (`toml`, `xml`, `html`,
+ * `svelte`) and the aliases models actually write (`yml`, `sh`, `py`, `javascript`, `typescript`,
+ * `markdown`) — a second copy of knowledge that now has one home, since `ui/code-block` folds the
+ * aliases itself and passes an extension-shaped id straight through. Twenty-six of its twenty-seven
+ * keys resolve to exactly the name they did before; the twenty-seventh changes on purpose, because
+ * there is now one answer rather than two — a ```` ```yml ```` fence saves as `snippet.yaml` rather
+ * than `snippet.yml`, since `yml` canonicalises to the `yaml` grammar and `yaml` is that grammar's
+ * house extension.
  */
 export function messageFenceFilename(lang: string | undefined, raw: string): string | undefined {
 	const { language, filename } = messageFenceInfo(lang, raw);
 	if (!language) return undefined;
 	if (filename) return filename;
-	return `snippet.${MESSAGE_FENCE_EXTENSIONS[language.toLowerCase()] ?? "txt"}`;
+	return codeBlockFilename(undefined, resolveCodeBlockLanguage(language));
 }

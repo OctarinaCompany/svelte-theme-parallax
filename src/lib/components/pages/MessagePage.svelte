@@ -242,7 +242,7 @@ Start on Opus, and move to Sonnet once the prompt has settled.`,
 			type: 'StreamdownProps["components"]',
 			default: "—",
 			description:
-				"Streamdown's opt-in heavy renderers. math is honoured as it is. code replaces the house code block — pass Streamdown's Code for Shiki highlighting and the house snippet steps aside. mermaid fences travel through the same code slot.",
+				"Streamdown's opt-in heavy renderers. math is honoured as it is. code replaces the house code block — pass Streamdown's Code for Shiki highlighting and the house snippet steps aside, with its label, its filename and its download button. Replacing the renderer is not the only route to a real grammar: a CodeBlockHighlighter installed above these messages keeps the house block and changes only what paints it. mermaid fences travel through the same code slot.",
 		},
 		{
 			prop: "theme",
@@ -593,7 +593,8 @@ Start on Opus, and move to Sonnet once the prompt has settled.`,
 		{
 			attribute: "data-downloadable",
 			part: "CodeBlock inside Response",
-			values: "Present on a fenced block whose info string yields a filename.",
+			values:
+				"Present on a fenced block that NAMES something — the file in its info string, else `snippet.<ext>` for its language. A bare ``` fence names nothing, so it carries no download button.",
 		},
 	];
 </script>
@@ -634,11 +635,14 @@ Start on Opus, and move to Sonnet once the prompt has settled.`,
 
 	<DocSection title="Markdown">
 		{#snippet blurb()}
-			The answer every renderer has to survive: a table, a link, a downloadable fence and a quote.
-			The table keeps Streamdown's copy and download menu. The fence says
+			The answer every renderer has to survive: a table, a link, two fences and a quote. The table
+			keeps Streamdown's copy and download menu. The first fence says
 			<code>```csv models.csv</code>, so the house code block labels it <code>csv</code>
 			and offers <code>models.csv</code> as a download — a fence naming only a language downloads as
-			<code>snippet.&lt;ext&gt;</code>.
+			<code>snippet.&lt;ext&gt;</code>. The second is opened <code>```javascript</code>, the long
+			spelling a model actually writes: it resolves to the <code>js</code> grammar and is coloured,
+			where it once fell back to <code>Text</code>. Its comment spans two lines, and only the first
+			is grey — the house tokenizer reads one line at a time.
 		{/snippet}
 		<Card.Root>
 			<Card.Content>
@@ -905,7 +909,11 @@ Start on Opus, and move to Sonnet once the prompt has settled.`,
 			<p class="text-sm text-muted-foreground">
 				The Markdown renderer. Renders a wrapper <code>div</code> around svelte-streamdown in its
 				shadcn base theme with <code>MESSAGE_RESPONSE_THEME</code> over it; fenced code is drawn by
-				the house <code>CodeBlock</code>, with a download button when the fence names a file.
+				the house <code>CodeBlock</code>, with a download button when the fence names a file. The
+				house tokenizer knows fourteen grammars and colours one line at a time, and there are two
+				ways past that: install a <code>CodeBlockHighlighter</code> above these messages, which
+				keeps the house block and replaces only what paints it, or pass Streamdown's own
+				<code>Code</code> through <code>components</code>, which replaces the block entirely.
 			</p>
 			<Card.Root>
 				<Card.Content class="px-0 [&_[data-slot=table-cell]]:whitespace-normal">

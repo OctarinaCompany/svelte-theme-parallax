@@ -31,7 +31,6 @@ export {
 	hasMessageBranchContext,
 	hasMessageContext,
 	mergeMessageResponseTheme,
-	MESSAGE_FENCE_EXTENSIONS,
 	MESSAGE_RESPONSE_THEME,
 	MessageBranchState,
 	messageContentVariants,

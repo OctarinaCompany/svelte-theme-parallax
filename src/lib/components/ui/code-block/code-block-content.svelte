@@ -25,6 +25,10 @@
 	 * `scrollable-region-focusable`). `tabindex={0}` is the whole fix, and it takes the kit's own
 	 * focus ring so the stop is visible when it is reached.
 	 *
+	 * Each row is handed its `index` as well as its number: the index is what lines a row up with an
+	 * installed highlighter's output for the same line (`code-block.svelte.ts`, rule 8), where the
+	 * one-based `lineNumber` is only what the gutter shows.
+	 *
 	 * The markup between the tags is unbroken on purpose — see `code-block-line.svelte`, which
 	 * explains what a newline costs inside a `<pre>`.
 	 */
@@ -50,4 +54,4 @@
 		"min-h-0 min-w-0 flex-1 overflow-auto p-4 font-mono text-sm leading-6 outline-none focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:ring-inset",
 		className,
 	)}
-	{...restProps}><code class="table min-w-max border-spacing-0">{#each block.lines as line, index (index)}<CodeBlockLine {line} lineNumber={index + 1} />{/each}</code></pre>
+	{...restProps}><code class="table min-w-max border-spacing-0">{#each block.lines as line, index (index)}<CodeBlockLine {line} {index} lineNumber={index + 1} />{/each}</code></pre>

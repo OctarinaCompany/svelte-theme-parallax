@@ -9,6 +9,13 @@
 		line: string;
 		/** What the gutter shows. One-based, as a reader counts. */
 		lineNumber: number;
+		/**
+		 * Which row of the block's own `lines` this is, ZERO-based — what lets the row be matched to
+		 * an installed highlighter's output for the same line. `CodeBlock.Content` passes it; a line
+		 * composed by hand without one is painted by the house tokenizer, whatever is installed,
+		 * because there is no row to line it up with.
+		 */
+		index?: number;
 	};
 </script>
 
@@ -31,7 +38,9 @@
 	 * code without the numbers.
 	 *
 	 * An empty line renders a single space, upstream's `line || " "` (`:214`), so the row keeps its
-	 * height instead of collapsing.
+	 * height instead of collapsing. That substitution is also why an empty line stays house-painted
+	 * under a highlighter: the row it produced spells the empty line, and a row that does not
+	 * concatenate to what is rendered is not used.
 	 *
 	 * THE MARKUP IS DELIBERATELY UNBROKEN. Every one of these elements sits inside the content's
 	 * `<pre>`, where whitespace is content: a newline between the gutter cell and the code cell
@@ -44,12 +53,13 @@
 		class: className,
 		line,
 		lineNumber,
+		index,
 		...restProps
 	}: CodeBlockLineProps = $props();
 
 	const block = getCodeBlockContext("`<CodeBlock.Line>`");
 
-	const tokens = $derived(block.tokenize(line || " "));
+	const tokens = $derived(block.tokenize(line || " ", index));
 </script>
 
 <!-- prettier-ignore -->

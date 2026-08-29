@@ -36,7 +36,9 @@
 	 * WHAT IS SAVED, and how, is `block.download()` — the state owns the mechanics so the root's
 	 * hook fires from one place. The content is the snippet verbatim, trailing newline and CRLFs
 	 * included, for the reason the clipboard gets it verbatim; the MIME type is the root's
-	 * `mediaType`, which defaults per language (`CODE_BLOCK_MEDIA_TYPES`).
+	 * `mediaType`, which defaults to `codeBlockMediaType` for the language on screen —
+	 * `CODE_BLOCK_MEDIA_TYPES` for one of the fourteen, `text/plain;charset=utf-8` for any other
+	 * id, which has no row in that table.
 	 *
 	 * The name reads "Download customers.csv" rather than "Download code" because on a page of
 	 * several blocks the filename is the one thing that tells them apart, and a screen reader

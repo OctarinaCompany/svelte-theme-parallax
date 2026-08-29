@@ -11,9 +11,12 @@ import type { CodeBlockSnippet } from "$lib/components/ui/code-block/index.js";
  * and backtick it contains — which would make the sample a poor sample of itself.
  *
  * {@link LANGUAGE_TOUR} is this page's own, and it is the one to look at across the twelve
- * palettes: fourteen snippets chosen so that every rule in the highlighter fires at least once —
- * comment, string, keyword, JSON literal, number, capitalised type, CSS custom property,
- * punctuation, and plain text that must stay plain.
+ * palettes: one snippet per language the HOUSE TOKENIZER knows, chosen so that every rule in it
+ * fires at least once — comment, string, keyword, JSON literal, number, capitalised type, CSS
+ * custom property, punctuation, and plain text that must stay plain.
+ *
+ * {@link HEALTH_CHECK_RUST} is the other side of that: a language the tokenizer has no grammar
+ * for, which the block still labels and downloads correctly and paints as plain text.
  */
 
 /** Upstream's TSX sample — its "Syntax highlighted" demo, and the first snippet of its selector. */
@@ -62,7 +65,24 @@ export const REGISTRY_REQUEST_SNIPPETS: CodeBlockSnippet[] = [
 	{ language: "curl", label: "cURL", code: REGISTRY_REQUEST_CURL },
 ];
 
-/** One snippet per language the component knows, in the enum's own order. */
+/**
+ * A language with no house grammar, for the "Unknown language" demo. Rust because nothing in the
+ * house tokenizer's tables mentions it and because its extension is not its id — the block has to
+ * reach `CODE_BLOCK_FOREIGN_EXTENSIONS` to save it as `snippet.rs`. Every character of it renders
+ * plain until a highlighter is installed, including the doc comment.
+ */
+export const HEALTH_CHECK_RUST = `/// A health probe: anything that is not 200 is a fault worth
+/// reporting, and the caller decides what to do about it.
+pub async fn check(url: &str) -> Result<Status, Error> {
+    let response = reqwest::get(url).await?;
+
+    match response.status().as_u16() {
+        200 => Ok(Status::Healthy),
+        code => Err(Error::Unexpected(code)),
+    }
+}`;
+
+/** One snippet per language the house tokenizer knows, in the enum's own order. */
 export const LANGUAGE_TOUR: CodeBlockSnippet[] = [
 	{
 		language: "tsx",
