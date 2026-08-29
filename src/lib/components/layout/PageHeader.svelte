@@ -18,6 +18,7 @@
 	import { cn } from "$lib/utils.js";
 	import { headerAutoHide, headerFloating } from "$lib/hooks/header-behaviour.svelte.js";
 	import { useReducedMotion } from "$lib/shared/reduced-motion.svelte.js";
+	import { scrollEventTargetOf, scrollParentOf } from "$lib/shared/scroll-parent.js";
 
 	/**
 	 * The bar every page opens with: sidebar trigger, breadcrumb, the search field, then the
@@ -41,11 +42,24 @@
 	 * would scroll visibly through the gap above and beside it. The wrapper's own ground covers
 	 * that band.
 	 *
-	 * NOTHING ABOVE THIS COMPONENT MAY GAIN `overflow-x: hidden`. `position: sticky` resolves
-	 * against the nearest scrolling ancestor, and per MDN an `overflow-x: hidden` beside an
-	 * `overflow-y: visible` is computed as `auto` — which silently turns the shell into a scroll
-	 * container and kills the sticky on all 109 pages with no error anywhere. If a horizontal clip
-	 * is ever needed up there, it has to be `overflow-x: clip`, which stays `clip`.
+	 * THE CANVAS SCROLLS, NOT THE DOCUMENT. In the Parallax shell `Sidebar.Provider`'s wrapper is
+	 * pinned to the viewport and clipped, and `Sidebar.Inset` — the `<main>` this bar renders
+	 * into — is the one scroll container; `src/app.css` states those rules and why (a document
+	 * that scrolls makes iOS Safari collapse its toolbars, a browser gesture a dashboard has no use
+	 * for). `position: sticky` resolves against the nearest scrolling ancestor, so this bar holds
+	 * against the canvas, and the old trap is restated rather than removed: NO SCROLL CONTAINER
+	 * MAY SIT BETWEEN THE CANVAS AND THIS HEADER. Per MDN an `overflow-x: hidden` beside an
+	 * `overflow-y: visible` is computed as `auto`, so a wrapper that only meant to clip sideways
+	 * silently becomes the box the sticky resolves against — and the bar scrolls away with the
+	 * page on every page that renders it, with no error anywhere. If a horizontal clip is ever
+	 * needed between the two, it has to be `overflow-x: clip`, which stays `clip` and is not a
+	 * scroll container.
+	 *
+	 * The auto-hide follows the same box. It never reads `window.scrollY` — inside the shell that
+	 * number is 0 forever, and a `<svelte:window onscroll>`, a bubbling listener, never fires
+	 * there — it asks `src/lib/shared/scroll-parent.ts` which ancestor actually scrolls this bar
+	 * and reads that one's `scrollTop`, so the component works unchanged in a shell that owns its
+	 * scroll and in a page where the document still does.
 	 *
 	 * EVERY SLOT IS A SNIPPET WITH A DEFAULT, AND NOTHING IS REQUIRED — `<PageHeader />` must
 	 * render a correct bar. The defaults ARE the demo's bar; each snippet exists for the caller
@@ -119,18 +133,55 @@
 	let hidden = $state(false);
 	let lastY = 0;
 
+	let headerEl: HTMLElement | null = $state(null);
+
 	/**
-	 * Seed from the CURRENT position, not from zero.
+	 * The box that scrolls this bar, resolved ONCE from the mounted `<header>` and shared with the
+	 * two seeding effects and the handler below.
+	 *
+	 * Inside the shell that is `Sidebar.Inset`; in a page that lets the document scroll it is
+	 * `document.scrollingElement`. Either way `scrollTop`, `scrollHeight` and `clientHeight` read
+	 * the same, which is what lets `onscroll` stay one function. The LISTENER goes where the
+	 * events fire, which is not always the scroller: the document's `scroll` fires on `window`,
+	 * never on `<html>` — `scroll-parent.ts` explains. `passive` because the handler only reads
+	 * a position and toggles a flag; it has nothing to prevent, and saying so lets the browser
+	 * keep scrolling on the compositor without waiting for it (MDN, `addEventListener` options).
+	 *
+	 * State rather than a plain variable so the seeding effects re-run when it resolves: they
+	 * are declared below and would otherwise seed from nothing on their first pass and never
+	 * look again. Resolved from an effect, never at module scope — which ancestor scrolls is a
+	 * computed style, and there is no server-side answer to it — and once rather than per event:
+	 * `getComputedStyle` up the ancestor chain at scroll frequency would be a cost paid on every
+	 * page for a layout that changes only when the shell does.
+	 */
+	let scroller: HTMLElement | null = $state(null);
+
+	$effect(() => {
+		if (!headerEl) return;
+		const box = scrollParentOf(headerEl);
+		const target = scrollEventTargetOf(box);
+		scroller = box;
+		target.addEventListener("scroll", onscroll, { passive: true });
+		return () => {
+			target.removeEventListener("scroll", onscroll);
+			scroller = null;
+		};
+	});
+
+	/**
+	 * Seed from the CURRENT position of the scroller, not from zero.
 	 *
 	 * A page change does reset the scroll — the demo's router hands a target to its shell, which
-	 * applies it once the page's chunk has mounted — but this component cannot assume it has
-	 * happened yet, or at all: a landing on a `#section` deliberately leaves the position to the
-	 * page, and this bar has no way to tell the two apart. A component mounting at y=1200 with
-	 * `lastY = 0` would read its first event as a 1200px scroll up, so the seed is measured
-	 * rather than assumed. The jump guard in `onscroll` covers what happens next.
+	 * applies it to the canvas once the page's chunk has mounted — but this component cannot
+	 * assume it has happened yet, or at all: a landing on a `#section` deliberately leaves the
+	 * position to the page, and this bar has no way to tell the two apart. A component mounting
+	 * with its scroller at 1200px and `lastY = 0` would read its first event as a 1200px scroll
+	 * up, so the seed is measured rather than assumed — from the box that actually scrolls the
+	 * bar, which is why this reads the shared `scroller` and re-seeds the moment it resolves. The
+	 * jump guard in `onscroll` covers what happens next.
 	 */
 	$effect(() => {
-		lastY = window.scrollY;
+		lastY = scroller?.scrollTop ?? 0;
 	});
 
 	/**
@@ -145,18 +196,21 @@
 		if (!headerAutoHide.current || reducedMotion.current) {
 			hidden = false;
 		}
-		lastY = window.scrollY;
+		lastY = scroller?.scrollTop ?? 0;
 	});
 
 	function onscroll() {
 		if (!headerAutoHide.current || reducedMotion.current) return;
+		if (!scroller) return;
 
-		const y = window.scrollY;
-		const max = document.documentElement.scrollHeight - window.innerHeight;
+		const y = scroller.scrollTop;
+		const max = scroller.scrollHeight - scroller.clientHeight;
 
-		// Safari reports positions past both ends during rubber-band; Chrome and Firefox clamp.
-		// Those samples are genuine reversals in the numbers and would flap the bar at every end
-		// of every page, so they are discarded rather than interpreted.
+		// Safari reports positions past both ends during rubber-band — on the document, and on an
+		// element scroller just the same once `overscroll-behavior: contain` keeps the bounce
+		// local to the canvas; Chrome and Firefox clamp. Those samples are genuine reversals in
+		// the numbers and would flap the bar at every end of every page, so they are discarded
+		// rather than interpreted.
 		if (y < 0 || y > max) return;
 
 		if (y <= ARM) {
@@ -184,7 +238,7 @@
 		 * A very fast drag of the scrollbar can also clear a viewport between two events and will
 		 * be read as an arrival. Revealing the bar is the harmless outcome of the two.
 		 */
-		if (Math.abs(delta) > window.innerHeight) {
+		if (Math.abs(delta) > scroller.clientHeight) {
 			hidden = false;
 			lastY = y;
 			return;
@@ -208,9 +262,8 @@
 	const hiddenNow = $derived(headerAutoHide.current && !reducedMotion.current && hidden);
 </script>
 
-<svelte:window {onscroll} />
-
 <header
+	bind:this={headerEl}
 	{...restProps}
 	data-slot="page-header"
 	data-floating={headerFloating.current ? "" : undefined}

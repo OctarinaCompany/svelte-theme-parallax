@@ -66,7 +66,8 @@
 			prop: "ref",
 			type: "HTMLElement | null",
 			default: "null",
-			description: "Bindable reference to the rendered `<div>`. Stays `null` in `child` mode.",
+			description:
+				"Bindable reference to the root element — the rendered `<div>`, or in `child` mode the element the spread props were applied to.",
 		},
 		{
 			prop: "columnWidth",
@@ -149,7 +150,7 @@
 			type: "Snippet<[{ props: MasonryChildProps }]>",
 			default: "undefined",
 			description:
-				"Render the root onto your own element. When set, `children` is not rendered and `ref` stays `null`.",
+				"Render the root onto your own element. When set, `children` is not rendered. Spread the props whole: they carry the attachment that publishes the element, and without it the root is neither measured nor virtualised.",
 		},
 		{
 			prop: "children",

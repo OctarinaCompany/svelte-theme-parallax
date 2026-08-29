@@ -135,14 +135,18 @@ export class SelectionToolbarRootState {
 			container.addEventListener("mouseup", onMouseUp);
 			container.addEventListener("keyup", onKeyUp);
 			document.addEventListener("selectionchange", onSelectionChange);
-			window.addEventListener("scroll", onScheduleUpdate, { passive: true });
+			// Capture phase: `scroll` does not bubble, and inside the shell the canvas scrolls, never
+			// the document (`src/app.css`), so only a capturing listener hears it; removed with
+			// `capture` too — the flag is part of the listener's identity. `resize` fires on `window`
+			// itself and needs nothing of the kind.
+			window.addEventListener("scroll", onScheduleUpdate, { passive: true, capture: true });
 			window.addEventListener("resize", onScheduleUpdate, { passive: true });
 
 			return () => {
 				container.removeEventListener("mouseup", onMouseUp);
 				container.removeEventListener("keyup", onKeyUp);
 				document.removeEventListener("selectionchange", onSelectionChange);
-				window.removeEventListener("scroll", onScheduleUpdate);
+				window.removeEventListener("scroll", onScheduleUpdate, { capture: true });
 				window.removeEventListener("resize", onScheduleUpdate);
 				if (this.#updateFrame !== null) {
 					cancelAnimationFrame(this.#updateFrame);

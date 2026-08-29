@@ -63,8 +63,10 @@
 		 */
 		scrollBehavior?: ScrollSpyScrollBehavior;
 		/**
-		 * The element whose scroll position is tracked and scrolled. `null` tracks the window, and is
-		 * also the `IntersectionObserver` root in that case.
+		 * The element whose scroll position is tracked and scrolled. `null` observes against the
+		 * viewport (the `IntersectionObserver` root) and scrolls whichever ancestor of the section
+		 * actually scrolls — the document on a page that scrolls it, the shell's canvas inside
+		 * Parallax, where the document never moves.
 		 * @default null
 		 */
 		scrollContainer?: HTMLElement | null;

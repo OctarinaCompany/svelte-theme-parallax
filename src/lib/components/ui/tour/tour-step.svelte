@@ -257,6 +257,10 @@
 	 * Upstream's mask effect: recompute the cut-out immediately, on every
 	 * `resize`, and at most once per animation frame while scrolling. The teardown removes both
 	 * listeners and cancels any frame still queued.
+	 *
+	 * The scroll listener is registered — and removed — in the CAPTURE phase, the rule
+	 * `scrollEventTargetOf` in `src/lib/shared/scroll-parent.ts` states once for the kit; here it
+	 * means "reposition the spotlight whenever anything under it moves".
 	 */
 	$effect(() => {
 		if (!root.open || !isCurrentStep) return;
@@ -294,11 +298,11 @@
 
 		update();
 		window.addEventListener("resize", update);
-		window.addEventListener("scroll", onScroll, { passive: true });
+		window.addEventListener("scroll", onScroll, { passive: true, capture: true });
 
 		return () => {
 			window.removeEventListener("resize", update);
-			window.removeEventListener("scroll", onScroll);
+			window.removeEventListener("scroll", onScroll, { capture: true });
 			if (frameId !== null) cancelAnimationFrame(frameId);
 		};
 	});

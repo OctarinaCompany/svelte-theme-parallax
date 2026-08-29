@@ -293,8 +293,7 @@
 			],
 			"css": {
 				":root": {
-					"--page-header-height": "4rem",
-					"scroll-padding-top": "calc(var(--page-header-height) + 0.5rem)"
+					"--page-header-height": "4rem"
 				},
 				"[data-slot=\"page-header-bar\"]": {
 					"--foreground": "var(--sidebar-accent-foreground)",
@@ -542,8 +541,29 @@
 				":where([data-slot=\"sidebar-container\"])": {
 					"height": "auto"
 				},
+				":where([data-slot=\"sidebar-wrapper\"])": {
+					"height": "var(--shell-height, 100dvh)",
+					"min-height": "0",
+					"overflow": "clip"
+				},
+				":where(:root:has([data-slot=\"sidebar-wrapper\"]))": {
+					"overscroll-behavior": "none"
+				},
 				":where([data-slot=\"sidebar-inset\"])": {
-					"min-width": "0"
+					"min-width": "0",
+					"min-height": "0",
+					"overflow-y": "auto",
+					"overscroll-behavior-y": "contain",
+					"scroll-padding-top": "calc(var(--page-header-height) + 0.5rem)"
+				},
+				"@media print": {
+					":where([data-slot=\"sidebar-wrapper\"])": {
+						"height": "auto",
+						"overflow": "visible"
+					},
+					":where([data-slot=\"sidebar-inset\"])": {
+						"overflow": "visible"
+					}
 				},
 				"[data-slot=\"drawer-overlay\"]": {
 					"background-color": "color-mix(in srgb, var(--scrim) 50%, transparent)",
@@ -603,7 +623,7 @@
 					"bottom": "0.5rem"
 				}
 			},
-			"docs": "### Wiring\n\nThe shell takes its content as typed props (see `src/lib/shared/nav.ts`) and its active state as a predicate — never a router. A minimal `App.svelte`:\n\n```svelte\n<script lang=\"ts\">\n  import { ModeWatcher } from \"mode-watcher\";\n  import AppShell from \"$lib/components/layout/AppShell.svelte\";\n  import AppSidebar from \"$lib/components/layout/AppSidebar.svelte\";\n  import PageHeader from \"$lib/components/layout/PageHeader.svelte\";\n  import { page } from \"$app/state\";\n  import type { NavItem, User, Workspace } from \"$lib/shared/nav.js\";\n  import GaugeIcon from \"@lucide/svelte/icons/gauge\";\n  import CommandIcon from \"@lucide/svelte/icons/command\";\n\n  const user: User = { name: \"Ada Lovelace\", email: \"ada@example.com\" };\n  const workspaces: Workspace[] = [{ name: \"Acme Inc\", plan: \"Enterprise\", logo: CommandIcon }];\n  const items: NavItem[] = [\n    { title: \"Dashboard\", url: \"/\", icon: GaugeIcon },\n    { title: \"Reports\", items: [{ title: \"Monthly\", url: \"/reports/monthly\" }] },\n  ];\n</script>\n\n<ModeWatcher />\n<AppShell>\n  {#snippet sidebar()}\n    <AppSidebar {user} {workspaces} {items} isActive={(url) => url === page.url.pathname} />\n  {/snippet}\n  <PageHeader trail={[{ label: \"Dashboard\" }]} />\n  <!-- your page -->\n</AppShell>\n```\n\nThe predicate is the only thing the shell needs from a router, and reading it from `$app/state` is what keeps it correct on the server: `location` is not defined there, so the bare-`location` spelling this example used to carry threw a `ReferenceError` the moment the layout was server-rendered. Outside SvelteKit, feed the predicate from whatever the app already knows its current path to be.\n\nEvery `PageHeader` slot is a snippet with a default: `sidebarTrigger`, `breadcrumb` (receives `trail`), `search` (empty — pass your own field or palette) and `controls` — which is the light/dark toggle alone. The palette picker and the two panel dropdowns are installed (`ThemeSelector`, plus `HeaderToggle` / `SidebarModeToggle` through `parallax-appearance-controls`) but not rendered: put them on a settings page, or render your own group through `controls`. Pass an empty `sidebarTrigger` snippet if the header ever renders outside `AppShell`'s provider.\n\n### What is already wired\n\nThis header carries `data-slot=\"page-header\"` / `data-slot=\"page-header-bar\"` and writes `data-floating` / `data-hidden` itself — the contract `parallax-appearance`'s docs ask a hand-rolled header to satisfy is closed here. The first-paint script from those docs still applies verbatim.\n\n### Cautions\n\n- Nothing above `PageHeader` may gain `overflow-x: hidden` — beside an `overflow-y: visible` it computes as `auto`, silently turning the shell into a scroll container and killing the sticky header with no error anywhere. Use `overflow-x: clip` if a clip is ever needed.\n- The CSS this item adds is unlayered on purpose (it must outrank the sidebar's own utilities), so it also outranks YOUR utility classes on the same slots — override it in plain CSS, not with a utility.\n- Two fidelity notes against the Parallax gallery: dropdown menus keep the upstream shadow, and the collapsed rail's tooltips keep the upstream look. Both are application-global restyles this item deliberately does not ship — they arrive with `parallax-restyle`. Buttons are not among them: this item depends on `parallax-button`, so the sizes it installs are the gallery's own token-driven ramp."
+			"docs": "### Wiring\n\nThe shell takes its content as typed props (see `src/lib/shared/nav.ts`) and its active state as a predicate — never a router. A minimal `App.svelte`:\n\n```svelte\n<script lang=\"ts\">\n  import { ModeWatcher } from \"mode-watcher\";\n  import AppShell from \"$lib/components/layout/AppShell.svelte\";\n  import AppSidebar from \"$lib/components/layout/AppSidebar.svelte\";\n  import PageHeader from \"$lib/components/layout/PageHeader.svelte\";\n  import { page } from \"$app/state\";\n  import type { NavItem, User, Workspace } from \"$lib/shared/nav.js\";\n  import GaugeIcon from \"@lucide/svelte/icons/gauge\";\n  import CommandIcon from \"@lucide/svelte/icons/command\";\n\n  const user: User = { name: \"Ada Lovelace\", email: \"ada@example.com\" };\n  const workspaces: Workspace[] = [{ name: \"Acme Inc\", plan: \"Enterprise\", logo: CommandIcon }];\n  const items: NavItem[] = [\n    { title: \"Dashboard\", url: \"/\", icon: GaugeIcon },\n    { title: \"Reports\", items: [{ title: \"Monthly\", url: \"/reports/monthly\" }] },\n  ];\n</script>\n\n<ModeWatcher />\n<AppShell>\n  {#snippet sidebar()}\n    <AppSidebar {user} {workspaces} {items} isActive={(url) => url === page.url.pathname} />\n  {/snippet}\n  <PageHeader trail={[{ label: \"Dashboard\" }]} />\n  <!-- your page -->\n</AppShell>\n```\n\nThe predicate is the only thing the shell needs from a router, and reading it from `$app/state` is what keeps it correct on the server: `location` is not defined there, so the bare-`location` spelling this example used to carry threw a `ReferenceError` the moment the layout was server-rendered. Outside SvelteKit, feed the predicate from whatever the app already knows its current path to be.\n\nEvery `PageHeader` slot is a snippet with a default: `sidebarTrigger`, `breadcrumb` (receives `trail`), `search` (empty — pass your own field or palette) and `controls` — which is the light/dark toggle alone. The palette picker and the two panel dropdowns are installed (`ThemeSelector`, plus `HeaderToggle` / `SidebarModeToggle` through `parallax-appearance-controls`) but not rendered: put them on a settings page, or render your own group through `controls`. Pass an empty `sidebarTrigger` snippet if the header ever renders outside `AppShell`'s provider.\n\n### What is already wired\n\nThis header carries `data-slot=\"page-header\"` / `data-slot=\"page-header-bar\"` and writes `data-floating` / `data-hidden` itself — the contract `parallax-appearance`'s docs ask a hand-rolled header to satisfy is closed here. The first-paint script from those docs still applies verbatim.\n\n### Cautions\n\n- The shell is the viewport. The CSS this item adds pins `Sidebar.Provider`'s wrapper to `100dvh` and clips it (`AppShell` narrows that to the visual viewport's height, as `--shell-height`, while a software keyboard is up), cuts the document's own iOS rubber band at the root, and makes `Sidebar.Inset` — the `<main>` — the one scroll container, so the document never scrolls; that is what keeps iOS Safari's toolbars still. After each in-app navigation move focus to `Sidebar.Inset` (`#main-content`, `tabindex={-1}`, `focus({ preventScroll: true })`), or keyboard scrolling has nowhere to start. Nothing inside the shell may claim `h-svh`, `min-h-svh` or `h-screen`: a full-height sibling of the canvas stretches as a flex child of the wrapper, and content fills with `flex-1 min-h-0`. Read the scroll position from the scroll parent, never `window.scrollY`, and scroll with the scroll parent's `scrollTo` or with `scrollIntoView` (which honours the canvas's `scroll-padding-top`) — `src/lib/shared/scroll-parent.ts`, from `parallax-primitives`, answers which box that is. Print takes the pin back so a sheet gets the whole page.\n- Nothing between `Sidebar.Inset` and `PageHeader` may gain `overflow-x: hidden` — beside an `overflow-y: visible` it computes as `auto`, silently putting a second scroll container between the canvas and the header and stealing the sticky with no error anywhere. Use `overflow-x: clip` if a clip is ever needed.\n- The CSS this item adds is unlayered on purpose (it must outrank the sidebar's own utilities), so it also outranks YOUR utility classes on the same slots — override it in plain CSS, not with a utility.\n- Two fidelity notes against the Parallax gallery: dropdown menus keep the upstream shadow, and the collapsed rail's tooltips keep the upstream look. Both are application-global restyles this item deliberately does not ship — they arrive with `parallax-restyle`. Buttons are not among them: this item depends on `parallax-button`, so the sizes it installs are the gallery's own token-driven ramp."
 		},
 		{
 			"name": "parallax-skill",
@@ -661,7 +681,7 @@
 			"name": "parallax-primitives",
 			"type": "registry:lib",
 			"title": "Parallax primitives",
-			"description": "Shared infrastructure the house components compose: roving focus, form-control bridging, the TanStack table bridge, scroll position, DOM-ordered collections. Installed automatically as a dependency; rarely asked for by name.",
+			"description": "Shared infrastructure the house components compose: roving focus, form-control bridging, the TanStack table bridge, scroll position and the scroll parent, DOM-ordered collections. Installed automatically as a dependency; rarely asked for by name.",
 			"dependencies": [
 				"@tanstack/table-core@^8.21.3"
 			],
@@ -699,6 +719,11 @@
 					"path": "src/lib/shared/roving-focus.svelte.ts",
 					"type": "registry:lib",
 					"target": "~/src/lib/shared/roving-focus.svelte.ts"
+				},
+				{
+					"path": "src/lib/shared/scroll-parent.ts",
+					"type": "registry:lib",
+					"target": "~/src/lib/shared/scroll-parent.ts"
 				},
 				{
 					"path": "src/lib/shared/scroll-position.svelte.ts",
@@ -5606,7 +5631,8 @@
 			"dependencies": [],
 			"devDependencies": [],
 			"registryDependencies": [
-				"https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-direction-provider.json"
+				"https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-direction-provider.json",
+				"https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-primitives.json"
 			],
 			"files": [
 				{
@@ -8662,7 +8688,8 @@
 			"devDependencies": [],
 			"registryDependencies": [
 				"https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-button.json",
-				"https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-direction-provider.json"
+				"https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-direction-provider.json",
+				"https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-primitives.json"
 			],
 			"files": [
 				{

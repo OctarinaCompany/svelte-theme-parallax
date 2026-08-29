@@ -130,7 +130,8 @@ This header carries `data-slot="page-header"` / `data-slot="page-header-bar"` an
 
 ### Cautions
 
-- Nothing above `PageHeader` may gain `overflow-x: hidden` — beside an `overflow-y: visible` it computes as `auto`, silently turning the shell into a scroll container and killing the sticky header with no error anywhere. Use `overflow-x: clip` if a clip is ever needed.
+- The shell is the viewport. The CSS this item adds pins `Sidebar.Provider`'s wrapper to `100dvh` and clips it (`AppShell` narrows that to the visual viewport's height, as `--shell-height`, while a software keyboard is up), cuts the document's own iOS rubber band at the root, and makes `Sidebar.Inset` — the `<main>` — the one scroll container, so the document never scrolls; that is what keeps iOS Safari's toolbars still. After each in-app navigation move focus to `Sidebar.Inset` (`#main-content`, `tabindex={-1}`, `focus({ preventScroll: true })`), or keyboard scrolling has nowhere to start. Nothing inside the shell may claim `h-svh`, `min-h-svh` or `h-screen`: a full-height sibling of the canvas stretches as a flex child of the wrapper, and content fills with `flex-1 min-h-0`. Read the scroll position from the scroll parent, never `window.scrollY`, and scroll with the scroll parent's `scrollTo` or with `scrollIntoView` (which honours the canvas's `scroll-padding-top`) — `src/lib/shared/scroll-parent.ts`, from `parallax-primitives`, answers which box that is. Print takes the pin back so a sheet gets the whole page.
+- Nothing between `Sidebar.Inset` and `PageHeader` may gain `overflow-x: hidden` — beside an `overflow-y: visible` it computes as `auto`, silently putting a second scroll container between the canvas and the header and stealing the sticky with no error anywhere. Use `overflow-x: clip` if a clip is ever needed.
 - The CSS this item adds is unlayered on purpose (it must outrank the sidebar's own utilities), so it also outranks YOUR utility classes on the same slots — override it in plain CSS, not with a utility.
 - Two fidelity notes against the Parallax gallery: dropdown menus keep the upstream shadow, and the collapsed rail's tooltips keep the upstream look. Both are application-global restyles this item deliberately does not ship — they arrive with `parallax-restyle`. Buttons are not among them: this item depends on `parallax-button`, so the sizes it installs are the gallery's own token-driven ramp.
 
@@ -148,7 +149,7 @@ It teaches: discover before installing (components.json), install through the CL
 
 ## parallax-primitives
 
-Shared infrastructure the house components compose: roving focus, form-control bridging, the TanStack table bridge, scroll position, DOM-ordered collections. Installed automatically as a dependency; rarely asked for by name.
+Shared infrastructure the house components compose: roving focus, form-control bridging, the TanStack table bridge, scroll position and the scroll parent, DOM-ordered collections. Installed automatically as a dependency; rarely asked for by name.
 
 ```sh
 npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-primitives.json

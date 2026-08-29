@@ -254,7 +254,7 @@ A clean `svelte-check` here is meaningful, and narrow: it proves the aliases res
 dependency versions agree, and `utils` landed. It proves **nothing about the theme**. Every
 failure this file warns about is silent at build time — a missing base layer, a stylesheet
 merge that stopped halfway, a canvas that scrolls sideways — and each one leaves a page
-that renders, so *"it displays"* is not a check. Load the page and run these five:
+that renders, so *"it displays"* is not a check. Load the page and run these eight:
 
 ```js
 (() => {
@@ -274,14 +274,23 @@ that renders, so *"it displays"* is not a check. Load the page and run these fiv
 	bare.remove();
 	const inset = document.querySelector('[data-slot="sidebar-inset"]');
 	const insetMin = inset && getComputedStyle(inset).minWidth;
-	const overflow = root.scrollWidth - root.clientWidth;
+	const insetOverflow = inset && getComputedStyle(inset).overflowY;
+	const wrapper = document.querySelector('[data-slot="sidebar-wrapper"]');
+	const wrapperOverflow = wrapper && getComputedStyle(wrapper).overflowY;
+	// Wide content pans the canvas, never the root, under the clipped wrapper: measure the inset.
+	const wide = inset ?? root;
+	const overflow = wide.scrollWidth - wide.clientWidth;
+	const scroller = document.scrollingElement ?? root;
 
 	console.table([
 		{ check: "base layer", ok: borders === paint("--border"), detail: `borders wear ${borders}, --border paints ${paint("--border")}` },
 		{ check: "animations", ok: token("--tw-enter-opacity") !== "", detail: token("--tw-enter-opacity") ? "tw-animate-css is loaded" : "tw-animate-css is missing" },
 		{ check: "tokens", ok: token("--sidebar-outline") !== "", detail: token("--sidebar-outline") || "absent — the step-3 merge never finished" },
 		{ check: "kit CSS", ok: insetMin === "0px", detail: inset ? `inset min-width: ${insetMin}` : "no [data-slot=sidebar-inset] on this page" },
-		{ check: "no h-scroll", ok: overflow <= 1, detail: `${root.scrollWidth}px of document in a ${root.clientWidth}px window` },
+		{ check: "no h-scroll", ok: overflow <= 1, detail: `${wide.scrollWidth}px of content in a ${wide.clientWidth}px ${inset ? "canvas" : "window"}` },
+		{ check: "shell pinned", ok: wrapperOverflow === "clip", detail: wrapper ? `wrapper overflow-y: ${wrapperOverflow}` : "no [data-slot=sidebar-wrapper] on this page" },
+		{ check: "app scroll", ok: scroller.scrollHeight <= scroller.clientHeight + 1, detail: `${scroller.scrollHeight}px of document in a ${scroller.clientHeight}px window` },
+		{ check: "canvas scrolls", ok: insetOverflow === "auto", detail: inset ? `inset overflow-y: ${insetOverflow}` : "no [data-slot=sidebar-inset] on this page" },
 	]);
 })();
 ```
@@ -292,7 +301,10 @@ that renders, so *"it displays"* is not a check. Load the page and run these fiv
 | **animations** | `tw-animate-css` is not installed or not imported. Menus, tooltips, the sheet and the drawer open and close with no transition. |
 | **tokens** | The step-3 stylesheet merge did not complete — re-run the `add`. |
 | **kit CSS** | `parallax-shell`'s `css` blocks never reached the stylesheet (same cause, same fix), or the install predates them. |
-| **no h-scroll** | Something on the page is wider than the canvas and is not in a scroll container of its own. |
+| **no h-scroll** | Something on the page is wider than the canvas and not in a scroll container of its own — the canvas pans sideways to show it. The document cannot widen under the clipped wrapper, which is why the check measures the inset and not the root. |
+| **shell pinned** | The wrapper rule never reached the stylesheet — the shell scrolls the document, Safari collapses its toolbars on iPad. Same cause as **kit CSS**, same fix; or an `overflow-*` utility on the provider took the clip back. |
+| **app scroll** | The DOCUMENT scrolls, which the shell is built to prevent: the wrapper rule (`100dvh` + `overflow: clip`) never reached the stylesheet, or a utility on the provider overrode it. On iPad the browser toolbars collapse as you scroll, and a panel sized `h-svh` shows a strip at its foot. Note the check can only fail on a page taller than the window — the short page step 6 leaves you passes it either way, which is what **shell pinned** is for. |
+| **canvas scrolls** | `Sidebar.Inset` is not a scroll container: the shell CSS predates the scroll model, or an `overflow-*` utility on the inset overrode it. Either nothing scrolls, or the document does. |
 
 Compare colours as **resolved** values, never a computed colour against a raw token: a
 custom property reads back as its literal text (`#3c354a`) while `getComputedStyle` returns

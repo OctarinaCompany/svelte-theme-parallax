@@ -332,10 +332,13 @@ const CONTROLS = {
 /**
  * The selectors `parallax-shell` lifts out of app.css, in source order — which matters once:
  * the grouped active-marker block ties on specificity with the two placement blocks after it,
- * so their order IS the cascade. 16 sidebar restyle blocks, 12 sheet/mobile-drawer blocks
- * (including both backdrop keyframes), and the menu-cursor rule every shell dropdown renders
- * through. Deliberately absent: `@layer base` and the popover shadow-kill rule — both are
- * application-global opinions a shell item has no business imposing (the docs say so instead).
+ * so their order IS the cascade. 14 sidebar restyle blocks, the 5 layout rules that make the
+ * shell the viewport (the rail's height, the wrapper pin, the document's bounce cut at the root,
+ * the canvas's scroll role, the print escape), 13 sheet/mobile-drawer blocks (including both
+ * backdrop keyframes), and the menu-cursor rule every shell dropdown renders through.
+ * Deliberately absent: `@layer base` and
+ * the popover shadow-kill rule — both are application-global opinions a shell item has no
+ * business imposing (the docs say so instead).
  */
 const SHELL_CSS_SELECTORS = [
 	// The affordance cursor on menu items — every shell dropdown renders through it.
@@ -357,8 +360,14 @@ const SHELL_CSS_SELECTORS = [
 	'[data-collapsible="icon"] [data-slot="sidebar-group"], [data-collapsible="icon"] [data-slot="sidebar-header"], [data-collapsible="icon"] [data-slot="sidebar-footer"]',
 	// The fixed rail's height, taken off `svh` so a collapsing mobile toolbar leaves no strip.
 	':where([data-slot="sidebar-container"])',
-	// The canvas beside the rail, kept from being widened by a wide table inside it.
+	// The shell pinned to the viewport and clipped, so the document never scrolls.
+	':where([data-slot="sidebar-wrapper"])',
+	// The document's own iOS rubber band, cut at the root for the chrome outside the canvas.
+	':where(:root:has([data-slot="sidebar-wrapper"]))',
+	// The canvas beside the rail: the one box that scrolls, and not widened by a wide table.
 	':where([data-slot="sidebar-inset"])',
+	// Print takes the pin and the scroll role back, so a sheet gets the page and not a viewport.
+	"@media print",
 	// The mobile drawer the sidebar opens in below the breakpoint, plus its scrim — and the
 	// breadcrumb's own drawer scrim, split out of its grouped rule in app.css for exactly this.
 	'[data-slot="drawer-overlay"]',
@@ -479,7 +488,8 @@ const SHELL = {
 		"",
 		"### Cautions",
 		"",
-		"- Nothing above `PageHeader` may gain `overflow-x: hidden` — beside an `overflow-y: visible` it computes as `auto`, silently turning the shell into a scroll container and killing the sticky header with no error anywhere. Use `overflow-x: clip` if a clip is ever needed.",
+		"- The shell is the viewport. The CSS this item adds pins `Sidebar.Provider`'s wrapper to `100dvh` and clips it (`AppShell` narrows that to the visual viewport's height, as `--shell-height`, while a software keyboard is up), cuts the document's own iOS rubber band at the root, and makes `Sidebar.Inset` — the `<main>` — the one scroll container, so the document never scrolls; that is what keeps iOS Safari's toolbars still. After each in-app navigation move focus to `Sidebar.Inset` (`#main-content`, `tabindex={-1}`, `focus({ preventScroll: true })`), or keyboard scrolling has nowhere to start. Nothing inside the shell may claim `h-svh`, `min-h-svh` or `h-screen`: a full-height sibling of the canvas stretches as a flex child of the wrapper, and content fills with `flex-1 min-h-0`. Read the scroll position from the scroll parent, never `window.scrollY`, and scroll with the scroll parent's `scrollTo` or with `scrollIntoView` (which honours the canvas's `scroll-padding-top`) — `src/lib/shared/scroll-parent.ts`, from `parallax-primitives`, answers which box that is. Print takes the pin back so a sheet gets the whole page.",
+		"- Nothing between `Sidebar.Inset` and `PageHeader` may gain `overflow-x: hidden` — beside an `overflow-y: visible` it computes as `auto`, silently putting a second scroll container between the canvas and the header and stealing the sticky with no error anywhere. Use `overflow-x: clip` if a clip is ever needed.",
 		"- The CSS this item adds is unlayered on purpose (it must outrank the sidebar's own utilities), so it also outranks YOUR utility classes on the same slots — override it in plain CSS, not with a utility.",
 		"- Two fidelity notes against the Parallax gallery: dropdown menus keep the upstream shadow, and the collapsed rail's tooltips keep the upstream look. Both are application-global restyles this item deliberately does not ship — they arrive with `parallax-restyle`. Buttons are not among them: this item depends on `parallax-button`, so the sizes it installs are the gallery's own token-driven ramp.",
 	].join("\n"),
@@ -647,6 +657,11 @@ const SHARED_OWNERS = {
 	"src/lib/shared/form-control.svelte.ts": "parallax-primitives",
 	"src/lib/shared/tanstack-table-bridge.svelte.ts": "parallax-primitives",
 	"src/lib/shared/scroll-position.svelte.ts": "parallax-primitives",
+	/*
+	 * The box that scrolls an element. The shell is the viewport and the canvas the scroller,
+	 * so every component that reads or drives a scroll position asks this rather than `window`.
+	 */
+	"src/lib/shared/scroll-parent.ts": "parallax-primitives",
 	"src/lib/shared/dom-ordered-collection.svelte.ts": "parallax-primitives",
 	"src/lib/shared/chat-parts.ts": "parallax-primitives",
 	"src/lib/shared/download-text.ts": "parallax-primitives",
@@ -1018,7 +1033,7 @@ const PRIMITIVES = {
 	type: "registry:lib",
 	title: "Parallax primitives",
 	description:
-		"Shared infrastructure the house components compose: roving focus, form-control bridging, the TanStack table bridge, scroll position, DOM-ordered collections. Installed automatically as a dependency; rarely asked for by name.",
+		"Shared infrastructure the house components compose: roving focus, form-control bridging, the TanStack table bridge, scroll position and the scroll parent, DOM-ordered collections. Installed automatically as a dependency; rarely asked for by name.",
 	/*
 	 * WALKED, not hand-asserted. This item's dependencies used to be a literal `[]` while its
 	 * files were computed — two mechanisms with nothing cross-checking them — and

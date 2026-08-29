@@ -1,6 +1,6 @@
 ---
 name: parallax
-description: Build and style dashboards with Parallax, the shadcn-svelte theme kit (Svelte 5 + Tailwind v4). Use when a project consumes the Parallax registry (svelte-theme-parallax), when AppShell/AppSidebar/PageHeader or parallax-* registry items appear in the code, or when the user asks to install Parallax, start a new Svelte dashboard project from an empty directory, add a sidebar/header shell, theme a dashboard, use the success/warning/info or subtle token families, or drive the floating/inverted/auto-hide appearance axes. Covers bootstrapping a project from scratch, registry installation, shell composition through typed props and snippets, nav data wiring with an isActive predicate, the 12 palettes over mode-watcher, and the appearance hooks. Not for generic shadcn-svelte components that Parallax does not ship.
+description: Build and style dashboards with Parallax, the shadcn-svelte theme kit (Svelte 5 + Tailwind v4). Use when a project consumes the Parallax registry (svelte-theme-parallax), when AppShell/AppSidebar/PageHeader or parallax-* registry items appear in the code, or when the user asks to install Parallax, start a new Svelte dashboard project from an empty directory, add a sidebar/header shell, add a full-height panel beside the page, react to or drive scrolling inside the shell, fix Safari's collapsing toolbar on iPad, theme a dashboard, use the success/warning/info or subtle token families, or drive the floating/inverted/auto-hide appearance axes. Covers bootstrapping a project from scratch, registry installation, shell composition through typed props and snippets, the shell-owned scroll model, nav data wiring with an isActive predicate, the 12 palettes over mode-watcher, and the appearance hooks. Not for generic shadcn-svelte components that Parallax does not ship.
 license: MIT
 ---
 
@@ -92,6 +92,32 @@ Before adding or changing anything:
   box instead of pushing a horizontal scrollbar onto the document. Wide content therefore
   needs a scroll container of its own (`Table.Root` already has one). To opt out for one
   canvas: `min-w-max!`.
+- **The shell is the viewport; the canvas scrolls.** `parallax-shell` pins the provider's
+  wrapper to `100dvh` and clips it, and makes `Sidebar.Inset` — the `<main>` — the one scroll
+  container. The document never scrolls, so iOS Safari never collapses its toolbars
+  mid-scroll, so `100dvh` is the viewport as it stands, and only rotation — or a software
+  keyboard, which AppShell follows — changes it; `svh` / `lvh` would still be wrong there.
+  - Never `h-svh`, `min-h-svh` or `h-screen` inside the shell. A panel that spans the window
+    beside the page is a sibling of `Sidebar.Inset` in the provider's row and stretches as a
+    flex child (or takes `h-full`); its content fills with `flex-1 min-h-0` and scrolls in
+    its own box.
+  - Never `window.scrollY`, `window.scrollTo` or `<svelte:window onscroll>` — the document
+    sits at 0 forever and the listener never fires. Read and drive the scroll parent
+    (`scrollParentOf` from `$lib/shared/scroll-parent.js`, installed with
+    `parallax-primitives`) or call `element.scrollIntoView()`; to react to any scroll
+    anywhere, listen on `window` in the capture phase (`{ capture: true, passive: true }`),
+    because `scroll` does not bubble.
+  - After every in-app navigation, move focus to the canvas:
+    `document.getElementById("main-content")?.focus({ preventScroll: true })` — `AppShell`
+    gives the inset the id, `tabindex={-1}` and `focus-visible:outline-hidden` for this.
+    PageDown, Space and the arrows scroll from the focused element upwards, never across
+    to a sibling scroller, so after a rail click they scroll nothing until the canvas has
+    focus. A fragment landing focuses its heading instead.
+  - `scroll-padding-top` lives on the canvas, not on `:root` — `scrollIntoView` and a
+    fragment honour the padding of the container that scrolls.
+  - No scroll container may sit between the canvas and `PageHeader`: the sticky resolves
+    against the nearest scrolling ancestor, and a wrapper that scrolls steals it. That is
+    what the `overflow-x: hidden` rule under Installation is about.
 
 **Theming and tokens** — see [references/theming.md](references/theming.md)
 
@@ -126,9 +152,10 @@ Before adding or changing anything:
 - **Two manual steps after `parallax-theme`** (a registry item cannot patch existing
   files): the `@import "./themes.css";` + font imports in the global stylesheet, and the
   **first-paint script** in `index.html` / `app.html` (exact copy in theming.md).
-- **Nothing above `PageHeader` may gain `overflow-x: hidden`** — it computes to `auto`
-  beside `overflow-y: visible` and silently kills the sticky header. Use
-  `overflow-x: clip` if a clip is ever needed.
+- **Nothing between the canvas and `PageHeader` may gain `overflow-x: hidden`** — it
+  computes to `auto` beside `overflow-y: visible`, the wrapper becomes a scroll container,
+  and the sticky header and its auto-hide follow the wrapper instead of the canvas, with no
+  error anywhere. Use `overflow-x: clip` if a clip is ever needed.
 - **Parallax CSS is unlayered on purpose** and beats utility classes on the same slots —
   override it with plain CSS, or with `!` at the call site, never by stacking utilities.
   The case that bites: an `Input` given `ps-9` for an icon and `h-8` for size keeps its
@@ -187,6 +214,8 @@ Before adding or changing anything:
 | Whole app frame                          | `AppShell` (+ `sidebar` snippet)                                     |
 | Sidebar with nav/user/workspaces         | `AppSidebar` props: `items`, `user`, `workspaces`, `isActive`        |
 | Sticky top bar                           | `PageHeader` (snippets: `sidebarTrigger`, `breadcrumb`, `search`, `controls`) |
+| Full-height panel beside the canvas      | a sibling of `Sidebar.Inset` in the provider's row, stretched as a flex child (or `h-full`), content `flex-1 min-h-0` — never `h-svh` / `h-screen` |
+| React to / drive scrolling               | `scrollParentOf(el)` from `$lib/shared/scroll-parent.js` — read its `scrollTop`, call its `scrollTo` — or `el.scrollIntoView()`; `window.scrollY` is 0 inside the shell |
 | Breadcrumb data                          | `Crumb[]` — `{ label, href? }`, last step never has `href`           |
 | Icon, prefix, suffix or button **inside** a field | `InputGroup.Root` + `InputGroup.Input` + `InputGroup.Addon` / `InputGroup.Button` — never an `Input` with an absolutely positioned child: `[data-slot="input"]`'s padding and height are unlayered and beat `ps-*` / `h-*` |
 | Status badge/alert                       | `bg-{success,warning,info}-subtle` + matching `-foreground`          |
@@ -208,7 +237,7 @@ Before adding or changing anything:
 4. Wire data at the root the project already owns (its router lives there too).
 5. Validate: `npx svelte-check`, then run the app and check both modes and at least one
    non-default palette before calling styling done. `svelte-check` says nothing about the
-   theme — run the five console checks in
+   theme — run the eight console checks in
    [references/bootstrap.md](references/bootstrap.md#7-validate), which catch the failures
    that render fine and are wrong.
 

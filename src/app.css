@@ -303,13 +303,21 @@
  * been byte-identical to this one under all twelve palettes today.
  */
 /*
- * The page header's height, and the scroll offset that keeps focus out from under it.
+ * The page header's height. The scroll offset that keeps focus out from under it is computed
+ * from this value, but it no longer lives here — it sits on the canvas, the box that scrolls.
  *
  * The bar is sticky, so anything the browser scrolls to can land beneath it. `scroll-padding-top`
- * on the scroll container — which here is the document, since nothing between the header and
- * `<html>` scrolls — tells the browser to stop short by this much. It covers the case WCAG 2.2
- * SC 2.4.11 (Focus Not Obscured) is about: tabbing backwards through a long page, where the
- * browser scrolls the newly focused control into view and would otherwise put it under the bar.
+ * on the scroll container tells the browser to stop short by this much, and the browser reads it
+ * from the container that actually scrolls: inside the shell that is `Sidebar.Inset`, since the
+ * document never scrolls there (the `sidebar-wrapper` and `sidebar-inset` rules further down).
+ * Written on `:root` — where it stood while the document was the scroller — the declaration
+ * would describe a box that no longer moves, and every focus-driven scroll would land under the
+ * bar again with nothing to say why. The height stays on `:root` so that the canvas rule, the
+ * header and any consumer arithmetic read the one number.
+ *
+ * The offset covers the case WCAG 2.2 SC 2.4.11 (Focus Not Obscured) is about: tabbing backwards
+ * through a long page, where the browser scrolls the newly focused control into view and would
+ * otherwise put it under the bar.
  *
  * It does NOT cover a control already in the viewport under the bar, where no scroll happens at
  * all. That residual is real and is not solvable from CSS; it is why the bar stays at `h-16`
@@ -320,12 +328,12 @@
  * serves both shapes and neither behaviour flag has to reach the DOM. Over-reserving 16px while
  * the sidebar is collapsed and the bar is `h-12` is invisible.
  *
- * An explicit `window.scrollTo` ignores this entirely, which is why `ui/scroll-spy` consumers keep
- * their own `offset` — `ScrollSpyPage.svelte` already passes one comfortably past 64.
+ * An explicit `scrollTo` on the canvas ignores scroll-padding entirely — as `window.scrollTo`
+ * ignored it on the document — which is why `ui/scroll-spy` consumers keep their own `offset`.
+ * `scrollIntoView` and fragment navigation honour it.
  */
 :root {
 	--page-header-height: 4rem;
-	scroll-padding-top: calc(var(--page-header-height) + 0.5rem);
 }
 
 /*
@@ -413,8 +421,8 @@
  * browser already draws.
  *
  * `:has([data-state='open'])` catches the portaled menus, where focus has left the header's DOM
- * but the trigger still reports itself open. A dialog locks body scroll outright, so that case
- * cannot arise at all.
+ * but the trigger still reports itself open. A dialog's overlay covers the canvas and takes every
+ * wheel and touch, so nothing scrolls it while one is open and that case cannot arise at all.
  */
 [data-slot="page-header"][data-hidden] {
 	translate: 0 -100%;
@@ -1173,6 +1181,13 @@
  * The mobile drawer never had this: `sheet-content` sizes itself `h-full`, which on a fixed box
  * resolves against that same layout viewport — the shape this rule gives the desktop rail.
  *
+ * SINCE THE SHELL TOOK THE SCROLL. The `sidebar-wrapper` rule below pins the shell to the
+ * viewport and hands every scroll to the canvas, so inside the shell the document never moves,
+ * Safari never collapses its toolbars, and this shortfall has nothing left to uncover it. The
+ * rule stays all the same: it corrects an upstream default, and a consumer who unlocks the
+ * document — a `Sidebar.Provider` mounted outside the shell, a wrapper rule taken back with a
+ * utility — meets the same collapse and the same strip the moment the page scrolls.
+ *
  * WRITTEN HERE, not in `sidebar.svelte`: that file is a verbatim shadcn-svelte port, and this is
  * a correction to an upstream default rather than a Parallax opinion — the same reasoning the
  * `sidebar-inset` rule below states at length. Unlayered, so it outranks the `h-svh` utility
@@ -1185,13 +1200,116 @@
 }
 
 /*
- * The page canvas may not be widened by what it holds.
+ * The shell is the viewport; the canvas scrolls.
+ *
+ * THE OBSERVATION, on iPadOS Safari: scroll the page and the browser collapses its toolbars,
+ * because that is what Safari does when THE DOCUMENT scrolls. An article wants that — more of
+ * the text. A dashboard has no use for it: its chrome is the rail and the page header, both
+ * already pinned, and the collapse only ever moves what is meant to hold still. It is also the
+ * gesture that uncovered the rail shortfall the `sidebar-container` rule above corrects; a
+ * toolbar that never moves uncovers nothing.
+ *
+ * So inside the shell the document never scrolls. `Sidebar.Provider`'s wrapper — `min-h-svh`
+ * upstream, sized to its content and so as tall as the page — is pinned to the viewport instead
+ * and clipped, so the document has nothing to scroll and the browser nothing to react to;
+ * `Sidebar.Inset`, next, is the one box that does. Three declarations, each for a reason:
+ *
+ * `height: var(--shell-height, 100dvh)`, where the rail rule above turned `dvh` DOWN — and both
+ * are right. The rail is a fixed box, laid out against the layout viewport, and `dvh` would
+ * re-lay it out on every toolbar animation. Here there is no animation to follow: with a
+ * document that never scrolls Safari never collapses its toolbars, so the dynamic viewport is
+ * simply the viewport as it stands, and it follows the one change of the LAYOUT viewport that
+ * does happen, rotation. `svh` would pin the wrapper to the SMALL viewport and leave the
+ * toolbar-height strip at the bottom the rail rule describes; `lvh` would push the bottom of the
+ * canvas under the toolbars whenever they are up.
+ *
+ * THE ONE CHANGE `dvh` DOES NOT FOLLOW is the software keyboard. iOS raises it by shrinking the
+ * VISUAL viewport only; the layout viewport, which every viewport unit measures, keeps its full
+ * height, so a wrapper sized in `dvh` runs on behind the keyboard, and the canvas — with the
+ * caret in whatever field is being typed into — sits under it out of sight. That is why the
+ * height reads `--shell-height` first: `AppShell` writes the visual viewport's height onto the
+ * provider under that name for exactly as long as a software keyboard is up, and clears it
+ * after, so the wrapper shrinks to the part of the screen the reader can see and the canvas
+ * scrolls the caret into it. A consumer mounting `Sidebar.Provider` by hand sets no such
+ * variable and gets the plain `100dvh`, keyboard caveat included. The reasoning — and why the
+ * shell must also undo the pan Safari performs on its own — is on that effect in
+ * `src/lib/components/layout/AppShell.svelte`.
+ *
+ * `min-height: 0` retires the utility's `min-h-svh`. A floor under a stated height is a second
+ * opinion the height never needs, and it bites the moment a consumer states a shorter one — a
+ * shell seated under a fixed masthead, `h-[calc(100dvh-4rem)]!` — where the floor would hold the
+ * wrapper at the small viewport and push the shell's bottom out of the clip.
+ *
+ * `overflow: clip`, NOT `hidden`. `hidden` makes the wrapper a scroll container: nothing a reader
+ * can scroll, but `scrollIntoView` and focus-driven scrolling can, and a box scrolled that way
+ * shears its content off the top with nothing to bring it back. A scroll container is also what
+ * `position: sticky` anchors to and what `src/lib/shared/scroll-parent.ts` looks for, so
+ * `hidden` would put a second candidate above the canvas for anything the canvas does not
+ * contain — a masthead, a right rail. `clip` is a clip and nothing more: no scroll container,
+ * nothing for script to scroll, nothing for a sticky to see. The canvas stays the one scroller,
+ * which is the whole design.
+ *
+ * WHAT THIS ASKS OF EVERYTHING INSIDE. Nothing in the shell may claim `h-svh`, `min-h-svh` or
+ * `h-screen` — a full-height sibling of the canvas stretches as a flex child of the wrapper's row,
+ * and content fills with `flex-1 min-h-0`. Anything that reads a scroll position reads the scroll
+ * parent, never `window.scrollY`, which stays at 0 here forever; anything that scrolls calls the
+ * scroll parent's `scrollTo` or `scrollIntoView`; anything that must hear every scroll listens on
+ * `window` in the capture phase, because `scroll` does not bubble. And a router must move focus
+ * to the canvas after each in-app navigation — `#main-content`, `tabindex={-1}`,
+ * `focus({ preventScroll: true })` — or keyboard scrolling has nowhere to start: PageDown, Space
+ * and the arrows scroll from the focused element upward and never fall back to a sibling
+ * scroller, so with focus still on the rail link that was clicked, nothing moves.
+ * `src/lib/shared/scroll-parent.ts` answers "which box" and is right in either arrangement.
+ *
+ * `:where()` and unlayered, like the two rules around it: it outranks the `min-h-svh` utility
+ * whatever their specificity, and a consumer takes any of it back with the `!` a utility needs
+ * against an unlayered rule. A consumer who does — who lets the document scroll again — gets
+ * exactly the upstream arrangement, rail correction included.
+ */
+:where([data-slot="sidebar-wrapper"]) {
+	height: var(--shell-height, 100dvh);
+	min-height: 0;
+	overflow: clip;
+}
+
+/*
+ * The document's own bounce, cut for the chrome that sits outside the canvas.
+ *
+ * `overscroll-behavior-y: contain` on the canvas (the `sidebar-inset` rule below) stops chaining
+ * FROM the canvas, and nothing more: a touch that starts anywhere else in the shell — the rail's
+ * header or footer, a nav that fits and so has nothing to scroll, a right rail's chrome — reaches
+ * the document directly, and on iOS the document answers with the rubber band even though it has
+ * nothing to scroll. Cosmetic, since the toolbars hold still — nothing actually scrolled — but
+ * the whole pinned shell drags with the finger and springs back, which on a shell whose point is
+ * that its chrome never moves reads as a fault.
+ *
+ * `overscroll-behavior` on the root element is the declaration the viewport reads (MDN: the
+ * value set on the root is propagated to the viewport), so this is the one place the document's
+ * own bounce can be addressed. `none`, NOT `contain`: on the root, `contain` keeps the bounce and
+ * cuts only the navigation gestures — the swipe back, the pull to refresh — and the bounce is the
+ * thing. The canvas keeps `contain` for its own reason, stated there: its end-of-content bounce
+ * is the reader's cue.
+ *
+ * `:has([data-slot="sidebar-wrapper"])` scopes it to a document that holds the shell. A page
+ * without one — a bare demo, a consumer's page under the same stylesheet — keeps the browser's
+ * defaults, bounce and gestures both. Unlayered and in `:where()` like its neighbours, so a
+ * consumer takes it back in plain CSS without `!important`.
+ */
+:where(:root:has([data-slot="sidebar-wrapper"])) {
+	overscroll-behavior: none;
+}
+
+/*
+ * The page canvas: not widened by what it holds, and the one box that scrolls.
  *
  * `SidebarInset` is the flex item beside the rail — `flex-1`, and therefore `min-width: auto`,
  * whose automatic minimum size is the MIN-CONTENT of the whole page inside it. A table wider
  * than the canvas hands that item a minimum it cannot go below, the item outgrows the viewport,
- * and the DOCUMENT scrolls sideways: the shell's own chrome — header bar, sidebar edge — slides
- * off with it, which is the part that reads as broken.
+ * and — measured while the document was still the scroller — the DOCUMENT scrolled sideways: the
+ * shell's own chrome — header bar, sidebar edge — slid off with it, which is the part that reads
+ * as broken. Under the clipped wrapper above the same widening would instead cut the chrome off
+ * at the viewport's edge, with no scrollbar to bring it back; the failure changed shape, not
+ * severity.
  *
  * A SCROLL CONTAINER DOES NOT STOP THIS. `Table.Root` already wraps every table in
  * `overflow-x-auto`; that isolates the OVERFLOW, not the min-content contribution, which travels
@@ -1205,20 +1323,51 @@
  * and the card content. The automatic minimum size is a FLEX AND GRID ITEM rule; those are block
  * boxes, where `min-width: auto` already resolves to zero. Only the flex item counts.
  *
+ * THE SCROLL ROLE. With the wrapper pinned and clipped, this `<main>` is where the page scrolls,
+ * and `overflow-y: auto` is what makes it so. What comes with it:
+ *
+ * `min-height: 0` — belt to the braces. A scroll container's automatic minimum size is already
+ * zero, and so is a row item's in the cross axis, so the canvas would stay the wrapper's height
+ * on either count. The declaration is what holds when neither does: a consumer's column-direction
+ * wrapper with a masthead above the canvas, where `min-height: auto` would size the canvas to its
+ * content and hand the overflow to a clipped wrapper that nothing can scroll.
+ *
+ * `overscroll-behavior-y: contain` — a wheel or a swipe that runs past either end of the canvas
+ * would otherwise chain to the document, which has nothing to scroll but on iOS still answers
+ * with the rubber band and the toolbar movement this arrangement exists to stop. `contain`
+ * rather than `none`: the canvas keeps its own end-of-content bounce, which is the reader's cue
+ * that there is no more, and only the chaining is cut.
+ *
+ * `overflow-x` is not written and computes to `auto` beside `overflow-y: auto` — the pair cannot
+ * hold `visible` next to a scrolling value. Wide content that escapes its own scroller therefore
+ * scrolls the canvas sideways now, never the document, and `min-width: 0` above is what keeps the
+ * canvas from simply widening to swallow it: the two halves of this block are one story.
+ *
+ * `scroll-padding-top` moved here from the `:root` block that still carries the height. The
+ * browser reads scroll-padding from the container that scrolls — `scrollIntoView`, fragment
+ * navigation and focus-driven scrolling all honour it there and nowhere else — and the page
+ * header's sticky resolves against this same box, so the offset and the bar it clears are now
+ * stated on one element. Why the value is what it is, and what it does not cover, is on that
+ * `:root` block.
+ *
+ * THE TRAP, restated rather than retired: NO scroll container may sit between this canvas and
+ * `PageHeader`. `position: sticky` resolves against the nearest scrolling ancestor, and an
+ * `overflow-x: hidden` on any wrapper in between computes `overflow-y: auto` beside it and takes
+ * the sticky for itself, silently — the bar simply scrolls away. `overflow-x: clip` if a clip is
+ * ever needed; clip is not a scroll container.
+ *
  * WRITTEN HERE RATHER THAN ON THE COMPONENT. `sidebar-inset.svelte` is a verbatim shadcn-svelte
- * port carrying no house divergence at all, and this is an upstream default, not a Parallax one;
- * forking a file nobody rereads for one declaration is how a port quietly stops being a port. A
- * class on `AppShell`'s `<Sidebar.Inset>` would have been honest but partial — it covers the
- * shell's own composition and misses anyone mounting `Sidebar.Provider` by hand. The slot covers
- * both, and the port stays byte-identical.
+ * port carrying no house divergence at all, and every declaration here corrects an upstream
+ * default rather than stating a Parallax one; forking a file nobody rereads for a handful of
+ * declarations is how a port quietly stops being a port. A class on `AppShell`'s `<Sidebar.Inset>`
+ * would have been honest but partial — it covers the shell's own composition and misses anyone
+ * mounting `Sidebar.Provider` by hand. The slot covers both, and the port stays byte-identical.
  *
- * `overflow-x: hidden` somewhere above is NOT the alternative: it computes to `auto` beside an
- * `overflow-y: visible` and kills the sticky page header.
- *
- * `PageHeader` already answered this for ITSELF — its `w-0 min-w-full` takes the bar out of the
- * inset's min-content sum, which is the same propagation seen from the one element whose row
- * happened to be wider than the page. That local escape stays: it is the header's own contract,
- * and it holds in a shell this rule never reaches. What it never covered is the page BELOW it.
+ * `PageHeader` already answered the width half for ITSELF — its `w-0 min-w-full` takes the bar
+ * out of the inset's min-content sum, which is the same propagation seen from the one element
+ * whose row happened to be wider than the page. That local escape stays: it is the header's own
+ * contract, and it holds in a shell this rule never reaches. What it never covered is the page
+ * BELOW it.
  *
  * `:where()` holds the specificity at zero, so a consumer's own rule takes it back without
  * `!important`. It does not hand it to a UTILITY, though — this file is unlayered and outranks
@@ -1227,6 +1376,33 @@
  */
 :where([data-slot="sidebar-inset"]) {
 	min-width: 0;
+	min-height: 0;
+	overflow-y: auto;
+	overscroll-behavior-y: contain;
+	scroll-padding-top: calc(var(--page-header-height) + 0.5rem);
+}
+
+/*
+ * Print gets the whole page, not one viewport of it.
+ *
+ * Pagination is a property of the DOCUMENT: the print engine breaks what overflows the document
+ * across sheets, and what overflows a scroll container inside it is not overflow of the document
+ * at all — it prints as the scroller's visible portion and stops. A wrapper pinned to the viewport
+ * around a canvas that scrolls therefore prints as exactly one screenful, the rest of the page on
+ * no sheet. So print takes both rules back: the wrapper grows with its content and clips
+ * nothing, the canvas overflows visibly, and the document is once more what overflows, which is
+ * what pagination reads. `height: auto` rather than a print-sized unit, because there is no
+ * viewport to size to. The rail is not addressed: it is a fixed box, out of this flow altogether.
+ */
+@media print {
+	:where([data-slot="sidebar-wrapper"]) {
+		height: auto;
+		overflow: visible;
+	}
+
+	:where([data-slot="sidebar-inset"]) {
+		overflow: visible;
+	}
 }
 
 /*

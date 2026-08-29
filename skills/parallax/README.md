@@ -4,7 +4,8 @@ A [Claude Code / Agent Skill](https://agentskills.io) that teaches an AI assista
 right way to use Parallax in a consumer project: installing from the registry, composing
 the shell through props and snippets, the semantic token families, the 12 palettes, and
 the appearance axes — plus the pitfalls that are invisible until they bite (the
-first-paint script, the `overflow-x` sticky killer, the subtle-foreground pairing).
+first-paint script, the `overflow-x` sticky killer, the `svh` trap and the shell-owned
+scroll, the subtle-foreground pairing).
 
 It follows the format shared by the official shadcn/ui, shadcn-svelte and Svelte skills:
 a compact `SKILL.md` the model loads when triggered, with the deep contracts one level

@@ -162,6 +162,15 @@
 	const SETTLE_MS = 1000;
 
 	/**
+	 * The page's own body: the box below the header that holds every section.
+	 *
+	 * Bound so the landing below can watch it grow. Inside the shell `<body>` cannot stand in for
+	 * it — `src/app.css` pins `Sidebar.Provider`'s wrapper to `100dvh` and makes `Sidebar.Inset`
+	 * the scroll container, so however much a page grows, the document's box never changes.
+	 */
+	let content = $state<HTMLDivElement | null>(null);
+
+	/**
 	 * The heading the address bar's fragment names, or `null`.
 	 *
 	 * `getElementById` and not `querySelector("#" + id)`: a section id may begin with a digit
@@ -182,8 +191,10 @@
 	}
 
 	function scrollToHeading(heading: HTMLElement): void {
-		// `scrollIntoView`, never `window.scrollTo`: only the former honours the
-		// `scroll-padding-top` `src/app.css` sets on `:root` to keep the sticky header off it.
+		// `scrollIntoView`, never a `scrollTo`: it scrolls whichever ancestor of the heading
+		// scrolls — the shell's canvas, `[data-slot="sidebar-inset"]`, never the document — and
+		// honours the `scroll-padding-top` `src/app.css` sets on that canvas to keep the sticky
+		// header off the heading. A `scrollTo` would have to know both, and get both right.
 		heading.scrollIntoView({ block: "start", behavior: "instant" });
 	}
 
@@ -232,7 +243,16 @@
 		};
 		const timer = setTimeout(stop, SETTLE_MS);
 
-		observer.observe(document.body);
+		/*
+		 * `content`, not `document.body`. Everything on this site that adds height ABOVE a target
+		 * after it has been scrolled to — the `<video>` and the accordion `SETTLE_MS` is sized
+		 * for — sits inside the page's own body, whose box grows with it in either arrangement.
+		 * `<body>` was the right thing to watch while the document scrolled; inside the shell its
+		 * box is the viewport's and never changes, so an observer on it fires once, on observe,
+		 * and never again — the landing would then stop correcting itself with nothing to show
+		 * for it. The header above `content` is sticky and fixed-height, and is not watched.
+		 */
+		if (content) observer.observe(content);
 		for (const type of ["wheel", "touchstart", "keydown", "pointerdown"] as const) {
 			window.addEventListener(type, stop, { signal: controller.signal, passive: true });
 		}
@@ -311,7 +331,7 @@
 	{/snippet}
 </PageHeader>
 
-<div class="px-3 pb-4 md:px-9">
+<div bind:this={content} class="px-3 pb-4 md:px-9">
 	<ContentColumn>
 		<PageIntro {title} {subtitle} />
 		<div>

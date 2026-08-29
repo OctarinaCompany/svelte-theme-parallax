@@ -22,7 +22,7 @@
 	 */
 
 	// One scroll container per example: each `<ScrollSpy.Viewport>` publishes its element, and the
-	// root tracks and scrolls that element instead of the window.
+	// root tracks and scrolls that element instead of the page's own scroller.
 	let defaultContainer = $state<HTMLDivElement | null>(null);
 	let verticalContainer = $state<HTMLDivElement | null>(null);
 	let controlledContainer = $state<HTMLDivElement | null>(null);
@@ -115,7 +115,8 @@
 			prop: "scrollContainer",
 			type: "HTMLElement | null",
 			default: "null",
-			description: "Element to track and scroll. `null` tracks the window.",
+			description:
+				"Element to track and scroll. `null` observes against the viewport and scrolls the section's own scroll parent — the shell's canvas here.",
 		},
 		{
 			prop: "dir",
@@ -410,8 +411,8 @@
 
 	<DocSection title="Sticky layout">
 		{#snippet blurb()}
-			Mirrors the MDX example — no scrollContainer, so the window scrolls and a sticky nav stays
-			visible.
+			Mirrors the MDX example — no scrollContainer, so the page's own scroller (the shell's canvas)
+			scrolls and a sticky nav stays visible.
 		{/snippet}
 		<Card.Root>
 			<Card.Content class="items-stretch">

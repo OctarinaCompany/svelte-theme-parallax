@@ -66,6 +66,19 @@
 				"Does not add after:rounded-* to the root — the ring inherits the root's radius",
 				"Uses semantic tokens for any fill (bg-muted, bg-primary/text-primary-foreground), no raw colour"
 			]
+		},
+		{
+			"name": "full-height-panel-beside-the-canvas",
+			"prompt": "Add a right-hand details panel that spans the whole window height beside the page, with its own scrolling content, and keep it in view while the page scrolls.",
+			"expectations": [
+				"Never gives the panel h-svh, min-h-svh, h-screen or a `sticky top-0` recipe copied from the rail — the shell is the viewport, and a viewport-unit height is what left a strip at the panel's foot on iPad",
+				"Places the panel as a sibling of Sidebar.Inset in the provider's flex row (the installed AppShell.svelte is the project's code) and lets it stretch as a flex child, or take h-full, with its content filling through flex-1 min-h-0 and scrolling in its own box",
+				"States that the canvas (Sidebar.Inset, id main-content) is the scroll container and the document never scrolls, so the panel needs no sticky to stay in view",
+				"Adds no window.scrollY, window.scrollTo or <svelte:window onscroll> — anything that must follow the page's position reads scrollParentOf from $lib/shared/scroll-parent.js, or listens on window in the capture phase",
+				"Gives the panel `relative` when it hosts an absolute pull-strip or handle — the `sticky` the old recipe carried was the containing block, and without `relative` the strip lands at the window's left edge",
+				"Leaves no `svh` anywhere in the shell — not on the panel, not on the provider, not on the inset",
+				"Writes Svelte 5 runes syntax and semantic tokens (bg-sidebar, border-sidebar-outline), no raw colour"
+			]
 		}
 	]
 }

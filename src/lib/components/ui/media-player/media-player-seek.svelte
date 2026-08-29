@@ -187,7 +187,7 @@
 	);
 
 	// Once the element catches up with the value the user dropped the thumb on, the optimistic
-	// position is released and the media becomes authoritative again (data-model §5). The write is
+	// position is released and the media becomes authoritative again. The write is
 	// untracked: this effect must depend on `currentTime` alone, never on what it clears.
 	$effect(() => {
 		const time = root.currentTime;
@@ -198,7 +198,9 @@
 	});
 
 	// Scrolling moves the track out from under the pointer, so the tooltip is dismissed rather than
-	// left floating at a stale position.
+	// left floating at a stale position. Capture phase: `scroll` does not bubble, and inside the
+	// shell the canvas scrolls, never the document (`src/app.css`), so only a capturing listener
+	// hears it; removed with `capture` too — the flag is part of the listener's identity.
 	$effect(() => {
 		if (!hovering || tooltipDisabled) return;
 
@@ -207,8 +209,8 @@
 			hasInitialPosition = false;
 		};
 
-		document.addEventListener("scroll", onScroll, { passive: true });
-		return () => document.removeEventListener("scroll", onScroll);
+		document.addEventListener("scroll", onScroll, { passive: true, capture: true });
+		return () => document.removeEventListener("scroll", onScroll, { capture: true });
 	});
 
 	// Every frame and throttle this part schedules is cancelled with it.

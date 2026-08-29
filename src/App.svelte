@@ -13,6 +13,7 @@
 		href,
 		normalisePath,
 		route,
+		scrollCanvas,
 		type RoutePath,
 	} from "$lib/hooks/route.svelte.js";
 	import { DEFAULT_THEME } from "$lib/themes/index.js";
@@ -284,10 +285,17 @@
 	 * Put the reader where the navigation says they should be — once the page is really there.
 	 *
 	 * THE ROUTER CANNOT DO THIS ITSELF. It knows the destination the moment the link is clicked,
-	 * but the page behind it is a dynamic import: for a few hundred milliseconds the document is
+	 * but the page behind it is a dynamic import: for a few hundred milliseconds the canvas holds
 	 * a `Skeleton` a few hundred pixels tall, and a scroll issued then is clamped to that height
 	 * and silently wrong. This effect waits for `loaded` to hold the chunk, which is the same
 	 * condition that renders `<Page />`, so by the time it runs the real page is in the DOM.
+	 *
+	 * THE CANVAS, NOT THE WINDOW. Inside the shell the document never scrolls — `src/app.css`
+	 * pins the wrapper to the viewport and makes `Sidebar.Inset`, the `<main>` `AppShell` labels
+	 * `#main-content`, the one scroll container — so `window.scrollTo` would move nothing and say
+	 * nothing. `scrollCanvas` resolves that element (and the document where there is no shell),
+	 * so the offset the router stamped, that box's `scrollTop`, goes back onto the box it was
+	 * read from.
 	 *
 	 * It reads `route.current` as well as `loaded`, because the thirteen group routes share ONE
 	 * component: navigating between them leaves `current` identical and would never re-run an
@@ -295,6 +303,20 @@
 	 *
 	 * `takePendingScroll` returns `null` for a landing this effect must not touch — a URL with a
 	 * fragment, which belongs to the page's own heading scroll, and every read after the first.
+	 *
+	 * THEN FOCUS MOVES TO THE CANVAS. Keyboard scrolling — PageDown, Space, the arrows — starts
+	 * from the focused element and walks UP to the first scrollable ancestor; it never falls back
+	 * to a sibling scroller. While the document scrolled that walk always ended at the document,
+	 * so focus could sit anywhere. Now the canvas is the one scroller and the rail is not inside
+	 * it, so after "click a rail link, press PageDown" the walk from the link finds nothing and
+	 * nothing moves — measured in Chrome. Focusing the `<main>` puts the start of that walk on the
+	 * scroller itself; `AppShell` already gives it `tabindex={-1}` (for the skip link) and hides
+	 * the ring, and `preventScroll` keeps the focus call from touching the offset just restored.
+	 * This is also the standard SPA practice: a route change moves focus to the main content, so a
+	 * screen reader announces the new page rather than staying on the link that led to it. It runs
+	 * for every route change and for the first load (where `takePendingScroll` answers 0), and is
+	 * skipped with the scroll on a fragment landing — `DocPage` focuses the heading there — and on
+	 * repeat reads.
 	 */
 	$effect(() => {
 		const path = route.current;
@@ -303,7 +325,8 @@
 		const target = route.takePendingScroll();
 		if (target === null) return;
 
-		window.scrollTo({ top: target, behavior: "instant" });
+		scrollCanvas().scrollTo({ top: target, behavior: "instant" });
+		scrollCanvas().focus({ preventScroll: true });
 	});
 </script>
 

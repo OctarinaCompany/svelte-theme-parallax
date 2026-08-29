@@ -174,3 +174,37 @@ installing the item named, never by hand-porting gallery code:
   pointer cursor on buttons, and the rule that restores it ships with **`parallax-restyle`**.
   Install that item; it writes the rule into `@layer base`, where any `cursor-*` utility
   still outranks it per element.
+- **Safari's toolbar collapses and expands while scrolling on iPad** — the DOCUMENT is
+  scrolling, which the shell is built to prevent: the provider's wrapper is pinned to
+  `100dvh` and clipped, and the canvas (`Sidebar.Inset`) is the scroll container. Either the
+  shell CSS predates the scroll model (re-run the `add` — with `--overwrite`, and the user's
+  approval) or an `overflow-*` / `h-*` utility on one of the two slots overrode it. The
+  "shell pinned", "app scroll" and "canvas scrolls" checks in
+  [bootstrap.md](bootstrap.md#7-validate) say which.
+- **A full-height panel leaves a strip of background at its foot on iPad** — the panel
+  carries `h-svh` (or `min-h-svh`, `h-screen`): it is cut to the small viewport while the
+  layout viewport is the large one, and the toolbar collapsing uncovers the difference. Drop
+  the height. A flex child of the provider's row stretches to the wrapper's `100dvh` on its
+  own (or takes `h-full`); the kit's own rail had the same bug, closed by
+  `:where([data-slot="sidebar-container"]) { height: auto }`.
+- **The header stopped hiding on scroll** — auto-hide reads the bar's own scroll container.
+  Either something between the canvas and the header scrolls (an `overflow-x: hidden`
+  wrapper computes `overflow-y: auto`, becomes the scroller, and steals the sticky in the
+  same move — use `overflow-x: clip`), or the app scrolls a box the header is not inside (a
+  page that scrolls its own `<div>` while the canvas never moves), so there is nothing for
+  the bar to react to.
+- **PageDown / Space does nothing after clicking a rail link** — the app's router does not
+  move focus to the canvas. Keyboard scrolling starts from the FOCUSED element and walks up
+  its ancestors, never across to a sibling scroller; after a rail click focus sits in the
+  rail, so the keys have nothing to scroll. After every in-app navigation call
+  `document.getElementById("main-content")?.focus({ preventScroll: true })` — `AppShell`
+  gives the inset the id, `tabindex={-1}` and `focus-visible:outline-hidden` for exactly this
+  — except on a fragment landing, where the heading takes focus instead.
+- **Typing near the bottom of a field hides the caret behind the iPad keyboard** — the
+  installed `AppShell` predates the visual-viewport follow. iOS resizes only the visual
+  viewport when the software keyboard comes up, and `100dvh` tracks the layout viewport, so
+  the bottom of the canvas sits behind the keys. The current `AppShell` writes
+  `--shell-height` from `window.visualViewport` while a keyboard is up (the wrapper rule reads
+  `var(--shell-height, 100dvh)`) and undoes Safari's pan with `window.scrollTo(0, 0)`; re-run
+  the `add` with `--overwrite` — with the user's approval, since `AppShell.svelte` is their
+  code by then.

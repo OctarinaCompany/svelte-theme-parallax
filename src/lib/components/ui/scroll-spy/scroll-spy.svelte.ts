@@ -1,6 +1,7 @@
 import { getContext, hasContext, setContext } from "svelte";
 
 import type { Direction } from "$lib/components/ui/direction-provider/index.js";
+import { offsetWithin, scrollParentOf } from "$lib/shared/scroll-parent.js";
 import { readScrollMetrics } from "$lib/shared/scroll-position.svelte.js";
 
 import { SectionRegistry } from "./section-observer.svelte.js";
@@ -131,9 +132,22 @@ export class ScrollSpyState {
 
 			container.scrollTo({ top: sectionTop - containerTop + scrollTop - offset, behavior });
 		} else {
-			const sectionTop = section.getBoundingClientRect().top;
+			// No `scrollContainer`: upstream scrolls the window here. Inside the Parallax shell the
+			// document never scrolls — `Sidebar.Inset` is the scroll container and `window.scrollY`
+			// stays at `0` for good (`src/app.css`, `src/lib/shared/scroll-parent.ts`) — so a
+			// `window.scrollTo` would be a silent no-op while the value still flipped. The section's
+			// own scroll parent is asked instead: the document on a page where the document still
+			// scrolls, the canvas inside the shell. The `IntersectionObserver` needs no such
+			// translation: with no container its root is `null`, the viewport, and the canvas fills
+			// the viewport, so the observation band is the same rectangle in either arrangement
+			// (`section-observer.svelte.ts`).
+			//
+			// `scrollTo` rather than `scrollIntoView`, because the landing position is
+			// `offset`-adjusted. The trade is that a raw `scrollTo` does not consult the scroller's
+			// `scroll-padding-top` the way `scrollIntoView` would — which is what `offset` is for.
+			const scroller = scrollParentOf(section);
 
-			window.scrollTo({ top: sectionTop + window.scrollY - offset, behavior });
+			scroller.scrollTo({ top: offsetWithin(scroller, section) - offset, behavior });
 		}
 
 		if (this.#settleTimeout !== null) clearTimeout(this.#settleTimeout);

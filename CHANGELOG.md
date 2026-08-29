@@ -88,6 +88,42 @@ ships today is listed here.
 
 ### Changed
 
+- **The shell owns the scroll.** `parallax-shell` now pins `Sidebar.Provider`'s wrapper to
+  `100dvh` and clips it, and makes `Sidebar.Inset` — the `<main>` — the one scroll container:
+  `overflow-y: auto`, `overscroll-behavior-y: contain` so a flick at the end of the canvas does
+  not chain into the document, and the `scroll-padding-top` that used to sit on `:root`, because
+  `scrollIntoView` and a fragment honour the padding of the container that scrolls. The document
+  never scrolls inside the shell, so iOS and iPadOS Safari never collapse their toolbars
+  mid-scroll — a browser gesture a dashboard has no use for, and the one that exposed the rail
+  strip fixed below — and `100dvh` is the viewport as it stands: only rotation, or a software
+  keyboard, changes it, and `svh` / `lvh` would still be wrong there. The keyboard is followed,
+  because iOS resizes only the visual viewport when one comes up and `dvh` tracks the layout
+  viewport: `AppShell` writes `--shell-height` from `window.visualViewport` while a software
+  keyboard is up — the wrapper rule reads `var(--shell-height, 100dvh)` — and undoes Safari's
+  visual-viewport pan with `window.scrollTo(0, 0)`; a hardware or floating keyboard changes
+  nothing. A touch that starts on chrome outside the canvas — the rail, the header, a right
+  rail — used to rubber-band the document itself on iOS, which `contain` on the canvas cannot
+  reach; `:root` now carries `overscroll-behavior: none`, scoped by `:has()` to a document that
+  holds the shell. `@media print` releases both boxes, so a print is the whole page rather than
+  one viewport. `PageHeader`'s auto-hide, masonry, scroll spy and the tour ask their scroll
+  parent through the new `scroll-parent` module in `src/lib/shared/` (published with
+  `parallax-primitives`; `documentScrollerOf` is the one spelling of the document fallback, and
+  `offsetWithin` accounts for the scroller's `clientTop`), so each works in a shell that owns
+  its scroll and on a page where the document still does; the selection toolbar, the media
+  player's seek tooltip and the tour's spotlight listen in the capture phase instead, which
+  hears every scroll container at once. Masonry's child mode publishes the consumer's element
+  through an attachment, so it virtualises against the scroll parent too. The gallery router
+  restores the canvas's position rather than the window's, and moves focus to the canvas after
+  every in-app navigation: PageDown, Space and the arrows scroll from the focused element
+  upwards, never across to a sibling scroller, so a router that only scrolls leaves the keys
+  dead after a rail click — a fragment landing focuses its heading instead. The contract for a
+  consumer, stated in the skill: nothing inside the shell claims `h-svh` / `min-h-svh` /
+  `h-screen` (a full-height panel beside the canvas stretches as a flex child of the provider's
+  row, and is `relative` when it hosts an absolute pull-strip — `sticky` used to provide the
+  containing block), nothing reads `window.scrollY`, the router focuses `#main-content` after
+  navigating, and no scroll container may sit between the canvas and the header. The rules are
+  unlayered and `:where()`, so a consumer who wants the document back overrides with `!`
+  utilities on the inset and the provider.
 - **Routes are paths under the site base, not fragments.** `#/components/badge` became
   `/components/badge`, which hands the fragment back to the document — a section anchor such
   as `/components/badge#sizes` is now the browser's navigation rather than something the
@@ -101,6 +137,16 @@ ships today is listed here.
 
 ### Fixed
 
+- **The sidebar rail no longer leaves a strip of background at its foot on iPadOS Safari.**
+  `sidebar-container` is `fixed inset-y-0 … h-svh` upstream — over-constrained, and `bottom` is
+  the declaration the browser drops, so the rail was cut to the SMALL viewport (the one with the
+  toolbars expanded) while a fixed box is laid out against the LARGE one. Collapsing the toolbar
+  uncovered the difference; nothing scrolled. `parallax-shell` now ships
+  `:where([data-slot="sidebar-container"]) { height: auto }` and lets `inset-y-0` size the rail,
+  which fills the layout viewport exactly on every platform — `100dvh` would have closed the same
+  gap but re-laid the rail out on every toolbar animation, a jump on the one axis a navigation
+  rail must hold still. Both desktop variants measured at exactly `innerHeight`. The rule keeps
+  its job for a consumer who unlocks the document again.
 - **A streamed answer no longer strands its last screenful below the fold.** `Conversation`
   released its pin on any downward scroll that landed short of the bottom, and the tail of its
   own smooth scroll is exactly that: the step that touches the bottom clears the animating flag,

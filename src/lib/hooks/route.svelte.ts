@@ -27,6 +27,8 @@
  * sidebar are all derived from it, so the three can no longer disagree.
  */
 
+import { documentScrollerOf } from "$lib/shared/scroll-parent.js";
+
 /**
  * Entries that sit ABOVE the groups: a title and a destination, no children.
  *
@@ -704,7 +706,50 @@ if (import.meta.env.DEV) {
 	}
 }
 
-/** What this router keeps in a history entry: where the reader stood on that page. */
+/**
+ * The box this router scrolls and remembers: the shell's canvas, or the document when there is
+ * no shell.
+ *
+ * THE SHELL IS THE VIEWPORT AND THE CANVAS SCROLLS. `src/app.css` pins `Sidebar.Provider`'s
+ * wrapper to `100dvh` and clips it, and makes `Sidebar.Inset` — the `<main>` — the one scroll
+ * container, so inside the shell the document never moves (iOS Safari collapses its toolbars
+ * when the DOCUMENT scrolls, a gesture a dashboard has no use for; the stylesheet carries the
+ * reasoning). Every `window.scrollY` this file read and every `window.scrollTo` it issued
+ * became a no-op the day that landed: the number stays at 0 and the call moves nothing, with
+ * no error anywhere.
+ *
+ * LOOKED UP BY ID, NOT IMPORTED. The dependency runs one way and cannot be turned round:
+ * `AppShell.svelte` ships in the `parallax-shell` registry item, and `src/lib/shared/nav.ts`
+ * states that a published component never imports a router — this one is private to the
+ * gallery. What the shell DOES publish, to every consumer alike, is the landmark: its own
+ * comment names `#main-content` as the page's one landmark id, the one the skip link targets,
+ * which nothing else in a document may claim. That makes the id a contract this module can
+ * rely on exactly as the skip link does, and the one thing a `.ts` module evaluated before any
+ * component exists could rely on at all. Nor is `scrollParentOf` from
+ * `src/lib/shared/scroll-parent.ts` the answer: it walks up from an element, and the router,
+ * which stands outside every page, has none in hand.
+ *
+ * NEVER CACHED. The shell mounts after this module runs, and nothing stops a page swap from
+ * replacing the element; a lookup per call is one `getElementById` and is never stale.
+ *
+ * THE FALLBACK is the document's scrolling element, for the arrangements without a shell — a
+ * test, prerendering, a consumer who unlocks the document — spelled by `documentScrollerOf`
+ * from `src/lib/shared/scroll-parent.ts`, the same answer `scrollParentOf` gives when nothing
+ * else scrolls, for the same reason: `scrollTop` and `scrollTo` read and write the same way on
+ * either answer, so the two callers below never learn which one they got.
+ */
+export function scrollCanvas(): HTMLElement {
+	return document.getElementById("main-content") ?? documentScrollerOf(document);
+}
+
+/**
+ * What this router keeps in a history entry: where the reader stood on that page.
+ *
+ * The number is the canvas's `scrollTop` (see {@link scrollCanvas}). The field keeps the name it
+ * had while the document scrolled because it is a PERSISTED shape: entries already stamped in a
+ * reader's open tabs outlive a deploy, and renaming it would send every one of them back to the
+ * top of its page for the sake of a word.
+ */
 type RouteHistoryState = { scrollY?: number };
 
 /**
@@ -765,11 +810,14 @@ class RouteState {
 		if (typeof window === "undefined") return;
 
 		/*
-		 * The browser's own restoration is worse than useless here. It runs the instant the
-		 * history entry is activated, which on this application is while the page is still a
-		 * `Skeleton` — the document is a few hundred pixels tall, the restore clamps to that,
-		 * and the reader lands somewhere arbitrary once the real page mounts. `manual` hands
-		 * the job to `App.svelte`, which does it after the chunk resolves.
+		 * The browser's own restoration is switched off, and would be worse than useless if it
+		 * were not. It only ever addresses the document, which inside the shell no longer
+		 * scrolls — the canvas does, see `scrollCanvas` — so here it has nothing to restore; and
+		 * wherever the document DOES scroll it runs the instant the history entry is activated,
+		 * which on this application is while the page is still a `Skeleton` a few hundred pixels
+		 * tall: the restore clamps to that, and the reader lands somewhere arbitrary once the
+		 * real page mounts. `manual` says once, for both arrangements, that this router owns the
+		 * job — and hands it to `App.svelte`, which does it on the canvas after the chunk resolves.
 		 */
 		history.scrollRestoration = "manual";
 		this.#canonicalise();
@@ -804,7 +852,7 @@ class RouteState {
 			} else if (samePage) {
 				/*
 				 * Back out of a section, onto the same page with no fragment. Nothing else will
-				 * move the viewport — the browser's own restoration is off and there is no heading
+				 * move the canvas — the browser's own restoration is off and there is no heading
 				 * to scroll to — so without this the address bar loses `#sizes` while the reader
 				 * stays parked on Sizes, and the two disagree with no way back but scrolling.
 				 *
@@ -815,7 +863,7 @@ class RouteState {
 				 * none, the scroll is left alone rather than guessed at.
 				 */
 				this.#pendingScroll = null;
-				if (stored !== undefined) window.scrollTo({ top: stored, behavior: "instant" });
+				if (stored !== undefined) scrollCanvas().scrollTo({ top: stored, behavior: "instant" });
 			} else {
 				/*
 				 * A different page. `0` rather than `null` for an entry nobody stamped: only a
@@ -859,7 +907,8 @@ class RouteState {
 	}
 
 	/**
-	 * Take the scroll position the page that just mounted should adopt.
+	 * Take the scroll position the page that just mounted should adopt: an offset into the
+	 * canvas, which `App.svelte` applies through {@link scrollCanvas}.
 	 *
 	 * Returns `null` — meaning "leave the scroll alone" — for a fragment landing and for every
 	 * read after the first.
@@ -894,7 +943,8 @@ class RouteState {
 
 		/*
 		 * A fragment on the page already on screen is the BROWSER's navigation, and it does it
-		 * better than this router could: it scrolls honouring `scroll-padding-top`, sets
+		 * better than this router could: it scrolls whichever ancestor of the target scrolls —
+		 * the canvas, inside the shell — honouring that box's `scroll-padding-top`, sets
 		 * `:target`, writes one history entry, and turns a repeat click into a replace. This is
 		 * the line that makes `#section` links work, and it is also what finally makes the
 		 * placeholders the upstream themes write as `href="#!"` stop navigating to the front door —
@@ -938,9 +988,13 @@ class RouteState {
 	 * `pushState`, and the browser's when a same-page fragment link is left to it. A history
 	 * entry's state can only be written while that entry is the current one, so the position of
 	 * the page being left has to be stamped now or never.
+	 *
+	 * Read off the canvas, never `window.scrollY`: inside the shell the document does not scroll,
+	 * and that number would stamp a 0 onto every entry — Back would then always land at the top,
+	 * quietly, with nothing to point at.
 	 */
 	#rememberScroll(): void {
-		const state: RouteHistoryState = { ...history.state, scrollY: window.scrollY };
+		const state: RouteHistoryState = { ...history.state, scrollY: scrollCanvas().scrollTop };
 		history.replaceState(state, "");
 	}
 

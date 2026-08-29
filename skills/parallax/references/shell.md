@@ -1,6 +1,7 @@
 # Shell contracts
 
-Contents: [AppShell](#appshell) · [AppSidebar](#appsidebar) · [PageHeader](#pageheader) ·
+Contents: [AppShell](#appshell) · [The scroll model](#the-scroll-model) ·
+[AppSidebar](#appsidebar) · [PageHeader](#pageheader) ·
 [BreadcrumbTrail](#breadcrumbtrail) · [NavMain](#navmain) · [NavUser](#navuser) ·
 [WorkspaceSwitcher](#workspaceswitcher) · [Nav types](#nav-types) ·
 [Appearance controls](#appearance-controls)
@@ -46,16 +47,208 @@ Correct — AppShell is the provider; give it the sidebar through the snippet:
 **The canvas has `min-width: 0`.** `parallax-shell` ships
 `:where([data-slot="sidebar-inset"]) { min-width: 0 }` unlayered, because the inset is a flex
 item beside the rail and its automatic minimum size would otherwise be the min-content of the
-whole page — a table wider than the window pushes the shell past the viewport and scrolls the
-DOCUMENT sideways, taking the sidebar and the header with it. Consequences:
+whole page — a table wider than the window would widen the canvas past the viewport, and under
+the clipped wrapper a widened canvas is cut at the viewport's edge, header and all, with no
+scrollbar to bring it back (while the document still scrolled, it scrolled sideways instead and
+took the sidebar with it). With the minimum at zero the canvas holds its width, and what
+escapes pans the CANVAS: `overflow-x` computes to `auto` beside the `overflow-y: auto` the
+[scroll model](#the-scroll-model) gives it, so the rail and the header hold still while the
+page's own content slides. Consequences:
 
 - Anything that can outgrow the page needs a scroll container of its own. `Table.Root` has
-  one; a wide `<pre>`, a chart band or a board column may not.
+  one; a wide `<pre>`, a chart band or a board column may not — and what has none pans the
+  whole canvas sideways rather than its own box.
 - The rule reaches any `Sidebar.Inset`, whether it came from `AppShell` or from a provider you
   mounted yourself.
-- To let one canvas widen the document deliberately: `<Sidebar.Inset class="min-w-max!">`. The
-  `!` is required — Parallax CSS is unlayered and outranks utilities — while the rule's
-  `:where()` keeps its specificity at zero, so plain CSS of your own takes it back unaided.
+- To let one canvas take the width of its content deliberately:
+  `<Sidebar.Inset class="min-w-max!">`. Inside the shell that only moves the cut to the
+  canvas's own edge — the wrapper clips, and nothing scrolls the document — so it is a choice
+  for a page that has [unlocked the document](#the-scroll-model). The `!` is required —
+  Parallax CSS is unlayered and outranks utilities — while the rule's `:where()` keeps its
+  specificity at zero, so plain CSS of your own takes it back unaided.
+
+## The scroll model
+
+**The shell is the viewport; the canvas scrolls.** Inside the shell the document never
+scrolls: the provider's wrapper is pinned to the viewport and clipped, and `Sidebar.Inset` —
+the `<main>`, which `AppShell` gives `id="main-content"` — is the one scroll container.
+`parallax-shell` ships that as four unlayered rules, verbatim:
+
+```css
+:where(:root:has([data-slot="sidebar-wrapper"])) {
+	overscroll-behavior: none;
+}
+
+:where([data-slot="sidebar-wrapper"]) {
+	height: var(--shell-height, 100dvh);
+	min-height: 0;
+	overflow: clip;
+}
+
+:where([data-slot="sidebar-inset"]) {
+	min-width: 0;
+	min-height: 0;
+	overflow-y: auto;
+	overscroll-behavior-y: contain;
+	scroll-padding-top: calc(var(--page-header-height) + 0.5rem);
+}
+
+@media print {
+	:where([data-slot="sidebar-wrapper"]) {
+		height: auto;
+		overflow: visible;
+	}
+	:where([data-slot="sidebar-inset"]) {
+		overflow: visible;
+	}
+}
+```
+
+Why. iOS and iPadOS Safari collapse their toolbars when the DOCUMENT scrolls — a browser
+gesture a dashboard has no use for, and the one that exposed the rail strip: a fixed rail
+sized `h-svh` is cut to the small viewport, and the toolbar collapsing uncovers the
+difference along its foot. With a non-scrolling document the toolbars never move, so
+`100dvh` is the viewport as it stands, and only rotation — or a software keyboard — changes
+it; `svh` would still pin the wrapper to the small viewport and leave the toolbar-height strip
+at its foot, and `lvh` would push the canvas's bottom under the toolbars whenever they are up.
+The keyboard is the case `dvh` cannot follow on its own: iOS resizes only the VISUAL viewport
+when the software keyboard comes up, while `dvh` tracks the layout viewport, so the bottom of
+the canvas — and the field being typed into — would sit behind the keys. `AppShell` writes
+`--shell-height` from `window.visualViewport` while a keyboard is up (the rule's `var()`
+falls back to `100dvh` the rest of the time) and calls `window.scrollTo(0, 0)` to undo the
+pan Safari gives the visual viewport; a hardware or floating keyboard resizes nothing and
+changes nothing. `clip` rather than `hidden`, because `hidden` is still a scroll container —
+script can scroll it, and it would catch the sticky header. `overscroll-behavior-y: contain`
+stops a flick at the end of the canvas from chaining into the document (the rubber band). The
+root rule covers the case `contain` cannot reach: a touch that starts on chrome outside the
+canvas — the rail, the header, a right rail — never scrolls the canvas at all, so on iOS it
+rubber-bands the document itself; `overscroll-behavior: none` on `:root` suppresses that, and
+the `:has()` scopes it to a document that holds the shell, so a page without one keeps its
+bounce. `scroll-padding-top` sits on the canvas rather than on `:root` because
+`scrollIntoView` and a fragment honour the padding of the container that actually scrolls.
+And `overflow-x` computes to `auto` beside `overflow-y: auto`, so wide content that escapes
+its own scroller pans the canvas sideways rather than the document — `min-width: 0` still
+keeps the canvas from widening. The rail's own rule,
+`:where([data-slot="sidebar-container"]) { height: auto }`, stays outside this set: it sizes
+the fixed rail by `inset-y-0` instead of `svh`, and still matters to a consumer who unlocks
+the document.
+
+What it means for your code, as five pairs.
+
+Incorrect — a right-hand rail sized like a viewport (the recipe the fixed rail used to
+carry; on iPad it is cut to the small viewport and a strip of page shows under it):
+
+```svelte
+<aside class="sticky top-0 h-svh w-80 shrink-0 border-s border-sidebar-outline">…</aside>
+```
+
+Correct — a sibling of `Sidebar.Inset` in the provider's row (the installed
+`AppShell.svelte` is your code; put it beside the inset there), stretched as a flex child,
+its content filling with `flex-1 min-h-0` and scrolling in its own box. `relative`, because a
+pull-strip or collapse handle positioned `absolute` inside the rail needs the rail as its
+containing block — the `sticky` the old recipe carried provided one for free, and dropping it
+without `relative` sent the strip to the window's left edge in a consumer app:
+
+```svelte
+<Sidebar.Inset id="main-content" tabindex={-1}>…</Sidebar.Inset>
+<aside class="relative flex w-80 shrink-0 flex-col border-s border-sidebar-outline">
+	<div class="flex-1 min-h-0 overflow-y-auto">…</div>
+</aside>
+```
+
+Incorrect — reading the document's position, which inside the shell is 0 forever:
+
+```ts
+const y = window.scrollY;
+window.scrollTo({ top: 0 });
+```
+
+Correct — asking which box scrolls the element (`$lib/shared/scroll-parent.js`, installed
+with `parallax-primitives`; it answers the document on a page where the document still
+scrolls), or letting the browser do it:
+
+```ts
+import { scrollParentOf } from "$lib/shared/scroll-parent.js";
+
+const scroller = scrollParentOf(el);
+const y = scroller.scrollTop;
+scroller.scrollTo({ top: 0 });
+target.scrollIntoView(); // honours the canvas's scroll-padding-top
+```
+
+Incorrect — a router that restores the canvas's position and stops there. PageDown, Space and
+the arrow keys scroll from the FOCUSED element and walk up through its ancestors, never across
+to a sibling scroller; after a click on a rail link focus sits in the rail, whose nearest
+scroller is not the canvas, so the keys scroll nothing:
+
+```ts
+const canvas = document.getElementById("main-content")!;
+canvas.scrollTo({ top: 0, behavior: "instant" });
+```
+
+Correct — scroll AND focus the canvas after every in-app navigation. `AppShell` gives the
+inset `id="main-content"`, `tabindex={-1}` so it can take focus at all, and
+`focus-visible:outline-hidden` so no ring is drawn around a whole page; `preventScroll` keeps
+the focus from moving what was just positioned. The one exception is a fragment landing, where
+the section's heading takes focus instead — the gallery's `App.svelte` does both:
+
+```ts
+const canvas = document.getElementById("main-content")!;
+canvas.scrollTo({ top: 0, behavior: "instant" });
+if (!location.hash) canvas.focus({ preventScroll: true });
+```
+
+Incorrect — a listener that waits for the document to scroll (`scroll` does not bubble, so
+the canvas's events never reach it):
+
+```svelte
+<svelte:window onscroll={measure} />
+```
+
+Correct — the scroll parent's own events, or the capture phase for "any scroll anywhere":
+
+```ts
+import { scrollEventTargetOf, scrollParentOf } from "$lib/shared/scroll-parent.js";
+
+scrollEventTargetOf(scrollParentOf(el)).addEventListener("scroll", measure, { passive: true });
+// or, for every scroll container at once:
+window.addEventListener("scroll", measure, { capture: true, passive: true });
+```
+
+Incorrect — a page wrapper that clips sideways between the canvas and the header (beside an
+`overflow-y: visible`, `overflow-x: hidden` computes to `auto`: the wrapper becomes the
+scroll container, and both the sticky and the auto-hide follow it instead of the canvas):
+
+```svelte
+<div class="overflow-x-hidden">
+	<PageHeader {trail} />
+	…
+</div>
+```
+
+Correct — `clip` is not a scroll container:
+
+```svelte
+<div class="overflow-x-clip">
+	<PageHeader {trail} />
+	…
+</div>
+```
+
+**Printing** is the one escape the kit ships: under `@media print` both boxes grow and
+release their overflow, so a print is the whole page rather than one viewport.
+
+**Unlocking the document** is possible, and it costs what the model bought. The rules are
+`:where()`, so plain CSS of your own beats them at any specificity — but a utility does not,
+because Parallax CSS is unlayered, so the override from a class needs `!` on both boxes:
+`<Sidebar.Inset class="overflow-visible!">` and, on the provider in your `AppShell.svelte`,
+`<Sidebar.Provider class="h-auto! min-h-svh! overflow-visible!">`. After that the document
+scrolls again: Safari's toolbars collapse as you scroll, `scroll-padding-top` has to be
+restated on `:root` in your stylesheet (the canvas no longer scrolls, so its padding applies
+to nothing), the rail keeps its `height: auto` rule, which is exactly the case it guards, and
+the root keeps `overscroll-behavior: none` — it stops the rubber band, not the scroll, so
+restate it as `auto` in your stylesheet if you want the bounce back. Everything that reads its
+scroll parent keeps working — the answer becomes the document.
 
 ## AppSidebar
 
@@ -106,6 +299,12 @@ Contracts that make overrides safe:
 - The floating / auto-hide / inverted behaviour needs no wiring here — the header already
   carries `data-slot="page-header"` / `"page-header-bar"` and writes
   `data-floating`/`data-hidden` itself.
+- **Auto-hide follows the bar's own scroll container.** The header reads and listens on the
+  nearest scrolling ancestor of its wrapper — the canvas inside the shell, the document on a
+  page that still scrolls — never on `window` by name. So a box that scrolls between the
+  canvas and the header both steals the sticky and becomes what auto-hide measures, and a
+  page that scrolls a box of its own while the canvas never moves gives the bar nothing to
+  react to. [The scroll model](#the-scroll-model) has the pairs.
 
 Incorrect — search field without the giver classes (clips the right-hand controls as soon
 as the bar is over-subscribed):

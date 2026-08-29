@@ -16,7 +16,10 @@ document disagree, one of them has a bug.
 ## 2. Shared infrastructure
 
 - Cross-component machinery lives in `src/lib/shared/` (the `registry:lib` pattern): form-control
-  wiring, roving focus, DOM-ordered collections, scroll position, the TanStack Table bridge,
+  wiring, roving focus, DOM-ordered collections, scroll position, the scroll parent (which box
+  scrolls an element — the shell owns the scroll, so nothing reads `window.scrollY`, and
+  `documentScrollerOf` is the one spelling of the document fallback), the TanStack Table
+  bridge,
   `format-bytes` (house format: `2 MB`), `get-initials`, `chat-parts` (the status, role and
   tool-state vocabulary the AI chat family shares) and `download-text` (Blob → object URL →
   `<a download>`, the one save path code-block and conversation both use).

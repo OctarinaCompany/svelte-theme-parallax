@@ -23,15 +23,30 @@
  * its combobox is not `Popover` + `Command` at all, but Base UI's `Combobox` with a `Positioner`
  * of its own — the same shape this repository's own `ui/combobox` primitive takes.
  *
- * WHAT THIS DOES INSTEAD. Remembers the scroll offset at the moment of opening and puts it back
- * on the frames the stray scroll can land in. Restoring inside the scroll listener happens before
- * the next paint, so nothing is drawn at the wrong offset and there is no flicker to see. It
- * stops at the first frame after the popup is placed, which is also the first frame a real user
- * scroll could arrive, so a deliberate scroll is never fought.
+ * WHAT THIS DOES INSTEAD. Remembers the scroll offset of every box the stray scroll can land in
+ * at the moment of opening, and puts back whichever one moved on the frames it can land in.
+ * `scrollIntoView` scrolls EVERY scrollable ancestor that needs to move to reveal the element,
+ * and in the Parallax shell the page that is being kept in place is the canvas — `Sidebar.Inset`
+ * is the scroll container and the document never scrolls (`src/app.css`,
+ * `src/lib/shared/scroll-parent.ts`) — so the canvas is snapshotted alongside the document rather
+ * than instead of it: a page where the document still scrolls is protected the same way, and a
+ * page without a shell has one box fewer to watch, because `scrollCanvas`
+ * (`src/lib/hooks/route.svelte.ts`) then answers the document again and the pair collapses to
+ * one. Restoring inside the
+ * scroll listener happens before the next paint, so nothing is drawn at the wrong offset and
+ * there is no flicker to see. The listener sits on `window` in the capture phase because `scroll`
+ * does not bubble: that is the one place that hears a scroll on any box. It stops at the first
+ * frame after the popup is placed, which is also the first frame a real user scroll could arrive,
+ * so a deliberate scroll is never fought.
  */
+
+import { scrollCanvas } from "$lib/hooks/route.svelte.js";
 
 /** How many frames to watch. Placement lands in one or two; three is margin, not superstition. */
 const FRAMES = 3;
+
+/** One box to hold still: where it was when the popup opened. */
+type Snapshot = { element: Element; top: number; left: number };
 
 /**
  * `onOpenChange` for a `Popover.Root` whose content holds a `Command`.
@@ -41,20 +56,27 @@ const FRAMES = 3;
 export function keepPageScroll(open: boolean): void {
 	if (!open || typeof window === "undefined") return;
 
-	const top = window.scrollY;
-	const left = window.scrollX;
+	// `document.scrollingElement` stands for the document so that `scrollTop` and `scrollTo` read
+	// and write the same way on both boxes; it is `null` only in quirks-mode oddities, hence the
+	// filter rather than an assertion. `scrollCanvas` is the canvas inside the shell and the same
+	// scrolling element again where there is none, which the `Set` collapses to a single box.
+	const snapshots: Snapshot[] = [...new Set([document.scrollingElement, scrollCanvas()])]
+		.filter((element): element is Element => element !== null)
+		.map((element) => ({ element, top: element.scrollTop, left: element.scrollLeft }));
 	let frames = 0;
 
 	const restore = () => {
-		if (window.scrollY !== top || window.scrollX !== left) window.scrollTo(left, top);
+		for (const { element, top, left } of snapshots) {
+			if (element.scrollTop !== top || element.scrollLeft !== left) element.scrollTo(left, top);
+		}
 	};
 
-	window.addEventListener("scroll", restore, true);
+	window.addEventListener("scroll", restore, { capture: true, passive: true });
 
 	const tick = () => {
 		restore();
 		if (++frames >= FRAMES) {
-			window.removeEventListener("scroll", restore, true);
+			window.removeEventListener("scroll", restore, { capture: true });
 			return;
 		}
 		requestAnimationFrame(tick);

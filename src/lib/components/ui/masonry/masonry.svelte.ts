@@ -1,6 +1,11 @@
 import { getContext, hasContext, setContext } from "svelte";
 
 import type { Direction } from "$lib/components/ui/direction-provider/index.js";
+import {
+	documentScrollerOf,
+	offsetWithin,
+	scrollEventTargetOf,
+} from "$lib/shared/scroll-parent.js";
 
 import { createPositioner, type Positioner, type PositionerItem } from "./masonry-positioner.js";
 
@@ -109,9 +114,16 @@ function createThrottle<T>(
 }
 
 /**
- * Track the debounced document size, replacing upstream's `useDebouncedWindowSize` (lines 847–906).
+ * Track the debounced viewport size, replacing upstream's `useDebouncedWindowSize` (lines 847–906).
  * Returns the teardown. Not exported through `index.ts` — it is DOM plumbing, not a layout
  * primitive.
+ *
+ * The size is read once on subscription as well as on every resize. The constructor's read runs
+ * before the root is connected, so the height it seeded is the document's; the root's `$effect`
+ * calls this again once `scroller` is resolved (it re-runs for `observeWindowScroll`'s read of
+ * it), and that second pass is what puts the scroller's own height into `windowSize`. The window
+ * stays the resize source in both arrangements: the shell's canvas is sized by the viewport, so
+ * it cannot change size without a `resize` on the window.
  */
 export function observeWindowSize(
 	state: MasonryState,
@@ -120,6 +132,8 @@ export function observeWindowSize(
 	if (typeof window === "undefined") return () => {};
 
 	let timeout: ReturnType<typeof setTimeout> | null = null;
+
+	state.windowSize = state.readDocumentSize();
 
 	function onResize() {
 		if (timeout !== null) clearTimeout(timeout);
@@ -141,8 +155,24 @@ export function observeWindowSize(
 }
 
 /**
- * Track the throttled window scroll offset and the "is scrolling" flag, replacing upstream's
+ * Track the throttled scroll offset and the "is scrolling" flag, replacing upstream's
  * `useScroller` (lines 1020–1083). Returns the teardown.
+ *
+ * **Divergence.** Upstream tracks the window; here the root's scroll parent, because the shell
+ * owns the scroll — see `src/lib/shared/scroll-parent.ts`. Inside the Parallax shell the document
+ * never scrolls (`Sidebar.Inset` is the one scroll container, `src/app.css`), so a listener on
+ * `window` would fire for nothing and `window.scrollY` would read `0` for good: the grid would
+ * paint its first viewport and never advance, with no error to point at it. The listener goes on
+ * the scroller's own event target instead — which is still `window` when the scroller is the
+ * document, so a page where the document scrolls behaves exactly as before. Reading
+ * `state.scroller` here is what subscribes the root's `$effect` to it: the listener moves the
+ * moment `<Masonry.Root>` resolves the scroller. Until then — the first client pass only, since
+ * `child` mode publishes its element through the spread props — the document is read, which is
+ * the number upstream's `window.scrollY` gave.
+ *
+ * The offset is also read once on subscription. Upstream starts from `0` and waits for the first
+ * event, which is right for a page loaded at the top; a grid mounted into a canvas that is
+ * already scrolled would otherwise lay out for the wrong band until the reader moved.
  *
  * **Divergence.** Upstream settles `isScrolling` through a `requestAnimationFrame` polling loop that
  * compares timestamps; a single `setTimeout` of the same `40 + 1000 / fps` delay is equivalent and
@@ -150,6 +180,14 @@ export function observeWindowSize(
  */
 export function observeWindowScroll(state: MasonryState, fps: number = SCROLL_FPS): () => void {
 	if (typeof window === "undefined") return () => {};
+
+	const scroller = state.scroller;
+	const target: EventTarget = scroller ? scrollEventTargetOf(scroller) : window;
+	// `documentScrollerOf(document).scrollTop` and `window.scrollY` are the same number, so the
+	// fallback reads what upstream read — spelled as a scroll parent because nothing in this tree
+	// reads `window.scrollY` (`src/lib/shared/scroll-parent.ts`). It is only ever taken on the
+	// first client pass, before `<Masonry.Root>` has published its scroller.
+	const readOffset = () => (scroller ? scroller.scrollTop : documentScrollerOf(document).scrollTop);
 
 	const settleDelay = 40 + 1000 / fps;
 	let settle: ReturnType<typeof setTimeout> | null = null;
@@ -169,13 +207,14 @@ export function observeWindowScroll(state: MasonryState, fps: number = SCROLL_FP
 			state.isScrolling = false;
 		}, settleDelay);
 
-		throttled(window.scrollY ?? document.documentElement.scrollTop ?? 0);
+		throttled(readOffset());
 	}
 
-	window.addEventListener("scroll", onScroll, { passive: true });
+	state.scrollY = readOffset();
+	target.addEventListener("scroll", onScroll, { passive: true });
 
 	return () => {
-		window.removeEventListener("scroll", onScroll);
+		target.removeEventListener("scroll", onScroll);
 		throttled.cancel();
 		if (settle !== null) clearTimeout(settle);
 	};
@@ -228,15 +267,35 @@ export class MasonryState {
 	// static analysis cannot see that and flags the field as used before its constructor assignment.
 	#props!: MasonryStateProps;
 
-	/** The root element, published by `<Masonry.Root>`. Stays `null` in `child` mode. */
+	/**
+	 * The root element, published by `<Masonry.Root>` — from `bind:this`, or in `child` mode from
+	 * the attachment its spread props carry. `null` until the root is mounted.
+	 */
 	rootElement: HTMLElement | null = $state(null);
 	/** `false` until the root's `$effect.pre` runs — i.e. on the server and on the first client pass. */
 	mounted: boolean = $state(false);
-	/** The debounced document size; seeded from `defaultWidth`/`defaultHeight` when there is no DOM. */
+	/**
+	 * The box the root scrolls in, published by `<Masonry.Root>` once the root is connected: the
+	 * shell's canvas, or `document.scrollingElement` on a page where the document scrolls
+	 * (`src/lib/shared/scroll-parent.ts`). `null` before that — the first client pass — when the
+	 * observers fall back to the document, the box upstream read.
+	 */
+	scroller: HTMLElement | null = $state(null);
+	/**
+	 * The debounced viewport size — the scroller's client box once it is known, the document's
+	 * before; seeded from `defaultWidth`/`defaultHeight` when there is no DOM. Upstream's name is
+	 * kept: it is the window's size only when the window is what scrolls.
+	 */
 	windowSize: { width: number; height: number } = $state.raw({ width: 0, height: 0 });
-	/** The root's offsetTop chain sum and its measured width (upstream lines 1243–1263). */
+	/**
+	 * The root's offset into the scroller's content and its measured width (upstream lines
+	 * 1243–1263, where the offset is the `offsetTop` chain sum from the top of the document).
+	 */
 	containerPosition: { offset: number; width: number } = $state.raw({ offset: 0, width: 0 });
-	/** The throttled `window.scrollY`. */
+	/**
+	 * The throttled scroll offset of {@link scroller} — `window.scrollY` when the document scrolls,
+	 * hence the name, `scrollTop` of the canvas inside the shell.
+	 */
 	scrollY: number = $state(0);
 	/** True between a scroll tick and its `40 + 1000 / fps` ms settle. */
 	isScrolling: boolean = $state(false);
@@ -325,6 +384,11 @@ export class MasonryState {
 		return this.positioner.shortestColumn();
 	});
 
+	/**
+	 * How far the scroller has scrolled past the root's top edge. Both terms are offsets into the
+	 * same box — the scroller's content — so the subtraction holds for the canvas and the document
+	 * alike.
+	 */
 	readonly scrollTop: number = $derived(Math.max(0, this.scrollY - this.containerPosition.offset));
 	readonly overscanPixels: number = $derived(this.windowSize.height * this.#props.getOverscan());
 	readonly rangeStart: number = $derived(Math.max(0, this.scrollTop - this.overscanPixels / 2));
@@ -387,7 +451,14 @@ export class MasonryState {
 		this.windowSize = this.readDocumentSize();
 	}
 
-	/** The document size, or the declared defaults when there is no DOM (server render). */
+	/**
+	 * The viewport size, or the declared defaults when there is no DOM (server render).
+	 *
+	 * The height is the scroller's client height — the band the overscan window is a multiple of.
+	 * Upstream reads `document.documentElement.clientHeight`, which is the same number when the
+	 * document is the scroller, and the wrong one inside the shell only by the width of a horizontal
+	 * scrollbar; the difference matters for a grid inside a fixed-height scroll area of its own.
+	 */
 	readDocumentSize(): { width: number; height: number } {
 		if (typeof document === "undefined") {
 			return {
@@ -397,25 +468,38 @@ export class MasonryState {
 		}
 
 		const element = this.rootElement;
+		const scroller = this.scroller;
 		return {
 			width: element ? element.offsetWidth : document.documentElement.clientWidth,
-			height: document.documentElement.clientHeight,
+			height: scroller ? scroller.clientHeight : document.documentElement.clientHeight,
 		};
 	}
 
 	/**
-	 * Measure the root's offset from the top of the document and its width. Compared against plain
+	 * Measure the root's offset into the scroller's content and its width. Compared against plain
 	 * mirrors rather than the reactive value, so the caller's effect never reads what it writes.
+	 *
+	 * Upstream sums the `offsetTop` chain, which is an offset from the top of the document and so
+	 * only comparable with `window.scrollY`. `offsetWithin` gives the same number for the document
+	 * and the offset into the canvas inside the shell — the one `scroller.scrollTop` is measured
+	 * in. Reading `scroller` here is deliberate: it subscribes the root's measuring effect, so the
+	 * offset is taken again the moment the scroller is resolved. The chain sum stays for the
+	 * moment before that, when there is no scroller to measure against.
 	 */
 	measureContainer(element: HTMLElement | null): void {
 		if (!element) return;
 
+		const scroller = this.scroller;
 		let offset = 0;
-		let current: HTMLElement | null = element;
-		do {
-			offset += current.offsetTop ?? 0;
-			current = current.offsetParent as HTMLElement | null;
-		} while (current);
+		if (scroller) {
+			offset = offsetWithin(scroller, element);
+		} else {
+			let current: HTMLElement | null = element;
+			do {
+				offset += current.offsetTop ?? 0;
+				current = current.offsetParent as HTMLElement | null;
+			} while (current);
+		}
 
 		const width = element.offsetWidth;
 		if (offset === this.#lastOffset && width === this.#lastWidth) return;

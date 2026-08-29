@@ -1,4 +1,5 @@
 import type { Direction } from "$lib/components/ui/direction-provider/index.js";
+import { isDocumentScroller, offsetWithin, scrollParentOf } from "$lib/shared/scroll-parent.js";
 import { getContext, hasContext, setContext, type Snippet } from "svelte";
 
 /**
@@ -323,8 +324,32 @@ export function isTargetInViewport(
 }
 
 /**
- * Upstream `onScrollToElement`: scroll the window so `element` clears the top
- * inset, but only when it is not already in view, and never past `0`.
+ * Upstream `onScrollToElement`: scroll so `element` clears the top inset, but only when it is not
+ * already in view, and never past `0`.
+ *
+ * Divergence: upstream scrolls the WINDOW (`rect.top + window.scrollY`). Inside the Parallax shell
+ * the document never scrolls — `Sidebar.Inset` is the scroll container and `window.scrollY` stays
+ * at `0` for good (`src/app.css`, `src/lib/shared/scroll-parent.ts`) — so a `window.scrollTo` there
+ * is a silent no-op and the step opens on a target that is still off screen. EVERY scroll
+ * container between the target and the document takes part instead, nearest first: the panel
+ * the target sits in, the canvas around it, and the document where it still scrolls. Scrolling
+ * the nearest one alone is not enough — a target inside a `ScrollArea` viewport, a `Table.Root`
+ * wrapper (its `overflow-x: auto` makes `overflow-y` compute to `auto` as well, per MDN) or any
+ * nested `overflow-y: auto` panel would be brought to the top of that panel while the panel
+ * itself, and the canvas around it, stayed exactly where they were.
+ *
+ * MEASURED FIRST, SCROLLED AFTER. Every scroller's destination is computed from the rects as
+ * they stand before anything moves, carrying forward how far the inner ones will have shifted
+ * the target (`shift`), and only then are the `scrollTo` calls issued. Reading the rects again
+ * after each call would be wrong under `behavior: "smooth"`: the scroll runs asynchronously, the
+ * rect still shows the target where it was, and the outer scroller would overshoot by exactly
+ * the inner delta. A destination is clamped to what its scroller can reach
+ * (`scrollHeight - clientHeight`), and the clamped value is what the next one compensates for.
+ *
+ * The in-view test still measures against `window.innerWidth`/`innerHeight`, on purpose: the
+ * canvas fills the viewport, so "inside the viewport minus the insets" and "inside the canvas
+ * minus the insets" are the same rectangle, and `getBoundingClientRect` is viewport-relative
+ * whichever box scrolls.
  *
  * Fire-and-forget by design — there is no pending-scroll bookkeeping, which is exactly why a later
  * `Next`/`Previous` always supersedes an earlier one under rapid repeated activation.
@@ -342,10 +367,19 @@ export function scrollTargetIntoView(
 
 	if (isTargetInViewport(rect, scrollOffset, viewport)) return;
 
-	window.scrollTo({
-		top: Math.max(0, rect.top + window.scrollY - offset.top),
-		behavior: scrollBehavior,
-	});
+	const plan: Array<[HTMLElement, number]> = [];
+	let scroller = scrollParentOf(element);
+	let shift = 0;
+	for (;;) {
+		const current = scroller.scrollTop;
+		const max = scroller.scrollHeight - scroller.clientHeight;
+		const wanted = Math.min(max, Math.max(0, offsetWithin(scroller, element) - shift - offset.top));
+		if (wanted !== current) plan.push([scroller, wanted]);
+		shift += wanted - current;
+		if (isDocumentScroller(scroller)) break;
+		scroller = scrollParentOf(scroller);
+	}
+	for (const [target, top] of plan) target.scrollTo({ top, behavior: scrollBehavior });
 }
 
 export type TourRootStateProps = {
