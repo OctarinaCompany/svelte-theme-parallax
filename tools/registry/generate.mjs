@@ -944,10 +944,22 @@ const UI_DESCRIPTIONS = {
  * describing it are the same commit.
  */
 /*
- * Post-install prose the registry shows after an `add`, for the items whose install is not
- * finished by copying files. `docs` is the registry-item field shadcn-svelte prints once the
- * files land. Keyed by ui/ folder, with the same orphan rule as the descriptions: an entry for a
- * folder that is not published is a sentence nobody reads.
+ * Post-install prose for the items whose install is not finished by copying files. Keyed by ui/
+ * folder, with the same orphan rule as the descriptions: an entry for a folder that is not
+ * published is a sentence nobody reads.
+ *
+ * WHERE IT ACTUALLY LANDS, because the obvious assumption is wrong. `docs` is a field of
+ * shadcn's registry-item schema, and the React CLI prints it after an `add`; shadcn-svelte 1.5.1
+ * does NOT — its item schema has no `docs` at all, so `registry build` parses it away and
+ * `public/r/parallax-message.json` carries no trace of it. Measured, not assumed: the built item's
+ * keys are name, title, type, description, dependencies, registryDependencies, files.
+ *
+ * So this string reaches a reader through `docs/REGISTRY.md`, which renders it under the item's
+ * install command, and the same requirement is stated twice more where someone installing will
+ * actually be standing: in the item's own `description` (which does survive the build, and is
+ * what `public/llms.txt` hands an agent) and in the skill's install reference. Keep it here
+ * anyway — it is the field the schema defines for exactly this, REGISTRY.md is generated from it,
+ * and a CLI that grows the feature would print it with no edit.
  */
 const UI_DOCS = {
 	message:
