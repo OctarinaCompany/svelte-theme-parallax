@@ -29,6 +29,15 @@ ships today is listed here.
   behind, with `.BranchContent`, `.BranchSelector`, `.BranchPrevious`, `.BranchNext` and an
   announced `.BranchPage` counter. The alternatives are a `branches: Snippet[]` prop — Svelte
   cannot count children the way the React original does — and only the active one is mounted.
+- A `Chat surface` page under `Patterns`, the sixth: the AI chat family composed into one working
+  screen — a scrolling transcript carrying a reasoning trace and a tool call, a branch pager over a
+  regenerated answer, starters before the first message, and a live composer with its action menu
+  and attachments — driven by local state and a simulated reply, so it runs with no transport, no
+  network and no `ai` dependency. It ships no component of its own, so it owes no API reference;
+  what it documents instead is the wiring a reader has to copy — which element is the scroll
+  container and why `min-h-0` is what makes it one, where the composer sits relative to it, how a
+  streaming turn keeps the viewport pinned, why the transcript is keyed by message id, and what a
+  caller owns against what the components own.
 - Four languages in `code-block`: `csv`, `md`, `sql` and `yaml`, each with the label, registered
   MIME type and extension its downloads need — a ```` ```csv customers.csv ```` fence in a chat
   answer used to render under the label `Text` and save as `text/plain`. SQL brings the `--` line
@@ -91,6 +100,18 @@ ships today is listed here.
   in `src/lib/hooks/route.svelte.ts`, the only place a base and a route meet.
 
 ### Fixed
+
+- **A streamed answer no longer strands its last screenful below the fold.** `Conversation`
+  released its pin on any downward scroll that landed short of the bottom, and the tail of its
+  own smooth scroll is exactly that: the step that touches the bottom clears the animating flag,
+  the content keeps growing, and the remaining steps of the animation the browser is still
+  running arrive short — read as the reader leaving. Nothing re-arms the pin after that, so the
+  viewport stopped following mid-answer with the scroll button up. Measured on the Chat surface
+  pattern: pinned through growth in 24px steps, released on a step that landed 27px short, ending
+  148px from the bottom. A reader who is pinned is at the bottom and cannot scroll further down,
+  so only a scroll towards the TOP releases now, and a settle that lands short re-aims instead of
+  judging. Verified against a 303px single-frame growth, and the reader's own control is
+  unchanged: scrolling up releases, growth while released moves nothing, the button re-pins.
 
 - **A squared avatar no longer shows its corners around a circle.** `Avatar.Root` drew its
   hairline ring with a hardcoded `after:rounded-full`, so every call site that squares the avatar

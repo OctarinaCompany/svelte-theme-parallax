@@ -157,6 +157,7 @@ Demonstration pages, readable as source (not registry items). Fetch any file at
 - Settings: src/lib/components/pages/SettingsPage.svelte
 - Themes: src/lib/components/pages/ThemesPage.svelte
 - Sizing: src/lib/components/pages/SizingPage.svelte
+- Chat surface (Patterns): src/lib/components/pages/ChatSurfacePage.svelte
 - File upload (Patterns): src/lib/components/pages/FileUploadPage.svelte
 - List group (Patterns): src/lib/components/pages/ListGroupPage.svelte
 - Page headers (Patterns): src/lib/components/pages/PageHeadersPage.svelte

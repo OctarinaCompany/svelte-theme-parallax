@@ -17,6 +17,7 @@ first; everything below is the complete map.
 
 ## Patterns
 
+- Chat surface — `src/lib/components/pages/ChatSurfacePage.svelte`
 - File upload — `src/lib/components/pages/FileUploadPage.svelte`
 - List group — `src/lib/components/pages/ListGroupPage.svelte`
 - Page headers — `src/lib/components/pages/PageHeadersPage.svelte`

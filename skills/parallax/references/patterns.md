@@ -1,9 +1,10 @@
 # Gallery pattern recipes
 
 Contents: [How to use this file](#how-to-use-this-file) · [Tables in cards](#tables-in-cards) ·
-[Page headers](#page-headers) · [List group](#list-group) · [File upload](#file-upload) ·
-[Typography](#typography) · [Sizing and density](#sizing-and-density) ·
-[Data table](#data-table) · [Data grid](#data-grid)
+[Chat surface](#chat-surface) · [Page headers](#page-headers) · [List group](#list-group) ·
+[File upload](#file-upload) · [Typography](#typography) ·
+[Sizing and density](#sizing-and-density) · [Data table](#data-table) ·
+[Data grid](#data-grid)
 
 ## How to use this file
 
@@ -55,6 +56,54 @@ Composes, all as `parallax-<name>` items: `card`, `checkbox`, `dropdown-menu`, `
 `density` prop, `badge` for the `*-subtle` variants.
 Source: `src/lib/components/pages/TablesInCardsPage.svelte` +
 `pages/tables-in-cards-table.svelte`.
+
+## Chat surface
+
+The AI chat family assembled into one screen: a scrolling transcript whose turns carry
+reasoning traces and tool calls, a pager over a regenerated answer, starters before the
+first message, and a composer that keeps its own height underneath. Reach for it when a
+chat *is* the page rather than a widget on one.
+
+- Four elements decide the behaviour: a flex column **with a height**, a header, the
+  `Conversation.Root` scroller taking `flex-1`, and the composer as its **sibling**. A
+  column that grows with its content never overflows, so its viewport never scrolls and
+  therefore never pins.
+- `min-h-0` is what makes the scroller a scroller: a flex item's `min-height` resolves to
+  `auto`, so without it the transcript pushes the card taller and the *page* scrolls. The
+  root bakes `min-h-0` in and leaves `flex-1` to the caller — baked in, `flex-1` would beat
+  any `h-*` you pass, because `flex-basis` outranks `height` on the main axis.
+- The composer never goes inside `Conversation.Content`; there it scrolls away with the
+  transcript. `Conversation.ScrollButton` is the opposite case — a sibling of the content
+  *inside* the root, so the outer anchor is its containing block and the scroller cannot
+  clip it.
+- The pin is not code you write. Growing the transcript is enough: the root observes the
+  viewport **and each of its children** (the viewport's own box never changes while a reply
+  streams), follows the bottom while the reader is inside the `offset` band, and releases on
+  any scroll whose `scrollTop` went down. `onAtBottomChange` is the read-out.
+- Key the transcript `{#each}` by **message id**. A turn's text changes on every streamed
+  word and its draft changes under the pager, so keying by content or index re-creates the
+  turn — closing every reasoning panel and tool call above the one being written, and
+  re-arming the reasoning auto-close, which fires once per instance.
+- A turn is a **list of drafts plus an index**, not a string: regenerating replaces an answer
+  rather than appending a turn, and that index is what `Message.Branch` binds to. A turn that
+  was never regenerated has one draft and renders with no pager at all.
+- `Message.BranchContent` takes `branches: Snippet[]` — Svelte cannot count children — and an
+  array of snippets cannot be built from a loop, so declare one `{#snippet}` per possible
+  draft and slice the list. Put them inside a plain element: a `{#snippet}` written directly
+  inside a component becomes a **prop** of that component.
+- One `ChatStatus` on the page drives three things at once — `PromptInput.Submit` turns into
+  a stop button, Enter stops submitting *because* it did (no `onkeydown` veto needed), and
+  the regenerate action disables. `isChatGenerating` is the predicate.
+- Keep `PromptInputFile.file`, never `url`: the composer revokes every object URL it minted
+  as soon as `onSubmit` returns.
+- Reduced motion is already handled inside the parts (`instant` scrolling, no per-word blur).
+  What is left to the caller is the **cadence** — deliver a simulated reply in one step
+  rather than fifty, or the transcript grows fifty times and every growth is a scroll.
+
+Composes, all as `parallax-<name>` items: `conversation`, `message`, `prompt-input`,
+`suggestion`, `reasoning`, `tool`, `card` for the frame, plus `code-block` and `empty`
+reached through `Message.Response` and `Conversation.EmptyState`.
+Source: `src/lib/components/pages/ChatSurfacePage.svelte`.
 
 ## Page headers
 

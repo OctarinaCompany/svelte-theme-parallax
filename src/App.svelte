@@ -78,6 +78,7 @@
 		"/components/card": () => import("$lib/components/pages/CardPage.svelte"),
 		"/components/carousel": () => import("$lib/components/pages/CarouselPage.svelte"),
 		"/components/chart": () => import("$lib/components/pages/ChartPage.svelte"),
+		"/components/chat-surface": () => import("$lib/components/pages/ChatSurfacePage.svelte"),
 		"/components/checkbox": () => import("$lib/components/pages/CheckboxPage.svelte"),
 		"/components/checkbox-group": () => import("$lib/components/pages/CheckboxGroupPage.svelte"),
 		"/components/circular-progress": () =>

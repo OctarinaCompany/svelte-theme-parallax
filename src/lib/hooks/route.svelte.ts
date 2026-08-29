@@ -88,6 +88,7 @@ export const CATEGORIES = [
 		slug: "patterns",
 		test: "Ships no component of its own — a page assembled from the others.",
 		items: [
+			{ title: "Chat surface", slug: "/components/chat-surface" },
 			{ title: "File upload", slug: "/components/file-upload" },
 			{ title: "List group", slug: "/components/list-group" },
 			{ title: "Page headers", slug: "/components/page-headers" },

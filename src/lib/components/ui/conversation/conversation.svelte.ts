@@ -118,13 +118,17 @@ export type ConversationStateProps = {
  *
  * HOW A READER'S SCROLL IS TOLD FROM THE COMPONENT'S OWN. Every source of scrolling — wheel, touch,
  * keyboard, a scrollbar drag, an assistive technology — ends in the same `scroll` event, and so
- * does the component's own smooth scroll to the bottom. Two facts separate them. A scroll whose
- * `scrollTop` went DOWN can only be the reader, because the component only ever scrolls towards
- * the bottom; that is the release. And while the component's own smooth scroll is in flight,
- * every step of it lands short of the bottom, so those steps must not read as "the reader is not
- * at the bottom" — the `#animating` flag holds the pin until the scroll arrives, or until it goes
- * quiet for {@link CONVERSATION_SETTLE_MS} (a reader who wheels DOWN during the animation cancels
- * it and stops wherever they stop; the timer is what notices).
+ * does the component's own smooth scroll to the bottom. One fact separates them: a scroll whose
+ * `scrollTop` DECREASED — one that moved towards the top — can only be the reader, because the
+ * component never scrolls that way. That is the release, and it is the only one.
+ *
+ * Every other scroll leaves the pin where it was, which is what a reader who is pinned needs:
+ * they are AT the bottom, so no gesture of theirs can move further down, and every downward step
+ * that arrives is this component's or the content's. The `#animating` flag holds the pin through
+ * an animation in flight until it arrives or goes quiet for {@link CONVERSATION_SETTLE_MS}; the
+ * steps that arrive after the flag has been cleared — the tail of an animation whose earlier step
+ * touched the bottom, still running while the content grew past it — are held for the same
+ * reason, and the settle re-aims at the bottom it has fallen short of.
  *
  * GROWTH IS OBSERVED ON THE CHILDREN, NOT THE VIEWPORT. The viewport's own box never changes when
  * a reply streams in — it is the content inside that grows — so a `ResizeObserver` on the
@@ -302,7 +306,24 @@ export class ConversationState {
 			return;
 		}
 
-		this.#setAtBottom(false);
+		/*
+			WHAT IS LEFT IS A DOWNWARD SCROLL, SHORT OF THE BOTTOM, THAT THIS COMPONENT DOES NOT
+			BELIEVE IT STARTED — AND IT MUST NOT RELEASE THE PIN.
+
+			A reader who is pinned is AT the bottom, and no gesture from there scrolls further down;
+			every downward step that arrives while pinned therefore comes from this component or
+			from content growing under it. The one that is easy to miss is the tail of a smooth
+			scroll whose earlier step happened to touch the bottom: the `atEnd` branch above clears
+			`#animating` on that step, so the remaining steps of an animation the browser is still
+			running arrive here — and if the content grew in between, they arrive short. Reading
+			that as the reader leaving is how a streamed answer used to strand its last screenful
+			below the fold with the scroll button up, measured on the Chat surface pattern: pinned
+			through growth in 24px steps, released on a step that landed 27px short at the tail of
+			its own animation.
+
+			A reader who is NOT pinned is already `atBottom === false`, so there is nothing here to
+			set for them either. Releasing is `scrolledUp`'s job alone, above, and it runs first.
+		*/
 	}
 
 	#onResize(): void {
@@ -316,14 +337,18 @@ export class ConversationState {
 		this.#evaluate();
 	}
 
+	/** Whether the viewport is within {@link offset} of its bottom right now. */
+	#isAtEnd(): boolean {
+		const viewport = this.#viewport;
+		if (!viewport) return false;
+		return computeAxisOverflow(readScrollMetrics(viewport), "vertical", { offset: this.offset })
+			.atEnd;
+	}
+
 	/** Re-read the position and set `atBottom` from it. Skipped while a scroll is in flight. */
 	#evaluate(): void {
-		const viewport = this.#viewport;
-		if (!viewport || this.#animating) return;
-		const { atEnd } = computeAxisOverflow(readScrollMetrics(viewport), "vertical", {
-			offset: this.offset,
-		});
-		this.#setAtBottom(atEnd);
+		if (!this.#viewport || this.#animating) return;
+		this.#setAtBottom(this.#isAtEnd());
 	}
 
 	#setAtBottom(next: boolean): void {
@@ -337,6 +362,30 @@ export class ConversationState {
 		this.#settleTimer = setTimeout(() => {
 			this.#settleTimer = undefined;
 			this.#animating = false;
+
+			/*
+				A SHORTFALL AT THE END OF THE ANIMATION IS THE CONTENT'S, NOT THE READER'S.
+
+				`scrollTo` aims at the bottom as it was when the scroll started. A reply that streams
+				grows the content WHILE the animation runs, so the target it is travelling to is
+				already short by the time it arrives, and the further it had to travel the more it
+				misses by. Reading that shortfall as a position — which is all `#evaluate` can do —
+				releases the pin on a reader who never touched the wheel, and once released nothing
+				re-arms it: `#onResize` only follows while `atBottom`. Measured on the Chat surface
+				pattern before this: the pin held through a stream in 24px steps and broke on the one
+				growth of 123px, leaving the last 148px of the answer below the fold with the scroll
+				button up.
+
+				So while the pin is still on, the answer to a shortfall is to aim again rather than to
+				judge. It terminates on its own: `scrollToBottom` returns without arming when there is
+				nothing left to travel, and the reader's own scroll up still releases in `#onScroll`,
+				which runs before any of this.
+			*/
+			if (this.#atBottom && !this.#isAtEnd()) {
+				this.scrollToBottom(this.#props.getResize());
+				return;
+			}
+
 			this.#evaluate();
 		}, CONVERSATION_SETTLE_MS);
 	}

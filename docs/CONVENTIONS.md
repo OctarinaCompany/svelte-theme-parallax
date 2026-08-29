@@ -172,8 +172,8 @@ rule should be able to name its class here.
   That tree stays flat and kebab-cased because `components.json` maps `aliases.ui` to one root, so
   the CLI will always write `ui/<name>/`; a category segment would fork the tree at the next
   regeneration and destroy the reviewable-diff property §1 exists to protect.
-- `ui/<slug>` ↔ `/components/<slug>` is an **invariant with named exceptions**. Nine pages ship
-  no component: five are filed under `Patterns` by that fact — `file-upload` (implemented in
+- `ui/<slug>` ↔ `/components/<slug>` is an **invariant with named exceptions**. Ten pages ship
+  no component: six are filed under `Patterns` by that fact — `chat-surface`, `file-upload` (implemented in
   `src/lib/hooks/file-upload.svelte.ts`), `list-group`, `page-headers`, `tables-in-cards`,
   `typography` — and four are hoisted out of the ladder entirely as destinations: `quickstart`,
   `settings`, `themes` and `sizing`. Four folders own no
@@ -209,9 +209,9 @@ that in one of two ways depending on where the component came from:
   twelve AI chat pages another 433.
 
 The two are alternatives, never both, and **the rule holds with no exceptions**: 51 + 70 + the
-nine pages that owe neither is every page in the catalog. Those nine are not exceptions either —
+ten pages that owe neither is every page in the catalog. Those ten are not exceptions either —
 `quickstart`, `settings`, `themes` and `sizing` document the kit rather than a component, and the
-five `Patterns` pages (`file-upload`, `list-group`, `page-headers`, `tables-in-cards`,
+six `Patterns` pages (`chat-surface`, `file-upload`, `list-group`, `page-headers`, `tables-in-cards`,
 `typography`) ship no component at all, as §9 records.
 
 **What a row has to be.** The type is the declaration's, verbatim. The default is the
