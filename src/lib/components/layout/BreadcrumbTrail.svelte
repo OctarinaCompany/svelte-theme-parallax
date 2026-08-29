@@ -45,7 +45,7 @@
 	 * It also had a cliff rather than a slope: one pixel either side of 768 was the difference
 	 * between three steps and one.
 	 *
-	 * Worse, hiding an ancestor now DELETES NAVIGATION. Until the index and the twelve group pages
+	 * Worse, hiding an ancestor now DELETES NAVIGATION. Until the index and the thirteen group pages
 	 * existed, the first two steps were plain text and hiding them cost nothing but context. They
 	 * are destinations now, and a phone was the one place you could not reach them.
 	 *

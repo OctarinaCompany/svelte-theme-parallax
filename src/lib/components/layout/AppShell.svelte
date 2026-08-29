@@ -52,7 +52,7 @@
 <Sidebar.Provider bind:open style="--sidebar-width: {sidebarWidth};">
 	<!--
 		THE BYPASS. Every route opens with the same rail — a workspace switcher, the destinations,
-		twelve group triggers, the sub-links of whichever group is open and the account menu — and
+		thirteen group triggers, the sub-links of whichever group is open and the account menu — and
 		before this link a keyboard reader crossed all of it, 24 stops, on every page. WCAG 2.4.1
 		(Bypass Blocks) asks for a way past content repeated across pages; this is it, and it is
 		deliberately the FIRST focusable thing in the shell so that one Tab reaches it.

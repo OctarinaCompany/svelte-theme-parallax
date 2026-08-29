@@ -21,7 +21,7 @@ const root = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 /**
  * The groups of one exported catalog literal, in source order.
  *
- * `CATEGORIES` returns the twelve groups, each with the items filed under it; `DESTINATIONS`
+ * `CATEGORIES` returns the thirteen groups, each with the items filed under it; `DESTINATIONS`
  * has no group headers and comes back as a single group whose `title` and `slug` are `null`.
  *
  * @param {string} exportName `"CATEGORIES"` or `"DESTINATIONS"`.

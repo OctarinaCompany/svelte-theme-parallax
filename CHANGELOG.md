@@ -12,6 +12,12 @@ ships today is listed here.
 
 ### Added
 
+- The AI chat family: twelve house components under a new `AI chat` catalog group —
+  conversation, message (Markdown through `svelte-streamdown`), prompt input, suggestion,
+  reasoning, tool, chain of thought, task, confirmation, question, context usage and model
+  selector — ported from Vercel's AI Elements to this kit's primitives, each published as a
+  `parallax-<name>` registry item and documented by a page with an API reference. `code-block`
+  gains a `filename` prop and a `CodeBlock.DownloadButton`.
 - The component library under `src/lib/components/ui/` — the shadcn-svelte registry set plus
   the house components (kanban, data grid, sortable, editable, gauge, phone input, media
   player, and many more), all under one token set.

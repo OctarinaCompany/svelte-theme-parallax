@@ -17,9 +17,12 @@ document disagree, one of them has a bug.
 
 - Cross-component machinery lives in `src/lib/shared/` (the `registry:lib` pattern): form-control
   wiring, roving focus, DOM-ordered collections, scroll position, the TanStack Table bridge,
-  `format-bytes` (house format: `2 MB`), `get-initials`.
+  `format-bytes` (house format: `2 MB`), `get-initials`, `chat-parts` (the status, role and
+  tool-state vocabulary the AI chat family shares) and `download-text` (Blob → object URL →
+  `<a download>`, the one save path code-block and conversation both use).
 - A component imports another component only for real composition — gauge → circular-progress,
-  phone-input → mask-input, kanban → sortable. Anything two unrelated components need moves to
+  phone-input → mask-input, kanban → sortable, reasoning → message, message → code-block,
+  tool → code-block and json-viewer. Anything two unrelated components need moves to
   `src/lib/shared/` instead.
 
 ## 3. Status vocabulary and control ramp
@@ -202,9 +205,10 @@ that in one of two ways depending on where the component came from:
 - A **house** component carries an **API reference** section of its own: one `<h3>` per part
   naming it `Namespace.Part`, a sentence or two saying what that part IS and renders, then a
   table of prop / type / default / description. There is no upstream to point at, so the page is
-  the documentation. **58 pages, 772 rows.**
+  the documentation. **70 pages** — the ten large house components alone carry 772 rows, and the
+  twelve AI chat pages another 433.
 
-The two are alternatives, never both, and **the rule holds with no exceptions**: 51 + 58 + the
+The two are alternatives, never both, and **the rule holds with no exceptions**: 51 + 70 + the
 nine pages that owe neither is every page in the catalog. Those nine are not exceptions either —
 `quickstart`, `settings`, `themes` and `sizing` document the kit rather than a component, and the
 five `Patterns` pages (`file-upload`, `list-group`, `page-headers`, `tables-in-cards`,
@@ -220,5 +224,6 @@ not fire, what `null` means) is exactly what a reader opened the table for.
 is a defect to be "fixed": whether the rest-spread is a `...restProps` row or a sentence in the
 part's paragraph (24 of the first 48 pages chose the row), whether the row arrays carry a
 `PropRow` type alias, whether `class` and `ref` get rows of their own, and whether the section
-closes with a keyboard-interaction table (7 pages do, where the component has a contract worth
-one). Match the page you are editing rather than converting it.
+closes with a keyboard-interaction table (7 of the first 58 pages do, and ten of the twelve AI
+chat pages, where the component has a contract worth one). Match the page you are editing rather
+than converting it.

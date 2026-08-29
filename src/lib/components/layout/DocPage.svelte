@@ -57,7 +57,7 @@
 	 * than a route. That was true of the SIDEBAR, where a group reveals its children and clicking
 	 * it would carry two meanings — and it stays true there. It was never true of a breadcrumb,
 	 * whose whole job is to be the way back up: a trail whose only live step is the one you are
-	 * standing on is a picture of a hierarchy, not a hierarchy. So the index and the twelve group
+	 * standing on is a picture of a hierarchy, not a hierarchy. So the index and the thirteen group
 	 * pages exist, reachable from here and from nowhere else.
 	 *
 	 * `categoryOf` returns nothing for the hoisted destinations (Themes), which belong to no group
@@ -103,7 +103,7 @@
 	 * could as easily have been `InputOTPPage` — so the comparison is lowercased rather than
 	 * reconstructed.
 	 *
-	 * `undefined` for the catalog index and the twelve group pages: they render sections from a
+	 * `undefined` for the catalog index and the thirteen group pages: they render sections from a
 	 * component that is not named after any route, so there is no page file to extract, and the
 	 * control is simply not offered there.
 	 */
@@ -120,7 +120,7 @@
 	 * The examples for the page on screen, once fetched.
 	 *
 	 * Held in a plain `Map` rather than in state: the only reader is the producer below, called
-	 * from a click, and caching by LOADER rather than by route means the twelve group routes that
+	 * from a click, and caching by LOADER rather than by route means the thirteen group routes that
 	 * share a component would share an entry too, if they had one.
 	 */
 	const loaded = new Map<unknown, PageSections>();

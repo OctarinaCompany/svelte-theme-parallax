@@ -4,7 +4,7 @@
 [![Licence: MIT](https://img.shields.io/badge/licence-MIT-blue.svg)](./LICENSE)
 
 **A dashboard theme kit for [shadcn-svelte](https://shadcn-svelte.com/docs).**
-Svelte 5, Vite, Tailwind CSS v4, [Bits UI](https://bits-ui.com) — 115 components under one
+Svelte 5, Vite, Tailwind CSS v4, [Bits UI](https://bits-ui.com) — 127 components under one
 coherent theme, twelve palettes over one token set, an installable application shell, and a
 gallery that documents every component with a live page.
 
