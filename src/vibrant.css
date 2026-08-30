@@ -75,6 +75,14 @@
 	--vibrant-ink-soft: color-mix(in oklab, white 70%, var(--vibrant-a));
 
 	/*
+	 * EVERY EDGE THE PANEL DRAWS IS A LIT ONE, and there is exactly one value for all of them.
+	 * A hairline on a painted surface is light catching an edge, so it is white at low alpha —
+	 * which also means it reads identically at any point of the field, where a solid colour would
+	 * be right at one stop and wrong at the other.
+	 */
+	--vibrant-edge: rgb(255 255 255 / 0.2);
+
+	/*
 	 * The bare `56%` is a colour hint, and it is deliberately ABOVE centre: below centre the ramp
 	 * transitions faster at the start, and what this wants is the opposite — the head held so the
 	 * elbow reads as one plateau across both limbs rather than as the place two rates of change
@@ -165,9 +173,24 @@
 	/* Hover and active are an alpha wash, never a solid: a fill would flatten the field. */
 	--sidebar-accent: rgb(255 255 255 / 0.14);
 	--sidebar-accent-foreground: #fff;
-	--sidebar-border: rgb(255 255 255 / 0.14);
-	--sidebar-outline: rgb(255 255 255 / 0.2);
+	--sidebar-border: var(--vibrant-edge);
+	--sidebar-outline: var(--vibrant-edge);
 	--sidebar-ring: #fff;
+
+	/*
+	 * THE RING GOES INSIDE, AND THIS IS THE HALF THE RAIL WAS MISSING.
+	 *
+	 * Both surfaces draw their hairline from the same token, but they were not drawing it in the
+	 * same PLACE: the bar's utility is `ring-inset`, so its hairline lands ON the painted band and
+	 * a 20% white reads as a lit edge; the rail's is a plain `ring-1`, drawn OUTSIDE the panel in
+	 * the floating variant's 8px gutter, where the same white sits on the page and composites to
+	 * nothing. Same value, opposite result — measured at 1280px on a light page, the rail simply
+	 * had no visible edge while the bar had one.
+	 *
+	 * `--tw-ring-inset` is the variable Tailwind's own `ring-inset` sets, so this moves the rail's
+	 * ring onto the panel without touching the generated component or its class list.
+	 */
+	--tw-ring-inset: inset;
 	/* The fold hairline is a fold, not a control boundary. WCAG 1.4.11 binds the boundary of an
 	   input at 3:1, so it gets the solved soft ink rather than the 20% wash the alias block in
 	   `app.css` would otherwise hand it. */
@@ -242,12 +265,18 @@
 	color: var(--vibrant-ink-soft);
 }
 
-/* NO BORDER CROSSES THE FOLD. The flush variant draws the rail's inline-end border from the PAGE's
-   `--border`, a hairline meant for a light document; painting it with the field's foot colour —
-   the first thing one reaches for — would draw a dark line straight down the elbow, where the
-   field is at its head. The field's own edge against the canvas does the separating. */
+/*
+ * The flush variant's inline-end border, which is the rail's own edge against the canvas — the
+ * counterpart of the flat bar's `border-b`, and it takes the same lit hairline for the same
+ * reason. It draws from the PAGE's `--border` by default, a value meant for a light document.
+ *
+ * WHAT IT MUST NOT BE is the field's foot colour, which is the first thing one reaches for: that
+ * paints a DARK line down the whole height, including the stretch beside the bar where the field
+ * is at its head — a seam drawn exactly across the corner the whole construction exists to hide.
+ * A white-alpha edge cannot make that mistake, because it reads the same at every stop.
+ */
 :root[data-sidebar-mode="vibrant"] [data-slot="sidebar-container"] {
-	border-color: transparent;
+	border-color: var(--vibrant-edge);
 }
 
 /* Two-tone focus, on the shared selector so a control in the bar gets the same pair as one in the
