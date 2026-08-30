@@ -47,12 +47,23 @@
 	const pageSize = $derived(table.getState().pagination.pageSize);
 </script>
 
+<!--
+	`overflow-x-auto overflow-y-hidden` rather than upstream's `overflow-auto`, and the axes are
+	split on purpose. The house `Button` nudges itself down on press
+	(`active:not-aria-[haspopup]:translate-y-px`), and a transform counts towards its ancestor's
+	SCROLLABLE overflow — so a scroll container that ends exactly at the button's own height grows
+	a vertical scrollbar for as long as the mouse is held down, then loses it. `p-1` hides that
+	here (4px absorbs 1px), which is why it is invisible on the Data table page and plain on the
+	Tables in cards page, whose cards pass `p-0` to run the pager flush to the card's edges. The
+	horizontal axis keeps `auto`, which is what the rule is for: the bar really does scroll
+	sideways when the row count, the page-size select and the four arrows outgrow a narrow card.
+-->
 <div
 	bind:this={ref}
 	data-slot="data-table-pagination"
 	data-dir={direction.current}
 	class={cn(
-		"flex w-full flex-col-reverse items-center justify-between gap-4 overflow-auto p-1 sm:flex-row sm:gap-8",
+		"flex w-full flex-col-reverse items-center justify-between gap-4 overflow-x-auto overflow-y-hidden p-1 sm:flex-row sm:gap-8",
 		className,
 	)}
 	{...restProps}
