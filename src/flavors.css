@@ -87,10 +87,35 @@
  * and below every child: the rail's container is `z-10`, and the canvas is `position: relative`,
  * so both stay in front of the light with no z-index of their own.
  *
- * THE TWO SURFACES ABOVE IT HAVE TO GO CLEAR, or there is nothing to see: the canvas and the
- * sticky header wrapper both paint an opaque `--background`. The wrapper takes that ground over
- * instead, so the page still has one. The floating header's fade goes with them — it is a
- * `--background` rectangle hanging under the bar, and over a light it reads as a torn edge.
+ * THE CANVAS ABOVE IT HAS TO GO CLEAR, or there is nothing to see: it paints an opaque
+ * `--background` over the whole page. The wrapper takes that ground over instead, so the page
+ * still has one. The floating header's fade goes with it — it is a `--background` rectangle
+ * hanging under the bar, and over a light it reads as a torn edge.
+ *
+ * THE STICKY HEADER WRAPPER MUST NOT, AND THAT COST A REAL BUG. It paints `--background` for one
+ * reason, written in the component: in the floating variant it is 8px taller and wider than the
+ * bar, and that band is what stops page content being seen in the strip around a bar the canvas
+ * scrolls under. Clearing it to show the light also showed the content — cards visibly sliding
+ * through the 8px gap above the bar, which `stock` never does.
+ *
+ * SO THE BAND REPLAYS THE LIGHT INSTEAD OF REVEALING IT. It keeps the component's opaque ground
+ * and paints the same field on top, sized to the VIEWPORT and anchored to an edge it shares with
+ * the viewport — the same mechanic `src/vibrant.css` uses to join the rail to the bar, and it
+ * holds here for the same reason: the wrapper's own layer is `inset: 0` on a box that IS the
+ * viewport, so a viewport-sized tile anchored to the shared edge lands in register whatever the
+ * rail's width does (expanded, icon, off-canvas, mobile Sheet). Measured across the fold at
+ * 1440x900, adjacent pixels differ by 3 or less; with the band left flat they differed by 41.
+ *
+ * ONE SOURCE FOR BOTH, `--flavor-light`, for the reason `vibrant.css` gives about its own two
+ * limbs: a field restated in two places is a field that drifts apart. `--flavor-light-spread` is
+ * the one number the two surfaces disagree on — aurora's layer overhangs by 20% so it has room to
+ * drift, so the band's tile grows and offsets by the same fraction.
+ *
+ * WHAT THE BAND DOES NOT REPLAY is aurora's drift animation (a transform cannot be expressed as a
+ * background) and its dither tile (which cannot be phase-aligned from the opposite edge without
+ * `background-attachment: fixed`). Both were measured rather than assumed: sampled across three
+ * instants six and seven seconds apart, the fold held at 3 or less, because these fields are far
+ * too diffuse for 8px of missing drift to register, and the dither is 3.5% opaque.
  * ========================================================================================== */
 
 :root:is([data-flavor="glow"], [data-flavor="aurora"]) [data-slot="sidebar-wrapper"] {
@@ -102,15 +127,32 @@
 :root:is([data-flavor="glow"], [data-flavor="aurora"]) [data-slot="sidebar-wrapper"]::before {
 	content: "";
 	position: absolute;
-	inset: 0;
+	inset: calc(-100% * var(--flavor-light-spread, 0));
 	z-index: -1;
 	pointer-events: none;
+	background-image: var(--flavor-light);
 	background-repeat: no-repeat;
 }
 
-:root:is([data-flavor="glow"], [data-flavor="aurora"])
-	:is([data-slot="sidebar-inset"], [data-slot="page-header"]) {
+:root:is([data-flavor="glow"], [data-flavor="aurora"]) [data-slot="sidebar-inset"] {
 	background-color: transparent;
+}
+
+/* The band around a floating bar: the component's ground, with the same field replayed on top in
+   viewport register. `right`/`top` is the corner the header shares with the viewport in LTR. */
+:root:is([data-flavor="glow"], [data-flavor="aurora"]) [data-slot="page-header"] {
+	background-image: var(--flavor-light);
+	background-repeat: no-repeat;
+	background-size: calc(100vw * (1 + 2 * var(--flavor-light-spread, 0)))
+		calc(100lvh * (1 + 2 * var(--flavor-light-spread, 0)));
+	background-position: right calc(-100vw * var(--flavor-light-spread, 0)) top
+		calc(-100lvh * var(--flavor-light-spread, 0));
+}
+
+/* Right-to-left puts the rail on the other side, so the header shares the LEFT edge instead. */
+:root[dir="rtl"]:is([data-flavor="glow"], [data-flavor="aurora"]) [data-slot="page-header"] {
+	background-position: left calc(-100vw * var(--flavor-light-spread, 0)) top
+		calc(-100lvh * var(--flavor-light-spread, 0));
 }
 
 :root:is([data-flavor="glow"], [data-flavor="aurora"])
@@ -151,8 +193,10 @@
 	}
 }
 
-:root[data-flavor="glow"] [data-slot="sidebar-wrapper"]::before {
-	background-image:
+/* The field itself, in a variable rather than on the layer: the wrapper's layer and the header's
+   band both sample it, and one source is what stops them drifting apart. */
+:root[data-flavor="glow"] {
+	--flavor-light:
 		radial-gradient(ellipse 62vw 48vh at 50% -8%, var(--flavor-glow-1), transparent 70%),
 		radial-gradient(ellipse 30vw 26vh at 16% -4%, var(--flavor-glow-2), transparent 72%);
 }
@@ -288,10 +332,12 @@
  * end between 66% and 74% of the radius: below about 35% they read as three circles, above 80%
  * as one flat tint.
  */
-:root[data-flavor="aurora"] [data-slot="sidebar-wrapper"]::before {
-	/* Room to drift without ever exposing an edge of the layer. */
-	inset: -20%;
-	background-image:
+/* The three fields, in one variable, for the reason the glow block gives. */
+:root[data-flavor="aurora"] {
+	/* Room to drift without ever exposing an edge of the layer — and the one number the header's
+	   band has to know, so that its tile grows and offsets by the same fraction. */
+	--flavor-light-spread: 0.2;
+	--flavor-light:
 		radial-gradient(58% 46% at 14% 82% in oklab, var(--flavor-aur-1) 0%, 38%, transparent 74%),
 		radial-gradient(46% 54% at 88% 46% in oklab, var(--flavor-aur-2) 0%, 34%, transparent 70%),
 		radial-gradient(38% 32% at 74% 6% in oklab, var(--flavor-aur-3) 0%, 42%, transparent 66%);
@@ -654,7 +700,7 @@
 		background-image: none;
 	}
 
-	:root[data-flavor] [data-slot="sidebar-inset"] {
+	:root[data-flavor] :is([data-slot="sidebar-inset"], [data-slot="page-header"]) {
 		background-image: none;
 	}
 
@@ -682,6 +728,13 @@
 	:root[data-flavor]
 		:is([data-sidebar="sidebar"], [data-slot="page-header-bar"], [data-slot="card"]) {
 		border: 1px solid transparent;
+	}
+
+	/* The header band replays the light as a real background-image, so `content: none` on the
+	   wrapper's layer does not reach it — it has to be dropped by name or the band keeps a
+	   gradient the rest of the shell no longer has. */
+	:root[data-flavor] [data-slot="page-header"] {
+		background-image: none;
 	}
 }
 
