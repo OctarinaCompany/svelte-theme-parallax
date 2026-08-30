@@ -156,6 +156,7 @@ first; everything below is the complete map.
 - Chart — `src/lib/components/pages/ChartPage.svelte`
 - Gauge — `src/lib/components/pages/GaugePage.svelte`
 - Code block — `src/lib/components/pages/CodeBlockPage.svelte`
+- Code highlighter — `src/lib/components/pages/CodeHighlighterPage.svelte`
 - JSON viewer — `src/lib/components/pages/JsonViewerPage.svelte`
 - Partition bar — `src/lib/components/pages/PartitionBarPage.svelte`
 - QR code — `src/lib/components/pages/QrCodePage.svelte`
@@ -183,9 +184,9 @@ first; everything below is the complete map.
 
 ## The ui/ inventory
 
-127 component folders under `src/lib/components/ui/`:
+128 component folders under `src/lib/components/ui/`:
 
-accordion, action-bar, alert, alert-dialog, angle-slider, aspect-ratio, autocomplete, avatar, badge, badge-overflow, banner, breadcrumb, button, button-group, calendar, card, carousel, chain-of-thought, chart, checkbox, checkbox-group, circular-progress, code-block, collapsible, color-picker, color-swatch, combobox, command, compare-slider, confirmation, context-menu, context-usage, conversation, copy-button, cropper, data-grid, data-table, date-selector, dialog, direction-provider, drawer, dropdown-menu, editable, empty, event-calendar, field, filters, fps, frame, gauge, hover-card, icon-stack, icon-tile, input, input-group, input-otp, item, json-viewer, kanban, kbd, key-value, label, language-selector, listbox, loader, marquee, mask-input, masonry, media-player, mention, menubar, message, model-selector, native-select, navigation-menu, number-field, pagination, partition-bar, pending, phone-input, popover, progress, prompt-input, qr-code, question, radio-group, range-calendar, rating, reasoning, relative-time-card, resizable, responsive-dialog, scroll-area, scroll-spy, scroller, segmented-input, select, selection-toolbar, separator, shake, sheet, sidebar, skeleton, slider, sonner, sortable, speed-dial, spinner, status, status-monitor, stepper, suggestion, swap, switch, table, tabs, tags-input, task, text-gradient, textarea, timeline, toggle, toggle-group, tool, tooltip, tour, tree
+accordion, action-bar, alert, alert-dialog, angle-slider, aspect-ratio, autocomplete, avatar, badge, badge-overflow, banner, breadcrumb, button, button-group, calendar, card, carousel, chain-of-thought, chart, checkbox, checkbox-group, circular-progress, code-block, code-highlighter, collapsible, color-picker, color-swatch, combobox, command, compare-slider, confirmation, context-menu, context-usage, conversation, copy-button, cropper, data-grid, data-table, date-selector, dialog, direction-provider, drawer, dropdown-menu, editable, empty, event-calendar, field, filters, fps, frame, gauge, hover-card, icon-stack, icon-tile, input, input-group, input-otp, item, json-viewer, kanban, kbd, key-value, label, language-selector, listbox, loader, marquee, mask-input, masonry, media-player, mention, menubar, message, model-selector, native-select, navigation-menu, number-field, pagination, partition-bar, pending, phone-input, popover, progress, prompt-input, qr-code, question, radio-group, range-calendar, rating, reasoning, relative-time-card, resizable, responsive-dialog, scroll-area, scroll-spy, scroller, segmented-input, select, selection-toolbar, separator, shake, sheet, sidebar, skeleton, slider, sonner, sortable, speed-dial, spinner, status, status-monitor, stepper, suggestion, swap, switch, table, tabs, tags-input, task, text-gradient, textarea, timeline, toggle, toggle-group, tool, tooltip, tour, tree
 
 Verbatim ports of official components install by their bare official name. Everything
 Parallax-authored or Parallax-forked is a published `parallax-<name>` registry item —

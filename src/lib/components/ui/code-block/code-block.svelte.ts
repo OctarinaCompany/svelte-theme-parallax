@@ -889,13 +889,13 @@ export const codeBlockTokenVariants = tv({
  * language it shows.
  *
  * OWNERSHIP RUNS ONE WAY. The contract and its context key live HERE, in the folder that consumes
- * them; a separate `ui/code-highlighter/` folder will IMPLEMENT this type and install itself
- * through {@link setCodeBlockHighlighterContext}, importing this barrel to do it. This folder must
- * never import that one — that edge is what keeps the code block installable on its own, without
+ * them; `ui/code-highlighter/` IMPLEMENTS this type and installs itself through
+ * {@link setCodeBlockHighlighterContext}, importing this barrel to do it. This folder must never
+ * import that one — that edge is what keeps the code block installable on its own, without
  * dragging a grammar bundle into a project that only wanted a copyable snippet.
  *
- * NOTHING IMPLEMENTS IT YET, and that is deliberate: the adapter is the next milestone. Until it
- * lands the seam is inert and every block paints exactly as it did before.
+ * NOTHING INSTALLS ONE BY DEFAULT. A block with no provider above it paints exactly as it always
+ * did, which is why the house tokenizer is still the thing this file spends most of its length on.
  */
 export type CodeBlockHighlighter = {
 	/**

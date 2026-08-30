@@ -911,8 +911,13 @@ Start on Opus, and move to Sonnet once the prompt has settled.`,
 				shadcn base theme with <code>MESSAGE_RESPONSE_THEME</code> over it; fenced code is drawn by
 				the house <code>CodeBlock</code>, with a download button when the fence names a file. The
 				house tokenizer knows fourteen grammars and colours one line at a time, and there are two
-				ways past that: install a <code>CodeBlockHighlighter</code> above these messages, which
-				keeps the house block and replaces only what paints it, or pass Streamdown's own
+				ways past that: install a <code>CodeBlockHighlighter</code> above these messages — which is
+				what
+				<a
+					class="text-primary underline underline-offset-3"
+					href={href("/components/code-highlighter")}>Code highlighter</a
+				>
+				is, and it keeps the house block and replaces only what paints it — or pass Streamdown's own
 				<code>Code</code> through <code>components</code>, which replaces the block entirely.
 			</p>
 			<Card.Root>

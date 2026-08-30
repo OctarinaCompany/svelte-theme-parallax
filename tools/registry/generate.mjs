@@ -760,6 +760,8 @@ const UI_DESCRIPTIONS = {
 		"A progress ring: a closed circle, 48px on a 4px stroke, determinate or indeterminate. Reach for Gauge when the arc itself carries meaning — the two share their geometry.",
 	"code-block":
 		"A copyable — and, given a filename, downloadable — code sample with a line-number gutter, a language selector and lightweight language-aware highlighting. Reach for it for an opaque string to read and copy; JSON viewer parses a live value instead.",
+	"code-highlighter":
+		"A Shiki adapter for Code block's highlighter seam: real TextMate grammars for 32 languages, mapped onto the nine token kinds the block already paints, each grammar its own dynamic import. Mount `<CodeHighlighter.Root>` ONCE above the blocks that read it — it renders no element and reaches them through context. Reach for it over Code block's own tokenizer when a snippet spans lines (a block comment, a template literal, a docstring) or names a language outside the house fourteen; without it those blocks still render, uncoloured.",
 	"color-picker":
 		"A full colour picker: a saturation and brightness area, hue and alpha sliders, the native eyedropper, and per-channel fields in hex, rgb, hsl or hsb.",
 	"color-swatch":
@@ -979,6 +981,8 @@ const UI_DESCRIPTIONS = {
  * and a CLI that grows the feature would print it with no edit.
  */
 const UI_DOCS = {
+	"code-highlighter":
+		'Mount `<CodeHighlighter.Root>` ONCE, at the app root and above every code block: it renders no element, publishes itself on context, and a second one below the first only compiles a second engine. Nothing goes in your stylesheet — the ink is Code block\'s own `data-kind` spans over the theme tokens, and no Shiki theme is loaded at all. Each grammar is a `() => import("@shikijs/langs/<id>")`, so the languages become chunks of YOUR bundle and arrive on first use; only the adapter itself is in the initial payload.',
 	message:
 		'Markdown renders through svelte-streamdown, whose classes live in node_modules: add `@source "../node_modules/svelte-streamdown/**/*";` next to the imports of your global stylesheet (`../../node_modules/…` from src/routes/layout.css). Without it answers render unstyled and nothing errors.',
 };

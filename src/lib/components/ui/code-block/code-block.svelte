@@ -214,10 +214,11 @@
 	 *     this folder — a block that renders nothing while a grammar loads is worse than one that
 	 *     renders house colours and improves.
 	 *
-	 * NOTHING IMPLEMENTS THE CONTRACT YET, deliberately: a `ui/code-highlighter/` folder will,
-	 * installing itself through `setCodeBlockHighlighterContext` and importing this barrel to do
-	 * it. The edge runs one way — this folder never imports that one — which is what keeps the
-	 * code block installable without a grammar bundle behind it.
+	 * `ui/code-highlighter/` implements the contract, installing itself through
+	 * `setCodeBlockHighlighterContext` and importing this barrel to do it. The edge runs one way —
+	 * this folder never imports that one — which is what keeps the code block installable without a
+	 * grammar bundle behind it, and what makes the highlighter something a consumer opts into
+	 * rather than something every snippet drags along.
 	 */
 	let {
 		ref = $bindable(null),

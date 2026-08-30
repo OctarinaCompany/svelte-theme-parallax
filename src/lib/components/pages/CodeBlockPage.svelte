@@ -592,7 +592,12 @@
 			<code>.txt</code>. What it does not get is colour, and the block says so by not carrying
 			<code>data-highlighted</code>. Installing a <code>CodeBlockHighlighter</code> above it — the
 			seam the root takes as its <code>highlighter</code> prop or inherits from context — is what
-			paints this snippet, and nothing on this page would change to allow it. Before this, a
+			paints this snippet, and nothing on this page would change to allow it:
+			<a
+				class="text-primary underline underline-offset-3"
+				href={href("/components/code-highlighter")}>Code highlighter</a
+			>
+			is that seam filled with real grammars, and renders this same snippet coloured. Before this, a
 			<code>rust</code> block read <code>Text</code> in the header and saved as
 			<code>snippet.txt</code>.
 		{/snippet}
@@ -1020,7 +1025,14 @@
 				not have still claims the rest of the line, and two of its own rules can never fire. Each
 				language now declares the comment and quote forms it actually has. What is left unfixed is
 				inherent: highlighting runs one line at a time, so nothing spanning lines is coloured past
-				its first, and a keyword list is not a parser.
+				its first, and a keyword list is not a parser. Both are lifted by handing the whole snippet
+				to a real grammar instead —
+				<a
+					class="text-primary underline underline-offset-3"
+					href={href("/components/code-highlighter")}>Code highlighter</a
+				>
+				does exactly that, through the seam above, and every block on this page would take it with no
+				edit.
 			</p>
 			<Card.Root>
 				<Card.Content class="px-0 [&_[data-slot=table-cell]]:whitespace-normal">

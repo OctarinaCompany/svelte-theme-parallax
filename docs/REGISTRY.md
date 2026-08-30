@@ -339,6 +339,16 @@ A copyable — and, given a filename, downloadable — code sample with a line-n
 npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-code-block.json
 ```
 
+## parallax-code-highlighter
+
+A Shiki adapter for Code block's highlighter seam: real TextMate grammars for 32 languages, mapped onto the nine token kinds the block already paints, each grammar its own dynamic import. Mount `<CodeHighlighter.Root>` ONCE above the blocks that read it — it renders no element and reaches them through context. Reach for it over Code block's own tokenizer when a snippet spans lines (a block comment, a template literal, a docstring) or names a language outside the house fourteen; without it those blocks still render, uncoloured.
+
+```sh
+npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-code-highlighter.json
+```
+
+Mount `<CodeHighlighter.Root>` ONCE, at the app root and above every code block: it renders no element, publishes itself on context, and a second one below the first only compiles a second engine. Nothing goes in your stylesheet — the ink is Code block's own `data-kind` spans over the theme tokens, and no Shiki theme is loaded at all. Each grammar is a `() => import("@shikijs/langs/<id>")`, so the languages become chunks of YOUR bundle and arrive on first use; only the adapter itself is in the initial payload.
+
 ## parallax-color-picker
 
 A full colour picker: a saturation and brightness area, hue and alpha sliders, the native eyedropper, and per-channel fields in hex, rgb, hsl or hsb.

@@ -10,6 +10,7 @@
 	import { Button } from "$lib/components/ui/button/index.js";
 	import * as Card from "$lib/components/ui/card/index.js";
 	import * as CodeBlock from "$lib/components/ui/code-block/index.js";
+	import * as CodeHighlighter from "$lib/components/ui/code-highlighter/index.js";
 	import * as Conversation from "$lib/components/ui/conversation/index.js";
 	import { CopyButton } from "$lib/components/ui/copy-button/index.js";
 	import * as Message from "$lib/components/ui/message/index.js";
@@ -469,6 +470,11 @@ const reply = await send({ text: draft, files });
 			used: "Reached indirectly: every fence in an answer and every string payload on a tool call is drawn by it, download button included.",
 		},
 		{
+			title: "Code highlighter",
+			path: "/components/code-highlighter",
+			used: "THE OPTIONAL ONE: `Root`, wrapped round the whole surface with no props. Take it out and every fence still renders, painted by the code block's own line-at-a-time tokenizer; leave it in and each grammar arrives as a fence asks for it.",
+		},
+		{
 			title: "Empty",
 			path: "/components/empty",
 			used: "Reached indirectly: `Conversation.EmptyState` is built from it, so an empty chat looks like every other empty surface in the kit.",
@@ -567,76 +573,87 @@ const reply = await send({ text: draft, files });
 			itself and folds, the send button becomes a stop button, and the <code>+</code> menu attaches files.
 			Clear the chat to reach the empty state and its starters.
 		{/snippet}
-		<Card.Root class="h-[36rem] gap-0 py-0">
-			<Card.Header class="flex flex-row items-center justify-between gap-3">
-				<div class="flex min-w-0 items-center gap-3">
-					<Card.Title>Assistant</Card.Title>
-					<Status.Root variant={atBottom ? "info" : "default"}>
-						<Status.Indicator pulse={busy && atBottom} />
-						<Status.Label>{atBottom ? "Following" : "Scrolled up"}</Status.Label>
-					</Status.Root>
-				</div>
-				<div class="flex shrink-0 items-center gap-1">
-					<Conversation.Download
-						messages={transcript}
-						filename="chat-surface.md"
-						variant="ghost"
-						size="icon-sm"
-						disabled={turns.length === 0}
-					/>
-					<Button
-						variant="ghost"
-						size="icon-sm"
-						aria-label="Clear the chat"
-						disabled={turns.length === 0}
-						onclick={reset}
-					>
-						<RotateCcwIcon />
-					</Button>
-				</div>
-			</Card.Header>
+		<!--
+			THE HIGHLIGHTER IS PAGE-LOCAL, and it is the one piece of this surface that is optional.
+			Every fence in an answer and every string payload on a tool call is drawn by the house code
+			block, whose tokenizer reads one line at a time; wrapping the surface upgrades all of them
+			without touching a single block. It sets no `languages`, so nothing is fetched until a fence
+			asks — the `js` fence in the seeded answer asks on mount, the `ts` one when the reply lands,
+			and the `csv` fence has no grammar here and keeps the house tokenizer, which is right for a
+			table of values. An application mounts one of these at the ROOT rather than per surface; it
+			sits here because each section of this page is extracted as a standalone example.
+		-->
+		<CodeHighlighter.Root>
+			<Card.Root class="h-[36rem] gap-0 py-0">
+				<Card.Header class="flex flex-row items-center justify-between gap-3">
+					<div class="flex min-w-0 items-center gap-3">
+						<Card.Title>Assistant</Card.Title>
+						<Status.Root variant={atBottom ? "info" : "default"}>
+							<Status.Indicator pulse={busy && atBottom} />
+							<Status.Label>{atBottom ? "Following" : "Scrolled up"}</Status.Label>
+						</Status.Root>
+					</div>
+					<div class="flex shrink-0 items-center gap-1">
+						<Conversation.Download
+							messages={transcript}
+							filename="chat-surface.md"
+							variant="ghost"
+							size="icon-sm"
+							disabled={turns.length === 0}
+						/>
+						<Button
+							variant="ghost"
+							size="icon-sm"
+							aria-label="Clear the chat"
+							disabled={turns.length === 0}
+							onclick={reset}
+						>
+							<RotateCcwIcon />
+						</Button>
+					</div>
+				</Card.Header>
 
-			<!--
+				<!--
 				THE SCROLL CONTAINER. `flex-1` is the caller's job (the root deliberately does not bake
 				it in, or an `h-*` given here could never win on the main axis); `min-h-0` is already
 				inside the root, and without it this flex item would refuse to shrink below its content
 				and the PAGE would scroll instead of the transcript.
 			-->
-			<Conversation.Root class="flex-1" onAtBottomChange={(value) => (atBottom = value)}>
-				<Conversation.Content>
-					{#if turns.length === 0}
-						<!-- `Conversation.Content` is `min-h-full`, which is what lets this centre in a
+				<Conversation.Root class="flex-1" onAtBottomChange={(value) => (atBottom = value)}>
+					<Conversation.Content>
+						{#if turns.length === 0}
+							<!-- `Conversation.Content` is `min-h-full`, which is what lets this centre in a
 							viewport with nothing else in it. -->
-						<div class="flex size-full flex-1 flex-col items-center justify-center gap-6 p-2">
-							<Conversation.EmptyState
-								class="size-auto p-0"
-								title="Start a conversation"
-								description="Pick a starter, or type a question of your own."
-							>
-								{#snippet icon()}
-									<MessageSquareIcon />
-								{/snippet}
-							</Conversation.EmptyState>
-							<Suggestion.Root layout="wrap" class="max-w-xl justify-center">
-								{#each AI_CHAT_STARTERS as starter (starter)}
-									<Suggestion.Item
-										suggestion={starter}
-										class="h-auto py-1.5 text-left whitespace-normal"
-										onSelect={(text) => ask(text)}
-									/>
-								{/each}
-							</Suggestion.Root>
-						</div>
-					{:else}
-						{#each turns as turn (turn.id)}
-							{#if turn.role === "user"}
-								<Message.Root from="user">
-									<Message.Content>
-										<Message.Response content={draftText(turn.drafts[0] ?? [])} />
-									</Message.Content>
-								</Message.Root>
-							{:else if turn.drafts.length > 1}
-								<!--
+							<div class="flex size-full flex-1 flex-col items-center justify-center gap-6 p-2">
+								<Conversation.EmptyState
+									class="size-auto p-0"
+									title="Start a conversation"
+									description="Pick a starter, or type a question of your own."
+								>
+									{#snippet icon()}
+										<MessageSquareIcon />
+									{/snippet}
+								</Conversation.EmptyState>
+								<Suggestion.Root layout="wrap" class="max-w-xl justify-center">
+									{#each AI_CHAT_STARTERS as starter (starter)}
+										<Suggestion.Item
+											suggestion={starter}
+											class="h-auto py-1.5 text-left whitespace-normal"
+											onSelect={(text) => ask(text)}
+										/>
+									{/each}
+								</Suggestion.Root>
+							</div>
+						{:else}
+							{#each turns as turn (turn.id)}
+								{#if turn.role === "user"}
+									<Message.Root from="user">
+										<Message.Content>
+											<Message.Response content={draftText(turn.drafts[0] ?? [])} />
+										</Message.Content>
+									</Message.Root>
+								{:else if turn.drafts.length > 1}
+									<!--
 									`Message.BranchContent` takes an ARRAY of snippets — Svelte cannot count
 									children the way the React original does — and an array cannot be built
 									from a loop. So the page declares one snippet per possible draft and
@@ -646,86 +663,87 @@ const reply = await send({ text: draft, files });
 									They sit inside a plain `<div>` on purpose: a `{#snippet}` written
 									directly inside a component becomes a PROP of that component.
 								-->
-								<div class="flex flex-col">
-									{#snippet firstAnswer()}
-										{@render answer(turn, 0)}
-									{/snippet}
-									{#snippet secondAnswer()}
-										{@render answer(turn, 1)}
-									{/snippet}
-									{#snippet thirdAnswer()}
-										{@render answer(turn, 2)}
-									{/snippet}
-									<Message.Branch bind:branch={turn.branch} loop={false}>
-										<Message.BranchContent
-											branches={[firstAnswer, secondAnswer, thirdAnswer].slice(
-												0,
-												turn.drafts.length,
-											)}
-										/>
-										<Message.BranchSelector>
-											<Message.BranchPrevious />
-											<Message.BranchPage label="Answer" />
-											<Message.BranchNext />
-										</Message.BranchSelector>
-									</Message.Branch>
-								</div>
-							{:else}
-								{@render answer(turn, 0)}
-							{/if}
-						{/each}
-					{/if}
-				</Conversation.Content>
-				<Conversation.ScrollButton />
-			</Conversation.Root>
+									<div class="flex flex-col">
+										{#snippet firstAnswer()}
+											{@render answer(turn, 0)}
+										{/snippet}
+										{#snippet secondAnswer()}
+											{@render answer(turn, 1)}
+										{/snippet}
+										{#snippet thirdAnswer()}
+											{@render answer(turn, 2)}
+										{/snippet}
+										<Message.Branch bind:branch={turn.branch} loop={false}>
+											<Message.BranchContent
+												branches={[firstAnswer, secondAnswer, thirdAnswer].slice(
+													0,
+													turn.drafts.length,
+												)}
+											/>
+											<Message.BranchSelector>
+												<Message.BranchPrevious />
+												<Message.BranchPage label="Answer" />
+												<Message.BranchNext />
+											</Message.BranchSelector>
+										</Message.Branch>
+									</div>
+								{:else}
+									{@render answer(turn, 0)}
+								{/if}
+							{/each}
+						{/if}
+					</Conversation.Content>
+					<Conversation.ScrollButton />
+				</Conversation.Root>
 
-			<!-- The composer is a SIBLING of the scroller, not a child of it: it keeps its height
+				<!-- The composer is a SIBLING of the scroller, not a child of it: it keeps its height
 				whatever the transcript does, and it never scrolls out of reach. -->
-			<div class="flex flex-col gap-2 border-t p-4">
-				<PromptInput.Root
-					bind:value={draft}
-					accept="image/*,.pdf,.csv"
-					multiple
-					maxFiles={3}
-					maxFileSize={MAX_ATTACHMENT_SIZE}
-					onError={(error) => (attachmentError = error.message)}
-					onSubmit={send}
-				>
-					<PromptInput.Attachments />
-					<PromptInput.Body>
-						<PromptInput.Textarea placeholder="Ask anything… (Shift+Enter for a new line)" />
-					</PromptInput.Body>
-					<PromptInput.Footer>
-						<PromptInput.Tools>
-							<PromptInput.ActionMenu>
-								<PromptInput.ActionMenuTrigger tooltip="Add photos or files" />
-								<PromptInput.ActionMenuContent>
-									<PromptInput.ActionAddAttachments />
-									<PromptInput.ActionMenuItem disabled={turns.length === 0} onSelect={reset}>
-										<RotateCcwIcon />
-										Clear the chat
-									</PromptInput.ActionMenuItem>
-								</PromptInput.ActionMenuContent>
-							</PromptInput.ActionMenu>
-							<PromptInput.Select bind:value={modelId}>
-								<PromptInput.SelectTrigger aria-label="Model: {modelLabel}">
-									{modelLabel}
-								</PromptInput.SelectTrigger>
-								<PromptInput.SelectContent>
-									{#each models as model (model.id)}
-										<PromptInput.SelectItem value={model.id} label={model.label} />
-									{/each}
-								</PromptInput.SelectContent>
-							</PromptInput.Select>
-						</PromptInput.Tools>
-						<PromptInput.Submit {status} onStop={stopStream} />
-					</PromptInput.Footer>
-				</PromptInput.Root>
-				{#if attachmentError}
-					<p class="text-xs text-destructive">{attachmentError}</p>
-				{/if}
-			</div>
-		</Card.Root>
+				<div class="flex flex-col gap-2 border-t p-4">
+					<PromptInput.Root
+						bind:value={draft}
+						accept="image/*,.pdf,.csv"
+						multiple
+						maxFiles={3}
+						maxFileSize={MAX_ATTACHMENT_SIZE}
+						onError={(error) => (attachmentError = error.message)}
+						onSubmit={send}
+					>
+						<PromptInput.Attachments />
+						<PromptInput.Body>
+							<PromptInput.Textarea placeholder="Ask anything… (Shift+Enter for a new line)" />
+						</PromptInput.Body>
+						<PromptInput.Footer>
+							<PromptInput.Tools>
+								<PromptInput.ActionMenu>
+									<PromptInput.ActionMenuTrigger tooltip="Add photos or files" />
+									<PromptInput.ActionMenuContent>
+										<PromptInput.ActionAddAttachments />
+										<PromptInput.ActionMenuItem disabled={turns.length === 0} onSelect={reset}>
+											<RotateCcwIcon />
+											Clear the chat
+										</PromptInput.ActionMenuItem>
+									</PromptInput.ActionMenuContent>
+								</PromptInput.ActionMenu>
+								<PromptInput.Select bind:value={modelId}>
+									<PromptInput.SelectTrigger aria-label="Model: {modelLabel}">
+										{modelLabel}
+									</PromptInput.SelectTrigger>
+									<PromptInput.SelectContent>
+										{#each models as model (model.id)}
+											<PromptInput.SelectItem value={model.id} label={model.label} />
+										{/each}
+									</PromptInput.SelectContent>
+								</PromptInput.Select>
+							</PromptInput.Tools>
+							<PromptInput.Submit {status} onStop={stopStream} />
+						</PromptInput.Footer>
+					</PromptInput.Root>
+					{#if attachmentError}
+						<p class="text-xs text-destructive">{attachmentError}</p>
+					{/if}
+				</div>
+			</Card.Root>
+		</CodeHighlighter.Root>
 	</DocSection>
 
 	<DocSection title="The frame">
@@ -890,8 +908,10 @@ const reply = await send({ text: draft, files });
 
 	<DocSection title="What it composes">
 		{#snippet blurb()}
-			Nine published components, each with a page of its own that documents it properly — this one
-			only shows them working together.
+			Ten published components, each with a page of its own that documents it properly — this one
+			only shows them working together. Nine of them are load-bearing; the tenth, Code highlighter,
+			is a provider the surface reads through context, and removing it costs colour rather than
+			behaviour.
 		{/snippet}
 		<Card.Root>
 			<Card.Content class="px-0 [&_[data-slot=table-cell]]:whitespace-normal">

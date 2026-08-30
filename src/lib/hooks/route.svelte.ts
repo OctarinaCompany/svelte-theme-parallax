@@ -367,6 +367,7 @@ export const CATEGORIES = [
 			{ title: "Chart", slug: "/components/chart" },
 			{ title: "Gauge", slug: "/components/gauge" },
 			{ title: "Code block", slug: "/components/code-block" },
+			{ title: "Code highlighter", slug: "/components/code-highlighter" },
 			{ title: "JSON viewer", slug: "/components/json-viewer" },
 			{ title: "Partition bar", slug: "/components/partition-bar" },
 			{ title: "QR code", slug: "/components/qr-code" },

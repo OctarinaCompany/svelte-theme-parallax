@@ -85,6 +85,8 @@
 		"/components/circular-progress": () =>
 			import("$lib/components/pages/CircularProgressPage.svelte"),
 		"/components/code-block": () => import("$lib/components/pages/CodeBlockPage.svelte"),
+		"/components/code-highlighter": () =>
+			import("$lib/components/pages/CodeHighlighterPage.svelte"),
 		"/components/collapsible": () => import("$lib/components/pages/CollapsiblePage.svelte"),
 		"/components/compare-slider": () => import("$lib/components/pages/CompareSliderPage.svelte"),
 		"/components/color-picker": () => import("$lib/components/pages/ColorPickerPage.svelte"),
