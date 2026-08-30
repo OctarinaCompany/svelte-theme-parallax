@@ -2890,6 +2890,47 @@ ol[data-sonner-toaster] [data-sonner-toast][data-styled="true"] [data-close-butt
 }
 
 /*
+ * The vertical reading of that rule. A row of tabs is measured onto a line, and which EDGE of the
+ * list carries the line is the one thing the reference cannot settle — it has no vertical tabs.
+ * A list that runs down the page separates itself from its panel on the inline axis, so the rule
+ * moves to the right edge and the bottom one goes: kept, it drew a stray hairline under the last
+ * label, at right angles to the stack it was supposed to bound. That is what this block came to
+ * fix, and it is what lets the vertical marker below be cut like the horizontal one.
+ *
+ * Keyed on the LIST's own `data-orientation` — bits-ui stamps it there as well as on the root and
+ * on every trigger, so the rule needs no descendant selector and no `class` at the call site.
+ */
+[data-slot="tabs-list"][data-variant="line"][data-orientation="vertical"] {
+	border-bottom: 0;
+	border-right: 1px solid var(--border); /* nav-tabs-border-color, turned a quarter */
+}
+
+/*
+ * The gutter the vertical marker lives in, and the counterpart of the horizontal row's
+ * `padding-block`. A `line` trigger carries NO inline padding (see the rule below), which was
+ * correct while the mark hung outside the list and is fatal once it sits on the list's own rule:
+ * the marker is 8px wide and reaches 7px back into the trigger, and the icons demo pushes its
+ * count badges to the far edge with `ml-auto`, so without this the bar would paint straight over
+ * them.
+ *
+ * 1rem is not a clearance pulled out of the air, it is the SAME number the horizontal row already
+ * spends: `padding: 1rem 0` below leaves 16 - 7 = 9px between the bar and the label there, and
+ * 1rem here leaves the same 9px. The two orientations are then one drawing turned a quarter,
+ * which is the whole point of the block.
+ *
+ * Only the END side. The label's leading edge stays flush with the list, and therefore with the
+ * heading of whatever block the tabs sit in — that alignment is worth more than the symmetry.
+ *
+ * `padding-right`, physical, to agree with the marker's `right` rather than with the
+ * `padding-block` above it: block-axis padding says nothing about direction, an inline-axis one
+ * does, and this marker is LTR-only until all of its offsets turn together.
+ */
+[data-slot="tabs-list"][data-variant="line"][data-orientation="vertical"]
+	> [data-slot="tabs-trigger"] {
+	padding-right: 1rem;
+}
+
+/*
  * The resting label. The design keeps the tab colour the same grey in both
  * modes. `--muted-foreground` holds it exactly in light and #6E84A3 in dark, one step darker
  * (and, as it happens, the hover grey). Nearest token; the miss is dark-mode only.
@@ -2987,47 +3028,34 @@ ol[data-sonner-toaster] [data-sonner-toast][data-styled="true"] [data-close-butt
  * the reference): an owner decision, so the selection reads in the same `primary` whichever way
  * the list runs, instead of shadcn's `bg-foreground`.
  *
- * IT MOVES TO THE LEADING EDGE, which is shadcn's `-right-1` mirrored. A vertical list sits to
- * the LEFT of the panel it drives, so a marker on its right edge lands in the gap between list
- * and panel and reads as the panel's border rather than as the tab's own flag. On the left it
- * reads the way the sidebar's active bar reads, which is the same gesture at a different scale.
+ * IT SITS ON THE LIST'S RULE, exactly as the horizontal marker does, and by the same arithmetic
+ * turned a quarter. The list carries `border-right: 1px`, so a trigger's own right edge stops one
+ * pixel short of the list's outer edge; `right: -1px` therefore lands the bar's outer edge ON the
+ * outer edge of that rule, and its 8px spends 1px covering the rule and 7px reaching back into
+ * the trigger's `padding-right`. Beside the active tab the grey line is REPLACED by the mark
+ * rather than running behind it — that interruption is the signature the horizontal row has, and
+ * reproducing it is why this block and the two above it exist.
  *
- * OUTSIDE THE TRIGGER, NOT INSIDE IT. `app.css` zeroes `padding-inline` on every `line` trigger
- * (see the block above), so the label starts at x=0 and there is no inner gutter a bar could
- * occupy without striking the text. `left: -0.75rem` with `width: 8px` puts the bar at
- * -12px..-4px: the same 8px the horizontal marker carries, 4px of air before the label, and the
- * label's own left edge still flush with the section heading above it.
- *
- * IT GREW LEFTWARD, and that direction was measured rather than chosen. The marker hangs outside
- * its list, so its reach is bounded by the nearest clipping ancestor — `[data-slot=
- * "sidebar-inset"]`, which is `overflow-x: auto`. On the docs page that leaves 36px of gutter at
- * `md` and up and exactly 12px below it (`DocPage`'s `px-3 md:px-9`). At -12px the bar ends flush
- * with that narrow gutter and is never cut; growing rightward instead would have closed the 4px
- * of air onto the label, and taking the sidebar's full 8px of air (-16px) would have overrun the
- * mobile gutter by 4px and clipped silently.
- *
- * `right: auto` is not decoration — the trigger's base classes still carry
- * `group-data-[orientation=vertical]/tabs:after:-right-1`, and an absolutely positioned box given
- * both offsets and a width would honour `right` and ignore `width`.
+ * `inset-y-0` from the base classes gives the bar the trigger's full height, the counterpart of
+ * `inset-x-0`'s full width in the horizontal case. `left` is left alone: the base classes set no
+ * `left` for this orientation, so it stays `auto` and `right` + `width` place the box on their
+ * own. An earlier pass hung this marker OUTSIDE the list on the leading edge, which is why
+ * `right: auto` used to be written here; with the rule in place there is nothing left to undo.
  */
 [data-slot="tabs-list"][data-variant="line"]
 	> [data-slot="tabs-trigger"][data-orientation="vertical"]::after {
-	right: auto;
-	left: -0.75rem;
+	right: -1px;
 	width: 8px;
 	background-color: var(--primary);
 	/*
-	 * The TWO RIGHT CORNERS, which is the sidebar bar's cut rather than the horizontal marker's.
-	 * The rule the house now follows is "cut the free edge", and for a vertical mark the free
-	 * edge is the one facing the label: this bar hangs in the gutter to the left of a list whose
-	 * own left edge is aligned to the page column, so the side that reads as its end is the
-	 * right. Same corners, same token, same reason as
-	 * `[data-slot="sidebar-menu-item"]:has(> [data-active="true"])::before` — the two vertical
-	 * navigations in this kit are cut identically, and only the horizontal tab row turns its
-	 * curve to the top.
+	 * The TWO LEFT CORNERS — the house rule ("cut the free edge, leave the anchored one square")
+	 * applied to a mark whose anchored edge is now its right, on the rule. This is the HORIZONTAL
+	 * marker's cut turned a quarter, not the sidebar bar's: there the bar is pinned on the left
+	 * and opens to the right, here it is pinned on the right and opens to the left. Two vertical
+	 * marks, opposite cuts, because they are pinned to opposite edges.
 	 */
-	border-top-right-radius: var(--radius);
-	border-bottom-right-radius: var(--radius);
+	border-top-left-radius: var(--radius);
+	border-bottom-left-radius: var(--radius);
 }
 
 /*

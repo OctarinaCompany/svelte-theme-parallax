@@ -425,10 +425,11 @@
 
 	<DocSection title="Tabs with vertical orientation and line variant">
 		{#snippet blurb()}
-			The same stack without the filled bar: the active trigger is marked by an 8px rule on its
-			leading edge — the vertical reading of the line variant's underline, mirrored so the flag sits
-			beside the label rather than in the gap before the panel, and cut to the same width as the
-			sidebar's own active bar.
+			The same stack without the filled bar, and the horizontal row turned a quarter: the list
+			carries its rule down its right edge instead of along its bottom, and the active trigger's 8px
+			mark sits on that rule and replaces the segment beside it, exactly as the underline replaces a
+			segment of the row's rule above. The corners are cut on the free side, so the curve faces the
+			label.
 		{/snippet}
 		<!-- demo 4: c-tabs-3 with `variant="line"` on the list, nothing else moved. -->
 		<div class="flex w-full max-w-2xl flex-col gap-6">
@@ -651,12 +652,15 @@
 	<DocSection title="Tabs with icons and line variant">
 		{#snippet blurb()}
 			A sidebar-shaped composition: vertical line tabs where each trigger carries an icon, its
-			label, and — when there is something to count — a badge pushed to the far edge.
+			label, and — when there is something to count — a badge pushed to the far end of the row. The
+			counts stop one rem short of the rule, in the gutter the active mark needs to reach back into.
 		{/snippet}
 		<!--
 			demo 8. Upstream's `justify-start` on each trigger is already the component's own
 			vertical behaviour; `ml-auto` on the badges is what keeps the counts ragged-right while
-			the labels stay ragged-left.
+			the labels stay ragged-left. "Right" is now the trigger's padding edge rather than the
+			list's own: `app.css` gives a vertical `line` trigger `padding-right: 1rem` so the active
+			marker has somewhere to sit, and the counts stop against that instead of against the rule.
 		-->
 		<div class="flex w-full max-w-lg flex-col gap-6">
 			<Tabs.Root value="projects" orientation="vertical" class="gap-5">

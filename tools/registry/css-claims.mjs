@@ -143,6 +143,8 @@ export const RESTYLE_SELECTORS = [
 	'ol[data-sonner-toaster] [data-sonner-toast][data-styled="true"]:hover [data-close-button]:hover',
 	'ol[data-sonner-toaster] [data-sonner-toast][data-styled="true"] [data-close-button]:focus-visible',
 	'[data-slot="tabs-list"][data-variant="line"]',
+	'[data-slot="tabs-list"][data-variant="line"][data-orientation="vertical"]',
+	'[data-slot="tabs-list"][data-variant="line"][data-orientation="vertical"] > [data-slot="tabs-trigger"]',
 	'[data-slot="tabs-list"][data-variant="line"] > [data-slot="tabs-trigger"]',
 	'[data-slot="tabs-list"][data-variant="line"] > [data-slot="tabs-trigger"]:hover, [data-slot="tabs-list"][data-variant="line"] > [data-slot="tabs-trigger"][data-state="active"]',
 	'[data-slot="tabs-list"][data-variant="line"] > [data-slot="tabs-trigger"]:disabled',
