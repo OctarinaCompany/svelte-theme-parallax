@@ -65,7 +65,6 @@ export const BACKDROP_IDS = [
 	"horizon",
 	"corner",
 	"glow",
-	"vignette",
 	"weave",
 	"aurora",
 	// The drawn ones: a texture, then geometry.
@@ -120,17 +119,12 @@ export const BACKDROPS: Backdrop[] = [
 	{
 		id: "corner",
 		name: "Corner",
-		blurb: "A single source at the elbow the rail and bar share.",
+		blurb: "A low light thrown from the far corner of the page.",
 	},
 	{
 		id: "glow",
 		name: "Glow",
 		blurb: "One soft brand spotlight, hanging above the page.",
-	},
-	{
-		id: "vignette",
-		name: "Vignette",
-		blurb: "A soft frame at the rim, leaving the middle untouched.",
 	},
 	{
 		id: "weave",
@@ -145,7 +139,7 @@ export const BACKDROPS: Backdrop[] = [
 	{
 		id: "grain",
 		name: "Grain",
-		blurb: "Fine noise over a low wash — paper rather than glass.",
+		blurb: "Paper grain over a low wash. The one you feel more than see.",
 	},
 	{
 		id: "dots",
