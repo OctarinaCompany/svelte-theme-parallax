@@ -207,8 +207,13 @@
 					more pixel, which drops the row's rule ONTO the header's instead of leaving it
 					stacked one above — measured, the two coincide. `items-stretch` overrides the
 					list's own centring so each tab reaches the rule, which is what puts the active
-					underline on it rather than 1.3px above: the Chart page's Sales card is the same
-					measurement, and this now matches it exactly.
+					underline on it rather than 1.3px above: the Chart page's Sales card lands its
+					underline on that same line — but no longer at the same WEIGHT. That row is
+					hand-rolled from the reference, whose `nav-tabs-link-active-border-width` is 1px;
+					this one is the component, whose marker is an owner override at 8px, cut to match
+					the sidebar's active bar. The two coincide in position and differ in thickness, and
+					that is the intended reading: a reference port keeps the reference's measure, the
+					house component does not.
 				-->
 				<Tabs.List
 					variant="line"

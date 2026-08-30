@@ -498,7 +498,9 @@
 				"[data-slot=\"sidebar-menu-item\"]:has(> [data-active=\"true\"])::before, [data-slot=\"sidebar-menu-sub-item\"]:has(> [data-active=\"true\"])::before": {
 					"content": "\"\"",
 					"position": "absolute",
-					"border-left": "2px solid var(--sidebar-primary)"
+					"border-left": "8px solid var(--sidebar-primary)",
+					"border-top-right-radius": "var(--radius)",
+					"border-bottom-right-radius": "var(--radius)"
 				},
 				"[data-slot=\"sidebar-menu-item\"]:has(> [data-active=\"true\"])::before": {
 					"top": "0.25rem",
@@ -988,11 +990,18 @@
 				},
 				"[data-slot=\"tabs-list\"][data-variant=\"line\"] > [data-slot=\"tabs-trigger\"][data-orientation=\"horizontal\"]::after": {
 					"bottom": "-1px",
-					"height": "1px",
-					"background-color": "var(--primary)"
+					"height": "8px",
+					"background-color": "var(--primary)",
+					"border-top-left-radius": "var(--radius)",
+					"border-top-right-radius": "var(--radius)"
 				},
 				"[data-slot=\"tabs-list\"][data-variant=\"line\"] > [data-slot=\"tabs-trigger\"][data-orientation=\"vertical\"]::after": {
-					"background-color": "var(--primary)"
+					"right": "auto",
+					"left": "-0.75rem",
+					"width": "8px",
+					"background-color": "var(--primary)",
+					"border-top-right-radius": "var(--radius)",
+					"border-bottom-right-radius": "var(--radius)"
 				},
 				"[data-slot=\"tabs-list\"][data-variant=\"line\"][data-size=\"sm\"]": {
 					"gap": "1rem"

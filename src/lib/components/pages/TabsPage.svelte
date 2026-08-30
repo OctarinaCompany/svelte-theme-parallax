@@ -425,8 +425,10 @@
 
 	<DocSection title="Tabs with vertical orientation and line variant">
 		{#snippet blurb()}
-			The same stack without the filled bar: the active trigger is marked by a 2px rule on its right
-			edge — the vertical reading of the line variant's underline.
+			The same stack without the filled bar: the active trigger is marked by an 8px rule on its
+			leading edge — the vertical reading of the line variant's underline, mirrored so the flag sits
+			beside the label rather than in the gap before the panel, and cut to the same width as the
+			sidebar's own active bar.
 		{/snippet}
 		<!-- demo 4: c-tabs-3 with `variant="line"` on the list, nothing else moved. -->
 		<div class="flex w-full max-w-2xl flex-col gap-6">

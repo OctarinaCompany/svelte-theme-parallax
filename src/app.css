@@ -973,7 +973,7 @@
 /*
  * Sidebar active item — a bar marker rather than shadcn's pill.
  *
- * The active vertical-nav item is flagged with a 2px primary bar on the sidebar's left
+ * The active vertical-nav item is flagged with an 8px primary bar on the sidebar's left
  * edge and NO background fill. shadcn ships a filled pill instead
  * (`data-active:bg-sidebar-accent`). The component is generated code, so the swap happens
  * here rather than by editing it.
@@ -999,7 +999,34 @@
 [data-slot="sidebar-menu-sub-item"]:has(> [data-active="true"])::before {
 	content: "";
 	position: absolute;
-	border-left: 2px solid var(--sidebar-primary);
+	/*
+	 * 8px, an owner call, four times the 2px this started at. It is a WIDTH the gutter can
+	 * afford and the row never feels: the bar grows rightward from its own `left` offset, so
+	 * at the top level it spans -16px..-8px and at sub-item level -10px..-2px, both entirely
+	 * outside the button box, which begins at 0. Widening further would reach the label.
+	 */
+	border-left: 8px solid var(--sidebar-primary);
+	/*
+	 * Rounded on the TWO RIGHT CORNERS ONLY. The left edge is the one that is aligned to
+	 * something: at the top level it lands on the panel's inner edge, and at sub-item level it
+	 * abuts `SidebarMenuSub`'s 1px guide. A curve there would pull the mark off the line it
+	 * exists to sit on, so that side stays square and only the free edge is cut.
+	 *
+	 * `var(--radius)` rather than a literal, because the corner has something to agree with: it
+	 * is the same 6px the `sidebar-menu-button` beside it carries, so the mark reads as belonging
+	 * to the row it flags rather than as a foreign slab — and it follows the token if a palette
+	 * or a flavor ever turns the theme's radius.
+	 *
+	 * Nothing is clamped at this size: 6px of horizontal radius against an 8px border, and
+	 * 6 + 6 against the 24px the 0.25rem insets leave of a 2rem row, are both inside the CSS
+	 * corner-scaling limit, so the curve is drawn at full radius on every row.
+	 *
+	 * PHYSICAL corners, not `border-start-end-radius`, to stay in the idiom the rest of the
+	 * marker is written in — `border-left` and `left` do not flip either. The marker as a whole
+	 * is LTR-only today; the day it learns RTL, all four of those turn together.
+	 */
+	border-top-right-radius: var(--radius);
+	border-bottom-right-radius: var(--radius);
 }
 
 /* -1rem cancels the gutter set on `SidebarGroup` below, landing the bar on the sidebar edge. */
@@ -1014,9 +1041,11 @@
  * full-width box and only gain left *padding*, so their bar reaches the sidebar edge like
  * any other. shadcn indents `SidebarMenuSub` as a real box (`mx-3.5 px-2.5`) with a
  * `border-l` guide, so reaching the edge would take a hardcoded ~33px offset that breaks
- * silently if the indent changes. The bar sits on the existing guide instead: -0.625rem
+ * silently if the indent changes. The bar is hung off the existing guide instead: -0.625rem
  * cancels the sub-menu's own padding, which is stable because it cancels a value from the
- * same element.
+ * same element. It ABUTS that 1px guide rather than covering it — the guide runs the full
+ * column and the bar is inset 0.25rem top and bottom, so the hairline still shows above and
+ * below the mark. That was a curiosity at 2px and is a readable detail at 8px.
  */
 [data-slot="sidebar-menu-sub-item"]:has(> [data-active="true"])::before {
 	/* 0.25rem, matching the top-level bar, now that both rows are 2rem tall. */
@@ -2913,34 +2942,92 @@ ol[data-sonner-toaster] [data-sonner-toast][data-styled="true"] [data-close-butt
 /*
  * The active marker. shadcn's `line` variant floats a 2px `bg-foreground` bar 5px below the
  * trigger — an offset measured for its own 3px-padded bar. The house marker is the link's own
- * 1px bottom border in `primary`, sitting exactly on the list's rule.
+ * bottom border in `primary`, sitting exactly on the list's rule.
+ *
+ * EIGHT PIXELS, NOT THE REFERENCE'S ONE. `nav-tabs-link-active-border-width` is 1px, and that is
+ * what this rule shipped; 8px is an owner call, and it is not a free number — it is the width of
+ * the sidebar's active bar, so the two marks that answer the same question ("which one am I on?")
+ * carry the same weight whichever navigation is asking. `bottom: -1px` is unchanged and does the
+ * same job at any thickness: the bar's BOTTOM edge lands on the list's own 1px rule, so the extra
+ * thickness grows UPWARD into the trigger — 7px of the 1rem `padding-block` set above, and 7 of
+ * the 1.1538461538rem the `sm` row scales it to — and the rule underneath stays where it was.
  *
  * Unreachable from the call site twice over: it is a pseudo-element, and the base classes carry it
  * under a `group-data-[orientation=horizontal]/tabs:` prefix that outranks any plain `after:*`
  * utility written on the trigger.
  *
- * The geometry is scoped to `[data-orientation='horizontal']` on purpose. This tab style's whole
- * identity is a BOTTOM edge with no vertical variant, so shadcn's vertical
- * right-edge marker keeps its shipped 2px shape — only its colour is retinted below.
+ * The geometry is scoped to `[data-orientation='horizontal']` on purpose — the vertical marker
+ * is re-cut on its own terms in the block below.
  */
 [data-slot="tabs-list"][data-variant="line"]
 	> [data-slot="tabs-trigger"][data-orientation="horizontal"]::after {
 	/* The link is pulled down by minus one border width
 	   so its bottom border lands ON the list's rule rather than above it. */
 	bottom: -1px;
-	height: 1px; /* nav-tabs-link-active-border-width */
+	height: 8px; /* owner override of nav-tabs-link-active-border-width (1px) */
 	background-color: var(--primary); /* nav-tabs-link-active-border-color */
+	/*
+	 * Rounded on the TWO TOP CORNERS ONLY, the same reasoning as the sidebar bar's two right
+	 * ones: cut the FREE edge and leave the anchored one square. This bar's anchored edge is its
+	 * bottom — `bottom: -1px` seats it on the list's own rule, and a curve there would lift the
+	 * mark off the line it is measured onto and leave two slivers of rule showing through under
+	 * its ends. The top is the edge that touches nothing, so that is the edge that is cut.
+	 *
+	 * `var(--radius)` for the same reason as there: 6px is what the surfaces around it carry, and
+	 * the value follows the token rather than restating it. Neither axis is clamped — 6px of
+	 * vertical radius against an 8px bar, and 6 + 6 against the narrowest trigger on the page
+	 * (36px on the `sm` row), are both inside the CSS corner-scaling limit.
+	 */
+	border-top-left-radius: var(--radius);
+	border-top-right-radius: var(--radius);
 }
 
 /*
  * The vertical marker. Not a reference measurement (see above — there are no vertical tabs in
- * the reference): an
- * owner decision, so the selection reads in the same `primary` whichever way the list runs,
- * instead of shadcn's `bg-foreground`.
+ * the reference): an owner decision, so the selection reads in the same `primary` whichever way
+ * the list runs, instead of shadcn's `bg-foreground`.
+ *
+ * IT MOVES TO THE LEADING EDGE, which is shadcn's `-right-1` mirrored. A vertical list sits to
+ * the LEFT of the panel it drives, so a marker on its right edge lands in the gap between list
+ * and panel and reads as the panel's border rather than as the tab's own flag. On the left it
+ * reads the way the sidebar's active bar reads, which is the same gesture at a different scale.
+ *
+ * OUTSIDE THE TRIGGER, NOT INSIDE IT. `app.css` zeroes `padding-inline` on every `line` trigger
+ * (see the block above), so the label starts at x=0 and there is no inner gutter a bar could
+ * occupy without striking the text. `left: -0.75rem` with `width: 8px` puts the bar at
+ * -12px..-4px: the same 8px the horizontal marker carries, 4px of air before the label, and the
+ * label's own left edge still flush with the section heading above it.
+ *
+ * IT GREW LEFTWARD, and that direction was measured rather than chosen. The marker hangs outside
+ * its list, so its reach is bounded by the nearest clipping ancestor — `[data-slot=
+ * "sidebar-inset"]`, which is `overflow-x: auto`. On the docs page that leaves 36px of gutter at
+ * `md` and up and exactly 12px below it (`DocPage`'s `px-3 md:px-9`). At -12px the bar ends flush
+ * with that narrow gutter and is never cut; growing rightward instead would have closed the 4px
+ * of air onto the label, and taking the sidebar's full 8px of air (-16px) would have overrun the
+ * mobile gutter by 4px and clipped silently.
+ *
+ * `right: auto` is not decoration — the trigger's base classes still carry
+ * `group-data-[orientation=vertical]/tabs:after:-right-1`, and an absolutely positioned box given
+ * both offsets and a width would honour `right` and ignore `width`.
  */
 [data-slot="tabs-list"][data-variant="line"]
 	> [data-slot="tabs-trigger"][data-orientation="vertical"]::after {
+	right: auto;
+	left: -0.75rem;
+	width: 8px;
 	background-color: var(--primary);
+	/*
+	 * The TWO RIGHT CORNERS, which is the sidebar bar's cut rather than the horizontal marker's.
+	 * The rule the house now follows is "cut the free edge", and for a vertical mark the free
+	 * edge is the one facing the label: this bar hangs in the gutter to the left of a list whose
+	 * own left edge is aligned to the page column, so the side that reads as its end is the
+	 * right. Same corners, same token, same reason as
+	 * `[data-slot="sidebar-menu-item"]:has(> [data-active="true"])::before` — the two vertical
+	 * navigations in this kit are cut identically, and only the horizontal tab row turns its
+	 * curve to the top.
+	 */
+	border-top-right-radius: var(--radius);
+	border-bottom-right-radius: var(--radius);
 }
 
 /*
