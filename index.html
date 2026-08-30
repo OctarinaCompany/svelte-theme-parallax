@@ -57,23 +57,28 @@
       Inline and non-module on purpose: a classic inline script blocks parsing and runs before
       anything paints, where `type="module"` would be deferred and defeat the point.
 
-      THE FOUR KEYS AND THE DEFAULT MUST MATCH THE APP. The first two are mode-watcher's own
+      THE FIVE KEYS AND THE DEFAULT MUST MATCH THE APP. The first two are mode-watcher's own
       defaults; `mode-watcher-theme` is also stated as `THEME_STORAGE_KEY` in
       `src/lib/themes/index.ts`, `sidebar-mode` as `SIDEBAR_MODE_STORAGE_KEY` in
       `src/lib/hooks/sidebar-mode.svelte.ts`, `header-mode` as `HEADER_MODE_STORAGE_KEY` in
-      `src/lib/hooks/header-mode.svelte.ts`, and `parallax` is `DEFAULT_THEME`, the `defaultTheme`
+      `src/lib/hooks/header-mode.svelte.ts`, `flavor` as `FLAVOR_STORAGE_KEY` in
+      `src/lib/hooks/flavor.svelte.ts`, and `parallax` is `DEFAULT_THEME`, the `defaultTheme`
       passed to `ModeWatcher` in `App.svelte`. Nothing enforces the agreement across a plain HTML
       file, so it is written down on both ends.
 
-      Each chrome attribute is set only for `light` and `dark`. Its absence is the third state —
-      the surface follows what is around it — so writing `"auto"` would be writing a value no
-      stylesheet answers, and one more thing to strip later.
+      Each chrome attribute is set only for `light` and `dark`, and the flavor only for a value
+      other than `stock`. That absence is the third state — the surface follows what is around it,
+      the page wears the kit as it ships — so writing `"auto"` or `"stock"` would be writing a
+      value no stylesheet answers, and one more thing to strip later.
 
-      BE HONEST ABOUT WHAT THE LAST TWO BUY. Unlike `.dark` and `data-theme`, neither prevents a
-      flash: both surfaces are client-rendered, and each hook writes its attribute at module
-      evaluation, before the component that imports it can render. They are here for the reason
-      this block already exists — every appearance key declared in one place, and all four read the
-      same way in devtools — and they cost four lines each.
+      BE HONEST ABOUT WHAT EACH ONE BUYS. Unlike `.dark` and `data-theme`, the two chrome axes
+      prevent no flash: both surfaces are client-rendered, and each hook writes its attribute at
+      module evaluation, before the component that imports it can render. They are here for the
+      reason this block already exists — every appearance key declared in one place, and all five
+      read the same way in devtools — and they cost four lines each. `data-flavor` is the
+      exception among the three: a flavor repaints the page ground and the chrome, which are
+      painted from `<body>` before the app has mounted anything, so echoing it here is the same
+      kind of saving `data-theme` makes.
 
       `try`/`catch` because reading `localStorage` throws outright when a browser is set to
       block storage; the failure then costs a flash, not a blank page.
@@ -88,6 +93,14 @@
 				root.classList.toggle("dark", !light);
 				root.style.colorScheme = light ? "light" : "dark";
 				root.setAttribute("data-theme", localStorage.getItem("mode-watcher-theme") || "parallax");
+				/*
+				 * The flavor is ECHOED, NOT VALIDATED, exactly as the palette above it: an allowlist
+				 * here would be a second copy of `FLAVOR_IDS` for a plain HTML file to drift from. A
+				 * stale id selects no block — one frame of the stock look — and the hook narrows the
+				 * stored value and repairs the attribute at module evaluation.
+				 */
+				var flavor = localStorage.getItem("flavor");
+				if (flavor && flavor !== "stock") root.setAttribute("data-flavor", flavor);
 				/*
 				 * The two chrome axes are RELATIVE TO THE PAGE ("inverted" = the opposite half) and
 				 * independent of each other, but the stylesheets key on absolute light/dark
@@ -114,7 +127,7 @@
 					root.setAttribute("data-header-mode", barWear);
 				}
 			} catch (e) {
-				/* storage blocked — the app applies all four on mount instead */
+				/* storage blocked — the app applies all five on mount instead */
 			}
 		</script>
 	</head>
