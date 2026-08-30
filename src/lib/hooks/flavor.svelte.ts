@@ -12,7 +12,7 @@
  * applications built on this kit are twelve pages of the same drawing in different inks. A flavor
  * is the axis that answers "which application is this?" before a single label is read.
  *
- * TWELVE VALUES, ONE OF THEM ABSENT. `stock` writes NO attribute — `src/flavors.css` has no block
+ * SEVEN VALUES, ONE OF THEM ABSENT. `stock` writes NO attribute — `src/flavors.css` has no block
  * for it, so it is the kit exactly as it ships and needs no CSS to be correct. That absence is the
  * same third state the two chrome axes use, and it is why the default costs nothing. Every other
  * id is written verbatim as `data-flavor` on `<html>`: THE IDS ARE THE ATTRIBUTE VALUES, so a
@@ -36,21 +36,21 @@ export const FLAVOR_ATTRIBUTE = "data-flavor";
 
 /**
  * Every flavor, in the order the picker lists them: the control first, then the families in
- * widening scope — chrome, light, type, shape, brand.
+ * widening scope — chrome, light, type, shape.
+ *
+ * FIVE MORE WERE BUILT AND CUT, on the owner's verdict after seeing all twelve on screen:
+ * `masthead` and `overlap` (their brand band and ink L-frame both lost to Cascade, which paints
+ * the same two surfaces better), `glass`, `editorial` and `crest`. The removals are the point of
+ * a POC — the list is what survived being looked at, not what was easy to write.
  */
 export const FLAVOR_IDS = [
 	"stock",
-	"masthead",
 	"cascade",
-	"overlap",
 	"glow",
 	"aurora",
-	"glass",
-	"editorial",
 	"devtool",
 	"pebble",
 	"brutalist",
-	"crest",
 ] as const;
 
 export type FlavorId = (typeof FLAVOR_IDS)[number];
@@ -60,9 +60,9 @@ export const DEFAULT_FLAVOR: FlavorId = "stock";
 
 /**
  * What a flavor mostly changes. The picker rules a line between families rather than labelling
- * them: twelve rows read as a list, five groups read as a menu.
+ * them: a flat list of rows reads as a list, grouped rows read as a menu.
  */
-export type FlavorFamily = "none" | "chrome" | "light" | "type" | "shape" | "brand";
+export type FlavorFamily = "none" | "chrome" | "light" | "type" | "shape";
 
 export type Flavor = {
 	id: FlavorId;
@@ -85,21 +85,9 @@ export const FLAVORS: Flavor[] = [
 		family: "none",
 	},
 	{
-		id: "masthead",
-		name: "Masthead",
-		blurb: "A brand-coloured band across the page header, and a line under it.",
-		family: "chrome",
-	},
-	{
 		id: "cascade",
 		name: "Cascade",
 		blurb: "The brand poured down the sidebar as a gradient, with a little grain.",
-		family: "chrome",
-	},
-	{
-		id: "overlap",
-		name: "Overlap",
-		blurb: "An ink rail and bar, and the ink continues behind the page title.",
 		family: "chrome",
 	},
 	{
@@ -113,18 +101,6 @@ export const FLAVORS: Flavor[] = [
 		name: "Aurora",
 		blurb: "Three colour fields drifting slowly behind the content.",
 		family: "light",
-	},
-	{
-		id: "glass",
-		name: "Glass",
-		blurb: "Frosted chrome over a faint light, with an opaque fallback.",
-		family: "light",
-	},
-	{
-		id: "editorial",
-		name: "Editorial",
-		blurb: "A display serif on the headings and the wordmark. The magazine voice.",
-		family: "type",
 	},
 	{
 		id: "devtool",
@@ -143,12 +119,6 @@ export const FLAVORS: Flavor[] = [
 		name: "Brutalist",
 		blurb: "No radius, thick ink borders, a hard offset shadow and one loud fill.",
 		family: "shape",
-	},
-	{
-		id: "crest",
-		name: "Crest",
-		blurb: "The brand mark in the rail, its hue on the icons and the selection.",
-		family: "brand",
 	},
 ];
 

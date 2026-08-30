@@ -5,8 +5,6 @@
 	import { Toaster } from "$lib/components/ui/sonner/index.js";
 	import AppShell from "$lib/components/layout/AppShell.svelte";
 	import AppSidebar from "$lib/components/layout/AppSidebar.svelte";
-	import BrandMark from "$lib/components/navigation/BrandMark.svelte";
-	import { activeFlavor } from "$lib/hooks/flavor.svelte.js";
 	import { Button, buttonVariants } from "$lib/components/ui/button/index.js";
 	import { Skeleton } from "$lib/components/ui/skeleton/index.js";
 	import { dashboardData } from "$lib/data/dashboard.js";
@@ -350,19 +348,6 @@
 	the document before comparing: `new URL` turns both an absolute and a relative href into the
 	same pathname, and `normalisePath` takes the base back off.
 -->
-<!--
-	The `crest` flavor's brand mark, declared once and handed to the sidebar only while that flavor
-	is on. A snippet is a value, so the choice is made where it is PASSED rather than by wrapping
-	the sidebar in an `{#if}`: `AppSidebar` falls back to the workspace switcher whenever `header`
-	is undefined, so nothing published has to know this exists.
-
-	Importing the flavor hook here is also what guarantees its attribute effect runs on every
-	route, including the one that renders no page at all.
--->
-{#snippet brandHeader()}
-	<BrandMark />
-{/snippet}
-
 <AppShell>
 	{#snippet sidebar()}
 		<AppSidebar
@@ -370,7 +355,6 @@
 			workspaces={dashboardData.workspaces}
 			items={dashboardData.navMain}
 			label="Components"
-			header={activeFlavor.current === "crest" ? brandHeader : undefined}
 			isActive={(url) => normalisePath(new URL(url, location.href).pathname) === route.current}
 		/>
 	{/snippet}
