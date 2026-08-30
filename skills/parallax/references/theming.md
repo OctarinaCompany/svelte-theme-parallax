@@ -1,14 +1,14 @@
 # Theming, tokens and the appearance axes
 
 Contents: [Token families](#token-families) · [Type, radius, tracking](#type-radius-tracking) ·
-[The 12 palettes](#the-12-palettes) · [Programmatic control](#programmatic-control) ·
+[The 18 palettes](#the-18-palettes) · [Programmatic control](#programmatic-control) ·
 [The appearance axes](#the-appearance-axes) · [The first-paint script](#the-first-paint-script)
 
 ## Token families
 
 Every mapping generates the full Tailwind utility set (`bg-*`, `text-*`, `border-*`,
 `ring-*`, `fill-*`, `stroke-*`, plus `/opacity` modifiers). Use these — never raw palette
-colors — so all 12 themes and both modes keep working.
+colors — so every theme and both modes keep working.
 
 **Status, solid** (emphasis fills; pair with their own foreground):
 
@@ -62,17 +62,16 @@ Role-mapped scale — body runs 15px, larger than shadcn's 14px:
 - `font-sans` is Hanken Grotesk Variable — needs
   `@import "@fontsource-variable/hanken-grotesk";` in the global stylesheet.
 
-## The 12 palettes
+## The 18 palettes
 
 `graphite, sepia, nordic, harbor, evergreen, sandstone, ember, crimson, orchid, amethyst,
-indigo, parallax`. Palette and light/dark are independent axes: every theme defines both
-modes, so `<html class="dark" data-theme="ember">` is an ordinary state.
+indigo, moss, fern, heather, bluestone, damson, kiln, parallax`. Palette and light/dark are
+independent axes: every theme defines both modes, so `<html class="dark" data-theme="ember">`
+is an ordinary state.
 
 `parallax` is the base and **has no `[data-theme]` block on purpose** — it IS the
-`:root`/`.dark` palette. Base is not default: a missing or unknown stored id narrows to
-`DEFAULT_THEME`, which the kit ships as `amethyst`, and that is the palette a first visit
-wears. The two were the same id until Amethyst took over, so `data-theme` is now written on
-the first frame rather than left absent.
+`:root`/`.dark` palette. It is also `DEFAULT_THEME`, so a missing or unknown stored id narrows
+to it; `data-theme` is still written on the first frame rather than left absent.
 
 ## Programmatic control
 

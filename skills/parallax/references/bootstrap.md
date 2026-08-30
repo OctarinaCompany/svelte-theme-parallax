@@ -108,7 +108,7 @@ the component forks underneath, `collapsible` being the one bare official name i
 it does three separate things:
 
 1. writes the component files under `src/lib/`
-2. writes `src/themes.css` (the eleven alternate palettes)
+2. writes `src/themes.css` (the seventeen alternate palettes)
 3. **merges the base tokens into the global stylesheet** — 56 `cssVars` plus two `css`
    blocks. This is where `--background`, `--primary`, the success/warning/info families,
    the subtle family and `--sidebar-outline` come from; `themes.css` holds only the

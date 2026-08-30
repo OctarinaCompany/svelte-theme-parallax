@@ -5,13 +5,13 @@
 
 **A dashboard theme kit for [shadcn-svelte](https://shadcn-svelte.com/docs).**
 Svelte 5, Vite, Tailwind CSS v4, [Bits UI](https://bits-ui.com) — 127 components under one
-coherent theme, twelve palettes over one token set, an installable application shell, and a
+coherent theme, eighteen palettes over one token set, an installable application shell, and a
 gallery that documents every component with a live page.
 
 ## Start here — install the skill
 
 Parallax ships an [Agent Skill](./skills/parallax/README.md). It teaches an AI assistant the
-registry, the shell's props, the token families and the twelve palettes, so everything further
+registry, the shell's props, the token families and the eighteen palettes, so everything further
 down becomes a conversation instead of a manual read. Install it before anything else.
 
 **Pick a scope first.** *Personal* covers every session on the machine, empty directories
@@ -143,7 +143,7 @@ The non-obvious behaviours are deliberate and documented where they live:
 
 ## Themes
 
-Twelve palettes over one token set, switchable from the header of every page and documented on
+Eighteen palettes over one token set, switchable from the header of every page and documented on
 `Components → Themes`. The palette and the light/dark switch are two independent axes: every theme
 defines both modes, so `<html class="dark" data-theme="ember">` is an ordinary state.
 `mode-watcher` owns both attributes and persists both.
@@ -181,7 +181,7 @@ One hundred and nineteen items ship today — the palette, the axes, the shell, 
 
 | Item | What it installs |
 |------|------------------|
-| `parallax-theme` | The palette: the base light and dark tokens, `src/themes.css` with the eleven alternates, and the Tailwind mappings for the families shadcn does not ship — `success`, `warning`, `info`, the subtle family, `--sidebar-outline` |
+| `parallax-theme` | The palette: the base light and dark tokens, `src/themes.css` with the seventeen alternates, and the Tailwind mappings for the families shadcn does not ship — `success`, `warning`, `info`, the subtle family, `--sidebar-outline` |
 | `parallax-appearance` | The four appearance axes as persisted state — inverted sidebar, inverted header, floating header, hide-on-scroll — plus the CSS their attributes key on |
 | `parallax-appearance-controls` | The two dropdown menus that drive those axes |
 | `parallax-swap` | The two-state icon crossfade behind the light/dark toggle — a house primitive absent from the official registry |
@@ -238,7 +238,7 @@ install URL, and the post-install steps a registry item cannot perform for you.
 | `src/lib/themes/` | The theme axis: generated palette data, and the state over `mode-watcher` |
 | `src/lib/hooks/route.svelte.ts` | The catalog — the ladder, and the routes derived from it |
 | `src/lib/data/` | The demo's own data: the menu's presentation, and this deployment's repository URL |
-| `src/themes.css` | The eleven alternative palettes — **generated** |
+| `src/themes.css` | The seventeen alternative palettes — **generated** |
 | `tools/themes/` | The generator and its audit — the only place a palette is edited |
 | `registry.json` | The registry manifest — **generated** by `tools/registry/` |
 | `tools/registry/` | The manifest generator, and the `app.css` block reader it uses |

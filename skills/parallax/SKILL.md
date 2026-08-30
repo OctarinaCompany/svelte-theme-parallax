@@ -1,6 +1,6 @@
 ---
 name: parallax
-description: Build and style dashboards with Parallax, the shadcn-svelte theme kit (Svelte 5 + Tailwind v4). Use when a project consumes the Parallax registry (svelte-theme-parallax), when AppShell/AppSidebar/PageHeader or parallax-* registry items appear in the code, or when the user asks to install Parallax, start a new Svelte dashboard project from an empty directory, add a sidebar/header shell, add a full-height panel beside the page, react to or drive scrolling inside the shell, fix Safari's collapsing toolbar on iPad, theme a dashboard, use the success/warning/info or subtle token families, or drive the floating/inverted/auto-hide appearance axes. Covers bootstrapping a project from scratch, registry installation, shell composition through typed props and snippets, the shell-owned scroll model, nav data wiring with an isActive predicate, the 12 palettes over mode-watcher, and the appearance hooks. Not for generic shadcn-svelte components that Parallax does not ship.
+description: Build and style dashboards with Parallax, the shadcn-svelte theme kit (Svelte 5 + Tailwind v4). Use when a project consumes the Parallax registry (svelte-theme-parallax), when AppShell/AppSidebar/PageHeader or parallax-* registry items appear in the code, or when the user asks to install Parallax, start a new Svelte dashboard project from an empty directory, add a sidebar/header shell, add a full-height panel beside the page, react to or drive scrolling inside the shell, fix Safari's collapsing toolbar on iPad, theme a dashboard, use the success/warning/info or subtle token families, or drive the floating/inverted/auto-hide appearance axes. Covers bootstrapping a project from scratch, registry installation, shell composition through typed props and snippets, the shell-owned scroll model, nav data wiring with an isActive predicate, the 18 palettes over mode-watcher, and the appearance hooks. Not for generic shadcn-svelte components that Parallax does not ship.
 license: MIT
 ---
 
@@ -264,7 +264,7 @@ List group, …). The COMPONENTS it uses are installable; the composition is wha
 - [references/shell.md](references/shell.md) — every component's props, snippets and
   contracts, with incorrect/correct pairs
 - [references/theming.md](references/theming.md) — token families and their utility
-  classes, the 12 palettes, the appearance hooks, the first-paint script
+  classes, the 18 palettes, the appearance hooks, the first-paint script
 - [references/install.md](references/install.md) — the registry items, install order,
   manual steps, fidelity notes, troubleshooting
 - [references/bootstrap.md](references/bootstrap.md) — empty directory to running

@@ -155,11 +155,21 @@
  *   evergreen  h166   asks 0.065   ceiling 0.0591
  *   sandstone  h74    asks 0.068   ceiling 0.0604
  *   ember      h56    asks 0.084   ceiling 0.0697
+ *   fern       h151   asks 0.090   ceiling 0.0766
+ *   kiln       h82    asks 0.077   ceiling 0.0588
  *
- * FOUR AND NOT TWO, because the list grows as the head comes down: the gamut narrows toward black,
+ * SIX AND NOT TWO, because the list grows as the head comes down: the gamut narrows toward black,
  * so lowering the anchor pulls more hues under the shared cap. That is a fact about sRGB, not a
- * sign the approach is fraying — the eight palettes absent from this list have ceilings from 0.064
+ * sign the approach is fraying — the palettes absent from this list have ceilings from 0.064
  * (sepia) to 0.192 (parallax) and never touch it.
+ *
+ * MOSS IS THE ONE TO WATCH: its head asks 0.0746 where the ceiling is 0.0748, so it is inside by
+ * 0.0002 and carries no cap. If it ever reads hue-shifted against the other greens, that margin is
+ * why, and 0.074 is the answer.
+ *
+ * The two new greens do NOT join harbor and evergreen's `-6` torsion. That rotation buys headroom
+ * at teal, and at h 122-145 it costs it instead: moss's head at -6 would need a cap of 0.065 where
+ * the default +6 needs none.
  */
 :root[data-theme="harbor"].dark:is([data-sidebar-mode="vibrant"], [data-header-mode="vibrant"]) {
 	--vibrant-cap: 0.049;
@@ -172,6 +182,12 @@
 }
 :root[data-theme="ember"].dark:is([data-sidebar-mode="vibrant"], [data-header-mode="vibrant"]) {
 	--vibrant-cap: 0.069;
+}
+:root[data-theme="fern"].dark:is([data-sidebar-mode="vibrant"], [data-header-mode="vibrant"]) {
+	--vibrant-cap: 0.076;
+}
+:root[data-theme="kiln"].dark:is([data-sidebar-mode="vibrant"], [data-header-mode="vibrant"]) {
+	--vibrant-cap: 0.058;
 }
 
 :root:is([data-sidebar-mode="vibrant"], [data-header-mode="vibrant"]).dark {

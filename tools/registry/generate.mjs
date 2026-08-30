@@ -197,7 +197,7 @@ const THEME = {
 	type: "registry:theme",
 	title: "Parallax theme",
 	description:
-		"The Parallax palette: the base light and dark tokens, the eleven alternate palettes behind `data-theme`, and the Tailwind mappings for the token families shadcn does not ship — success, warning, info, the subtle family, and `--sidebar-outline`.",
+		"The Parallax palette: the base light and dark tokens, the seventeen alternate palettes behind `data-theme`, and the Tailwind mappings for the token families shadcn does not ship — success, warning, info, the subtle family, and `--sidebar-outline`.",
 	dependencies: ["mode-watcher", "@fontsource-variable/hanken-grotesk"].map(pinned),
 	/*
 	 * Empty rather than absent, BOTH of them: `registry.json` requires `registryDependencies`

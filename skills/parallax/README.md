@@ -2,7 +2,7 @@
 
 A [Claude Code / Agent Skill](https://agentskills.io) that teaches an AI assistant the
 right way to use Parallax in a consumer project: installing from the registry, composing
-the shell through props and snippets, the semantic token families, the 12 palettes, and
+the shell through props and snippets, the semantic token families, the 18 palettes, and
 the appearance axes — plus the pitfalls that are invisible until they bite (the
 first-paint script, the `overflow-x` sticky killer, the `svh` trap and the shell-owned
 scroll, the subtle-foreground pairing).

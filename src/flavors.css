@@ -291,12 +291,15 @@
 }
 
 /* Warm hues are discriminated roughly twice as finely as cool ones, so the same arc reads as a
-   wider spread on them. Half the fan keeps the four warm palettes in the same register. */
+   wider spread on them. Half the fan keeps the warm palettes in the same register.
+   `kiln` joins on hue (76, between sandstone and sepia); `moss` does not — at 122 it is the first
+   palette the kit has had between 68 and 172, and green is discriminated as a cool hue. */
 :root:is(
 		[data-theme="ember"],
 		[data-theme="sandstone"],
 		[data-theme="sepia"],
-		[data-theme="crimson"]
+		[data-theme="crimson"],
+		[data-theme="kiln"]
 	)[data-flavor="aurora"] {
 	--flavor-aur-fan: 13;
 }
