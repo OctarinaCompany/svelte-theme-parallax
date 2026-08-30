@@ -498,7 +498,7 @@
 				"[data-slot=\"sidebar-menu-item\"]:has(> [data-active=\"true\"])::before, [data-slot=\"sidebar-menu-sub-item\"]:has(> [data-active=\"true\"])::before": {
 					"content": "\"\"",
 					"position": "absolute",
-					"border-left": "8px solid var(--sidebar-primary)",
+					"border-left": "6px solid var(--sidebar-primary)",
 					"border-top-right-radius": "var(--radius)",
 					"border-bottom-right-radius": "var(--radius)"
 				},
@@ -997,14 +997,14 @@
 				},
 				"[data-slot=\"tabs-list\"][data-variant=\"line\"] > [data-slot=\"tabs-trigger\"][data-orientation=\"horizontal\"]::after": {
 					"bottom": "-1px",
-					"height": "8px",
+					"height": "6px",
 					"background-color": "var(--primary)",
 					"border-top-left-radius": "var(--radius)",
 					"border-top-right-radius": "var(--radius)"
 				},
 				"[data-slot=\"tabs-list\"][data-variant=\"line\"] > [data-slot=\"tabs-trigger\"][data-orientation=\"vertical\"]::after": {
 					"right": "-1px",
-					"width": "8px",
+					"width": "6px",
 					"background-color": "var(--primary)",
 					"border-top-left-radius": "var(--radius)",
 					"border-bottom-left-radius": "var(--radius)"
