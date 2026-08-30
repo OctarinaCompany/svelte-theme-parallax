@@ -207,13 +207,10 @@
 					more pixel, which drops the row's rule ONTO the header's instead of leaving it
 					stacked one above — measured, the two coincide. `items-stretch` overrides the
 					list's own centring so each tab reaches the rule, which is what puts the active
-					underline on it rather than 1.3px above: the Chart page's Sales card lands its
-					underline on that same line — but no longer at the same WEIGHT. That row is
-					hand-rolled from the reference, whose `nav-tabs-link-active-border-width` is 1px;
-					this one is the component, whose marker is an owner override at 8px, cut to match
-					the sidebar's active bar. The two coincide in position and differ in thickness, and
-					that is the intended reading: a reference port keeps the reference's measure, the
-					house component does not.
+					mark on it rather than 1.3px above. The Chart page's Sales card lands the same mark
+					on that same line: 8px of `primary` cut on its two top corners, drawn there by hand
+					because that row is hand-rolled and here by the component, which is the point — one
+					answer to "which one am I on?", whatever draws it.
 				-->
 				<Tabs.List
 					variant="line"
@@ -407,8 +404,8 @@
 			The same navigation, drawn so that it belongs to the header: the tabs span its full height and
 			their active underline lands on the header's own rule rather than floating inside it. The pill
 			above is the shadcn shape and needs nothing; this one is worth having because a card whose
-			header is a switch reads as one surface instead of two. The Chart page puts the same tabs over
-			a chart.
+			header is a switch reads as one surface instead of two. The Chart page draws the same mark by
+			hand over a chart.
 		{/snippet}
 		{@render headerTabsToRule()}
 	</DocSection>

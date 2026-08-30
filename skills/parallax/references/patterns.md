@@ -121,10 +121,13 @@ button, a bottom-hung tab row, an avatar stack, a cover image, or a chart band.
 - Pretitle: `text-[0.625rem] font-medium tracking-label uppercase text-muted-foreground`;
   title: `text-2xl font-medium md:text-[1.625rem]` — one of the theme's only responsive
   type steps.
-- Tabs hang off the bottom rule: list `-mb-6 flex`, links `-mb-px … py-6`, so the active
-  `border-primary` underline lands **on** the header rule and replaces that segment.
-- Tab margins sit on the `<li>` (`mx-3 first:ml-0 last:mr-0`), not the link — each
-  underline is exactly as wide as its label.
+- Tabs hang off the bottom rule: list `-mb-6 flex`, links `relative … py-6` carrying
+  `after:absolute after:inset-x-0 after:-bottom-px after:h-2 after:rounded-t-md`, active
+  `after:bg-primary`. That is the house mark — 8px cut on its two top corners — seated **on**
+  the header rule, replacing that segment. A pseudo-element rather than a border: a border can
+  only be curved on the anchored edge, and 8px of it would eat the link's height.
+- Tab margins sit on the `<li>` (`mx-3 first:ml-0 last:mr-0`), not the link — each mark is
+  exactly as wide as its label.
 - A cover image is a *sibling* of the inset container (full-bleed); the body pulls up
   `-mt-9 md:-mt-18` and a `size-32 border-4 border-card` avatar straddles the seam.
 - Merge active states with `cn()`, never string concatenation — contradictory utilities

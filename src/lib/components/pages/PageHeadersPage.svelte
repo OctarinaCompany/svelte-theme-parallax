@@ -93,34 +93,40 @@
 	 * `calc(var(--bs-header-spacing-y) * -1)`, and the links repay it with `py-6`.
 	 *
 	 * `.nav-tabs .nav-item { margin-inline: nav-tabs-link-margin-x }` with the first and last
-	 * reset — the margin is on the ITEM rather than the link so the 1px underline is exactly
-	 * as wide as the label, which is the comment the classic theme leaves on the variable.
+	 * reset — the margin is on the ITEM rather than the link so the mark is exactly as wide as
+	 * the label, which is the comment the classic theme leaves on the variable.
 	 */
 	const tabsList = "-mb-6 flex";
 	const tabItem = "mx-3 first:ml-0 last:mr-0";
 
 	/**
-	 * A tab link. `nav-tabs-link-active-border-width: 1px` in `primary`, against a
-	 * transparent border on the others so nothing shifts when the selection moves.
+	 * A tab link. The reference measures its active border at
+	 * `nav-tabs-link-active-border-width: 1px`; this kit overrides that to the house mark — 8px of
+	 * `primary` cut on its two top corners, the same drawing `app.css` makes for the `line`
+	 * variant. Nothing shifts when the selection moves, because the mark is a pseudo-element
+	 * that is always there and only changes colour.
 	 *
 	 * The resting colour is `nav-tabs-link-color` = `gray-600`, which `--muted-foreground`
 	 * holds exactly in light mode. In dark mode `header-tabs-link-color-dark` is `white` for
 	 * both the resting and the hover state, so the links stop dimming altogether.
 	 *
-	 * `-mb-px` is `.nav-tabs .nav-link { margin-bottom: calc(var(--bs-nav-tabs-border-width) * -1) }`
-	 * — measured at -1px on the classic theme's own tabs. It drops each link's bottom border ONTO the
-	 * header's rule instead of leaving it one pixel above, so the active underline replaces that
-	 * segment of the rule rather than doubling it.
+	 * WHERE THE −1px WENT. The reference puts it on the link —
+	 * `.nav-tabs .nav-link { margin-bottom: calc(var(--bs-nav-tabs-border-width) * -1) }`, measured
+	 * at -1px on the classic theme's own tabs — to drop a 1px bottom border ONTO the header's rule
+	 * rather than leave it a pixel above. A pseudo-element carries its own offset, so the link
+	 * keeps no margin and the bar takes the −1px as `after:-bottom-px`: `tabsList`'s `-mb-6`
+	 * already lands the link's bottom edge on the top of the rule, and that last pixel seats the
+	 * mark across it, replacing the segment rather than doubling it.
 	 */
 	const tabLink =
-		"-mb-px block border-b border-transparent py-6 text-sm transition-colors text-muted-foreground hover:text-foreground dark:text-foreground";
+		"relative block py-6 text-sm transition-colors text-muted-foreground after:absolute after:inset-x-0 after:-bottom-px after:h-2 after:rounded-t-md after:transition-colors hover:text-foreground dark:text-foreground";
 
 	/**
-	 * Merged with `cn()` rather than concatenated: it contradicts `border-transparent` and
-	 * `text-muted-foreground` above, and two utilities for the same property on one unmerged
-	 * element are settled by Tailwind's sort order instead of by intent.
+	 * Merged with `cn()` rather than concatenated: it contradicts `text-muted-foreground` above
+	 * and paints the bar the base leaves unpainted, and two utilities for the same property on
+	 * one unmerged element are settled by Tailwind's sort order instead of by intent.
 	 */
-	const tabLinkActive = "border-primary text-foreground";
+	const tabLinkActive = "text-foreground after:bg-primary";
 
 	/** As on the Buttons page: `btn-*` resolved. */
 	const btnPrimary = cn(

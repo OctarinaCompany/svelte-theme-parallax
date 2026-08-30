@@ -207,17 +207,31 @@
 	/**
 	 * `.nav-tabs.nav-tabs-sm.card-header-tabs`: `nav-tabs-font-size-sm` is 13px and
 	 * `nav-tabs-link-margin-x-sm` is .5rem, against the 15px / .75rem of the full-size tabs on
-	 * the Page headers page. The active link keeps the 1px primary underline.
+	 * the Page headers page.
+	 *
+	 * THE ACTIVE LINK CARRIES THE HOUSE MARK, not the reference's underline — 8px of `primary`
+	 * cut on its two top corners, which is the same drawing `app.css` makes for the `line`
+	 * variant's trigger. The row is hand-rolled, so the mark is written by hand; it is the same
+	 * mark all the same, because "which one am I on?" gets ONE answer across this kit.
+	 *
+	 * A PSEUDO-ELEMENT, NOT A THICKER BORDER, for two reasons that are both about this row. A
+	 * `border-b` can only be curved at the box's BOTTOM corners, which is the anchored edge and
+	 * exactly the curve the house cut refuses; and `box-sizing: border-box` means 8px of border
+	 * would eat 7px of a link whose height is fixed by the 60px header, lifting the label off
+	 * the title's centre line — the one thing the paragraph below promises.
 	 *
 	 * `.card-header-tabs` bleeds over the header's 12px vertical padding (`margin: -12px 0` —
 	 * the ul's `-my-3 self-stretch`) so each link spans the full 60px header and its text shares
-	 * the title's vertical centre. The `-mb-px` sits on the ITEM, where the stretch algorithm
-	 * turns it into one extra pixel of height, dropping the link's underline ONTO the header's
-	 * rule instead of leaving it one pixel above — same port note as on the Page headers page.
+	 * the title's vertical centre. That stretch already takes the button's bottom edge to the
+	 * TOP of the header's rule; the bar's own `-bottom-px` then seats its bottom on the rule's
+	 * outer edge, spending 1px over the rule and 7px growing up into the button. It is the same
+	 * −1px the component spends, which is why the ITEM no longer carries `-mb-px`: a
+	 * pseudo-element brings its own offset, so the box does not have to be stretched to lend it
+	 * one.
 	 */
 	const cardTab =
-		"flex h-full items-center border-b border-transparent text-xs transition-colors text-muted-foreground hover:text-foreground";
-	const cardTabActive = "border-primary text-foreground";
+		"relative flex h-full items-center text-xs transition-colors text-muted-foreground after:absolute after:inset-x-0 after:-bottom-px after:h-2 after:rounded-t-md after:transition-colors hover:text-foreground";
+	const cardTabActive = "text-foreground after:bg-primary";
 
 	/** Dollar and percent axis formats, from the Chart.js `ticks.callback` in each demo. */
 	const dollars = (v: unknown) => `$${v}k`;
@@ -909,7 +923,7 @@
 					<!-- `data-action="toggle"`: the tabs REPLACE the visible series, one at a time. -->
 					<ul class="-my-3 flex self-stretch">
 						{#each Object.keys(salesSeries) as SalesKey[] as label (label)}
-							<li class="mx-2 -mb-px first:ml-0 last:mr-0">
+							<li class="mx-2 first:ml-0 last:mr-0">
 								<button
 									type="button"
 									class={cn(cardTab, salesTab === label && cardTabActive)}

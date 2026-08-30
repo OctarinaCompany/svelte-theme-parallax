@@ -86,9 +86,16 @@ ships today is listed here.
   the demo, never through the published header, so `parallax-shell` is untouched and a consumer's
   application does not gain a link to somebody else's repository. The URL is derived from
   `package.json` at build time, so a fork's remote is the only place it is written down.
+- **One mark for "which one am I on?".** The sidebar's active item, the horizontal `line` tab
+  row, the vertical one turned a quarter, and the two hand-rolled tab rows on the Chart and Page
+  headers pages now all carry the same shape: 8px of `primary` with a `var(--radius)` curve on its
+  free edge — the edge that touches nothing, so the anchored one stays square and the mark sits on
+  the rule it is measured onto. The vertical tab list gained that rule down its right edge, where
+  it used to wear the horizontal reading's along its bottom. It replaces a ladder of 2px, 1px and
+  2px that had no reading.
 - **A card header whose navigation meets the rule.** The Card page gains the shape the classic
   theme called `.card-header-tabs`, beside the pill it already showed: the tab row spans the full
-  60px header and the active underline lands on the header's own rule instead of floating inside
+  60px header and the active mark lands on the header's own rule instead of floating inside
   it. Three classes over the `line` tab variant, which already ports the rest.
 - **The code of every example, on the clipboard.** A second control beside each heading copies that
   demo as a standalone Svelte component: the markup with the gallery's card frame removed, the

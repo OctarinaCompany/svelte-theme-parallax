@@ -38,7 +38,10 @@
 	 * var(--bs-primary)`, `nav-tabs-link-active-border-width: 1px`) — no bar, no fill, no radius.
 	 *
 	 * shadcn already ships that silhouette as `Tabs.List variant="line"`, so every list here
-	 * asks for it, and the classic theme's measurements are applied to that variant in `app.css`. The
+	 * asks for it, and the classic theme's measurements are applied to that variant in `app.css` —
+	 * EXCEPT the active mark's weight and corner, which the owner re-cuts to the house shape: 8px
+	 * of `primary` with a `var(--radius)` curve on its two top corners, the same mark the sidebar's
+	 * active item carries turned on its side. `app.css` shouts that override where it is made. The
 	 * default pill variant is deliberately left alone: its classic counterpart is `.nav-pills`
 	 * (`nav-pills-link-active-bg: component-active-bg`, a solid `primary` pill), which is a
 	 * different component from `.nav-tabs`.
@@ -54,9 +57,11 @@
 	 *
 	 *   vertical tabs   the classic framework stacks a nav with `.flex-column`, but `.nav-tabs`' whole
 	 *                   identity is a BOTTOM edge and the classic theme documents no vertical variant.
-	 *                   The page shows horizontal only, and the `app.css` indicator rule is
-	 *                   scoped to `[data-orientation='horizontal']` so shadcn's vertical
-	 *                   right-edge marker survives untouched.
+	 *                   So the vertical sections below are an owner cut rather than a port: shadcn's
+	 *                   silhouette is kept, and its 2px `foreground` bar on the trigger's trailing
+	 *                   edge is replaced by the house 8px `primary` one, seated on a rule the list
+	 *                   now carries down its right edge. `app.css` keys the two orientations
+	 *                   separately for exactly that reason.
 	 *   list -> panel   the classic `.tab-content` has no spacing of its own; the 16px under the
 	 *                   nav in the classic theme's own example is an `mb-4` utility on the `<ul>`, i.e. a
 	 *                   choice made by that document rather than by the component. `Tabs.Root`
@@ -70,8 +75,8 @@
 	 * `margin: -.75rem 0` (`card-spacer-y * .5`) plus a padding recomputed from
 	 * `card-header-height` — `calc((60px - 1em * 1.5) * .5)` — so the tabs fill the header's
 	 * fixed 60px row. Both numbers assume the classic flex `.card-header`; this app's
-	 * `CardHeader` is a grid with its own padding, and the Cards page already carries the one
-	 * demo of tabs inside a card header.
+	 * `CardHeader` is a grid with its own padding, and the Cards page already carries both demos
+	 * of tabs inside a card header — the pill, and the row that meets the header's rule.
 	 */
 
 	/**
@@ -341,8 +346,8 @@
 	<DocSection title="Tabs with vertical orientation">
 		{#snippet blurb()}
 			The list stacks down the left and the panel fills the rest. This is shadcn-svelte's own
-			vertical behaviour, untouched by the theme's tab measurements — those are scoped to horizontal
-			lists.
+			vertical behaviour, untouched by the theme's tab measurements — those are keyed on the `line`
+			variant, and this demo is the default pill. The section below is the same stack wearing them.
 		{/snippet}
 		<!--
 			demo 3. The vertical column, the full-width triggers and their left alignment all
