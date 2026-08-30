@@ -4,7 +4,7 @@
 	import PageHeader from "$lib/components/layout/PageHeader.svelte";
 	import PageIntro from "$lib/components/layout/PageIntro.svelte";
 	import CommandPalette from "$lib/components/navigation/CommandPalette.svelte";
-	import FlavorSelector from "$lib/components/navigation/FlavorSelector.svelte";
+	import BackdropSelector from "$lib/components/navigation/BackdropSelector.svelte";
 	import ModeToggle from "$lib/components/navigation/ModeToggle.svelte";
 	import RepositoryLink from "$lib/components/navigation/RepositoryLink.svelte";
 	import {
@@ -323,11 +323,11 @@
 	two appearance controls, with the toggle closest to the edge — it is the one a reader reaches
 	for repeatedly, and it has always sat there.
 
-	THE FLAVOR PICKER IS A DELIBERATE DEPARTURE from the rule this bar settled on, which is that
+	THE BACKDROP PICKER IS A DELIBERATE DEPARTURE from the rule this bar settled on, which is that
 	the header carries the light/dark toggle and every other appearance axis lives on the Settings
-	page, where it can be named and explained. A flavor is chosen the way a palette is — once — so
+	page, where it can be named and explained. A backdrop is chosen the way a palette is — once — so
 	by that rule it belongs there too, and it is on the bar anyway because it is the axis this
-	gallery exists to let someone COMPARE: switching between twelve looks is a thing you do on the
+	gallery exists to let someone COMPARE: switching backdrops is a thing you do on the
 	page you are judging, not on a settings screen you have to leave. It costs one 40px button of
 	the search field's width between 768px and 893px, and the Settings page carries it as well.
 -->
@@ -337,7 +337,7 @@
 	{/snippet}
 	{#snippet controls()}
 		<RepositoryLink />
-		<FlavorSelector />
+		<BackdropSelector />
 		<ModeToggle />
 	{/snippet}
 </PageHeader>

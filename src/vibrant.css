@@ -3,7 +3,7 @@
  *
  * WHAT IT IS. `default` lets a chrome surface follow the page, `inverted` gives it the opposite
  * half, and `vibrant` paints it with the palette's own brand as a corner light. It began as a
- * flavor and was promoted here, which is its right home: it dresses exactly the two surfaces
+ * flavor — the axis since renamed backdrop — and was promoted here, which is its right home: it dresses exactly the two surfaces
  * those axes already own, and someone deciding how the rail should look should find all three
  * answers in one control rather than two.
  *
@@ -50,7 +50,7 @@
  * whole length: a hole, in a region of sRGB too narrow to carry any chroma, which is why it read
  * as flat near-black. 0.42 -> 0.315 overcorrected past the LIGHT ramp's own 0.40 -> 0.28, so both
  * halves rendered at the same lightness and switching modes appeared to do nothing. 0.37 -> 0.285
- * and 0.34 -> 0.268 were both still above the default the rail wears without the flavor, which is
+ * and 0.34 -> 0.268 were both still above the default the rail wears without this axis, which is
  * what "too light in dark" meant. 0.305 -> 0.245 kept that same head but ran the foot a shade
  * UNDER the page, so the band spent its whole travel getting darker away from the corner and read
  * as a shadowed surface rather than a lit one — the foot, not the head, was the error. And
@@ -82,10 +82,10 @@
  * a percent — invisible — and what it buys is the absence of a hue channel that can go powerless
  * when a stop is near-achromatic, which is the case two of these palettes are.
  *
- * WHY ITS OWN FILE. It is not a flavor, so it does not belong in `src/flavors.css`; and it is
- * imported AFTER that file on purpose, so that a flavor which decorated the same two surfaces
+ * WHY ITS OWN FILE. It is not a backdrop, so it does not belong in `src/backdrops.css`; and it is
+ * imported AFTER that file on purpose, so that a backdrop which decorated the same two surfaces
  * would lose to the explicit chrome choice rather than winning on source order. None does today —
- * the flavors that painted chrome were cut — but the ordering is the guarantee, not the current
+ * the backdrops that painted chrome were cut — but the ordering is the guarantee, not the current
  * contents. It stays out of `src/app.css` for now because that file is audited block by block by
  * the registry generator; publishing this axis is a separate, deliberate step, and one this needs
  * no per-theme generation for: every value is derived from `--primary`, so one block serves all
@@ -471,8 +471,8 @@
 }
 
 /*
- * The kill switches reach the two vibrant surfaces by name. They cannot ride on the `[data-flavor]`
- * selectors in `src/flavors.css` any more — this is a different axis — and print is the one that
+ * The kill switches reach the two vibrant surfaces by name. They cannot ride on the `[data-backdrop]`
+ * selectors in `src/backdrops.css` any more — this is a different axis — and print is the one that
  * would otherwise cost real ink on every sheet.
  */
 @media (prefers-contrast: more) {

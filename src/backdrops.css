@@ -1,41 +1,48 @@
 /**
- * Flavors — a light behind the page, keyed on `data-flavor`.
+ * Backdrops — a light behind the page, keyed on `data-backdrop`.
  *
- * WHAT A FLAVOR IS. The palette (`data-theme`) and the mode (`.dark`) decide what the surfaces
- * are painted WITH. A flavor decides what is painted BEHIND them. Every flavor DERIVES its
+ * WHAT A BACKDROP IS. The palette (`data-theme`) and the mode (`.dark`) decide what the surfaces
+ * are painted WITH. A backdrop decides what is painted BEHIND them. Every backdrop DERIVES its
  * colours from the live tokens, so one block serves all eighteen palettes in both modes rather
- * than eighteen hand-written blocks per flavor.
+ * than eighteen hand-written blocks per backdrop.
  *
- * TWO ARE LEFT, `glow` and `aurora`, and they are the same idea at two intensities — which is why
- * everything below is written once and shared. The axis kept its name and its shape so a third
- * can be added without re-deriving any of it.
+ * TWO OF THEM, `glow` and `aurora`, and they are the same idea at two intensities — which is why
+ * everything below is written once and shared. Adding a third is a token block and a list entry;
+ * nothing here has to be re-derived for it.
+ *
+ * THE AXIS WAS CALLED `flavor` UNTIL IT ONLY DID THIS. It held twelve looks spanning type, shape
+ * and light, and an umbrella name was right for that. Eight were cut and one was promoted to the
+ * chrome axis, so the umbrella covered one kind of thing and the name stopped carrying the
+ * information — which is what the rename fixed. `backdrop` rather than `background`, because
+ * `--background` is the page ground this axis deliberately does NOT move, and a `--background-*`
+ * prefix would stutter against it on every line.
  *
  * WHY THIS IS NOT IN `app.css`. That file is audited exhaustively by
  * `tools/registry/generate.mjs` — exactly three top-level `:root` blocks, two `@layer base`, and
  * every other top-level block claimed by a registry item in `tools/registry/css-claims.mjs`.
- * A flavor section per look would be one claim each for something no item ships. An `@import` is
+ * A backdrop section per look would be one claim each for something no item ships. An `@import` is
  * a statement rather than a block, so that reader walks straight past this file.
  *
- * SOURCE ORDER IS PART OF THE DESIGN. `app.css` imports this AFTER `themes.css`, so a flavor
+ * SOURCE ORDER IS PART OF THE DESIGN. `app.css` imports this AFTER `themes.css`, so a backdrop
  * rule that ties a palette block on specificity wins the tie.
  *
- * THREE RUNGS, CHOSEN PER SURFACE RATHER THAN PER FLAVOR. Specificity below counts an attribute
+ * THREE RUNGS, CHOSEN PER SURFACE RATHER THAN PER BACKDROP. Specificity below counts an attribute
  * selector as class-level, which is what it is — the note in `app.css` beside the chrome-mode
  * blocks under-counts `[data-slot]` as a type selector, and the numbers here are the real ones.
  *
- *   1. Root tokens — `:root[data-flavor='x']` (0,2,0) and `:root[data-flavor='x'].dark` (0,3,0).
- *      For the flavor's own `--flavor-*` variables, and for a PAGE token (`--background`,
- *      `--card`, `--border`) the flavor genuinely moves. A dark twin must restate every public
+ *   1. Root tokens — `:root[data-backdrop='x']` (0,2,0) and `:root[data-backdrop='x'].dark` (0,3,0).
+ *      For the backdrop's own `--backdrop-*` variables, and for a PAGE token (`--background`,
+ *      `--card`, `--border`) the backdrop genuinely moves. A dark twin must restate every public
  *      token the light one sets: a palette's `.dark` block is (0,3,0) and would otherwise take
  *      it back.
  *
- *   2. The rail — `:root[data-flavor='x'] [data-sidebar='sidebar']`. It sets the nine chrome
+ *   2. The rail — `:root[data-backdrop='x'] [data-sidebar='sidebar']`. It sets the nine chrome
  *      tokens ON the painted panel, which is what beats `data-sidebar-mode`: a declaration on an
  *      element always wins against a value INHERITED from `<html>`, whatever specificity produced
  *      the inherited one. `data-sidebar="sidebar"` is also the one hook the mobile Sheet shares
  *      with the desktop rail — `sidebar-inner` exists only on the desktop path.
  *
- *   3. The bar — `:root[data-flavor='x'][data-flavor][data-flavor] [data-slot='page-header-bar']`
+ *   3. The bar — `:root[data-backdrop='x'][data-backdrop][data-backdrop] [data-slot='page-header-bar']`
  *      (0,5,0). The repeated attribute is not decoration: the per-theme header pins in
  *      `themes.css` are (0,4,0) ON THIS ELEMENT, so anything lower is simply overruled by the
  *      palette. Re-pointing the nine there re-inks every control in the bar for free, through the
@@ -43,7 +50,7 @@
  *
  * DERIVE, DO NOT RESTATE. Colours come from the live tokens two ways, and both are always
  * written: an unconditional `color-mix()` first, then the same variable again inside
- * `@supports (color: oklch(from red l c h))`. Relative colour is what lets a flavor pin a
+ * `@supports (color: oklch(from red l c h))`. Relative colour is what lets a backdrop pin a
  * LIGHTNESS — the trick that keeps a brand band legible whatever hue the palette brings — and it
  * needs Chrome 119 / Safari 16.4 / Firefox 133, which is above this project's floor. Where the
  * two paths differ the fallback is an approximation, never a different design. Inside
@@ -52,7 +59,7 @@
  * the failure this ordering is chosen for.
  *
  * NO SELF-REFERENCING TOKENS. `--background: color-mix(…, var(--background), …)` is a dependency
- * cycle: the token becomes invalid at computed-value time and the page loses its ground. A flavor
+ * cycle: the token becomes invalid at computed-value time and the page loses its ground. A backdrop
  * derives a surface from a DIFFERENT token (`--card` from `--background`, or the reverse) and
  * gates the two directions on `.dark` so they never both apply.
  *
@@ -61,12 +68,12 @@
  * rings are wiped out with it. The one exception is a surface carrying no `shadow-*` utility at
  * all, where there is no composition to join and the longhand is written out.
  *
- * PRIVATE NAMES ONLY. Every variable a flavor mints is `--flavor-…`, and no flavor invents a
+ * PRIVATE NAMES ONLY. Every variable a backdrop mints is `--backdrop-…`, and no backdrop invents a
  * public token name. `app.css`'s radius ladder still multiplies every step by
- * `--radius-factor`, which no flavor sets any more — it defaults to 1 and is left in place as a
+ * `--radius-factor`, which no backdrop sets any more — it defaults to 1 and is left in place as a
  * knob a CONSUMER can turn, which is what it became once it shipped in the registry.
  *
- * @see src/lib/hooks/flavor.svelte.ts — the axis, and why `stock` writes no attribute
+ * @see src/lib/hooks/backdrop.svelte.ts — the axis, and why `stock` writes no attribute
  * @see index.html — the first-paint echo
  */
 
@@ -103,9 +110,9 @@
  * rail's width does (expanded, icon, off-canvas, mobile Sheet). Measured across the fold at
  * 1440x900, adjacent pixels differ by 3 or less; with the band left flat they differed by 41.
  *
- * ONE SOURCE FOR EACH LAYER — `--flavor-light` and `--flavor-light-grain` — for the reason
+ * ONE SOURCE FOR EACH LAYER — `--backdrop-light` and `--backdrop-light-grain` — for the reason
  * `vibrant.css` gives about its own two limbs: a field restated in two places is a field that
- * drifts apart. `--flavor-light-spread` is the one number the two surfaces disagree on: aurora's
+ * drifts apart. `--backdrop-light-spread` is the one number the two surfaces disagree on: aurora's
  * layer overhangs by 20% so it has room to drift, so the band's tile grows and offsets by the same
  * fraction. The grain needs no such agreement — it is NOISE, so its phase carries nothing worth
  * registering, and the band simply repeats the same tile from its own corner.
@@ -124,64 +131,64 @@
  * under test and re-measure the fold, rather than judging it by eye or in light mode alone.
  * ========================================================================================== */
 
-:root:is([data-flavor="glow"], [data-flavor="aurora"]) [data-slot="sidebar-wrapper"] {
+:root:is([data-backdrop="glow"], [data-backdrop="aurora"]) [data-slot="sidebar-wrapper"] {
 	position: relative;
 	isolation: isolate;
 	background-color: var(--background);
 }
 
-:root:is([data-flavor="glow"], [data-flavor="aurora"]) [data-slot="sidebar-wrapper"]::before {
+:root:is([data-backdrop="glow"], [data-backdrop="aurora"]) [data-slot="sidebar-wrapper"]::before {
 	content: "";
 	position: absolute;
-	inset: calc(-100% * var(--flavor-light-spread, 0));
+	inset: calc(-100% * var(--backdrop-light-spread, 0));
 	z-index: -1;
 	pointer-events: none;
-	background-image: var(--flavor-light);
+	background-image: var(--backdrop-light);
 	background-repeat: no-repeat;
 }
 
-:root:is([data-flavor="glow"], [data-flavor="aurora"]) [data-slot="sidebar-inset"] {
+:root:is([data-backdrop="glow"], [data-backdrop="aurora"]) [data-slot="sidebar-inset"] {
 	background-color: transparent;
 }
 
 /* The band around a floating bar: the component's ground, with the same field replayed on top in
    viewport register. `right`/`top` is the corner the header shares with the viewport in LTR. */
-:root:is([data-flavor="glow"], [data-flavor="aurora"]) [data-slot="page-header"] {
-	background-image: var(--flavor-light);
+:root:is([data-backdrop="glow"], [data-backdrop="aurora"]) [data-slot="page-header"] {
+	background-image: var(--backdrop-light);
 	background-repeat: no-repeat;
-	background-size: calc(100vw * (1 + 2 * var(--flavor-light-spread, 0)))
-		calc(100lvh * (1 + 2 * var(--flavor-light-spread, 0)));
-	background-position: right calc(-100vw * var(--flavor-light-spread, 0)) top
-		calc(-100lvh * var(--flavor-light-spread, 0));
+	background-size: calc(100vw * (1 + 2 * var(--backdrop-light-spread, 0)))
+		calc(100lvh * (1 + 2 * var(--backdrop-light-spread, 0)));
+	background-position: right calc(-100vw * var(--backdrop-light-spread, 0)) top
+		calc(-100lvh * var(--backdrop-light-spread, 0));
 }
 
 /* Right-to-left puts the rail on the other side, so the header shares the LEFT edge instead. */
-:root[dir="rtl"]:is([data-flavor="glow"], [data-flavor="aurora"]) [data-slot="page-header"] {
-	background-position: left calc(-100vw * var(--flavor-light-spread, 0)) top
-		calc(-100lvh * var(--flavor-light-spread, 0));
+:root[dir="rtl"]:is([data-backdrop="glow"], [data-backdrop="aurora"]) [data-slot="page-header"] {
+	background-position: left calc(-100vw * var(--backdrop-light-spread, 0)) top
+		calc(-100lvh * var(--backdrop-light-spread, 0));
 }
 
 /*
  * THE GRAIN GETS ITS OWN LAYER RATHER THAN A SECOND BACKGROUND, and that is a rule of the
  * property rather than a preference: `background-size` and friends repeat CYCLICALLY over the
- * image list, so `256px, <tile>` against a `--flavor-light` holding three gradients hands the
+ * image list, so `256px, <tile>` against a `--backdrop-light` holding three gradients hands the
  * third gradient the grain's size. One declaration cannot serve a variable number of layers.
  *
  * `z-index: -1` puts it behind the bar and in front of the header's own ground, the way the
  * wrapper's layers sit: the header is `sticky` with `z-40`, so it is already a stacking context
  * and the negative index cannot escape it.
  */
-:root:is([data-flavor="glow"], [data-flavor="aurora"]) [data-slot="page-header"]::before {
+:root:is([data-backdrop="glow"], [data-backdrop="aurora"]) [data-slot="page-header"]::before {
 	content: "";
 	position: absolute;
 	inset: 0;
 	z-index: -1;
 	pointer-events: none;
-	background-image: var(--flavor-light-grain, none);
+	background-image: var(--backdrop-light-grain, none);
 	background-size: 256px 256px;
 }
 
-:root:is([data-flavor="glow"], [data-flavor="aurora"])
+:root:is([data-backdrop="glow"], [data-backdrop="aurora"])
 	[data-slot="page-header"][data-floating]::after {
 	background: none;
 }
@@ -197,34 +204,34 @@
  * A CHROMA FLOOR, so the two achromatic palettes get a faint neutral halo rather than nothing.
  * ========================================================================================== */
 
-:root[data-flavor="glow"] {
-	--flavor-glow-1: color-mix(in oklab, var(--primary) 16%, transparent);
-	--flavor-glow-2: color-mix(in oklab, var(--sidebar-primary) 10%, transparent);
+:root[data-backdrop="glow"] {
+	--backdrop-glow-1: color-mix(in oklab, var(--primary) 16%, transparent);
+	--backdrop-glow-2: color-mix(in oklab, var(--sidebar-primary) 10%, transparent);
 }
 
-:root[data-flavor="glow"].dark {
-	--flavor-glow-1: color-mix(in oklab, var(--primary) 22%, transparent);
-	--flavor-glow-2: color-mix(in oklab, var(--sidebar-primary) 14%, transparent);
+:root[data-backdrop="glow"].dark {
+	--backdrop-glow-1: color-mix(in oklab, var(--primary) 22%, transparent);
+	--backdrop-glow-2: color-mix(in oklab, var(--sidebar-primary) 14%, transparent);
 }
 
 @supports (color: oklch(from red l c h)) {
-	:root[data-flavor="glow"] {
-		--flavor-glow-1: oklch(from var(--primary) 0.9 max(c, 0.07) h / 0.65);
-		--flavor-glow-2: oklch(from var(--primary) 0.92 max(c, 0.05) calc(h - 40) / 0.45);
+	:root[data-backdrop="glow"] {
+		--backdrop-glow-1: oklch(from var(--primary) 0.9 max(c, 0.07) h / 0.65);
+		--backdrop-glow-2: oklch(from var(--primary) 0.92 max(c, 0.05) calc(h - 40) / 0.45);
 	}
 
-	:root[data-flavor="glow"].dark {
-		--flavor-glow-1: oklch(from var(--primary) 0.34 max(c, 0.07) h / 0.75);
-		--flavor-glow-2: oklch(from var(--primary) 0.32 max(c, 0.05) calc(h - 40) / 0.55);
+	:root[data-backdrop="glow"].dark {
+		--backdrop-glow-1: oklch(from var(--primary) 0.34 max(c, 0.07) h / 0.75);
+		--backdrop-glow-2: oklch(from var(--primary) 0.32 max(c, 0.05) calc(h - 40) / 0.55);
 	}
 }
 
 /* The field itself, in a variable rather than on the layer: the wrapper's layer and the header's
    band both sample it, and one source is what stops them drifting apart. */
-:root[data-flavor="glow"] {
-	--flavor-light:
-		radial-gradient(ellipse 62vw 48vh at 50% -8%, var(--flavor-glow-1), transparent 70%),
-		radial-gradient(ellipse 30vw 26vh at 16% -4%, var(--flavor-glow-2), transparent 72%);
+:root[data-backdrop="glow"] {
+	--backdrop-light:
+		radial-gradient(ellipse 62vw 48vh at 50% -8%, var(--backdrop-glow-1), transparent 70%),
+		radial-gradient(ellipse 30vw 26vh at 16% -4%, var(--backdrop-glow-2), transparent 72%);
 }
 
 /* ==========================================================================================
@@ -261,8 +268,8 @@
  * correct — and a blurred layer would be re-convolved on every frame it moves.
  * ========================================================================================== */
 
-:root[data-flavor="aurora"] {
-	--flavor-aur-fan: 24;
+:root[data-backdrop="aurora"] {
+	--backdrop-aur-fan: 24;
 
 	/*
 	 * The fallback mixes the brand into the page ground FIRST and fades that to transparent
@@ -270,17 +277,17 @@
 	 * earlier cut reached for `--success` and `--info` here, which is a different set of hues
 	 * wearing the same name.
 	 */
-	--flavor-aur-1: color-mix(
+	--backdrop-aur-1: color-mix(
 		in oklab,
 		color-mix(in oklab, var(--primary) 26%, var(--background)) 34%,
 		transparent
 	);
-	--flavor-aur-2: color-mix(
+	--backdrop-aur-2: color-mix(
 		in oklab,
 		color-mix(in oklab, var(--primary) 20%, var(--background)) 28%,
 		transparent
 	);
-	--flavor-aur-3: color-mix(
+	--backdrop-aur-3: color-mix(
 		in oklab,
 		color-mix(in oklab, var(--primary) 14%, var(--background)) 24%,
 		transparent
@@ -297,22 +304,22 @@
 		[data-theme="sepia"],
 		[data-theme="crimson"],
 		[data-theme="kiln"]
-	)[data-flavor="aurora"] {
-	--flavor-aur-fan: 13;
+	)[data-backdrop="aurora"] {
+	--backdrop-aur-fan: 13;
 }
 
-:root[data-flavor="aurora"].dark {
-	--flavor-aur-1: color-mix(
+:root[data-backdrop="aurora"].dark {
+	--backdrop-aur-1: color-mix(
 		in oklab,
 		color-mix(in oklab, var(--primary) 22%, var(--background)) 40%,
 		transparent
 	);
-	--flavor-aur-2: color-mix(
+	--backdrop-aur-2: color-mix(
 		in oklab,
 		color-mix(in oklab, var(--primary) 16%, var(--background)) 34%,
 		transparent
 	);
-	--flavor-aur-3: color-mix(
+	--backdrop-aur-3: color-mix(
 		in oklab,
 		color-mix(in oklab, var(--primary) 11%, var(--background)) 28%,
 		transparent
@@ -320,35 +327,35 @@
 }
 
 @supports (color: oklch(from red l c h)) {
-	:root[data-flavor="aurora"] {
+	:root[data-backdrop="aurora"] {
 		/*
 		 * Field 1 is the DEEPEST and the most chromatic, which is the inverse of the obvious
 		 * arrangement: the sRGB gamut widens as lightness falls, so the field carrying the brand
 		 * hue is put where there is room for chroma to exist at all.
 		 */
-		--flavor-aur-1: oklch(from var(--primary) 0.9 clamp(0.034, calc(c * 0.34), 0.055) h / 0.5);
-		--flavor-aur-2: oklch(
-			from var(--primary) 0.918 clamp(0.026, calc(c * 0.25), 0.04) calc(h + var(--flavor-aur-fan)) /
-				0.42
+		--backdrop-aur-1: oklch(from var(--primary) 0.9 clamp(0.034, calc(c * 0.34), 0.055) h / 0.5);
+		--backdrop-aur-2: oklch(
+			from var(--primary) 0.918 clamp(0.026, calc(c * 0.25), 0.04)
+				calc(h + var(--backdrop-aur-fan)) / 0.42
 		);
-		--flavor-aur-3: oklch(
+		--backdrop-aur-3: oklch(
 			from var(--primary) 0.934 clamp(0.019, calc(c * 0.18), 0.028)
-				calc(h - var(--flavor-aur-fan)) / 0.34
+				calc(h - var(--backdrop-aur-fan)) / 0.34
 		);
 	}
 
-	:root[data-flavor="aurora"].dark {
+	:root[data-backdrop="aurora"].dark {
 		/* Pressed to the ground's own lightness band and paid for in chroma instead: alpha scales
 		   the lift and the tint by the same factor, so sitting near the ground buys the most
 		   colour for the least disturbance of the card step above it. */
-		--flavor-aur-1: oklch(from var(--primary) 0.292 clamp(0.062, calc(c * 0.75), 0.115) h / 0.6);
-		--flavor-aur-2: oklch(
-			from var(--primary) 0.288 clamp(0.048, calc(c * 0.55), 0.09) calc(h + var(--flavor-aur-fan)) /
-				0.5
+		--backdrop-aur-1: oklch(from var(--primary) 0.292 clamp(0.062, calc(c * 0.75), 0.115) h / 0.6);
+		--backdrop-aur-2: oklch(
+			from var(--primary) 0.288 clamp(0.048, calc(c * 0.55), 0.09)
+				calc(h + var(--backdrop-aur-fan)) / 0.5
 		);
-		--flavor-aur-3: oklch(
+		--backdrop-aur-3: oklch(
 			from var(--primary) 0.284 clamp(0.034, calc(c * 0.38), 0.062)
-				calc(h - var(--flavor-aur-fan)) / 0.42
+				calc(h - var(--backdrop-aur-fan)) / 0.42
 		);
 	}
 }
@@ -362,18 +369,18 @@
  * as one flat tint.
  */
 /* The three fields, in one variable, for the reason the glow block gives. */
-:root[data-flavor="aurora"] {
+:root[data-backdrop="aurora"] {
 	/* Room to drift without ever exposing an edge of the layer — and the one number the header's
 	   band has to know, so that its tile grows and offsets by the same fraction. */
-	--flavor-light-spread: 0.2;
+	--backdrop-light-spread: 0.2;
 
 	/* The dither, shared with the band for the reason the band exists at all — see the note on
-	   `--flavor-light-grain` in the shared block above. */
-	--flavor-light-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='256' height='256'%3E%3Cfilter id='d'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='1' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23d)' opacity='.035'/%3E%3C/svg%3E");
-	--flavor-light:
-		radial-gradient(58% 46% at 14% 82% in oklab, var(--flavor-aur-1) 0%, 38%, transparent 74%),
-		radial-gradient(46% 54% at 88% 46% in oklab, var(--flavor-aur-2) 0%, 34%, transparent 70%),
-		radial-gradient(38% 32% at 74% 6% in oklab, var(--flavor-aur-3) 0%, 42%, transparent 66%);
+	   `--backdrop-light-grain` in the shared block above. */
+	--backdrop-light-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='256' height='256'%3E%3Cfilter id='d'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='1' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23d)' opacity='.035'/%3E%3C/svg%3E");
+	--backdrop-light:
+		radial-gradient(58% 46% at 14% 82% in oklab, var(--backdrop-aur-1) 0%, 38%, transparent 74%),
+		radial-gradient(46% 54% at 88% 46% in oklab, var(--backdrop-aur-2) 0%, 34%, transparent 70%),
+		radial-gradient(38% 32% at 74% 6% in oklab, var(--backdrop-aur-3) 0%, 42%, transparent 66%);
 }
 
 /*
@@ -384,24 +391,24 @@
  * the drift would move the contour rather than break it up. Achromatic, `normal` blending, and
  * the tile at its natural size — a resampled noise tile stops dithering and reads as dirt.
  */
-:root[data-flavor="aurora"] [data-slot="sidebar-wrapper"]::after {
+:root[data-backdrop="aurora"] [data-slot="sidebar-wrapper"]::after {
 	content: "";
 	position: absolute;
 	inset: 0;
 	z-index: -1;
 	pointer-events: none;
-	background-image: var(--flavor-light-grain);
+	background-image: var(--backdrop-light-grain);
 	background-size: 256px 256px;
 }
 
 @media (prefers-reduced-motion: no-preference) {
-	:root[data-flavor="aurora"] [data-slot="sidebar-wrapper"]::before {
+	:root[data-backdrop="aurora"] [data-slot="sidebar-wrapper"]::before {
 		will-change: transform;
-		animation: flavor-aurora-drift 22s ease-in-out infinite alternate;
+		animation: backdrop-aurora-drift 22s ease-in-out infinite alternate;
 	}
 }
 
-@keyframes flavor-aurora-drift {
+@keyframes backdrop-aurora-drift {
 	from {
 		transform: translate3d(-3%, -2%, 0) rotate(-4deg);
 	}
@@ -423,12 +430,12 @@
  * that emptied itself would lose the identity the reader chose it for.
  */
 @media (prefers-reduced-motion: reduce) {
-	:root[data-flavor] [data-slot="sidebar-wrapper"]::before {
+	:root[data-backdrop] [data-slot="sidebar-wrapper"]::before {
 		animation: none;
 		transform: none;
 	}
 
-	:root[data-flavor] :is([data-slot="button"], [data-sidebar="menu-button"]):active {
+	:root[data-backdrop] :is([data-slot="button"], [data-sidebar="menu-button"]):active {
 		translate: none;
 	}
 }
@@ -436,46 +443,46 @@
 /*
  * More contrast: every decoration collapses to the solid token its surface already declares, and
  * the card's decorative ring is thickened to the boundary value. Only IMAGES are dropped, never
- * a solid ground — a flavor that paints a surface has already solved the ink against it, and
+ * a solid ground — a backdrop that paints a surface has already solved the ink against it, and
  * taking the ground away would leave that ink on the page's own.
  */
 @media (prefers-contrast: more) {
-	:root[data-flavor] [data-slot="sidebar-wrapper"]::before,
-	:root[data-flavor] [data-slot="sidebar-wrapper"]::after,
-	:root[data-flavor] [data-slot="page-header"]::before {
+	:root[data-backdrop] [data-slot="sidebar-wrapper"]::before,
+	:root[data-backdrop] [data-slot="sidebar-wrapper"]::after,
+	:root[data-backdrop] [data-slot="page-header"]::before {
 		content: none;
 	}
 
-	:root[data-flavor] [data-sidebar="sidebar"] {
+	:root[data-backdrop] [data-sidebar="sidebar"] {
 		background-image: none;
 	}
 
-	:root[data-flavor] :is([data-slot="sidebar-inset"], [data-slot="page-header"]) {
+	:root[data-backdrop] :is([data-slot="sidebar-inset"], [data-slot="page-header"]) {
 		background-image: none;
 	}
 
-	:root[data-flavor][data-flavor][data-flavor] [data-slot="page-header-bar"] {
+	:root[data-backdrop][data-backdrop][data-backdrop] [data-slot="page-header-bar"] {
 		background-image: none;
 	}
 
-	:root[data-flavor] [data-slot="card"] {
+	:root[data-backdrop] [data-slot="card"] {
 		--tw-ring-color: var(--input);
 	}
 }
 
 /*
- * Forced colours strip exactly what a flavor adds — gradients become `none`, shadows and
+ * Forced colours strip exactly what a backdrop adds — gradients become `none`, shadows and
  * backdrops are dropped, every colour becomes a system colour. A transparent border is the one
  * thing the system will repaint, so the three surfaces that would otherwise lose their edge
  * declare one.
  */
 @media (forced-colors: active) {
-	:root[data-flavor] [data-slot="sidebar-wrapper"]::before,
-	:root[data-flavor] [data-slot="sidebar-wrapper"]::after {
+	:root[data-backdrop] [data-slot="sidebar-wrapper"]::before,
+	:root[data-backdrop] [data-slot="sidebar-wrapper"]::after {
 		content: none;
 	}
 
-	:root[data-flavor]
+	:root[data-backdrop]
 		:is([data-sidebar="sidebar"], [data-slot="page-header-bar"], [data-slot="card"]) {
 		border: 1px solid transparent;
 	}
@@ -484,11 +491,11 @@
 	   wrapper's layer does not reach it — it has to be dropped by name or the band keeps a
 	   gradient the rest of the shell no longer has. Its grain layer is a pseudo and goes the same
 	   way the wrapper's do. */
-	:root[data-flavor] [data-slot="page-header"] {
+	:root[data-backdrop] [data-slot="page-header"] {
 		background-image: none;
 	}
 
-	:root[data-flavor] [data-slot="page-header"]::before {
+	:root[data-backdrop] [data-slot="page-header"]::before {
 		content: none;
 	}
 }
@@ -498,13 +505,13 @@
  * be a rectangle at the top of page one and the bands and grids would be ink on every sheet.
  */
 @media print {
-	:root[data-flavor] [data-slot="sidebar-wrapper"]::before,
-	:root[data-flavor] [data-slot="sidebar-wrapper"]::after,
-	:root[data-flavor] [data-slot="page-header"]::before {
+	:root[data-backdrop] [data-slot="sidebar-wrapper"]::before,
+	:root[data-backdrop] [data-slot="sidebar-wrapper"]::after,
+	:root[data-backdrop] [data-slot="page-header"]::before {
 		content: none;
 	}
 
-	:root[data-flavor]
+	:root[data-backdrop]
 		:is(
 			[data-slot="sidebar-inset"],
 			[data-sidebar="sidebar"],
