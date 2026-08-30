@@ -119,92 +119,249 @@
 }
 
 /* ==========================================================================================
- * CASCADE — the palette's own brand, poured down the rail.
+ * CASCADE — one corner light, sampled by the rail and by the bar.
  *
- * CHROMA IS CLAMPED, NOT INHERITED. Two of the twelve palettes are deliberately achromatic
- * (Graphite's brand is `oklch(0.300 0.010 261)`), and a gradient that inherited that chroma
- * would be a grey rail — the "inverted sidebar" the kit already ships as a toggle. The floor
- * gives those two a deep slate and a deep umber instead: still the palette's hue, visibly not
- * a neutral.
+ * IT IS NOT TWO GRADIENTS. A gradient's line is sized per element, so the same angle restated on
+ * a 256x900 rail and a 1440x64 bar is two different objects meeting in a seam — and on the bar it
+ * would spend its whole travel in a couple of hundred pixels and render as a painted stripe. So
+ * ONE field is authored, `--flavor-cascade-field`, and both surfaces sample it: an ellipse
+ * anchored at the elbow where the two limbs meet. Distance from that corner is the one scalar
+ * that grows along both, so the rail gets a full fall down its height and the bar a full sweep
+ * across the viewport, from the same source.
  *
- * `color` IS SET HERE, not only `--sidebar-foreground`. The rail's OUTER element carries
- * `text-sidebar-foreground`, so it computed its ink from the ROOT's value before this block was
- * reached; without the declaration every label keeps the page's ink over a dark gradient.
+ * WHAT MAKES THE JOIN EXACT is not tuning but three mechanics. The field is sized to the VIEWPORT
+ * (`100vw 100lvh`), which defeats the per-element normalisation that causes the seam. Each
+ * surface anchors to an edge it shares with the viewport — the rail to the left, the bar to the
+ * right — so neither needs the other's width, and the corner survives the icon rail, off-canvas,
+ * the mobile Sheet and every breakpoint with no media query. And no border crosses the fold.
  *
- * GRAIN IS A BACKGROUND LAYER, not an overlay pseudo-element: it must never be able to paint
- * over text, and a long dark gradient bands without it. The alpha is baked into the SVG, so
- * there is no layer opacity to leak onto the gradient underneath.
+ * `100lvh`, not `dvh`: the rail is `inset-y-0` against the LAYOUT viewport, and `dvh` would
+ * re-lay the gradient out on every iOS toolbar animation.
+ *
+ * THE DARK BAND SITS ABOVE THE PAGE, WHICH IS THE WHOLE FIX. Measured in this kit, every dark
+ * `--background` is L 0.264-0.267 and every dark `--sidebar`/`--card` is L 0.297-0.304 — the
+ * house elevation step is +0.035. The first cut of this flavor ran 0.22 -> 0.14, which is BELOW
+ * the page for its whole length: a hole rather than a panel, in a region of sRGB too narrow to
+ * carry any chroma, which is exactly why it read as flat near-black. It now runs 0.42 -> 0.315,
+ * the same 0.105 of travel as the light ramp, with its dimmest point still above the rail the kit
+ * ships without any flavor at all.
+ *
+ * CHROMA IS CLAMPED TO THE sRGB GAMUT AT EACH STOP'S OWN LIGHTNESS, not to taste. The first cut
+ * authored up to 0.044 past the gamut, and the browser clips with an algorithm that shifts hue —
+ * so eight of the twelve palettes rendered a colour nobody wrote. The floors are what the two
+ * deliberately achromatic brands need to be a tinted surface rather than a grey one.
+ *
+ * A 12deg TORSION, because a ramp that holds one hue and only drops lightness reads as a colour
+ * with the lights turned down rather than as a lit surface. It is also a gamut decision: teal and
+ * green have the narrowest chroma ceiling of any hue at these lightnesses, so the two palettes
+ * that live there rotate the other way to buy headroom.
+ *
+ * `in oklab`, NEVER `in oklch`. The arc here is 12deg, where oklab's midpoint chroma dip is half
+ * a percent — invisible — and what it buys is the absence of a hue channel that can go powerless
+ * when a stop is near-achromatic, which is the case two of these palettes are.
  * ========================================================================================== */
 
 :root[data-flavor="cascade"] {
-	--flavor-cascade-a: color-mix(in oklab, var(--primary) 66%, black);
-	--flavor-cascade-b: color-mix(in oklab, var(--primary) 46%, black);
-	--flavor-cascade-ink: color-mix(in oklab, white 86%, var(--flavor-cascade-a));
+	--flavor-cascade-torsion: 6;
+
+	/* Fallbacks first, always, and derived from tokens rather than from black: mixing toward
+	   `--foreground` lands both stops in the right lightness band on a light page without
+	   inheriting the primary's own lightness. */
+	--flavor-cascade-a: color-mix(in oklab, var(--primary) 55%, var(--foreground));
+	--flavor-cascade-b: color-mix(in oklab, var(--primary) 30%, var(--foreground));
+	--flavor-cascade-ink: color-mix(in oklab, white 90%, var(--flavor-cascade-a));
 	--flavor-cascade-ink-soft: color-mix(in oklab, white 70%, var(--flavor-cascade-a));
+
+	/*
+	 * The bare `56%` is a colour hint, and it is deliberately ABOVE centre: below centre the ramp
+	 * transitions faster at the start, and what this wants is the opposite — the head held so the
+	 * elbow reads as one plateau across both limbs rather than as the place two rates of change
+	 * meet. `125% 100%` gives the rail the full ramp down its height and the bar about 80% of it
+	 * across the viewport, and because the radii are percentages of a viewport-sized tile that
+	 * split is the same at 1280px and at 2560px.
+	 */
+	--flavor-cascade-field: radial-gradient(
+		125% 100% at 0 0 in oklab,
+		var(--flavor-cascade-a) 0%,
+		56%,
+		var(--flavor-cascade-b) 100%
+	);
+
 	--flavor-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='182' height='182'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.1'/%3E%3C/svg%3E");
 }
 
+/* Teal and green have the narrowest chroma ceiling of any hue at these lightnesses, so their
+   darkest stop must rotate TOWARD the wider side rather than away from it. A gamut fix that
+   happens to also be the right temperature, not a preference. */
+:root:is([data-theme="harbor"], [data-theme="evergreen"])[data-flavor="cascade"] {
+	--flavor-cascade-torsion: -6;
+}
+
 :root[data-flavor="cascade"].dark {
-	--flavor-cascade-a: color-mix(in oklab, var(--primary) 40%, black);
-	--flavor-cascade-b: color-mix(in oklab, var(--primary) 24%, black);
+	/*
+	 * The dark fallback is where the original bug actually lived: mixing the primary toward black
+	 * inherits its lightness, and in dark ten of the twelve palettes ship a primary that is
+	 * already a light tint. Mixing toward a slightly whitened page ground instead anchors both
+	 * stops above `--background` on all twelve.
+	 */
+	--flavor-cascade-a: color-mix(
+		in oklab,
+		var(--primary) 12%,
+		color-mix(in oklab, white 16%, var(--background))
+	);
+	--flavor-cascade-b: color-mix(
+		in oklab,
+		var(--primary) 6%,
+		color-mix(in oklab, white 6%, var(--background))
+	);
+
+	/* `soft-light` scales its effect by the backdrop, so the 10% that dithers a near-white rail is
+	   close to inert over an L 0.42 one — and the dark ramp has fewer 8-bit codes to spend. */
 	--flavor-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='182' height='182'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.14'/%3E%3C/svg%3E");
 }
 
 @supports (color: oklch(from red l c h)) {
 	:root[data-flavor="cascade"] {
-		--flavor-cascade-a: oklch(from var(--primary) 0.4 clamp(0.07, calc(c * 0.9), 0.16) h);
-		--flavor-cascade-b: oklch(from var(--primary) 0.28 clamp(0.06, calc(c * 0.8), 0.14) h);
+		--flavor-cascade-a: oklch(
+			from var(--primary) 0.4 clamp(0.065, calc(c * 0.68), 0.14)
+				calc(h + var(--flavor-cascade-torsion))
+		);
+		--flavor-cascade-b: oklch(
+			from var(--primary) 0.28 clamp(0.045, calc(c * 0.48), 0.088)
+				calc(h - var(--flavor-cascade-torsion))
+		);
+		/* Both inks derive from the HEAD — the brightest point of the whole field, and the one
+		   point both limbs share — so a single pair serves the rail and the bar in both modes with
+		   no per-surface measurement. The chroma cap is the measured ceiling at L 0.97. */
+		--flavor-cascade-ink: oklch(
+			from var(--flavor-cascade-a) 0.97 clamp(0.006, calc(c * 0.2), 0.014) h
+		);
+		--flavor-cascade-ink-soft: oklch(from var(--flavor-cascade-a) 0.85 calc(c * 0.35) h);
 	}
 
 	:root[data-flavor="cascade"].dark {
-		--flavor-cascade-a: oklch(from var(--primary) 0.22 clamp(0.05, calc(c * 0.7), 0.12) h);
-		--flavor-cascade-b: oklch(from var(--primary) 0.14 clamp(0.04, calc(c * 0.6), 0.1) h);
+		--flavor-cascade-a: oklch(
+			from var(--primary) 0.42 clamp(0.045, calc(c * 0.55), 0.105)
+				calc(h + var(--flavor-cascade-torsion))
+		);
+		--flavor-cascade-b: oklch(
+			from var(--primary) 0.315 clamp(0.04, calc(c * 0.46), 0.09)
+				calc(h - var(--flavor-cascade-torsion))
+		);
 	}
 }
 
-:root[data-flavor="cascade"] [data-sidebar="sidebar"] {
+/*
+ * ONE PAINT BLOCK FOR BOTH LIMBS, at (0,5,0) — the rung the per-theme header pins in
+ * `themes.css` sit below. The rail alone would have been happy lower; a single block is the
+ * point, because two blocks are how the two limbs drift apart.
+ */
+:root[data-flavor="cascade"][data-flavor][data-flavor]
+	:is([data-sidebar="sidebar"], [data-slot="page-header-bar"]) {
 	--sidebar: var(--flavor-cascade-b);
 	--sidebar-foreground: var(--flavor-cascade-ink);
 	--sidebar-primary: #fff;
 	--sidebar-primary-foreground: var(--flavor-cascade-b);
-	/* Hover and active are an alpha wash, never a solid: a fill would flatten the gradient. */
+	/* Hover and active are an alpha wash, never a solid: a fill would flatten the field. */
 	--sidebar-accent: rgb(255 255 255 / 0.14);
 	--sidebar-accent-foreground: #fff;
-	--sidebar-border: rgb(255 255 255 / 0.12);
+	--sidebar-border: rgb(255 255 255 / 0.14);
 	--sidebar-outline: rgb(255 255 255 / 0.2);
 	--sidebar-ring: #fff;
+	/* The fold hairline is a fold, not a control boundary. WCAG 1.4.11 binds the boundary of an
+	   input at 3:1, so it gets the solved soft ink rather than the 20% wash the alias block in
+	   `app.css` would otherwise hand it. */
+	--input: var(--flavor-cascade-ink-soft);
+
+	/* `color` and not only the token: both surfaces' OUTER elements resolved their ink from the
+	   ROOT before this block was reached. `color-scheme` so native controls and scrollbars inside
+	   them match the panel they now sit on. */
 	color: var(--sidebar-foreground);
 	color-scheme: dark;
+
+	/* An opaque base is mandatory on the bar — the canvas scrolls under it. */
 	background-color: var(--flavor-cascade-b);
-	background-image:
-		var(--flavor-grain),
-		linear-gradient(172deg in oklch, var(--flavor-cascade-a), var(--flavor-cascade-b));
+	background-image: var(--flavor-grain), var(--flavor-cascade-field);
 	background-size:
 		182px 182px,
-		auto;
+		100vw 100lvh;
+	background-repeat: repeat, no-repeat;
 	background-blend-mode: soft-light, normal;
 }
 
-/* The component's `/70` ink is an alpha over a gradient; a solved value is steadier. */
+/* Each surface anchors to an edge it SHARES WITH THE VIEWPORT, so neither has to know the
+   other's geometry. The grain carries the same anchor so the two layers travel together. */
+:root[data-flavor="cascade"] [data-sidebar="sidebar"] {
+	background-position:
+		left 0 top 0,
+		left 0 top 0;
+}
+
+:root[data-flavor="cascade"][data-flavor][data-flavor] [data-slot="page-header-bar"] {
+	background-position:
+		right 0 top 0,
+		right 0 top 0;
+}
+
+/* The floating variant insets the bar 8px from the top and the right; negative offsets push the
+   field's edges back out to the viewport so the sample stays in register with the rail's. */
+:root[data-flavor="cascade"][data-flavor][data-flavor]
+	[data-slot="page-header"][data-floating]
+	[data-slot="page-header-bar"] {
+	background-position:
+		right -0.5rem top -0.5rem,
+		right -0.5rem top -0.5rem;
+}
+
+/* Right-to-left: the elbow moves to the other corner and the two anchors swap with it. */
+:root[dir="rtl"][data-flavor="cascade"] {
+	--flavor-cascade-field: radial-gradient(
+		125% 100% at 100% 0 in oklab,
+		var(--flavor-cascade-a) 0%,
+		56%,
+		var(--flavor-cascade-b) 100%
+	);
+}
+
+:root[dir="rtl"][data-flavor="cascade"] [data-sidebar="sidebar"] {
+	background-position:
+		right 0 top 0,
+		right 0 top 0;
+}
+
+:root[dir="rtl"][data-flavor="cascade"][data-flavor][data-flavor] [data-slot="page-header-bar"] {
+	background-position:
+		left 0 top 0,
+		left 0 top 0;
+}
+
+/* The component's `/70` ink is an alpha over a field; a solved value is steadier. */
 :root[data-flavor="cascade"] [data-sidebar="sidebar"] [data-slot="sidebar-group-label"] {
 	color: var(--flavor-cascade-ink-soft);
 }
 
-/* Two-tone focus: the component's white ring, then a dark halo outside it, so one of the pair
-   always reads whichever stop of the gradient the item happens to sit on. */
-:root[data-flavor="cascade"]
-	[data-sidebar="sidebar"]
-	:is([data-sidebar="menu-button"], [data-slot="sidebar-menu-sub-button"]):focus-visible {
+/* NO BORDER CROSSES THE FOLD. The flush variant draws the rail's inline-end border from the PAGE's
+   `--border`, a hairline meant for a light document; painting it with the field's foot colour —
+   the first thing one reaches for — would draw a dark line straight down the elbow, where the
+   field is at its head. The field's own edge against the canvas does the separating. */
+:root[data-flavor="cascade"] [data-slot="sidebar-container"] {
+	border-color: transparent;
+}
+
+/* Two-tone focus, on the shared selector so a control in the bar gets the same pair as one in the
+   rail: the component's white ring, then a dark halo outside it, so one of the two always reads
+   whichever point of the field the control happens to sit on. */
+:root[data-flavor="cascade"][data-flavor][data-flavor]
+	:is([data-sidebar="sidebar"], [data-slot="page-header-bar"])
+	:is(
+		[data-sidebar="menu-button"],
+		[data-slot="sidebar-menu-sub-button"],
+		[data-slot="button"],
+		button
+	):focus-visible {
 	outline: 2px solid var(--flavor-cascade-b);
 	outline-offset: 2px;
 }
-
-/* The flush variant draws `border-e` from the PAGE's `--border`, which is a hairline meant for a
-   light document and invisible against this. */
-:root[data-flavor="cascade"] [data-slot="sidebar-container"] {
-	border-color: var(--flavor-cascade-b);
-}
-
 /* ==========================================================================================
  * GLOW — one soft brand spotlight, hanging above the page.
  *
@@ -245,55 +402,161 @@
 }
 
 /* ==========================================================================================
- * AURORA — three colour fields, drifting.
+ * AURORA — three fields of the SAME colour idea, drifting.
  *
- * A TRIAD, NOT A TINT. The three blobs are the brand hue and its two 120° neighbours, which is
- * what keeps this from reading as a bigger `glow`; they are placed in three different quadrants
- * for the same reason, so the still frame alone is a different composition.
+ * IT WAS A TRIAD AND THAT WAS THE FAULT. Three hues 120deg apart are by construction the three
+ * points furthest from the brand, and wherever two translucent blobs overlapped they painted a
+ * third hue present in neither of them and in no palette — which is what read as "contrast that
+ * has nothing to do with the theme". The fan is now 24deg either side of the brand hue: wide
+ * enough that three fields are three fields, narrow enough that the whole wash is recognisably
+ * one colour idea. Warm hues are discriminated about twice as finely as cool ones, so the four
+ * warm palettes take a narrower fan for the same perceived spread.
  *
- * THE BLUR IS THE GRADIENT'S OWN FEATHER, never `filter: blur()`. A blurred layer is re-convolved
- * on every frame it moves, which is the classic way to spend 90ms a frame on a decoration; a wide
- * radial stop costs nothing and looks the same. Only `transform` animates, on the layer itself —
- * `will-change` goes there and NOT on the wrapper, which would re-parent the fixed rail.
+ * ONCE THE HUES ARE THAT CLOSE, GEOMETRY DOES THE SEPARATING — three sizes, three falloffs,
+ * three quadrants, and a chroma ladder that makes exactly one field genuinely chromatic and the
+ * other two a tinted ghost. That is how the restrained systems get depth without a second accent.
  *
- * THE STILL FRAME IS A DESIGNED FRAME. Under `prefers-reduced-motion` the composition stays and
- * only the drift stops, so the flavor keeps its identity rather than degrading to an empty page.
- * Browsers pause CSS animations in hidden tabs, so there is nothing to script.
+ * THE BUDGET IS MEASURED, NOT CHOSEN. The wash sits behind opaque cards, so the one relation it
+ * can damage is card-against-ground, and this kit states that step itself: dark `--background` is
+ * L 0.264-0.267 against a dark `--card` at L 0.297-0.304. The first cut composited the ground to
+ * about L 0.325 — ABOVE the card — so inside every blob the cards stopped reading as raised
+ * surfaces and started reading as holes. That inversion, more than the hue spread, is what made
+ * it look broken. The lightness ladder now sits within a few thousandths of the ground and the
+ * colour is carried by chroma instead, which is the honest reading of "closer to the theme".
+ *
+ * CHROMA IS CAPPED AT THE sRGB CEILING FOR EACH BLOB'S OWN LIGHTNESS. At L 0.94 the gamut allows
+ * roughly 0.02-0.03 on most hues, so the first cut's `max(c, 0.08)` was authoring a colour the
+ * browser then clipped with a hue-shifting algorithm — twelve palettes, twelve different amounts
+ * of wrong. The floors are what the two achromatic brands need to be a tint rather than a fog.
+ *
+ * NO `filter: blur()`, AND THEREFORE NO `saturate()`. The published aurora recipes pair the two
+ * because blur averages toward grey and the saturation boost buys it back. Feathering with wide
+ * gradient stops instead costs nothing per frame and never desaturates, so there is nothing to
+ * correct — and a blurred layer would be re-convolved on every frame it moves.
  * ========================================================================================== */
 
 :root[data-flavor="aurora"] {
-	--flavor-aur-1: color-mix(in oklab, var(--primary) 18%, transparent);
-	--flavor-aur-2: color-mix(in oklab, var(--success) 14%, transparent);
-	--flavor-aur-3: color-mix(in oklab, var(--info) 13%, transparent);
+	--flavor-aur-fan: 24;
+
+	/*
+	 * The fallback mixes the brand into the page ground FIRST and fades that to transparent
+	 * second. It has to be the same design as the supported path, not a different one — an
+	 * earlier cut reached for `--success` and `--info` here, which is a different set of hues
+	 * wearing the same name.
+	 */
+	--flavor-aur-1: color-mix(
+		in oklab,
+		color-mix(in oklab, var(--primary) 26%, var(--background)) 34%,
+		transparent
+	);
+	--flavor-aur-2: color-mix(
+		in oklab,
+		color-mix(in oklab, var(--primary) 20%, var(--background)) 28%,
+		transparent
+	);
+	--flavor-aur-3: color-mix(
+		in oklab,
+		color-mix(in oklab, var(--primary) 14%, var(--background)) 24%,
+		transparent
+	);
+}
+
+/* Warm hues are discriminated roughly twice as finely as cool ones, so the same arc reads as a
+   wider spread on them. Half the fan keeps the four warm palettes in the same register. */
+:root:is(
+		[data-theme="ember"],
+		[data-theme="sandstone"],
+		[data-theme="sepia"],
+		[data-theme="crimson"]
+	)[data-flavor="aurora"] {
+	--flavor-aur-fan: 13;
 }
 
 :root[data-flavor="aurora"].dark {
-	--flavor-aur-1: color-mix(in oklab, var(--primary) 24%, transparent);
-	--flavor-aur-2: color-mix(in oklab, var(--success) 18%, transparent);
-	--flavor-aur-3: color-mix(in oklab, var(--info) 17%, transparent);
+	--flavor-aur-1: color-mix(
+		in oklab,
+		color-mix(in oklab, var(--primary) 22%, var(--background)) 40%,
+		transparent
+	);
+	--flavor-aur-2: color-mix(
+		in oklab,
+		color-mix(in oklab, var(--primary) 16%, var(--background)) 34%,
+		transparent
+	);
+	--flavor-aur-3: color-mix(
+		in oklab,
+		color-mix(in oklab, var(--primary) 11%, var(--background)) 28%,
+		transparent
+	);
 }
 
 @supports (color: oklch(from red l c h)) {
 	:root[data-flavor="aurora"] {
-		--flavor-aur-1: oklch(from var(--primary) 0.9 max(c, 0.08) h / 0.7);
-		--flavor-aur-2: oklch(from var(--primary) 0.91 max(c, 0.08) calc(h + 120) / 0.6);
-		--flavor-aur-3: oklch(from var(--primary) 0.92 max(c, 0.08) calc(h - 120) / 0.55);
+		/*
+		 * Field 1 is the DEEPEST and the most chromatic, which is the inverse of the obvious
+		 * arrangement: the sRGB gamut widens as lightness falls, so the field carrying the brand
+		 * hue is put where there is room for chroma to exist at all.
+		 */
+		--flavor-aur-1: oklch(from var(--primary) 0.9 clamp(0.034, calc(c * 0.34), 0.055) h / 0.5);
+		--flavor-aur-2: oklch(
+			from var(--primary) 0.918 clamp(0.026, calc(c * 0.25), 0.04) calc(h + var(--flavor-aur-fan)) /
+				0.42
+		);
+		--flavor-aur-3: oklch(
+			from var(--primary) 0.934 clamp(0.019, calc(c * 0.18), 0.028)
+				calc(h - var(--flavor-aur-fan)) / 0.34
+		);
 	}
 
 	:root[data-flavor="aurora"].dark {
-		--flavor-aur-1: oklch(from var(--primary) 0.34 max(c, 0.09) h / 0.8);
-		--flavor-aur-2: oklch(from var(--primary) 0.33 max(c, 0.09) calc(h + 120) / 0.7);
-		--flavor-aur-3: oklch(from var(--primary) 0.32 max(c, 0.09) calc(h - 120) / 0.65);
+		/* Pressed to the ground's own lightness band and paid for in chroma instead: alpha scales
+		   the lift and the tint by the same factor, so sitting near the ground buys the most
+		   colour for the least disturbance of the card step above it. */
+		--flavor-aur-1: oklch(from var(--primary) 0.292 clamp(0.062, calc(c * 0.75), 0.115) h / 0.6);
+		--flavor-aur-2: oklch(
+			from var(--primary) 0.288 clamp(0.048, calc(c * 0.55), 0.09) calc(h + var(--flavor-aur-fan)) /
+				0.5
+		);
+		--flavor-aur-3: oklch(
+			from var(--primary) 0.284 clamp(0.034, calc(c * 0.38), 0.062)
+				calc(h - var(--flavor-aur-fan)) / 0.42
+		);
 	}
 }
 
+/*
+ * Three sizes, three falloffs, three quadrants. The bare percentage after each first stop is a
+ * colour hint, and here it is BELOW centre — the eased-scrim shape, front-loaded then a long
+ * tail — which is one token per blob instead of the dozen-odd stops a generated easing would
+ * need. Centres are more than 40% of the viewport apart so only the tails overlap, and the stops
+ * end between 66% and 74% of the radius: below about 35% they read as three circles, above 80%
+ * as one flat tint.
+ */
 :root[data-flavor="aurora"] [data-slot="sidebar-wrapper"]::before {
 	/* Room to drift without ever exposing an edge of the layer. */
 	inset: -20%;
 	background-image:
-		radial-gradient(ellipse 45vw 40vh at 16% 84%, var(--flavor-aur-1), transparent 70%),
-		radial-gradient(ellipse 40vw 46vh at 88% 52%, var(--flavor-aur-2), transparent 70%),
-		radial-gradient(ellipse 36vw 30vh at 78% 8%, var(--flavor-aur-3), transparent 70%);
+		radial-gradient(58% 46% at 14% 82% in oklab, var(--flavor-aur-1) 0%, 38%, transparent 74%),
+		radial-gradient(46% 54% at 88% 46% in oklab, var(--flavor-aur-2) 0%, 34%, transparent 70%),
+		radial-gradient(38% 32% at 74% 6% in oklab, var(--flavor-aur-3) 0%, 42%, transparent 66%);
+}
+
+/*
+ * THE DITHER, and this is the layer that genuinely needs one. The wash now moves only a few
+ * thousandths of lightness, which is two to four 8-bit code values spread over six hundred-odd
+ * pixels of blurred radial — a contour every 150-300px, the widest and so the most visible kind
+ * of band there is. It is a SECOND, STATIC pseudo-element on purpose: noise that travelled with
+ * the drift would move the contour rather than break it up. Achromatic, `normal` blending, and
+ * the tile at its natural size — a resampled noise tile stops dithering and reads as dirt.
+ */
+:root[data-flavor="aurora"] [data-slot="sidebar-wrapper"]::after {
+	content: "";
+	position: absolute;
+	inset: 0;
+	z-index: -1;
+	pointer-events: none;
+	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='256' height='256'%3E%3Cfilter id='d'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='1' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23d)' opacity='.035'/%3E%3C/svg%3E");
+	background-size: 256px 256px;
 }
 
 @media (prefers-reduced-motion: no-preference) {
@@ -312,7 +575,6 @@
 		transform: translate3d(3%, 2%, 0) rotate(4deg);
 	}
 }
-
 /* ==========================================================================================
  * DEVTOOL — mono as a second voice, sharp corners, and a faint engineering grid.
  *
@@ -627,7 +889,8 @@
  * taking the ground away would leave that ink on the page's own.
  */
 @media (prefers-contrast: more) {
-	:root[data-flavor] [data-slot="sidebar-wrapper"]::before {
+	:root[data-flavor] [data-slot="sidebar-wrapper"]::before,
+	:root[data-flavor] [data-slot="sidebar-wrapper"]::after {
 		content: none;
 	}
 
@@ -655,7 +918,8 @@
  * declare one.
  */
 @media (forced-colors: active) {
-	:root[data-flavor] [data-slot="sidebar-wrapper"]::before {
+	:root[data-flavor] [data-slot="sidebar-wrapper"]::before,
+	:root[data-flavor] [data-slot="sidebar-wrapper"]::after {
 		content: none;
 	}
 
@@ -670,12 +934,18 @@
  * be a rectangle at the top of page one and the bands and grids would be ink on every sheet.
  */
 @media print {
-	:root[data-flavor] [data-slot="sidebar-wrapper"]::before {
+	:root[data-flavor] [data-slot="sidebar-wrapper"]::before,
+	:root[data-flavor] [data-slot="sidebar-wrapper"]::after {
 		content: none;
 	}
 
 	:root[data-flavor]
-		:is([data-slot="sidebar-inset"], [data-sidebar="sidebar"], [data-slot="page-header"]) {
+		:is(
+			[data-slot="sidebar-inset"],
+			[data-sidebar="sidebar"],
+			[data-slot="page-header"],
+			[data-slot="page-header-bar"]
+		) {
 		background-image: none;
 	}
 }
