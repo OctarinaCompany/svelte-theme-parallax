@@ -4,9 +4,10 @@
 [![Licence: MIT](https://img.shields.io/badge/licence-MIT-blue.svg)](./LICENSE)
 
 **A dashboard theme kit for [shadcn-svelte](https://shadcn-svelte.com/docs).**
-Svelte 5, Vite, Tailwind CSS v4, [Bits UI](https://bits-ui.com) — 127 components under one
+Svelte 5, Vite, Tailwind CSS v4, [Bits UI](https://bits-ui.com) — 128 components under one
 coherent theme, twelve palettes over one token set, an installable application shell, and a
-gallery that documents every component with a live page.
+gallery that renders every component on a live page — 122 own one, the other six appear inside
+another component's page or the shell (`docs/CONVENTIONS.md` §9 names them).
 
 ## Start here — install the skill
 
@@ -68,8 +69,8 @@ The library has two kinds of components, and one theme over both:
   editable, gauge, phone input, media player, and many more), written idiomatically for
   Svelte 5 runes and first-class code in this repository.
 
-An app shell (sidebar, breadcrumb, settings page) and a gallery of 114 component pages document
-all of it — every sidebar entry that goes anywhere goes somewhere real. The sidebar's twelve headings are
+An app shell (sidebar, breadcrumb, settings page) and a gallery of 122 component pages document
+all of it — every sidebar entry that goes anywhere goes somewhere real. The sidebar's thirteen headings are
 groups rather than destinations: the catalog is filed as an ordered ladder, where a component
 belongs to the first group whose test it passes. The ladder is declared once, in
 `src/lib/hooks/route.svelte.ts`, and the routes, the route type and the menu are derived from it.
@@ -177,7 +178,7 @@ this repository.
 npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-theme.json
 ```
 
-One hundred and nineteen items ship today — the palette, the axes, the shell, the skill, and every Parallax-authored or Parallax-forked ui/ component (verbatim ports of official components are deliberately never published). Their post-install notes live in [`docs/REGISTRY.md`](./docs/REGISTRY.md) — generated beside the manifest, because the registry build strips each item's `docs` field from the published JSON. The flagship items:
+One hundred and thirty-one items ship today — the palette, the axes, the shell, the skill, and every Parallax-authored or Parallax-forked ui/ component (verbatim ports of official components are deliberately never published). Their post-install notes live in [`docs/REGISTRY.md`](./docs/REGISTRY.md) — generated beside the manifest, because the registry build strips each item's `docs` field from the published JSON. The flagship items:
 
 | Item | What it installs |
 |------|------------------|

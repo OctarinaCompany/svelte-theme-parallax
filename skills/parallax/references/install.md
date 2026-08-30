@@ -23,10 +23,11 @@ complete generated list, with each item's post-install notes, is in the reposito
 
 **One item per house or forked component** — `parallax-<name>`, e.g.
 `parallax-data-table`, `parallax-data-grid`, `parallax-action-bar`, `parallax-loader`,
-`parallax-tour`, `parallax-kanban`, and the forks that carry house API
-(`parallax-button` for the control ramp, `parallax-table` for density, `parallax-badge`
-for the `*-subtle` variants, `parallax-card`, `parallax-avatar`). `parallax-primitives`
-holds the shared infrastructure several of them compose and arrives on its own.
+`parallax-tour`, `parallax-kanban`, `parallax-code-block`, `parallax-code-highlighter`, and
+the forks that carry house API (`parallax-button` for the control ramp, `parallax-table` for
+density, `parallax-badge` for the `*-subtle` variants, `parallax-card`, `parallax-avatar`).
+`parallax-primitives` holds the shared infrastructure several of them compose and arrives on
+its own.
 
 **What is NOT published**: verbatim ports of official shadcn-svelte components — the
 folders Parallax has not touched at all. Install those by their bare official name
@@ -51,7 +52,9 @@ it, and the same is true of every component item.
   that `init` cannot run unattended (it demands a `--preset` only the docs-site builder
   issues), so a scripted setup writes `components.json` by hand.
 - npm dependencies arrive with the items (`mode-watcher`, `@lucide/svelte`,
-  `@fontsource-variable/hanken-grotesk`); the CLI adds and installs them.
+  `@fontsource-variable/hanken-grotesk`, `svelte-streamdown` with `parallax-message`,
+  `shiki` and `@shikijs/langs` with `parallax-code-highlighter`); the CLI adds and installs
+  them.
 
 ## Install
 
@@ -124,6 +127,50 @@ Tailwind to scan the package — one line, next to the imports:
 Resolve the path against the stylesheet's own directory: `../node_modules/…` from `src/app.css`,
 `../../node_modules/…` from `src/routes/layout.css`. The symptom of forgetting it is silent: the
 answer renders, but tables lose their rules, lists their indents and code blocks their ground.
+
+A fifth applies after `parallax-code-highlighter`. The item writes the adapter; it cannot mount
+it. Put ONE `<CodeHighlighter.Root>` at the app root, wrapping everything that renders code —
+`src/routes/+layout.svelte` in SvelteKit, the root component in a Vite SPA:
+
+```svelte
+<script lang="ts">
+	import * as CodeHighlighter from "$lib/components/ui/code-highlighter/index.js";
+
+	let { children } = $props();
+</script>
+
+<CodeHighlighter.Root>
+	<!-- every CodeBlock.Root and Message.Response below here upgrades as its grammar lands -->
+	{@render children()}
+</CodeHighlighter.Root>
+```
+
+It renders no element and publishes itself on context, so a second one below the first buys
+nothing and compiles a second engine. Two things it does **not** need, unlike the step above it:
+nothing goes in the stylesheet — no `@source` line — because the adapter reads a grammar's scopes
+and paints `code-block`'s own token classes over the theme's tokens, loading no Shiki theme at
+all; and nothing is fetched from a network, because each grammar is a
+`() => import("@shikijs/langs/<id>")` that the bundler cuts into a chunk of the project's own
+build. The symptom of forgetting it is not an error either: a block outside the provider silently
+keeps `code-block`'s fourteen house grammars, so a Rust or Dockerfile fence renders in one flat
+ink — the body `text-foreground`, near-black in light mode and near-white in dark, never grey —
+while the TypeScript one beside it still looks right.
+
+**The adapter's own ceiling is 32 language ids**, declared as `CODE_HIGHLIGHTER_GRAMMARS` in
+`ui/code-highlighter/code-highlighter.svelte.ts`. An id outside that table falls back to the
+house tokenizer exactly as quietly as a missing provider — Elixir, Lua, Zig, Scala and Haskell
+are not carried — so a fence that stays uncoloured with the Root correctly mounted is this case,
+not the one above, and the fix is the Root's `grammars` prop rather than a second Root:
+
+```svelte
+<CodeHighlighter.Root
+	grammars={{ elixir: { name: "elixir", load: () => import("@shikijs/langs/elixir") } }}
+>
+```
+
+The specifier must be a STRING LITERAL — the bundler has to see it to cut the chunk — and keys
+are canonicalised as they merge, so an id the table already carries replaces that row's loader
+instead of adding a second one.
 
 Then wire the shell at the app root — the Key Patterns block in SKILL.md is the canonical
 shape (data as props, `isActive` predicate, content beside `PageHeader`).

@@ -68,6 +68,19 @@
 			]
 		},
 		{
+			"name": "code-fences-render-uncoloured",
+			"prompt": "My chat transcript renders Rust snippets as plain unhighlighted body text — no colour at all. The TypeScript answers look fine. Fix it.",
+			"expectations": [
+				"Diagnoses it rather than guessing: code-block ships fourteen house grammars (ts, tsx, js, jsx, json, css, bash, curl, python, sql, yaml, md, csv, text) and Rust is not one of them, so the fence renders plain",
+				"Installs parallax-code-highlighter from the Parallax registry URL and lets it resolve parallax-code-block — never `npm i shiki` plus a hand-written highlighter, and never a copy of the adapter's source",
+				"Mounts exactly ONE <CodeHighlighter.Root> at the app root, above the transcript — not one per message, per turn or per CodeBlock.Root: it renders no element and reaches the blocks through context, so a second one only compiles a second engine",
+				"Adds NOTHING to the stylesheet — no @source line for shiki or @shikijs/langs (unlike parallax-message's svelte-streamdown), because the adapter paints code-block's own token classes through the theme and loads no Shiki theme",
+				"Knows a block left outside the provider fails silently, keeping the fourteen house grammars — the symptom of forgetting the mount is an uncoloured fence painted in the body ink (text-foreground), never a grey one and never an error or a crash",
+				"Does not fetch a grammar or theme from a CDN, and does not reach for raw colours or a Shiki theme name to 'fix' the ink",
+				"Leaves the fences alone — the seam is context, so no block needs wiring and Message.Response needs no rewrite — and writes Svelte 5 runes syntax in whatever it does add"
+			]
+		},
+		{
 			"name": "full-height-panel-beside-the-canvas",
 			"prompt": "Add a right-hand details panel that spans the whole window height beside the page, with its own scrolling content, and keep it in view while the page scrolls.",
 			"expectations": [

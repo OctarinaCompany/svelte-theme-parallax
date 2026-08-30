@@ -43,6 +43,26 @@ ships today is listed here.
   answer used to render under the label `Text` and save as `text/plain`. SQL brings the `--` line
   comment and a case-insensitive keyword table; YAML shares JSON's literal rule; Markdown, like
   `text`, declares no grammar at all, because prose is where a highlighter does damage.
+- **A Shiki adapter behind `code-block`, painting in the theme's own ink.** `code-highlighter`
+  is a new house component, published as `parallax-code-highlighter`. An application mounts
+  `<CodeHighlighter.Root>` ONCE, at its root: it renders no element, publishes itself on context,
+  and every code block below it — a chat answer's fences included — gets real TextMate grammars
+  for 32 languages. No Shiki theme is loaded and no hex is written. The adapter reads each run's
+  scope stack and maps it onto the nine token kinds the block already paints, so all twelve
+  palettes and both modes keep working, and turning the provider on changes WHAT is coloured,
+  never how the kit colours it. What that buys is the answer a line-at-a-time tokenizer cannot
+  give: a `/* … */` comment is still a comment on its second line, and a docstring or a template
+  literal keeps its ink past its first. Grammars are lazy and literal — one
+  `() => import("@shikijs/langs/<id>")` each — so a language becomes one chunk of the consumer's
+  own bundle, arriving on first use, and nothing is fetched from a CDN. The item depends on
+  `parallax-code-block` and that edge never reverses, which is what keeps it optional: a block
+  with no provider above it keeps the fourteen house grammars, and nothing errors. `code-block`
+  itself gained what made the adapter possible — the `CodeBlockHighlighter` seam and the context
+  its own folder owns — plus a `language` prop that reads any id rather than the closed fourteen,
+  and case-insensitive alias resolution. That last pair closed a bug a reader could see: a
+  ```` ```javascript ```` fence used to be captioned "javascript", badged "Text" and left
+  uncoloured — every run painted in the body ink — while a ```` ```js ```` fence two messages
+  later was coloured.
 - The component library under `src/lib/components/ui/` — the shadcn-svelte registry set plus
   the house components (kanban, data grid, sortable, editable, gauge, phone input, media
   player, and many more), all under one token set.

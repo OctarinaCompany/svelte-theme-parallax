@@ -12,9 +12,10 @@ from `https://octarinacompany.github.io/svelte-theme-parallax/r/` — the palett
 (`parallax-theme`), the appearance axes (`parallax-appearance`) and their controls, the
 shell (`parallax-shell`: sidebar + page header bar), this skill (`parallax-skill`), the
 `parallax-restyle` opt-in, and one `parallax-<name>` item per house or forked component
-(`parallax-data-table`, `parallax-loader`, `parallax-tour`, …). Verbatim ports of official
-shadcn-svelte components are deliberately NOT republished: install those by their bare
-official name. Every item resolves its own chain, so one `add` is usually enough.
+(`parallax-data-table`, `parallax-loader`, `parallax-tour`, `parallax-code-highlighter`, …).
+Verbatim ports of official shadcn-svelte components are deliberately NOT republished: install
+those by their bare official name. Every item resolves its own chain, so one `add` is usually
+enough.
 
 The gallery PAGES (tables-in-cards, page headers, uploads, …) are not items — they are
 readable source that shows the published components in use, distilled in
@@ -152,6 +153,22 @@ Before adding or changing anything:
 - **Two manual steps after `parallax-theme`** (a registry item cannot patch existing
   files): the `@import "./themes.css";` + font imports in the global stylesheet, and the
   **first-paint script** in `index.html` / `app.html` (exact copy in theming.md).
+- **One manual step after `parallax-code-highlighter`** (a registry item writes files, it
+  cannot wire a root): mount `<CodeHighlighter.Root>` **once**, at the app root, above
+  everything that renders code. It renders no element and reaches the blocks through context,
+  so a second one lower down only compiles a second engine. Nothing goes in the stylesheet —
+  the adapter paints `code-block`'s own token classes through the theme's tokens — and nothing
+  is fetched from a network. Forgetting it fails SILENTLY: a block outside the provider keeps
+  `code-block`'s own fourteen house grammars, so a fence in any other language renders in one
+  flat ink — the body `text-foreground`, near-black in light mode and near-white in dark, never
+  grey — rather than erroring.
+- **The adapter carries 32 language ids, not every language.** `CODE_HIGHLIGHTER_GRAMMARS` in
+  `ui/code-highlighter/code-highlighter.svelte.ts` is the whole list, and an id outside it falls
+  back to the house tokenizer exactly as silently as a missing provider — Elixir, Lua, Zig,
+  Scala and Haskell stay uncoloured with the provider correctly mounted. The escape hatch is the
+  Root's `grammars` prop: one `{ <id>: { name, load: () => import("@shikijs/langs/<id>") } }`
+  row merged over the built-in table, the specifier a STRING LITERAL so the bundler can see it.
+  Reach for that, never for a second provider or a hand-written highlighter.
 - **Nothing between the canvas and `PageHeader` may gain `overflow-x: hidden`** — it
   computes to `auto` beside `overflow-y: visible`, the wrapper becomes a scroll container,
   and the sticky header and its auto-hide follow the wrapper instead of the canvas, with no
@@ -225,6 +242,7 @@ Before adding or changing anything:
 | Palette switch UI                        | `ThemeSelector` (`compact` for a header slot; full form on a settings page) |
 | Light/dark toggle                        | `ModeToggle` (or `toggleMode()` from mode-watcher)                   |
 | Floating / inverted / auto-hide controls | `HeaderToggle`, `SidebarModeToggle`, or the hook setters             |
+| A code block, or a Rust / HTML fence rendering uncoloured | `CodeBlock.Root` (`parallax-code-block`) paints fourteen house languages and `Message.Response` already renders fences through it; `parallax-code-highlighter` adds real grammars for 32 ids, and the one thing you must do is mount `<CodeHighlighter.Root>` ONCE, at the app root above the blocks. Both silent failures look the same — a block outside the provider, and a language outside those 32 (Elixir, Lua, Zig, …), stay in the body ink rather than erroring; the second is fixed by the Root's `grammars` prop, not by a second Root |
 | Table-in-a-card page, page header block, list group, upload UI, data table/grid | the recipes in [references/patterns.md](references/patterns.md) |
 
 ## Workflow

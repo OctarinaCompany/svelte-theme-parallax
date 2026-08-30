@@ -64,6 +64,19 @@ is redistributed.
 published under the MIT licence and installed as a dependency of the `parallax-message` registry
 item rather than copied.
 
+## Shiki
+
+`ui/code-highlighter` reads TextMate grammars through [Shiki](https://shiki.style): `shiki/core`,
+its JavaScript regex engine (`shiki/engine/javascript`), and the grammars in `@shikijs/langs`. Both packages are published under the MIT licence and are installed
+as dependencies of the `parallax-code-highlighter` registry item rather than copied. The grammars
+themselves are vendored from the editor projects that maintain them, and each keeps the terms its
+own project publishes it under.
+
+No Shiki THEME ships here, and none is loaded. The adapter calls a grammar's tokenizer directly,
+reads the scope stack it hands back, and paints `ui/code-block`'s own token classes — so the
+colour on screen is this repository's `src/app.css`, not anybody's editor palette, and the twelve
+Parallax palettes keep working unchanged.
+
 ## Everything else
 
 The remaining runtime and build dependencies (Svelte, Vite, Tailwind CSS, LayerChart,

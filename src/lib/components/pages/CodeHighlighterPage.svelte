@@ -113,6 +113,14 @@
 	 * `CODE_HIGHLIGHTER_GRAMMARS`. The guests are what the language can HOST: a `<style>` block, a
 	 * heredoc, an embedded query. Every other row is a single module, and the everyday ones are
 	 * small — `json` and `jsonc` around 3 kB, `dockerfile` 2 kB, `yaml` 11 kB, `sql` 24 kB.
+	 *
+	 * THOSE ARE SOURCE BYTES, WHICH IS NOT WHAT A READER DOWNLOADS. Measured over this site's own
+	 * production build, gzipped: the adapter and Shiki's core are one 54 kB chunk, paid once and
+	 * only when a provider is mounted; a grammar chunk runs from 1 kB (`json`, `jsonc`, `diff`,
+	 * `dockerfile`) through 16 kB for each of the JavaScript family to 45 kB for `cpp`, the
+	 * heaviest. All thirty-two together would be 320 kB, which is the number to hold against the
+	 * table below — and the number nobody pays, because a chunk arrives only when a block asks for
+	 * that language.
 	 */
 	const embeddedGrammars = [
 		{ language: "html", guests: "javascript, css", weight: "3 modules, ~292 kB" },
@@ -801,7 +809,13 @@
 					— each row is behind its own dynamic import and arrives only when a block asks for that
 					language. The weights are what makes the difference worth knowing before adding one of
 					these to a <code>languages</code> preload: <code>ruby</code> is nearly two megabytes,
-					<code>json</code> is three kilobytes.
+					<code>json</code> is three kilobytes. Those are source bytes; what a reader downloads is
+					smaller and is the figure to hold against this table — measured over this site's own
+					production build, gzipped, the adapter and Shiki's core are one 54&nbsp;kB chunk paid
+					once, and a grammar runs from 1&nbsp;kB (<code>json</code>, <code>diff</code>,
+					<code>dockerfile</code>) through 16&nbsp;kB for each of the JavaScript family to
+					45&nbsp;kB for <code>cpp</code>. All thirty-two would come to 320&nbsp;kB, which is the
+					number nobody pays.
 				</p>
 				<Card.Root>
 					<Card.Content class="px-0 [&_[data-slot=table-cell]]:whitespace-normal">

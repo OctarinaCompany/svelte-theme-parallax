@@ -25,8 +25,16 @@ document disagree, one of them has a bug.
   `<a download>`, the one save path code-block and conversation both use).
 - A component imports another component only for real composition — gauge → circular-progress,
   phone-input → mask-input, kanban → sortable, reasoning → message, message → code-block,
-  tool → code-block and json-viewer. Anything two unrelated components need moves to
-  `src/lib/shared/` instead.
+  tool → code-block and json-viewer, code-highlighter → code-block. Anything two unrelated
+  components need moves to `src/lib/shared/` instead.
+- **A composition edge that must not reverse says why.** `code-highlighter` is the case that
+  names the rule: the adapter knows the block — its nine token kinds, and the highlighter context
+  the block's own folder declares — while the block knows only the seam it exposes and never who
+  fills it. Written the other way round, `parallax-code-block` would drag a grammar bundle in
+  behind it, and a block with no highlighter above it would have nothing left to fall back to.
+  Written this way the adapter is a component item nobody has to install, and the block keeps its
+  fourteen house grammars when nobody does. Where a pair is asymmetric like that, the folder that OWNS the
+  contract is the one that must not import.
 
 ## 3. Status vocabulary and control ramp
 
@@ -130,8 +138,10 @@ name the unreachable element in a comment: `rating` paints its star as a present
 `media-player` widens the seek bar's hit area with a pseudo-element. This is not a licence to
 restate the rule — a component whose control **is** a `<button>` writes nothing.
 
-A sweep of the 120 gallery pages says those are the only departures; anything new that leaves the
-rule should be able to name its class here.
+A sweep of the 120 gallery pages the catalog held when the rule was written says those are the
+only departures. That number is the audit's scope, not today's catalog — `CHANGELOG.md` records
+the same sweep at the same 120, and raising it here would claim pages nobody checked. Anything
+added since, this changeset included, should be able to name its class here.
 
 ## 9. The catalog
 
@@ -208,14 +218,15 @@ that in one of two ways depending on where the component came from:
 - A **house** component carries an **API reference** section of its own: one `<h3>` per part
   naming it `Namespace.Part`, a sentence or two saying what that part IS and renders, then a
   table of prop / type / default / description. There is no upstream to point at, so the page is
-  the documentation. **70 pages** — the ten large house components alone carry 772 rows, and the
-  twelve AI chat pages another 433.
+  the documentation. **71 pages** — the ten large house components alone carry 772 rows, and the
+  twelve AI chat pages another 491.
 
-The two are alternatives, never both, and **the rule holds with no exceptions**: 51 + 70 + the
-ten pages that owe neither is every page in the catalog. Those ten are not exceptions either —
-`quickstart`, `settings`, `themes` and `sizing` document the kit rather than a component, and the
-six `Patterns` pages (`chat-surface`, `file-upload`, `list-group`, `page-headers`, `tables-in-cards`,
-`typography`) ship no component at all, as §9 records.
+The two are alternatives, never both, and **the rule holds with no exceptions**: 51 + 71 + the
+ten pages that owe neither is 132 — every page in the catalog, the 128 the ladder carries plus
+the four destinations. Those ten are not exceptions either — `quickstart`, `settings`, `themes`
+and `sizing` document the kit rather than a component, and the six `Patterns` pages
+(`chat-surface`, `file-upload`, `list-group`, `page-headers`, `tables-in-cards`, `typography`)
+ship no component at all, as §9 records.
 
 **What a row has to be.** The type is the declaration's, verbatim. The default is the
 destructuring default, or `—` where there is none. The description says what the prop DOES,

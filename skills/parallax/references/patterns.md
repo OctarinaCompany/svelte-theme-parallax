@@ -102,7 +102,13 @@ chat *is* the page rather than a widget on one.
 
 Composes, all as `parallax-<name>` items: `conversation`, `message`, `prompt-input`,
 `suggestion`, `reasoning`, `tool`, `card` for the frame, plus `code-block` and `empty`
-reached through `Message.Response` and `Conversation.EmptyState`.
+reached through `Message.Response` and `Conversation.EmptyState`. One optional item:
+`code-highlighter`, mounted ONCE as `<CodeHighlighter.Root>` at the app root above the
+transcript. It buys the answers real TextMate grammars for 32 languages instead of the block's
+fourteen — a model writes Rust, Go and Dockerfile as readily as TypeScript — and it colours the
+constructs a line-at-a-time tokenizer has to give up on, so a block comment, a docstring or a
+template literal stays one colour past its first line. Leave it out and every fence still
+renders, in the house colours.
 Source: `src/lib/components/pages/ChatSurfacePage.svelte`.
 
 ## Page headers
