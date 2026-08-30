@@ -1,0 +1,344 @@
+/**
+ * Vibrant — the third value of the sidebar's and the header's own appearance axis.
+ *
+ * WHAT IT IS. `default` lets a chrome surface follow the page, `inverted` gives it the opposite
+ * half, and `vibrant` paints it with the palette's own brand as a corner light. It began as a
+ * flavor and was promoted here, which is its right home: it dresses exactly the two surfaces
+ * those axes already own, and someone deciding how the rail should look should find all three
+ * answers in one control rather than two.
+ *
+ * THE TWO SURFACES ARE INDEPENDENT, because the axes are. A vibrant rail beside a plain bar is a
+ * legal state and paints only the rail; asking for both is what draws the L. That is also why
+ * the paint rule below is a SELECTOR LIST rather than one selector with `:is()` — each surface
+ * opts in on its own attribute, and each gets the specificity its own contest needs.
+ *
+ * IT IS NOT TWO GRADIENTS. A gradient's line is sized per element, so the same angle restated on
+ * a 256x900 rail and a 1440x64 bar is two different objects meeting in a seam — and on the bar it
+ * would spend its whole travel in a couple of hundred pixels and render as a painted stripe. So
+ * ONE field is authored, `--vibrant-field`, and both surfaces sample it: an ellipse anchored at
+ * the elbow where the two limbs meet. Distance from that corner is the one scalar that grows
+ * along both, so the rail gets a full fall down its height and the bar a full sweep across the
+ * viewport, from the same source.
+ *
+ * WHAT MAKES THE JOIN EXACT is not tuning but three mechanics. The field is sized to the VIEWPORT
+ * (`100vw 100lvh`), which defeats the per-element normalisation that causes the seam. Each
+ * surface anchors to an edge it shares with the viewport — the rail to the left, the bar to the
+ * right — so neither needs the other's width, and the corner survives the icon rail, off-canvas,
+ * the mobile Sheet and every breakpoint with no media query. And no border crosses the fold.
+ *
+ * `100lvh`, not `dvh`: the rail is `inset-y-0` against the LAYOUT viewport, and `dvh` would
+ * re-lay the gradient out on every iOS toolbar animation.
+ *
+ * THE DARK BAND SITS ABOVE THE PAGE, WHICH IS THE WHOLE FIX. Measured in this kit, every dark
+ * `--background` is L 0.264-0.267 and every dark `--sidebar`/`--card` is L 0.297-0.304 — the
+ * house elevation step is +0.035. The first cut of this surface ran 0.22 -> 0.14, which is BELOW
+ * the page for its whole length: a hole rather than a panel, in a region of sRGB too narrow to
+ * carry any chroma, which is exactly why it read as flat near-black. It now runs 0.42 -> 0.315,
+ * the same 0.105 of travel as the light ramp, with its dimmest point still above the rail the kit
+ * ships with neither value set.
+ *
+ * CHROMA IS CLAMPED TO THE sRGB GAMUT AT EACH STOP'S OWN LIGHTNESS, not to taste. The first cut
+ * authored up to 0.044 past the gamut, and the browser clips with an algorithm that shifts hue —
+ * so eight of the twelve palettes rendered a colour nobody wrote. The floors are what the two
+ * deliberately achromatic brands need to be a tinted surface rather than a grey one.
+ *
+ * A 12deg TORSION, because a ramp that holds one hue and only drops lightness reads as a colour
+ * with the lights turned down rather than as a lit surface. It is also a gamut decision: teal and
+ * green have the narrowest chroma ceiling of any hue at these lightnesses, so the two palettes
+ * that live there rotate the other way to buy headroom.
+ *
+ * `in oklab`, NEVER `in oklch`. The arc here is 12deg, where oklab's midpoint chroma dip is half
+ * a percent — invisible — and what it buys is the absence of a hue channel that can go powerless
+ * when a stop is near-achromatic, which is the case two of these palettes are.
+ *
+ * WHY ITS OWN FILE. It is not a flavor, so it does not belong in `src/flavors.css`; and it is
+ * imported AFTER that file on purpose, so that a flavor which decorates the same two surfaces —
+ * `devtool` paints a grid on both — loses to the explicit chrome choice rather than winning on
+ * source order. It stays out of `src/app.css` for now because that file is audited block by block
+ * by the registry generator; publishing this axis is a separate, deliberate step, and one this
+ * needs no per-theme generation for: every value is derived from `--primary`, so one block serves
+ * all twelve palettes.
+ *
+ * @see src/lib/hooks/sidebar-mode.svelte.ts — the axis, and why `vibrant` writes itself verbatim
+ * @see src/lib/hooks/header-mode.svelte.ts — and why a vibrant rail forces the bar to speak up
+ */
+
+:root:is([data-sidebar-mode="vibrant"], [data-header-mode="vibrant"]) {
+	--vibrant-torsion: 6;
+
+	/* Fallbacks first, always, and derived from tokens rather than from black: mixing toward
+	   `--foreground` lands both stops in the right lightness band on a light page without
+	   inheriting the primary's own lightness. */
+	--vibrant-a: color-mix(in oklab, var(--primary) 55%, var(--foreground));
+	--vibrant-b: color-mix(in oklab, var(--primary) 30%, var(--foreground));
+	--vibrant-ink: color-mix(in oklab, white 90%, var(--vibrant-a));
+	--vibrant-ink-soft: color-mix(in oklab, white 70%, var(--vibrant-a));
+
+	/*
+	 * The bare `56%` is a colour hint, and it is deliberately ABOVE centre: below centre the ramp
+	 * transitions faster at the start, and what this wants is the opposite — the head held so the
+	 * elbow reads as one plateau across both limbs rather than as the place two rates of change
+	 * meet. `125% 100%` gives the rail the full ramp down its height and the bar about 80% of it
+	 * across the viewport, and because the radii are percentages of a viewport-sized tile that
+	 * split is the same at 1280px and at 2560px.
+	 */
+	--vibrant-field: radial-gradient(
+		125% 100% at 0 0 in oklab,
+		var(--vibrant-a) 0%,
+		56%,
+		var(--vibrant-b) 100%
+	);
+
+	--vibrant-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='182' height='182'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.1'/%3E%3C/svg%3E");
+}
+
+/* Teal and green have the narrowest chroma ceiling of any hue at these lightnesses, so their
+   darkest stop must rotate TOWARD the wider side rather than away from it. A gamut fix that
+   happens to also be the right temperature, not a preference. */
+:root:is([data-theme="harbor"], [data-theme="evergreen"]):is(
+		[data-sidebar-mode="vibrant"],
+		[data-header-mode="vibrant"]
+	) {
+	--vibrant-torsion: -6;
+}
+
+:root:is([data-sidebar-mode="vibrant"], [data-header-mode="vibrant"]).dark {
+	/*
+	 * The dark fallback is where the original bug actually lived: mixing the primary toward black
+	 * inherits its lightness, and in dark ten of the twelve palettes ship a primary that is
+	 * already a light tint. Mixing toward a slightly whitened page ground instead anchors both
+	 * stops above `--background` on all twelve.
+	 */
+	--vibrant-a: color-mix(
+		in oklab,
+		var(--primary) 12%,
+		color-mix(in oklab, white 16%, var(--background))
+	);
+	--vibrant-b: color-mix(
+		in oklab,
+		var(--primary) 6%,
+		color-mix(in oklab, white 6%, var(--background))
+	);
+
+	/* `soft-light` scales its effect by the backdrop, so the 10% that dithers a near-white rail is
+	   close to inert over an L 0.42 one — and the dark ramp has fewer 8-bit codes to spend. */
+	--vibrant-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='182' height='182'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.14'/%3E%3C/svg%3E");
+}
+
+@supports (color: oklch(from red l c h)) {
+	:root:is([data-sidebar-mode="vibrant"], [data-header-mode="vibrant"]) {
+		--vibrant-a: oklch(
+			from var(--primary) 0.4 clamp(0.065, calc(c * 0.68), 0.14) calc(h + var(--vibrant-torsion))
+		);
+		--vibrant-b: oklch(
+			from var(--primary) 0.28 clamp(0.045, calc(c * 0.48), 0.088) calc(h - var(--vibrant-torsion))
+		);
+		/* Both inks derive from the HEAD — the brightest point of the whole field, and the one
+		   point both limbs share — so a single pair serves the rail and the bar in both modes with
+		   no per-surface measurement. The chroma cap is the measured ceiling at L 0.97. */
+		--vibrant-ink: oklch(from var(--vibrant-a) 0.97 clamp(0.006, calc(c * 0.2), 0.014) h);
+		--vibrant-ink-soft: oklch(from var(--vibrant-a) 0.85 calc(c * 0.35) h);
+	}
+
+	:root:is([data-sidebar-mode="vibrant"], [data-header-mode="vibrant"]).dark {
+		--vibrant-a: oklch(
+			from var(--primary) 0.42 clamp(0.045, calc(c * 0.55), 0.105) calc(h + var(--vibrant-torsion))
+		);
+		--vibrant-b: oklch(
+			from var(--primary) 0.315 clamp(0.04, calc(c * 0.46), 0.09) calc(h - var(--vibrant-torsion))
+		);
+	}
+}
+
+/*
+ * ONE PAINT BLOCK FOR BOTH LIMBS, at (0,5,0) — the rung the per-theme header pins in
+ * `themes.css` sit below. The rail alone would have been happy lower; a single block is the
+ * point, because two blocks are how the two limbs drift apart.
+ */
+:root[data-sidebar-mode="vibrant"] [data-sidebar="sidebar"],
+:root[data-header-mode="vibrant"][data-header-mode][data-header-mode]
+	[data-slot="page-header-bar"] {
+	--sidebar: var(--vibrant-b);
+	--sidebar-foreground: var(--vibrant-ink);
+	--sidebar-primary: #fff;
+	--sidebar-primary-foreground: var(--vibrant-b);
+	/* Hover and active are an alpha wash, never a solid: a fill would flatten the field. */
+	--sidebar-accent: rgb(255 255 255 / 0.14);
+	--sidebar-accent-foreground: #fff;
+	--sidebar-border: rgb(255 255 255 / 0.14);
+	--sidebar-outline: rgb(255 255 255 / 0.2);
+	--sidebar-ring: #fff;
+	/* The fold hairline is a fold, not a control boundary. WCAG 1.4.11 binds the boundary of an
+	   input at 3:1, so it gets the solved soft ink rather than the 20% wash the alias block in
+	   `app.css` would otherwise hand it. */
+	--input: var(--vibrant-ink-soft);
+
+	/* `color` and not only the token: both surfaces' OUTER elements resolved their ink from the
+	   ROOT before this block was reached. `color-scheme` so native controls and scrollbars inside
+	   them match the panel they now sit on. */
+	color: var(--sidebar-foreground);
+	color-scheme: dark;
+
+	/* An opaque base is mandatory on the bar — the canvas scrolls under it. */
+	background-color: var(--vibrant-b);
+	background-image: var(--vibrant-grain), var(--vibrant-field);
+	background-size:
+		182px 182px,
+		100vw 100lvh;
+	background-repeat: repeat, no-repeat;
+	background-blend-mode: soft-light, normal;
+}
+
+/* Each surface anchors to an edge it SHARES WITH THE VIEWPORT, so neither has to know the
+   other's geometry. The grain carries the same anchor so the two layers travel together. */
+:root[data-sidebar-mode="vibrant"] [data-sidebar="sidebar"] {
+	background-position:
+		left 0 top 0,
+		left 0 top 0;
+}
+
+:root[data-header-mode="vibrant"][data-header-mode][data-header-mode]
+	[data-slot="page-header-bar"] {
+	background-position:
+		right 0 top 0,
+		right 0 top 0;
+}
+
+/* The floating variant insets the bar 8px from the top and the right; negative offsets push the
+   field's edges back out to the viewport so the sample stays in register with the rail's. */
+:root[data-header-mode="vibrant"][data-header-mode][data-header-mode]
+	[data-slot="page-header"][data-floating]
+	[data-slot="page-header-bar"] {
+	background-position:
+		right -0.5rem top -0.5rem,
+		right -0.5rem top -0.5rem;
+}
+
+/* Right-to-left: the elbow moves to the other corner and the two anchors swap with it. */
+:root[dir="rtl"]:is([data-sidebar-mode="vibrant"], [data-header-mode="vibrant"]) {
+	--vibrant-field: radial-gradient(
+		125% 100% at 100% 0 in oklab,
+		var(--vibrant-a) 0%,
+		56%,
+		var(--vibrant-b) 100%
+	);
+}
+
+:root[dir="rtl"][data-sidebar-mode="vibrant"] [data-sidebar="sidebar"] {
+	background-position:
+		right 0 top 0,
+		right 0 top 0;
+}
+
+:root[dir="rtl"][data-header-mode="vibrant"][data-header-mode][data-header-mode]
+	[data-slot="page-header-bar"] {
+	background-position:
+		left 0 top 0,
+		left 0 top 0;
+}
+
+/* The component's `/70` ink is an alpha over a field; a solved value is steadier. */
+:root[data-sidebar-mode="vibrant"] [data-sidebar="sidebar"] [data-slot="sidebar-group-label"] {
+	color: var(--vibrant-ink-soft);
+}
+
+/* NO BORDER CROSSES THE FOLD. The flush variant draws the rail's inline-end border from the PAGE's
+   `--border`, a hairline meant for a light document; painting it with the field's foot colour —
+   the first thing one reaches for — would draw a dark line straight down the elbow, where the
+   field is at its head. The field's own edge against the canvas does the separating. */
+:root[data-sidebar-mode="vibrant"] [data-slot="sidebar-container"] {
+	border-color: transparent;
+}
+
+/* Two-tone focus, on the shared selector so a control in the bar gets the same pair as one in the
+   rail: the component's white ring, then a dark halo outside it, so one of the two always reads
+   whichever point of the field the control happens to sit on. */
+:root[data-sidebar-mode="vibrant"]
+	[data-sidebar="sidebar"]
+	:is([data-sidebar="menu-button"], [data-slot="sidebar-menu-sub-button"], button):focus-visible,
+:root[data-header-mode="vibrant"][data-header-mode][data-header-mode]
+	[data-slot="page-header-bar"]
+	:is([data-slot="button"], button):focus-visible {
+	outline: 2px solid var(--vibrant-b);
+	outline-offset: 2px;
+}
+/*
+ * THE MENUS A VIBRANT SURFACE OPENS.
+ *
+ * The workspace switcher, the account menu, the pickers on the bar — every one of them is a
+ * `DropdownMenu.Content`, and every one is PORTALED to `<body>`. So none of them is a descendant
+ * of the panel that opened it, none inherits its tokens, and a vibrant rail was opening a plain
+ * light popover: the one place the surface visibly stopped.
+ *
+ * `:has()` ON THE OPEN TRIGGER IS WHAT REACHES ACROSS THE PORTAL. The trigger stays in the DOM,
+ * inside the panel, and reports `data-state="open"` the whole time its content is up — the same
+ * fact `app.css` already leans on to pin the header while a menu is open. So "a trigger inside a
+ * vibrant surface is currently open" is a condition CSS can test, and it scopes the portaled
+ * content precisely: only one menu is open at a time, and a submenu is open only while its parent
+ * is. A menu opened from the PAGE is untouched, which is the whole point of not simply restyling
+ * every popover while the attribute is set.
+ *
+ * `[data-sidebar="menu-button"]` and not `[data-slot=…]` on the rail's side, for the reason
+ * `app.css` gives about its identity buttons: `DropdownMenu.Trigger`'s own `data-slot` wins the
+ * `mergeProps` merge, and `data-sidebar` has no counterpart to be overwritten by.
+ *
+ * THE HEAD COLOUR, NOT THE FOOT. A menu is a surface lifted OFF the panel, so it takes the
+ * field's brightest stop; taking the foot would have produced a panel-coloured card floating on a
+ * panel. Its ink is the same solved pair the panel uses, so nothing here is a second measurement.
+ */
+:root[data-sidebar-mode="vibrant"]
+	body:has([data-sidebar="sidebar"] [data-sidebar="menu-button"][data-state="open"])
+	:is(
+		[data-slot="dropdown-menu-content"],
+		[data-slot="dropdown-menu-sub-content"],
+		[data-slot="popover-content"]
+	),
+:root[data-header-mode="vibrant"]
+	body:has([data-slot="page-header-bar"] [data-state="open"])
+	:is(
+		[data-slot="dropdown-menu-content"],
+		[data-slot="dropdown-menu-sub-content"],
+		[data-slot="popover-content"]
+	) {
+	--popover: var(--vibrant-a);
+	--popover-foreground: var(--vibrant-ink);
+	/* The item hover/active pair, the separator, and the label — the four page tokens a menu's
+	   children read that would otherwise still be the document's. */
+	--accent: rgb(255 255 255 / 0.14);
+	--accent-foreground: #fff;
+	--border: rgb(255 255 255 / 0.16);
+	--muted-foreground: var(--vibrant-ink-soft);
+	/* The content's own hairline is `ring-foreground/10`, so `--foreground` has to move with it. */
+	--foreground: var(--vibrant-ink);
+	color-scheme: dark;
+}
+
+/*
+ * The kill switches reach the two vibrant surfaces by name. They cannot ride on the `[data-flavor]`
+ * selectors in `src/flavors.css` any more — this is a different axis — and print is the one that
+ * would otherwise cost real ink on every sheet.
+ */
+@media (prefers-contrast: more) {
+	:root[data-sidebar-mode="vibrant"] [data-sidebar="sidebar"],
+	:root[data-header-mode="vibrant"][data-header-mode][data-header-mode]
+		[data-slot="page-header-bar"] {
+		background-image: none;
+	}
+}
+
+@media (forced-colors: active) {
+	:root[data-sidebar-mode="vibrant"] [data-sidebar="sidebar"],
+	:root[data-header-mode="vibrant"][data-header-mode][data-header-mode]
+		[data-slot="page-header-bar"] {
+		background-image: none;
+		border: 1px solid transparent;
+	}
+}
+
+@media print {
+	:root[data-sidebar-mode="vibrant"] [data-sidebar="sidebar"],
+	:root[data-header-mode="vibrant"][data-header-mode][data-header-mode]
+		[data-slot="page-header-bar"] {
+		background-image: none;
+	}
+}

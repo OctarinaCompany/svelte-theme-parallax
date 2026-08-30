@@ -54,6 +54,14 @@
 @import "./flavors.css";
 
 /*
+ * `vibrant`, the third value of the sidebar's and the header's own appearance axis — the brand
+ * painted onto those two surfaces as one corner light. Not a flavor, so not in the file above;
+ * imported AFTER it on purpose, so that a flavor decorating the same two surfaces (`devtool`
+ * paints a grid on both) loses to the explicit chrome choice rather than winning on source order.
+ */
+@import "./vibrant.css";
+
+/*
  * Tailwind scans this project's own source, and `svelte-streamdown` — the Markdown renderer
  * `ui/message` wraps — ships PRE-BUILT class strings in its `dist`, which no file here mentions.
  * Without this line Tailwind never emits those utilities and a rendered answer arrives unstyled:

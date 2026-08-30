@@ -113,18 +113,25 @@
 				var pageWear = light ? "light" : "dark";
 				var railWear = pageWear;
 				var sidebar = localStorage.getItem("sidebar-mode");
-				if (sidebar === "inverted" || sidebar === "dark") {
+				var railVibrant = sidebar === "vibrant";
+				if (railVibrant) {
+					/* Absolute, and written verbatim: its stylesheet answers `.dark` itself. */
+					railWear = "dark";
+					root.setAttribute("data-sidebar-mode", "vibrant");
+				} else if (sidebar === "inverted" || sidebar === "dark") {
 					railWear = light ? "dark" : "light";
 					root.setAttribute("data-sidebar-mode", railWear);
 				}
-				var barWear =
-					localStorage.getItem("header-mode") === "inverted"
-						? light
-							? "dark"
-							: "light"
-						: pageWear;
-				if (barWear !== railWear) {
-					root.setAttribute("data-header-mode", barWear);
+				var header = localStorage.getItem("header-mode");
+				if (header === "vibrant") {
+					root.setAttribute("data-header-mode", "vibrant");
+				} else {
+					var barWear = header === "inverted" ? (light ? "dark" : "light") : pageWear;
+					/* Beside a VIBRANT rail there is nothing to inherit — the panel keeps its tokens
+					   to itself — so the bar states its own value even when the two wears coincide. */
+					if (railVibrant || barWear !== railWear) {
+						root.setAttribute("data-header-mode", barWear);
+					}
 				}
 			} catch (e) {
 				/* storage blocked — the app applies all five on mount instead */

@@ -36,22 +36,15 @@ export const FLAVOR_ATTRIBUTE = "data-flavor";
 
 /**
  * Every flavor, in the order the picker lists them: the control first, then the families in
- * widening scope — chrome, light, type, shape.
+ * widening scope — light, type, shape.
  *
- * FIVE MORE WERE BUILT AND CUT, on the owner's verdict after seeing all twelve on screen:
- * `masthead` and `overlap` (their brand band and ink L-frame both lost to Cascade, which paints
- * the same two surfaces better), `glass`, `editorial` and `crest`. The removals are the point of
- * a POC — the list is what survived being looked at, not what was easy to write.
+ * FIVE WERE BUILT AND CUT, on the owner's verdict after seeing all twelve on screen: `masthead`,
+ * `overlap`, `glass`, `editorial` and `crest`. A sixth, `cascade`, was not cut but PROMOTED — it
+ * turned out to be describing a chrome option rather than a decoration, so it is now the third
+ * value of the sidebar's and the header's own axis (`src/vibrant.css`). Nothing here paints the
+ * rail or the bar any more; the axes that own those surfaces do.
  */
-export const FLAVOR_IDS = [
-	"stock",
-	"cascade",
-	"glow",
-	"aurora",
-	"devtool",
-	"pebble",
-	"brutalist",
-] as const;
+export const FLAVOR_IDS = ["stock", "glow", "aurora", "devtool", "pebble", "brutalist"] as const;
 
 export type FlavorId = (typeof FLAVOR_IDS)[number];
 
@@ -62,7 +55,7 @@ export const DEFAULT_FLAVOR: FlavorId = "stock";
  * What a flavor mostly changes. The picker rules a line between families rather than labelling
  * them: a flat list of rows reads as a list, grouped rows read as a menu.
  */
-export type FlavorFamily = "none" | "chrome" | "light" | "type" | "shape";
+export type FlavorFamily = "none" | "light" | "type" | "shape";
 
 export type Flavor = {
 	id: FlavorId;
@@ -83,12 +76,6 @@ export const FLAVORS: Flavor[] = [
 		name: "Stock",
 		blurb: "The kit exactly as it ships. Nothing is painted.",
 		family: "none",
-	},
-	{
-		id: "cascade",
-		name: "Cascade",
-		blurb: "The brand poured down the sidebar as a gradient, with a little grain.",
-		family: "chrome",
 	},
 	{
 		id: "glow",

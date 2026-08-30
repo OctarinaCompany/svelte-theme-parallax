@@ -1,26 +1,39 @@
 /**
- * The sidebar's own light/dark axis.
+ * The sidebar's own appearance axis.
  *
- * A THIRD APPEARANCE AXIS, alongside the palette and the page mode: it decides whether the rail
- * wears the mode the page wears, or the other one. A dark rail beside a light document is
- * the look most dashboards ship with; the inverse — a light rail on a dark page — is the same
- * choice seen from the other mode.
+ * A THIRD APPEARANCE AXIS, alongside the palette and the page mode: it decides what the rail is
+ * dressed in. A dark rail beside a light document is the look most dashboards ship with; the
+ * inverse — a light rail on a dark page — is the same choice seen from the other mode.
  *
- * TWO STATES, RELATIVE ONES (owner decision, 2026-08-13 — this replaced an absolute
- * `auto`/`light`/`dark` pin). `default` writes no attribute: no CSS block matches and the rail
- * follows the page as it always did. `inverted` wears the OPPOSITE of the page mode — and stays
- * opposite when the user flips the page, which is what an absolute pin could not promise. The
- * stylesheets still key on `data-sidebar-mode="light" | "dark"`, so this module RESOLVES the
- * relative choice to an absolute attribute and re-resolves it whenever the page mode moves
- * (the `$effect.root` below; mode-watcher's `mode` is the reactive input).
+ * THREE STATES, AND THEY ARE NOT ALL THE SAME KIND OF THING.
+ *
+ *   `default`  — writes no attribute: no CSS block matches and the rail follows the page.
+ *   `inverted` — RELATIVE (owner decision, 2026-08-13, replacing an absolute `light`/`dark` pin).
+ *                It wears the OPPOSITE of the page mode and STAYS opposite when the page flips,
+ *                which is what a pin could not promise. The stylesheets key on an absolute
+ *                `light`/`dark`, so this module resolves the relative choice and re-resolves it
+ *                whenever the page mode moves — the `$effect.root` below, with mode-watcher's
+ *                `mode` as the reactive input.
+ *   `vibrant`   — ABSOLUTE, and the one state that is not a light/dark choice at all: the panel
+ *                is painted with the palette's own brand as a corner light. It writes itself
+ *                verbatim, because there is nothing to resolve — the surface answers `.dark` in
+ *                its own stylesheet. It began life as a "flavor" and was promoted here, which is
+ *                the right home: it dresses exactly the surface this axis owns, and a reader
+ *                choosing how the rail looks should find all three answers in one control.
+ *
+ * WHAT `vibrant` COSTS THE HEADER'S AXIS. That sibling normally omits its attribute when the bar
+ * and the rail agree, and lets the bar inherit the rail's resolution. A vibrant rail resolves to
+ * nothing inheritable — its tokens are set on the panel, not on `<html>` — so the bar has to
+ * state its own. `header-mode.svelte.ts` reads `sidebarMode` for exactly that one case.
  *
  * WHY NOT mode-watcher. It owns `.dark` and `data-theme` and persists both, and `$lib/themes`
  * leans on that rather than keeping a second copy. It has no third attribute to lend, so this
  * one is written here — deliberately in its shape: same `<html>` placement, same
  * `localStorage`-then-attribute order, so the axes are read the same way in devtools.
  *
- * @see tools/themes/generate.mjs — the CSS blocks the attribute selects, and their specificity
+ * @see tools/themes/generate.mjs — the CSS blocks the light/dark values select
  * @see src/app.css — the same pair of blocks for the base palette
+ * @see src/vibrant.css — the third value's own stylesheet
  */
 
 import { mode } from "mode-watcher";
@@ -31,7 +44,7 @@ export const SIDEBAR_MODE_STORAGE_KEY = "sidebar-mode";
 /** The attribute the stylesheets select on. Absent for `default`. */
 export const SIDEBAR_MODE_ATTRIBUTE = "data-sidebar-mode";
 
-export type SidebarMode = "default" | "inverted";
+export type SidebarMode = "default" | "inverted" | "vibrant";
 
 /**
  * The stored choice, narrowed — with a migration. `auto` is the retired name of `default`, and
@@ -46,6 +59,7 @@ function read(): SidebarMode {
 		if (typeof localStorage === "undefined") return "default";
 
 		const stored = localStorage.getItem(SIDEBAR_MODE_STORAGE_KEY);
+		if (stored === "vibrant") return "vibrant";
 		if (stored === "inverted" || stored === "dark") return "inverted";
 		return "default";
 	} catch {
@@ -74,15 +88,21 @@ persist(current);
 /**
  * What the rail actually wears, resolved against the live page mode. This is the value the
  * attribute carries under `inverted`, and what `header-mode.svelte.ts` inverts in turn.
+ *
+ * `vibrant` REPORTS DARK, and it is a real answer rather than a default: the painted panel is a
+ * deep brand colour in both halves and carries `color-scheme: dark`, so anything asking "which
+ * half is the rail wearing" — to pick an ink, to draw a swatch — should be told the dark one.
  */
 const wear = $derived<"light" | "dark">(
-	current === "inverted"
-		? mode.current === "dark"
-			? "light"
-			: "dark"
-		: mode.current === "dark"
-			? "dark"
-			: "light",
+	current === "vibrant"
+		? "dark"
+		: current === "inverted"
+			? mode.current === "dark"
+				? "light"
+				: "dark"
+			: mode.current === "dark"
+				? "dark"
+				: "light",
 );
 
 /*
@@ -91,11 +111,18 @@ const wear = $derived<"light" | "dark">(
  * this module existed, so on the happy path the first run changes nothing; every later run is
  * the page mode flipping under an `inverted` rail, which an attribute written once could not
  * follow.
+ *
+ * `vibrant` is written VERBATIM, not resolved: it is the one value that is not a light/dark
+ * choice, so there is nothing for this module to compute and its stylesheet answers `.dark`
+ * itself. That also means the per-theme `[data-sidebar-mode='light'|'dark']` blocks stop
+ * matching, which is exactly right — the vibrant panel states all nine chrome tokens on itself.
  */
 $effect.root(() => {
 	$effect(() => {
 		if (typeof document === "undefined") return;
-		if (current === "inverted") {
+		if (current === "vibrant") {
+			document.documentElement.setAttribute(SIDEBAR_MODE_ATTRIBUTE, "vibrant");
+		} else if (current === "inverted") {
 			document.documentElement.setAttribute(SIDEBAR_MODE_ATTRIBUTE, wear);
 		} else {
 			document.documentElement.removeAttribute(SIDEBAR_MODE_ATTRIBUTE);

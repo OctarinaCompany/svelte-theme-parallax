@@ -1,6 +1,7 @@
 <script lang="ts">
 	import CheckIcon from "@lucide/svelte/icons/check";
 	import ContrastIcon from "@lucide/svelte/icons/contrast";
+	import DropletIcon from "@lucide/svelte/icons/droplet";
 	import MonitorIcon from "@lucide/svelte/icons/monitor";
 	import MoonIcon from "@lucide/svelte/icons/moon";
 	import RotateCcwIcon from "@lucide/svelte/icons/rotate-ccw";
@@ -89,6 +90,12 @@
 			hint: "The opposite half — and it stays opposite when the mode flips.",
 			icon: ContrastIcon,
 		},
+		{
+			value: "vibrant",
+			label: "Vibrant",
+			hint: "The palette's brand, painted down the panel as a corner light.",
+			icon: DropletIcon,
+		},
 	];
 
 	const headerModeChoices: Choice<HeaderMode>[] = [
@@ -103,6 +110,12 @@
 			label: "Inverted",
 			hint: "The opposite half — independent of the sidebar's axis.",
 			icon: ContrastIcon,
+		},
+		{
+			value: "vibrant",
+			label: "Vibrant",
+			hint: "The same brand light as the rail. Set both to draw one L-shaped surface.",
+			icon: DropletIcon,
 		},
 	];
 
