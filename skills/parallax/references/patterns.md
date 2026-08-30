@@ -122,10 +122,10 @@ button, a bottom-hung tab row, an avatar stack, a cover image, or a chart band.
   title: `text-2xl font-medium md:text-[1.625rem]` — one of the theme's only responsive
   type steps.
 - Tabs hang off the bottom rule: list `-mb-6 flex`, links `relative … py-6` carrying
-  `after:absolute after:inset-x-0 after:-bottom-px after:h-1.5 after:rounded-t-md`, active
-  `after:bg-primary`. That is the house mark — 6px cut on its two top corners — seated **on**
+  `after:absolute after:inset-x-0 after:-bottom-px after:h-[5px] after:rounded-t-md`, active
+  `after:bg-primary`. That is the house mark — 5px cut on its two top corners — seated **on**
   the header rule, replacing that segment. A pseudo-element rather than a border: a border can
-  only be curved on the anchored edge, and 6px of it would eat the link's height.
+  only be curved on the anchored edge, and 5px of it would eat the link's height.
 - Tab margins sit on the `<li>` (`mx-3 first:ml-0 last:mr-0`), not the link — each mark is
   exactly as wide as its label.
 - A cover image is a *sibling* of the inset container (full-bleed); the body pulls up

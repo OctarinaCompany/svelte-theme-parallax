@@ -39,7 +39,7 @@
 	 *
 	 * shadcn already ships that silhouette as `Tabs.List variant="line"`, so every list here
 	 * asks for it, and the classic theme's measurements are applied to that variant in `app.css` —
-	 * EXCEPT the active mark's weight and corner, which the owner re-cuts to the house shape: 6px
+	 * EXCEPT the active mark's weight and corner, which the owner re-cuts to the house shape: 5px
 	 * of `primary` with a `var(--radius)` curve on its two top corners, the same mark the sidebar's
 	 * active item carries turned on its side. `app.css` shouts that override where it is made. The
 	 * default pill variant is deliberately left alone: its classic counterpart is `.nav-pills`
@@ -59,7 +59,7 @@
 	 *                   identity is a BOTTOM edge and the classic theme documents no vertical variant.
 	 *                   So the vertical sections below are an owner cut rather than a port: shadcn's
 	 *                   silhouette is kept, and its 2px `foreground` bar on the trigger's trailing
-	 *                   edge is replaced by the house 6px `primary` one, seated on a rule the list
+	 *                   edge is replaced by the house 5px `primary` one, seated on a rule the list
 	 *                   now carries down its right edge. `app.css` keys the two orientations
 	 *                   separately for exactly that reason.
 	 *   list -> panel   the classic `.tab-content` has no spacing of its own; the 16px under the
@@ -431,7 +431,7 @@
 	<DocSection title="Tabs with vertical orientation and line variant">
 		{#snippet blurb()}
 			The same stack without the filled bar, and the horizontal row turned a quarter: the list
-			carries its rule down its right edge instead of along its bottom, and the active trigger's 6px
+			carries its rule down its right edge instead of along its bottom, and the active trigger's 5px
 			mark sits on that rule and replaces the segment beside it, exactly as the underline replaces a
 			segment of the row's rule above. The corners are cut on the free side, so the curve faces the
 			label.

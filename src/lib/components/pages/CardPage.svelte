@@ -208,7 +208,7 @@
 					stacked one above — measured, the two coincide. `items-stretch` overrides the
 					list's own centring so each tab reaches the rule, which is what puts the active
 					mark on it rather than 1.3px above. The Chart page's Sales card lands the same mark
-					on that same line: 6px of `primary` cut on its two top corners, drawn there by hand
+					on that same line: 5px of `primary` cut on its two top corners, drawn there by hand
 					because that row is hand-rolled and here by the component, which is the point — one
 					answer to "which one am I on?", whatever draws it.
 				-->

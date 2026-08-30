@@ -101,7 +101,7 @@
 
 	/**
 	 * A tab link. The reference measures its active border at
-	 * `nav-tabs-link-active-border-width: 1px`; this kit overrides that to the house mark — 6px of
+	 * `nav-tabs-link-active-border-width: 1px`; this kit overrides that to the house mark — 5px of
 	 * `primary` cut on its two top corners, the same drawing `app.css` makes for the `line`
 	 * variant. Nothing shifts when the selection moves, because the mark is a pseudo-element
 	 * that is always there and only changes colour.
@@ -119,7 +119,7 @@
 	 * mark across it, replacing the segment rather than doubling it.
 	 */
 	const tabLink =
-		"relative block py-6 text-sm transition-colors text-muted-foreground after:absolute after:inset-x-0 after:-bottom-px after:h-1.5 after:rounded-t-md after:transition-colors hover:text-foreground dark:text-foreground";
+		"relative block py-6 text-sm transition-colors text-muted-foreground after:absolute after:inset-x-0 after:-bottom-px after:h-[5px] after:rounded-t-md after:transition-colors hover:text-foreground dark:text-foreground";
 
 	/**
 	 * Merged with `cn()` rather than concatenated: it contradicts `text-muted-foreground` above
