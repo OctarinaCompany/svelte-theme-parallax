@@ -36,15 +36,20 @@
  * The first cut ran 0.22 -> 0.14, BELOW the page for its whole length: a hole rather than a
  * panel, in a region of sRGB too narrow to carry any chroma, which is why it read as flat
  * near-black. The second overcorrected to 0.42 -> 0.315 — above the page, but also above the
- * LIGHT ramp's own 0.40 -> 0.28, so the surface looked the same in both halves and the dark mode
- * appeared not to be doing anything at all.
+ * LIGHT ramp's own 0.40 -> 0.28, so the two halves rendered at the same absolute lightness and
+ * switching modes appeared to do nothing to the surface. A third pass at 0.37 -> 0.285 moved the
+ * head by 0.03 and left the foot where it was, which was not enough to see.
  *
- * It now runs 0.37 -> 0.285. The foot is +0.02 over the page ground: a step a reader can see,
- * without the panel floating free of the document the way a card does. And the chroma goes UP as
- * the lightness comes down (multiplier 0.55 -> 0.62, ceiling 0.105 -> 0.125), which is not a
- * second decision but the same one: saturation reads as C/L, so holding chroma while lowering
- * lightness already reads as more colourful, and raising it as well is what keeps the surface
- * vibrant while it gets darker.
+ * It now runs 0.34 -> 0.268. THE POINT IS THE DISTANCE FROM THE LIGHT RAMP, not the distance from
+ * zero: the head is 0.06 below its light-mode counterpart, which is what makes the switch
+ * legible, and the foot lands within 0.004 of the page ground so the panel fades into the
+ * document at its far end rather than floating over it.
+ *
+ * WHAT KEEPS IT A SURFACE AT THE FOOT is no longer lightness — there is almost none left to
+ * spend — but the two things that do not depend on it: the chroma, which goes UP as the lightness
+ * comes down (multiplier 0.55 -> 0.70, ceiling 0.105 -> 0.13), and the lit hairline every edge is
+ * drawn with. Saturation reads as C/L, so lowering lightness at constant chroma already reads as
+ * more colourful; raising it as well is what keeps the surface vibrant while it gets darker.
  *
  * CHROMA IS CLAMPED TO THE sRGB GAMUT AT EACH STOP'S OWN LIGHTNESS, not to taste. The first cut
  * authored up to 0.044 past the gamut, and the browser clips with an algorithm that shifts hue —
@@ -129,16 +134,16 @@
 	--vibrant-a: color-mix(
 		in oklab,
 		var(--primary) 12%,
-		color-mix(in oklab, white 9%, var(--background))
+		color-mix(in oklab, white 5%, var(--background))
 	);
 	--vibrant-b: color-mix(
 		in oklab,
 		var(--primary) 6%,
-		color-mix(in oklab, white 2%, var(--background))
+		color-mix(in oklab, black 3%, var(--background))
 	);
 
 	/* `soft-light` scales its effect by the backdrop, so the 10% that dithers a near-white rail is
-	   close to inert over an L 0.37 one — and the dark ramp has fewer 8-bit codes to spend. */
+	   close to inert over an L 0.34 one — and the dark ramp has fewer 8-bit codes to spend. */
 	--vibrant-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='182' height='182'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.14'/%3E%3C/svg%3E");
 }
 
@@ -159,10 +164,10 @@
 
 	:root:is([data-sidebar-mode="vibrant"], [data-header-mode="vibrant"]).dark {
 		--vibrant-a: oklch(
-			from var(--primary) 0.37 clamp(0.06, calc(c * 0.62), 0.125) calc(h + var(--vibrant-torsion))
+			from var(--primary) 0.34 clamp(0.055, calc(c * 0.7), 0.13) calc(h + var(--vibrant-torsion))
 		);
 		--vibrant-b: oklch(
-			from var(--primary) 0.285 clamp(0.045, calc(c * 0.48), 0.088) calc(h - var(--vibrant-torsion))
+			from var(--primary) 0.268 clamp(0.042, calc(c * 0.5), 0.085) calc(h - var(--vibrant-torsion))
 		);
 	}
 }
