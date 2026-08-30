@@ -110,12 +110,34 @@
  * rail's width does (expanded, icon, off-canvas, mobile Sheet). Measured across the fold at
  * 1440x900, adjacent pixels differ by 3 or less; with the band left flat they differed by 41.
  *
- * ONE SOURCE FOR EACH LAYER — `--backdrop-light` and `--backdrop-light-grain` — for the reason
- * `vibrant.css` gives about its own two limbs: a field restated in two places is a field that
- * drifts apart. `--backdrop-light-spread` is the one number the two surfaces disagree on: aurora's
- * layer overhangs by 20% so it has room to drift, so the band's tile grows and offsets by the same
- * fraction. The grain needs no such agreement — it is NOISE, so its phase carries nothing worth
- * registering, and the band simply repeats the same tile from its own corner.
+ * THE WHOLE INTERFACE IS FIVE VARIABLES, and a backdrop is whatever it sets among them:
+ *
+ *   --backdrop-light        the continuous field. One viewport-sized, non-repeating image, drawn
+ *                           on the wrapper's layer AND replayed by the header band.
+ *   --backdrop-light-spread how far that layer overhangs, as a fraction, for a field that moves.
+ *   --backdrop-tile         the repeating layer: grain, or a pattern. Drawn on the wrapper's
+ *                           second layer and on the band's own.
+ *   --backdrop-tile-size    that tile's size. Integer pixels — a percentage shimmers at 125% zoom.
+ *   --backdrop-tile-mask    a mask for the tile, on BOTH its layers.
+ *
+ * ONE SOURCE PER LAYER, for the reason `vibrant.css` gives about its own two limbs: a field
+ * restated in two places is a field that drifts apart. `--backdrop-light-spread` is the one number
+ * the two surfaces disagree on: aurora's layer overhangs by 20% so it has room to drift, so the
+ * band's tile grows and offsets by the same fraction.
+ *
+ * THE TILE'S PHASE IS NOT IN REGISTER, AND THAT IS WHY THE MASK EXISTS. The wrapper's layer is
+ * anchored to the viewport's left and the band to its right, across a rail whose width changes
+ * with its state — `--sidebar-width` exists but does not track expanded/icon/off-canvas, so the
+ * offset cannot be computed in CSS. For NOISE this does not matter: its phase carries nothing, so
+ * the band simply repeats the tile from its own corner. For a PATTERN it matters completely — a
+ * grid half a cell out at the fold is the most visible seam there is. So a pattern masks itself
+ * out before it reaches the header: the band then has nothing to replay, and the question does not
+ * arise. Both layers are anchored to the viewport's top, so a vertical mask lands in register on
+ * both by construction. It is the accessibility move as well, keeping pattern off the densest text.
+ *
+ * THE MASK GOES ON THE PSEUDO-ELEMENTS, NEVER ON THE HEADER. `mask-image` on the header itself
+ * would mask its children — the bar, its text, every control in it. Both tile layers are
+ * pseudo-elements with no children, which is what makes them safe to mask.
  *
  * THE GRAIN IS NOT OPTIONAL, AND ASSUMING IT WAS COST A SECOND BUG. It is 3.5% opaque, which
  * reads as texture nowhere and was written off as too faint to matter — but averaged over an
@@ -131,13 +153,13 @@
  * under test and re-measure the fold, rather than judging it by eye or in light mode alone.
  * ========================================================================================== */
 
-:root:is([data-backdrop="glow"], [data-backdrop="aurora"]) [data-slot="sidebar-wrapper"] {
+:root[data-backdrop] [data-slot="sidebar-wrapper"] {
 	position: relative;
 	isolation: isolate;
 	background-color: var(--background);
 }
 
-:root:is([data-backdrop="glow"], [data-backdrop="aurora"]) [data-slot="sidebar-wrapper"]::before {
+:root[data-backdrop] [data-slot="sidebar-wrapper"]::before {
 	content: "";
 	position: absolute;
 	inset: calc(-100% * var(--backdrop-light-spread, 0));
@@ -147,13 +169,13 @@
 	background-repeat: no-repeat;
 }
 
-:root:is([data-backdrop="glow"], [data-backdrop="aurora"]) [data-slot="sidebar-inset"] {
+:root[data-backdrop] [data-slot="sidebar-inset"] {
 	background-color: transparent;
 }
 
 /* The band around a floating bar: the component's ground, with the same field replayed on top in
    viewport register. `right`/`top` is the corner the header shares with the viewport in LTR. */
-:root:is([data-backdrop="glow"], [data-backdrop="aurora"]) [data-slot="page-header"] {
+:root[data-backdrop] [data-slot="page-header"] {
 	background-image: var(--backdrop-light);
 	background-repeat: no-repeat;
 	background-size: calc(100vw * (1 + 2 * var(--backdrop-light-spread, 0)))
@@ -163,7 +185,7 @@
 }
 
 /* Right-to-left puts the rail on the other side, so the header shares the LEFT edge instead. */
-:root[dir="rtl"]:is([data-backdrop="glow"], [data-backdrop="aurora"]) [data-slot="page-header"] {
+:root[dir="rtl"][data-backdrop] [data-slot="page-header"] {
 	background-position: left calc(-100vw * var(--backdrop-light-spread, 0)) top
 		calc(-100lvh * var(--backdrop-light-spread, 0));
 }
@@ -178,18 +200,19 @@
  * wrapper's layers sit: the header is `sticky` with `z-40`, so it is already a stacking context
  * and the negative index cannot escape it.
  */
-:root:is([data-backdrop="glow"], [data-backdrop="aurora"]) [data-slot="page-header"]::before {
+:root[data-backdrop] [data-slot="page-header"]::before {
 	content: "";
 	position: absolute;
 	inset: 0;
 	z-index: -1;
 	pointer-events: none;
-	background-image: var(--backdrop-light-grain, none);
-	background-size: 256px 256px;
+	background-image: var(--backdrop-tile, none);
+	background-size: var(--backdrop-tile-size, 256px 256px);
+	mask-image: var(--backdrop-tile-mask, none);
+	-webkit-mask-image: var(--backdrop-tile-mask, none);
 }
 
-:root:is([data-backdrop="glow"], [data-backdrop="aurora"])
-	[data-slot="page-header"][data-floating]::after {
+:root[data-backdrop] [data-slot="page-header"][data-floating]::after {
 	background: none;
 }
 
@@ -376,7 +399,7 @@
 
 	/* The dither, shared with the band for the reason the band exists at all — see the note on
 	   `--backdrop-light-grain` in the shared block above. */
-	--backdrop-light-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='256' height='256'%3E%3Cfilter id='d'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='1' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23d)' opacity='.035'/%3E%3C/svg%3E");
+	--backdrop-tile: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='256' height='256'%3E%3Cfilter id='d'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='1' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23d)' opacity='.035'/%3E%3C/svg%3E");
 	--backdrop-light:
 		radial-gradient(58% 46% at 14% 82% in oklab, var(--backdrop-aur-1) 0%, 38%, transparent 74%),
 		radial-gradient(46% 54% at 88% 46% in oklab, var(--backdrop-aur-2) 0%, 34%, transparent 70%),
@@ -391,14 +414,16 @@
  * the drift would move the contour rather than break it up. Achromatic, `normal` blending, and
  * the tile at its natural size — a resampled noise tile stops dithering and reads as dirt.
  */
-:root[data-backdrop="aurora"] [data-slot="sidebar-wrapper"]::after {
+:root[data-backdrop] [data-slot="sidebar-wrapper"]::after {
 	content: "";
 	position: absolute;
 	inset: 0;
 	z-index: -1;
 	pointer-events: none;
-	background-image: var(--backdrop-light-grain);
-	background-size: 256px 256px;
+	background-image: var(--backdrop-tile, none);
+	background-size: var(--backdrop-tile-size, 256px 256px);
+	mask-image: var(--backdrop-tile-mask, none);
+	-webkit-mask-image: var(--backdrop-tile-mask, none);
 }
 
 @media (prefers-reduced-motion: no-preference) {
@@ -417,6 +442,340 @@
 		transform: translate3d(3%, 2%, 0) rotate(4deg);
 	}
 }
+/* ==========================================================================================
+ * THE QUIET FOUR — one gradient each, no tile, no mask. They differ by WHERE the light is,
+ * which is the only variable that matters once the colour is solved.
+ *
+ * ALL FOUR PIN LIGHTNESS AND FLOOR CHROMA, for the reason the glow block states: a tint of the
+ * raw brand drags the page ground toward the brand's own lightness and takes `--muted-foreground`
+ * with it. Pinned, the composite stays inside the page's own band whatever hue the palette brings.
+ *
+ * DARK SPENDS LESS CHROMA, NOT LESS ALPHA. A saturated hue vibrates against a dark ground, and
+ * dropping alpha instead would just grey the field. Each dark twin multiplies c by ~0.7.
+ * ========================================================================================== */
+
+:root[data-backdrop="spotlight"] {
+	--backdrop-spot: color-mix(in oklab, var(--primary) 14%, transparent);
+}
+:root[data-backdrop="spotlight"].dark {
+	--backdrop-spot: color-mix(in oklab, var(--primary) 20%, transparent);
+}
+@supports (color: oklch(from red l c h)) {
+	:root[data-backdrop="spotlight"] {
+		--backdrop-spot: oklch(from var(--primary) 0.91 max(c, 0.06) h / 0.6);
+	}
+	:root[data-backdrop="spotlight"].dark {
+		--backdrop-spot: oklch(from var(--primary) 0.35 max(calc(c * 0.7), 0.05) h / 0.7);
+	}
+}
+:root[data-backdrop="spotlight"] {
+	--backdrop-light: radial-gradient(70vw 46vh at 50% -6%, var(--backdrop-spot), transparent 72%);
+}
+
+/* HORIZON — the only one that is not a spot. A vertical ramp reads as a sky, so the light belongs
+   at the head and the weight at the foot; `in oklab` is what stops the middle going muddy. */
+:root[data-backdrop="horizon"] {
+	--backdrop-sky: color-mix(in oklab, var(--primary) 12%, transparent);
+}
+:root[data-backdrop="horizon"].dark {
+	--backdrop-sky: color-mix(in oklab, var(--primary) 18%, transparent);
+}
+@supports (color: oklch(from red l c h)) {
+	:root[data-backdrop="horizon"] {
+		--backdrop-sky: oklch(from var(--primary) 0.93 max(c, 0.05) h / 0.55);
+	}
+	:root[data-backdrop="horizon"].dark {
+		--backdrop-sky: oklch(from var(--primary) 0.33 max(calc(c * 0.7), 0.045) h / 0.65);
+	}
+}
+:root[data-backdrop="horizon"] {
+	--backdrop-light: linear-gradient(in oklab to bottom, var(--backdrop-sky), transparent 62%);
+}
+
+/* CORNER — glow's asymmetric sibling. Anchored to the elbow the rail and the bar already share,
+   so it reads as one light source beside a vibrant chrome axis rather than fighting it. */
+:root[data-backdrop="corner"] {
+	--backdrop-corner: color-mix(in oklab, var(--primary) 16%, transparent);
+}
+:root[data-backdrop="corner"].dark {
+	--backdrop-corner: color-mix(in oklab, var(--primary) 22%, transparent);
+}
+@supports (color: oklch(from red l c h)) {
+	:root[data-backdrop="corner"] {
+		--backdrop-corner: oklch(from var(--primary) 0.9 max(c, 0.07) h / 0.62);
+	}
+	:root[data-backdrop="corner"].dark {
+		--backdrop-corner: oklch(from var(--primary) 0.34 max(calc(c * 0.7), 0.055) h / 0.72);
+	}
+}
+:root[data-backdrop="corner"] {
+	--backdrop-light: radial-gradient(80vw 70vh at 0 0, var(--backdrop-corner), transparent 68%);
+}
+:root[dir="rtl"][data-backdrop="corner"] {
+	--backdrop-light: radial-gradient(80vw 70vh at 100% 0, var(--backdrop-corner), transparent 68%);
+}
+
+/* VIGNETTE — the only one that works from the rim inwards, so it frames the content instead of
+   lighting it. It INVERTS between modes: darkening a light page reads as a lens, darkening a dark
+   one reads as a dirty screen, so dark lifts the rim with the brand instead. */
+:root[data-backdrop="vignette"] {
+	--backdrop-rim: color-mix(in oklab, var(--foreground) 9%, transparent);
+}
+:root[data-backdrop="vignette"].dark {
+	--backdrop-rim: color-mix(in oklab, var(--primary) 16%, transparent);
+}
+@supports (color: oklch(from red l c h)) {
+	:root[data-backdrop="vignette"] {
+		--backdrop-rim: oklch(from var(--primary) 0.55 max(calc(c * 0.5), 0.03) h / 0.16);
+	}
+	:root[data-backdrop="vignette"].dark {
+		--backdrop-rim: oklch(from var(--primary) 0.5 max(calc(c * 0.6), 0.04) h / 0.3);
+	}
+}
+:root[data-backdrop="vignette"] {
+	--backdrop-light: radial-gradient(
+		120% 110% at 50% 45%,
+		transparent 52%,
+		var(--backdrop-rim) 100%
+	);
+}
+
+/* ==========================================================================================
+ * THE PATTERNED SEVEN, AND WHY THEY ALL LOOK ALIKE IN THE SOURCE.
+ *
+ * Each is a tile plus a mask plus one colour, and the three are always the same three. The
+ * variation is entirely in the tile's geometry, which is the point: a pattern that needed its own
+ * plumbing would be a second mechanism to keep in step with the first.
+ *
+ * THE COLOUR IS A LINE COLOUR, NOT A WASH. A pattern is drawn rather than poured, so it derives a
+ * near-neutral ink at the palette's hue instead of a tinted light — chroma floored low enough that
+ * `graphite` still reads as drawn rather than printed, and capped low enough that `orchid` does not
+ * turn the page into graph paper in fuchsia.
+ *
+ * EVERY ONE MASKS THE SAME WAY: nothing above 320px, full strength below 640px. That is what keeps
+ * the tile away from the header — where its phase would not be in register — and away from the
+ * page's densest text, which is at the top of every page in this gallery.
+ *
+ * TILE SIZES ARE INTEGERS. A percentage `background-size` on a repeating pattern shimmers at 110%
+ * and 125% zoom and on fractional device pixel ratios.
+ *
+ * THE SVG TILES CARRY NO COLOUR AND NO `@media`. A data-URI SVG is an isolated document: it cannot
+ * read `var(--primary)`, and a `prefers-color-scheme` query inside it would follow the OS rather
+ * than this kit's own `.dark` class — Safari ignores it outright and Chromium does not repaint when
+ * it changes. So the SVG is a stencil and CSS supplies the colour, which is also why every one of
+ * these is palette-aware for free.
+ * ========================================================================================== */
+
+:root:is(
+	[data-backdrop="grain"],
+	[data-backdrop="dots"],
+	[data-backdrop="grid"],
+	[data-backdrop="graph"],
+	[data-backdrop="hatch"],
+	[data-backdrop="isometric"]
+) {
+	--backdrop-ink: color-mix(in oklab, var(--foreground) 14%, transparent);
+	--backdrop-tile-mask: linear-gradient(to bottom, transparent 320px, #000 640px);
+}
+
+:root:is(
+		[data-backdrop="grain"],
+		[data-backdrop="dots"],
+		[data-backdrop="grid"],
+		[data-backdrop="graph"],
+		[data-backdrop="hatch"],
+		[data-backdrop="isometric"]
+	).dark {
+	--backdrop-ink: color-mix(in oklab, var(--foreground) 10%, transparent);
+}
+
+@supports (color: oklch(from red l c h)) {
+	:root:is(
+		[data-backdrop="grain"],
+		[data-backdrop="dots"],
+		[data-backdrop="grid"],
+		[data-backdrop="graph"],
+		[data-backdrop="hatch"],
+		[data-backdrop="isometric"]
+	) {
+		--backdrop-ink: oklch(from var(--primary) 0.45 clamp(0.01, calc(c * 0.3), 0.05) h / 0.16);
+	}
+
+	:root:is(
+			[data-backdrop="grain"],
+			[data-backdrop="dots"],
+			[data-backdrop="grid"],
+			[data-backdrop="graph"],
+			[data-backdrop="hatch"],
+			[data-backdrop="isometric"]
+		).dark {
+		--backdrop-ink: oklch(from var(--primary) 0.82 clamp(0.01, calc(c * 0.25), 0.04) h / 0.14);
+	}
+}
+
+/*
+ * GRAIN — the tile the file already owned, used on its own rather than under a drifting wash.
+ *
+ * IT STAYS A 256px TILE and never becomes a full-page filter. `feTurbulence` is CPU-rasterised and
+ * costs its area: a 256px tile is ~65k pixels evaluated once and then blitted, where the same
+ * filter at `width="100%"` on a 2560x1440 display at DPR 2 is ~14.7M — some 200 times the work,
+ * re-paid on every resize. Two octaves rather than three; above five the difference is invisible.
+ *
+ * It is also the answer to banding: a long, low-contrast ramp quantises into visible steps in
+ * 8-bit, worst in dark where the eye is most sensitive near black, and 1-3% noise breaks it up.
+ */
+:root[data-backdrop="grain"] {
+	--backdrop-tile: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='256' height='256'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)' opacity='.05'/%3E%3C/svg%3E");
+	--backdrop-tile-size: 256px 256px;
+	/* The one pattern that does NOT mask: noise has no phase, so the band can repeat it from its
+	   own corner, and the fold stays continuous — which is exactly what aurora relies on. */
+	--backdrop-tile-mask: none;
+	--backdrop-light: linear-gradient(
+		in oklab to bottom,
+		color-mix(in oklab, var(--primary) 7%, transparent),
+		transparent 55%
+	);
+}
+
+/* DOTS — the safest pattern to put behind text, and the reason is geometry: a lattice of 1px dots
+   covers about 1% of its tile, so there is almost nowhere for a letter to land on one. */
+:root[data-backdrop="dots"] {
+	--backdrop-tile: radial-gradient(var(--backdrop-ink) 1px, transparent 1px);
+	--backdrop-tile-size: 16px 16px;
+}
+
+/* GRID — two lines, one tile. The blueprint idiom every dashboard borrows; 1px at 24px pitch is
+   the pitch that reads as paper rather than as a table. */
+:root[data-backdrop="grid"] {
+	--backdrop-tile:
+		linear-gradient(to right, var(--backdrop-ink) 1px, transparent 1px),
+		linear-gradient(to bottom, var(--backdrop-ink) 1px, transparent 1px);
+	--backdrop-tile-size: 24px 24px;
+}
+
+/* GRAPH — the same grid with a heavier rule every fifth line. Two tile sizes on one layer is
+   legal here where it is not on `--backdrop-light`: the sizes are stated per image, and this
+   layer's list is fixed rather than variable. */
+:root[data-backdrop="graph"] {
+	--backdrop-tile:
+		linear-gradient(to right, var(--backdrop-ink) 1px, transparent 1px),
+		linear-gradient(to bottom, var(--backdrop-ink) 1px, transparent 1px),
+		linear-gradient(to right, var(--backdrop-ink) 1px, transparent 1px),
+		linear-gradient(to bottom, var(--backdrop-ink) 1px, transparent 1px);
+	--backdrop-tile-size: 100px 100px, 100px 100px, 20px 20px, 20px 20px;
+}
+
+/* HATCH — one repeating gradient at 45deg. Drawn rather than printed, and the only pattern here
+   with a direction, which is what makes it read as energy rather than as substrate. */
+:root[data-backdrop="hatch"] {
+	--backdrop-tile: repeating-linear-gradient(
+		45deg,
+		var(--backdrop-ink) 0 1px,
+		transparent 1px 12px
+	);
+	--backdrop-tile-size: 34px 34px;
+}
+
+/* ISOMETRIC — three directions at 30/90/150deg, which is the projection's own set of axes. The
+   loudest of the geometric family: it reads as depth even though nothing here has perspective. */
+:root[data-backdrop="isometric"] {
+	--backdrop-tile:
+		repeating-linear-gradient(30deg, var(--backdrop-ink) 0 1px, transparent 1px 22px),
+		repeating-linear-gradient(150deg, var(--backdrop-ink) 0 1px, transparent 1px 22px),
+		repeating-linear-gradient(90deg, var(--backdrop-ink) 0 1px, transparent 1px 22px);
+	--backdrop-tile-size: 44px 44px;
+}
+
+/*
+ * RAYS — the one that reads as light rather than as surface, and the only member of the geometric
+ * family that belongs on the continuous layer instead of the tile: a conic gradient is anchored,
+ * not repeated, so it has a phase the band CAN match.
+ *
+ * THE APEX SITS OFF-SCREEN, at -12%, which is what deals with the one artefact a conic has: hard
+ * stops converge to a point and the wedges alias badly for the first few hundred pixels around it.
+ * Putting the apex outside the viewport removes that region rather than masking it.
+ *
+ * IT MUST NOT USE THE TILE LAYER, and this was measured rather than reasoned. On the tile a mask
+ * is the only way to control it, and a mask in PERCENTAGES resolves against each layer's own box —
+ * 1440x900 for the wrapper, 1190x72 for the band — so the two stop matching and the fold measured
+ * 12. The continuous layer is already sized to the viewport and anchored to a shared edge by the
+ * skeleton, so a conic put there is in register by construction. Measured after the move: 0.
+ */
+:root[data-backdrop="rays"] {
+	--backdrop-ray: color-mix(in oklab, var(--primary) 5%, transparent);
+}
+:root[data-backdrop="rays"].dark {
+	--backdrop-ray: color-mix(in oklab, var(--primary) 7%, transparent);
+}
+@supports (color: oklch(from red l c h)) {
+	:root[data-backdrop="rays"] {
+		--backdrop-ray: oklch(from var(--primary) 0.9 max(c, 0.05) h / 0.22);
+	}
+	:root[data-backdrop="rays"].dark {
+		--backdrop-ray: oklch(from var(--primary) 0.4 max(calc(c * 0.7), 0.04) h / 0.16);
+	}
+}
+:root[data-backdrop="rays"] {
+	--backdrop-light: repeating-conic-gradient(
+		from -18deg at 22% -12%,
+		var(--backdrop-ray) 0deg 4deg,
+		transparent 4deg 15deg
+	);
+}
+:root[dir="rtl"][data-backdrop="rays"] {
+	--backdrop-light: repeating-conic-gradient(
+		from 18deg at 78% -12%,
+		var(--backdrop-ray) 0deg 4deg,
+		transparent 4deg 15deg
+	);
+}
+
+/*
+ * WEAVE — two fields interacting rather than stacking, which is the one thing a single gradient
+ * cannot do. `soft-light` is the only blend mode that survives both halves: `multiply` disappears
+ * on a dark ground and `screen` disappears on a light one, so either would need two designs.
+ *
+ * It blends on the LAYER's own background list (`background-blend-mode`), not across elements
+ * (`mix-blend-mode`) — the latter creates a stacking context that would then fight every portaled
+ * menu and dialog in the kit.
+ */
+:root[data-backdrop="weave"] {
+	--backdrop-warp: color-mix(in oklab, var(--primary) 14%, transparent);
+	--backdrop-weft: color-mix(in oklab, var(--primary) 10%, transparent);
+}
+:root[data-backdrop="weave"].dark {
+	--backdrop-warp: color-mix(in oklab, var(--primary) 20%, transparent);
+	--backdrop-weft: color-mix(in oklab, var(--primary) 14%, transparent);
+}
+@supports (color: oklch(from red l c h)) {
+	:root[data-backdrop="weave"] {
+		--backdrop-warp: oklch(from var(--primary) 0.9 max(c, 0.06) calc(h + 26) / 0.58);
+		--backdrop-weft: oklch(from var(--primary) 0.88 max(c, 0.05) calc(h - 30) / 0.5);
+	}
+	:root[data-backdrop="weave"].dark {
+		--backdrop-warp: oklch(from var(--primary) 0.36 max(calc(c * 0.7), 0.05) calc(h + 26) / 0.66);
+		--backdrop-weft: oklch(from var(--primary) 0.33 max(calc(c * 0.7), 0.045) calc(h - 30) / 0.58);
+	}
+}
+:root[data-backdrop="weave"] {
+	--backdrop-light:
+		radial-gradient(70vw 60vh at 12% 8%, var(--backdrop-warp), transparent 70%),
+		radial-gradient(60vw 55vh at 88% 30%, var(--backdrop-weft), transparent 68%);
+}
+/*
+ * BOTH SURFACES MUST BLEND AGAINST THE SAME GROUND, and forgetting that measured 35 at the fold.
+ * `background-blend-mode` blends the image list against the element's own `background-color` as
+ * the bottom layer — and the band carries the component's opaque `bg-background` where the
+ * wrapper's pseudo carries nothing. Same images, same mode, two different bottom layers, so two
+ * different results meeting along a straight edge. Giving the pseudo the page ground costs nothing
+ * visually (it sits directly over the wrapper's own identical ground) and makes the two identical.
+ */
+:root[data-backdrop="weave"] [data-slot="sidebar-wrapper"]::before,
+:root[data-backdrop="weave"] [data-slot="page-header"] {
+	background-color: var(--background);
+	background-blend-mode: soft-light;
+}
+
 /* ==========================================================================================
  * THE KILL SWITCHES.
  *

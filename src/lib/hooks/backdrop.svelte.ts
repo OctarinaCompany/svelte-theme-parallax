@@ -58,7 +58,25 @@ export const BACKDROP_ATTRIBUTE = "data-backdrop";
  * surfaces do — and nothing here changes type or shape either. A backdrop is now strictly a light
  * behind the page, which is why `glow` and `aurora` share every mechanic in `src/backdrops.css`.
  */
-export const BACKDROP_IDS = ["none", "glow", "aurora"] as const;
+export const BACKDROP_IDS = [
+	"none",
+	// The lights, quietest first.
+	"spotlight",
+	"horizon",
+	"corner",
+	"glow",
+	"vignette",
+	"weave",
+	"aurora",
+	// The drawn ones: a texture, then geometry.
+	"grain",
+	"dots",
+	"grid",
+	"graph",
+	"hatch",
+	"isometric",
+	"rays",
+] as const;
 
 export type BackdropId = (typeof BACKDROP_IDS)[number];
 
@@ -90,14 +108,74 @@ export const BACKDROPS: Backdrop[] = [
 		blurb: "The kit exactly as it ships. Nothing is painted.",
 	},
 	{
+		id: "spotlight",
+		name: "Spotlight",
+		blurb: "One wide light from the top. The quietest of them.",
+	},
+	{
+		id: "horizon",
+		name: "Horizon",
+		blurb: "A sky: lighter at the head, weightier at the foot.",
+	},
+	{
+		id: "corner",
+		name: "Corner",
+		blurb: "A single source at the elbow the rail and bar share.",
+	},
+	{
 		id: "glow",
 		name: "Glow",
 		blurb: "One soft brand spotlight, hanging above the page.",
 	},
 	{
+		id: "vignette",
+		name: "Vignette",
+		blurb: "A soft frame at the rim, leaving the middle untouched.",
+	},
+	{
+		id: "weave",
+		name: "Weave",
+		blurb: "Two fields blended into each other, quietly iridescent.",
+	},
+	{
 		id: "aurora",
 		name: "Aurora",
 		blurb: "Three colour fields drifting slowly behind the content.",
+	},
+	{
+		id: "grain",
+		name: "Grain",
+		blurb: "Fine noise over a low wash — paper rather than glass.",
+	},
+	{
+		id: "dots",
+		name: "Dots",
+		blurb: "A fine dot lattice, fading in below the header.",
+	},
+	{
+		id: "grid",
+		name: "Grid",
+		blurb: "A one-pixel rule every 24px. Blueprint, not table.",
+	},
+	{
+		id: "graph",
+		name: "Graph",
+		blurb: "The grid with a heavier rule every fifth line.",
+	},
+	{
+		id: "hatch",
+		name: "Hatch",
+		blurb: "Diagonal hatching, drawn rather than printed.",
+	},
+	{
+		id: "isometric",
+		name: "Isometric",
+		blurb: "Three axes of rule work. Depth without perspective.",
+	},
+	{
+		id: "rays",
+		name: "Rays",
+		blurb: "Light fanning from off-corner, its apex masked away.",
 	},
 ];
 
