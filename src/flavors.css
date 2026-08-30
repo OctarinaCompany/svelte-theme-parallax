@@ -106,16 +106,25 @@
  * rail's width does (expanded, icon, off-canvas, mobile Sheet). Measured across the fold at
  * 1440x900, adjacent pixels differ by 3 or less; with the band left flat they differed by 41.
  *
- * ONE SOURCE FOR BOTH, `--flavor-light`, for the reason `vibrant.css` gives about its own two
- * limbs: a field restated in two places is a field that drifts apart. `--flavor-light-spread` is
- * the one number the two surfaces disagree on — aurora's layer overhangs by 20% so it has room to
- * drift, so the band's tile grows and offsets by the same fraction.
+ * ONE SOURCE FOR EACH LAYER — `--flavor-light` and `--flavor-light-grain` — for the reason
+ * `vibrant.css` gives about its own two limbs: a field restated in two places is a field that
+ * drifts apart. `--flavor-light-spread` is the one number the two surfaces disagree on: aurora's
+ * layer overhangs by 20% so it has room to drift, so the band's tile grows and offsets by the same
+ * fraction. The grain needs no such agreement — it is NOISE, so its phase carries nothing worth
+ * registering, and the band simply repeats the same tile from its own corner.
  *
- * WHAT THE BAND DOES NOT REPLAY is aurora's drift animation (a transform cannot be expressed as a
- * background) and its dither tile (which cannot be phase-aligned from the opposite edge without
- * `background-attachment: fixed`). Both were measured rather than assumed: sampled across three
- * instants six and seven seconds apart, the fold held at 3 or less, because these fields are far
- * too diffuse for 8px of missing drift to register, and the dither is 3.5% opaque.
+ * THE GRAIN IS NOT OPTIONAL, AND ASSUMING IT WAS COST A SECOND BUG. It is 3.5% opaque, which
+ * reads as texture nowhere and was written off as too faint to matter — but averaged over an
+ * area it lifts the ground by about 3 of 255. A band without it therefore met a canvas with it
+ * along a straight edge, and 3 levels across a straight edge on a flat dark ground is plainly
+ * visible where the same 3 levels are invisible anywhere else. Light hid it; dark did not.
+ * Measured with the dither switched off, the fold read 0 — which is what identified it.
+ *
+ * WHAT THE BAND STILL DOES NOT REPLAY is aurora's drift animation, since a transform cannot be
+ * expressed as a background. That one WAS verified the same way, by freezing the animation: the
+ * fold does not change, because these fields are far too diffuse for 8px of missing drift to
+ * register. Verify the like-for-like way if either layer changes — freeze or disable the layer
+ * under test and re-measure the fold, rather than judging it by eye or in light mode alone.
  * ========================================================================================== */
 
 :root:is([data-flavor="glow"], [data-flavor="aurora"]) [data-slot="sidebar-wrapper"] {
@@ -153,6 +162,26 @@
 :root[dir="rtl"]:is([data-flavor="glow"], [data-flavor="aurora"]) [data-slot="page-header"] {
 	background-position: left calc(-100vw * var(--flavor-light-spread, 0)) top
 		calc(-100lvh * var(--flavor-light-spread, 0));
+}
+
+/*
+ * THE GRAIN GETS ITS OWN LAYER RATHER THAN A SECOND BACKGROUND, and that is a rule of the
+ * property rather than a preference: `background-size` and friends repeat CYCLICALLY over the
+ * image list, so `256px, <tile>` against a `--flavor-light` holding three gradients hands the
+ * third gradient the grain's size. One declaration cannot serve a variable number of layers.
+ *
+ * `z-index: -1` puts it behind the bar and in front of the header's own ground, the way the
+ * wrapper's layers sit: the header is `sticky` with `z-40`, so it is already a stacking context
+ * and the negative index cannot escape it.
+ */
+:root:is([data-flavor="glow"], [data-flavor="aurora"]) [data-slot="page-header"]::before {
+	content: "";
+	position: absolute;
+	inset: 0;
+	z-index: -1;
+	pointer-events: none;
+	background-image: var(--flavor-light-grain, none);
+	background-size: 256px 256px;
 }
 
 :root:is([data-flavor="glow"], [data-flavor="aurora"])
@@ -337,6 +366,10 @@
 	/* Room to drift without ever exposing an edge of the layer — and the one number the header's
 	   band has to know, so that its tile grows and offsets by the same fraction. */
 	--flavor-light-spread: 0.2;
+
+	/* The dither, shared with the band for the reason the band exists at all — see the note on
+	   `--flavor-light-grain` in the shared block above. */
+	--flavor-light-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='256' height='256'%3E%3Cfilter id='d'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='1' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23d)' opacity='.035'/%3E%3C/svg%3E");
 	--flavor-light:
 		radial-gradient(58% 46% at 14% 82% in oklab, var(--flavor-aur-1) 0%, 38%, transparent 74%),
 		radial-gradient(46% 54% at 88% 46% in oklab, var(--flavor-aur-2) 0%, 34%, transparent 70%),
@@ -357,7 +390,7 @@
 	inset: 0;
 	z-index: -1;
 	pointer-events: none;
-	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='256' height='256'%3E%3Cfilter id='d'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='1' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23d)' opacity='.035'/%3E%3C/svg%3E");
+	background-image: var(--flavor-light-grain);
 	background-size: 256px 256px;
 }
 
@@ -692,7 +725,8 @@
  */
 @media (prefers-contrast: more) {
 	:root[data-flavor] [data-slot="sidebar-wrapper"]::before,
-	:root[data-flavor] [data-slot="sidebar-wrapper"]::after {
+	:root[data-flavor] [data-slot="sidebar-wrapper"]::after,
+	:root[data-flavor] [data-slot="page-header"]::before {
 		content: none;
 	}
 
@@ -732,9 +766,14 @@
 
 	/* The header band replays the light as a real background-image, so `content: none` on the
 	   wrapper's layer does not reach it — it has to be dropped by name or the band keeps a
-	   gradient the rest of the shell no longer has. */
+	   gradient the rest of the shell no longer has. Its grain layer is a pseudo and goes the same
+	   way the wrapper's do. */
 	:root[data-flavor] [data-slot="page-header"] {
 		background-image: none;
+	}
+
+	:root[data-flavor] [data-slot="page-header"]::before {
+		content: none;
 	}
 }
 
@@ -744,7 +783,8 @@
  */
 @media print {
 	:root[data-flavor] [data-slot="sidebar-wrapper"]::before,
-	:root[data-flavor] [data-slot="sidebar-wrapper"]::after {
+	:root[data-flavor] [data-slot="sidebar-wrapper"]::after,
+	:root[data-flavor] [data-slot="page-header"]::before {
 		content: none;
 	}
 
