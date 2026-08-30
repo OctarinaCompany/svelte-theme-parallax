@@ -1,0 +1,1076 @@
+/**
+ * Flavors — eleven looks layered over the palette and the mode, keyed on `data-flavor`.
+ *
+ * WHAT A FLAVOR IS. The palette (`data-theme`) and the mode (`.dark`) decide what the surfaces
+ * are painted WITH. A flavor decides what is painted: a gradient down the rail, a band across
+ * the bar, a light behind the page, a serif on the headings, a radius that squares or rounds
+ * everything. Every flavor DERIVES its colours from the live tokens, so one block serves all
+ * twelve palettes in both modes rather than twelve hand-written blocks per flavor.
+ *
+ * WHY THIS IS NOT IN `app.css`. That file is audited exhaustively by
+ * `tools/registry/generate.mjs` — exactly three top-level `:root` blocks, two `@layer base`, and
+ * every other top-level block claimed by a registry item in `tools/registry/css-claims.mjs`.
+ * Twelve flavor sections would be twelve claims for something no item ships. An `@import` is a
+ * statement rather than a block, so that reader walks straight past this file.
+ *
+ * SOURCE ORDER IS PART OF THE DESIGN. `app.css` imports this AFTER `themes.css`, so a flavor
+ * rule that ties a palette block on specificity wins the tie.
+ *
+ * THREE RUNGS, CHOSEN PER SURFACE RATHER THAN PER FLAVOR. Specificity below counts an attribute
+ * selector as class-level, which is what it is — the note in `app.css` beside the chrome-mode
+ * blocks under-counts `[data-slot]` as a type selector, and the numbers here are the real ones.
+ *
+ *   1. Root tokens — `:root[data-flavor='x']` (0,2,0) and `:root[data-flavor='x'].dark` (0,3,0).
+ *      For the flavor's own `--flavor-*` variables, for `--radius-factor`, and for a PAGE token
+ *      (`--background`, `--card`, `--border`) the flavor genuinely moves. A dark twin must
+ *      restate every public token the light one sets: a palette's `.dark` block is (0,3,0) and
+ *      would otherwise take it back.
+ *
+ *   2. The rail — `:root[data-flavor='x'] [data-sidebar='sidebar']`. It sets the nine chrome
+ *      tokens ON the painted panel, which is what beats `data-sidebar-mode`: a declaration on an
+ *      element always wins against a value INHERITED from `<html>`, whatever specificity produced
+ *      the inherited one. `data-sidebar="sidebar"` is also the one hook the mobile Sheet shares
+ *      with the desktop rail — `sidebar-inner` exists only on the desktop path.
+ *
+ *   3. The bar — `:root[data-flavor='x'][data-flavor][data-flavor] [data-slot='page-header-bar']`
+ *      (0,5,0). The repeated attribute is not decoration: the per-theme header pins in
+ *      `themes.css` are (0,4,0) ON THIS ELEMENT, so anything lower is simply overruled by the
+ *      palette. Re-pointing the nine there re-inks every control in the bar for free, through the
+ *      unconditional alias block in `app.css`.
+ *
+ * DERIVE, DO NOT RESTATE. Colours come from the live tokens two ways, and both are always
+ * written: an unconditional `color-mix()` first, then the same variable again inside
+ * `@supports (color: oklch(from red l c h))`. Relative colour is what lets a flavor pin a
+ * LIGHTNESS — the trick that keeps a brand band legible whatever hue the palette brings — and it
+ * needs Chrome 119 / Safari 16.4 / Firefox 133, which is above this project's floor. Where the
+ * two paths differ the fallback is an approximation, never a different design. Inside
+ * `oklch(from …)` the hue channel is a NUMBER, so hue arithmetic is `calc(h + 120)`, never
+ * `120deg`; an invalid value would drop the declaration and leave the fallback standing, which is
+ * the failure this ordering is chosen for.
+ *
+ * NO SELF-REFERENCING TOKENS. `--background: color-mix(…, var(--background), …)` is a dependency
+ * cycle: the token becomes invalid at computed-value time and the page loses its ground. A flavor
+ * derives a surface from a DIFFERENT token (`--card` from `--background`, or the reverse) and
+ * gates the two directions on `.dark` so they never both apply.
+ *
+ * SHADOWS GO THROUGH TAILWIND'S VARIABLES — `--tw-shadow`, `--tw-inset-shadow`,
+ * `--tw-ring-color` — never a bare `box-shadow`, or the composed focus-visible and aria-invalid
+ * rings are wiped out with it. The one exception is a surface carrying no `shadow-*` utility at
+ * all, where there is no composition to join and the longhand is written out.
+ *
+ * PRIVATE NAMES ONLY. Every variable a flavor mints is `--flavor-…`. No flavor invents a public
+ * token name, and the single knob `app.css` reads back is `--radius-factor`.
+ *
+ * @see src/lib/hooks/flavor.svelte.ts — the axis, and why `stock` writes no attribute
+ * @see index.html — the first-paint echo
+ */
+
+/*
+ * The three faces the type flavors ask for, one axis file each — Fontsource does not support
+ * importing two axis files of the same family. Fraunces takes `full.css` because `editorial`
+ * drives its `opsz`, `SOFT` and `WONK` axes and the default `wght`-only file carries none of
+ * them. An `@font-face` nobody matches is never downloaded, so a visitor on `stock` pays for
+ * none of this.
+ */
+@import "@fontsource-variable/fraunces/full.css";
+@import "@fontsource-variable/geist-mono";
+@import "@fontsource-variable/manrope";
+
+/* ==========================================================================================
+ * THE PINNED LIGHT LAYER — shared by `glow`, `aurora` and `glass`.
+ *
+ * It hangs off `[data-slot="sidebar-wrapper"]`, and that is the only box in the shell it can
+ * hang off: `app.css` pins the wrapper to the viewport and clips it, so a pseudo-element there
+ * never scrolls, never grows a scrollbar and never has to know how tall the page is.
+ *
+ * `position: relative` — and DELIBERATELY NOT a transform, a filter or `will-change`. Any of
+ * those would make the wrapper the containing block of the rail's `position: fixed` container
+ * and move the whole sidebar. `isolation: isolate` keeps the negative z-index inside the
+ * wrapper's own stacking context, where painting order puts it above the wrapper's background
+ * and below every child: the rail's container is `z-10`, and the canvas is `position: relative`,
+ * so both stay in front of the light with no z-index of their own.
+ *
+ * THE TWO SURFACES ABOVE IT HAVE TO GO CLEAR, or there is nothing to see: the canvas and the
+ * sticky header wrapper both paint an opaque `--background`. The wrapper takes that ground over
+ * instead, so the page still has one. The floating header's fade goes with them — it is a
+ * `--background` rectangle hanging under the bar, and over a light it reads as a torn edge.
+ * ========================================================================================== */
+
+:root:is([data-flavor="glow"], [data-flavor="aurora"], [data-flavor="glass"])
+	[data-slot="sidebar-wrapper"] {
+	position: relative;
+	isolation: isolate;
+	background-color: var(--background);
+}
+
+:root:is([data-flavor="glow"], [data-flavor="aurora"], [data-flavor="glass"])
+	[data-slot="sidebar-wrapper"]::before {
+	content: "";
+	position: absolute;
+	inset: 0;
+	z-index: -1;
+	pointer-events: none;
+	background-repeat: no-repeat;
+}
+
+:root:is([data-flavor="glow"], [data-flavor="aurora"], [data-flavor="glass"])
+	:is([data-slot="sidebar-inset"], [data-slot="page-header"]) {
+	background-color: transparent;
+}
+
+:root:is([data-flavor="glow"], [data-flavor="aurora"], [data-flavor="glass"])
+	[data-slot="page-header"][data-floating]::after {
+	background: none;
+}
+
+/* ==========================================================================================
+ * MASTHEAD — the brand lives on the bar, and nowhere else.
+ *
+ * The band is derived at a PINNED LIGHTNESS rather than painted with `--primary` raw: half the
+ * palettes' primaries fail 4.5:1 under white, and a pinned L 0.42 never does, whatever hue the
+ * palette brings. The nine chrome tokens are re-scoped on the bar, so the alias block in
+ * `app.css` re-inks the breadcrumb, the search field and the toggles without naming any of them.
+ *
+ * DARK KEEPS THE HUE. Dropping to a neutral band in dark would make this flavor indis-
+ * tinguishable from the shipped "header: inverted" toggle plus a stripe; L 0.30 at 60 % chroma
+ * is dark enough to sit on a dark page and still read as the brand.
+ *
+ * The 3px line is drawn ON the bar rather than on the sticky wrapper, because the wrapper's
+ * `::after` is already the floating variant's fade. The bar clips it to its own corners.
+ *
+ * `data-header-mode` IS OVERRULED under this flavor, by design: the bar has been given a colour
+ * of its own, and a light/dark pin on top of it would only be able to undo it.
+ * ========================================================================================== */
+
+:root[data-flavor="masthead"] {
+	--flavor-band: color-mix(in oklab, var(--primary) 72%, black);
+	--flavor-band-2: color-mix(in oklab, var(--primary) 58%, black);
+	--flavor-band-ink: color-mix(in oklab, white 88%, var(--primary));
+	--flavor-band-line: color-mix(in oklab, var(--primary) 55%, white);
+}
+
+:root[data-flavor="masthead"].dark {
+	--flavor-band: color-mix(in oklab, var(--primary) 42%, var(--background));
+	--flavor-band-2: color-mix(in oklab, var(--primary) 30%, var(--background));
+}
+
+@supports (color: oklch(from red l c h)) {
+	:root[data-flavor="masthead"] {
+		--flavor-band: oklch(from var(--primary) 0.42 max(c, 0.07) h);
+		--flavor-band-2: oklch(from var(--primary) 0.36 max(calc(c * 0.85), 0.06) calc(h + 12));
+		--flavor-band-ink: oklch(from var(--primary) 0.94 0.02 h);
+		--flavor-band-line: oklch(from var(--primary) 0.74 max(c, 0.12) calc(h + 60));
+	}
+
+	:root[data-flavor="masthead"].dark {
+		--flavor-band: oklch(from var(--primary) 0.3 calc(c * 0.6) h);
+		--flavor-band-2: oklch(from var(--primary) 0.25 calc(c * 0.5) calc(h + 12));
+	}
+}
+
+:root[data-flavor="masthead"][data-flavor][data-flavor] [data-slot="page-header-bar"] {
+	--sidebar: var(--flavor-band);
+	--sidebar-foreground: var(--flavor-band-ink);
+	--sidebar-primary: #fff;
+	--sidebar-primary-foreground: var(--flavor-band);
+	--sidebar-accent: rgb(255 255 255 / 0.14);
+	--sidebar-accent-foreground: #fff;
+	--sidebar-border: transparent;
+	--sidebar-outline: rgb(255 255 255 / 0.24);
+	--sidebar-ring: #fff;
+	position: relative;
+	background-image: linear-gradient(90deg in oklch, var(--flavor-band), var(--flavor-band-2));
+	/* Native controls and scrollbars inside the bar follow the band, not the page. */
+	color-scheme: dark;
+}
+
+:root[data-flavor="masthead"] [data-slot="page-header-bar"]::after {
+	content: "";
+	position: absolute;
+	inset-inline: 0;
+	bottom: 0;
+	height: 3px;
+	pointer-events: none;
+	background-image: linear-gradient(90deg, var(--primary), var(--flavor-band-line));
+}
+
+/*
+ * Stripe's "intermediate block": the search field gets a solid fill of its own so its label
+ * never sits directly on the gradient. It has no `data-slot`, and the shortcut chip inside it
+ * is the one thing in the bar that identifies it.
+ */
+:root[data-flavor="masthead"] [data-slot="page-header-bar"] button:has([data-slot="kbd-group"]) {
+	background-color: rgb(255 255 255 / 0.18);
+	border-color: rgb(255 255 255 / 0.26);
+}
+
+/* ==========================================================================================
+ * CASCADE — the palette's own brand, poured down the rail.
+ *
+ * CHROMA IS CLAMPED, NOT INHERITED. Two of the twelve palettes are deliberately achromatic
+ * (Graphite's brand is `oklch(0.300 0.010 261)`), and a gradient that inherited that chroma
+ * would be a grey rail — the "inverted sidebar" the kit already ships as a toggle. The floor
+ * gives those two a deep slate and a deep umber instead: still the palette's hue, visibly not
+ * a neutral.
+ *
+ * `color` IS SET HERE, not only `--sidebar-foreground`. The rail's OUTER element carries
+ * `text-sidebar-foreground`, so it computed its ink from the ROOT's value before this block was
+ * reached; without the declaration every label keeps the page's ink over a dark gradient.
+ *
+ * GRAIN IS A BACKGROUND LAYER, not an overlay pseudo-element: it must never be able to paint
+ * over text, and a long dark gradient bands without it. The alpha is baked into the SVG, so
+ * there is no layer opacity to leak onto the gradient underneath.
+ * ========================================================================================== */
+
+:root[data-flavor="cascade"] {
+	--flavor-cascade-a: color-mix(in oklab, var(--primary) 66%, black);
+	--flavor-cascade-b: color-mix(in oklab, var(--primary) 46%, black);
+	--flavor-cascade-ink: color-mix(in oklab, white 86%, var(--flavor-cascade-a));
+	--flavor-cascade-ink-soft: color-mix(in oklab, white 70%, var(--flavor-cascade-a));
+	--flavor-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='182' height='182'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.1'/%3E%3C/svg%3E");
+}
+
+:root[data-flavor="cascade"].dark {
+	--flavor-cascade-a: color-mix(in oklab, var(--primary) 40%, black);
+	--flavor-cascade-b: color-mix(in oklab, var(--primary) 24%, black);
+	--flavor-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='182' height='182'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.14'/%3E%3C/svg%3E");
+}
+
+@supports (color: oklch(from red l c h)) {
+	:root[data-flavor="cascade"] {
+		--flavor-cascade-a: oklch(from var(--primary) 0.4 clamp(0.07, calc(c * 0.9), 0.16) h);
+		--flavor-cascade-b: oklch(from var(--primary) 0.28 clamp(0.06, calc(c * 0.8), 0.14) h);
+	}
+
+	:root[data-flavor="cascade"].dark {
+		--flavor-cascade-a: oklch(from var(--primary) 0.22 clamp(0.05, calc(c * 0.7), 0.12) h);
+		--flavor-cascade-b: oklch(from var(--primary) 0.14 clamp(0.04, calc(c * 0.6), 0.1) h);
+	}
+}
+
+:root[data-flavor="cascade"] [data-sidebar="sidebar"] {
+	--sidebar: var(--flavor-cascade-b);
+	--sidebar-foreground: var(--flavor-cascade-ink);
+	--sidebar-primary: #fff;
+	--sidebar-primary-foreground: var(--flavor-cascade-b);
+	/* Hover and active are an alpha wash, never a solid: a fill would flatten the gradient. */
+	--sidebar-accent: rgb(255 255 255 / 0.14);
+	--sidebar-accent-foreground: #fff;
+	--sidebar-border: rgb(255 255 255 / 0.12);
+	--sidebar-outline: rgb(255 255 255 / 0.2);
+	--sidebar-ring: #fff;
+	color: var(--sidebar-foreground);
+	color-scheme: dark;
+	background-color: var(--flavor-cascade-b);
+	background-image:
+		var(--flavor-grain),
+		linear-gradient(172deg in oklch, var(--flavor-cascade-a), var(--flavor-cascade-b));
+	background-size:
+		182px 182px,
+		auto;
+	background-blend-mode: soft-light, normal;
+}
+
+/* The component's `/70` ink is an alpha over a gradient; a solved value is steadier. */
+:root[data-flavor="cascade"] [data-sidebar="sidebar"] [data-slot="sidebar-group-label"] {
+	color: var(--flavor-cascade-ink-soft);
+}
+
+/* Two-tone focus: the component's white ring, then a dark halo outside it, so one of the pair
+   always reads whichever stop of the gradient the item happens to sit on. */
+:root[data-flavor="cascade"]
+	[data-sidebar="sidebar"]
+	:is([data-sidebar="menu-button"], [data-slot="sidebar-menu-sub-button"]):focus-visible {
+	outline: 2px solid var(--flavor-cascade-b);
+	outline-offset: 2px;
+}
+
+/* The flush variant draws `border-e` from the PAGE's `--border`, which is a hairline meant for a
+   light document and invisible against this. */
+:root[data-flavor="cascade"] [data-slot="sidebar-container"] {
+	border-color: var(--flavor-cascade-b);
+}
+
+/* ==========================================================================================
+ * OVERLAP — an ink rail, an ink bar, and the ink carrying on behind the page title.
+ *
+ * This is the one shape the two shipped inversion toggles cannot produce: they can pin the rail
+ * and the bar to the opposite half, but nothing continues that surface INTO the canvas.
+ *
+ * THE BAND IS THE INTRO'S OWN GROUND, not a fixed height painted on the canvas. It was the
+ * latter first, and the first screenshot showed why that cannot work: a subtitle is one line on
+ * one page and three on the next, so any height guessed in the stylesheet leaves the last line
+ * of some page in chrome ink on the page's own ground — invisible. Painting the block itself
+ * makes the band exactly as tall as what stands on it, on every page, forever. It reaches the
+ * window edges through the `box-shadow` spread, which `clip-path: inset(0 -100vmax)` then trims
+ * back to the horizontal: a spread paints outside the border box, and a clip that only opens
+ * sideways lets it through there and nowhere else. Neither contributes scrollable overflow,
+ * which a negative inset on an absolutely positioned pseudo-element would — and the canvas is
+ * the shell's one scroller, so a stray horizontal scrollbar there is the whole page's.
+ *
+ * THE CHROME INK IS SOLVED HERE, not inherited from the inversion blocks: those hand the rail
+ * `--sidebar-foreground` at the palette's gray-700, which measures 3.8:1 on the panel — the
+ * resting ink of every nav item. A value derived from the page ground clears 4.5:1 on both.
+ *
+ * IN DARK the ink steps BELOW the page rather than above it, so the L-shape still reads on a
+ * dark document; the page and the cards keep their own ladder.
+ * ========================================================================================== */
+
+:root[data-flavor="overlap"] {
+	--flavor-ink: color-mix(in oklab, var(--foreground) 92%, var(--background));
+	--flavor-ink-2: color-mix(in oklab, var(--foreground) 82%, var(--background));
+	--flavor-chrome-ink: color-mix(in oklab, var(--background) 82%, var(--foreground));
+	--flavor-chrome-ink-strong: var(--background);
+}
+
+:root[data-flavor="overlap"].dark {
+	--flavor-ink: color-mix(in oklab, var(--background) 86%, black);
+	--flavor-ink-2: color-mix(in oklab, var(--background) 92%, white);
+	--flavor-chrome-ink: color-mix(in oklab, var(--foreground) 74%, var(--flavor-ink));
+	--flavor-chrome-ink-strong: var(--foreground);
+}
+
+@supports (color: oklch(from red l c h)) {
+	:root[data-flavor="overlap"] {
+		--flavor-ink: oklch(from var(--foreground) calc(l + 0.03) c h);
+		--flavor-ink-2: oklch(from var(--foreground) calc(l + 0.09) c h);
+	}
+
+	:root[data-flavor="overlap"].dark {
+		--flavor-ink: oklch(from var(--background) calc(l - 0.035) c h);
+		--flavor-ink-2: oklch(from var(--background) calc(l + 0.03) c h);
+	}
+}
+
+:root[data-flavor="overlap"] [data-sidebar="sidebar"],
+:root[data-flavor="overlap"][data-flavor][data-flavor] [data-slot="page-header-bar"] {
+	--sidebar: var(--flavor-ink);
+	--sidebar-foreground: var(--flavor-chrome-ink);
+	--sidebar-primary: var(--primary);
+	--sidebar-primary-foreground: var(--primary-foreground);
+	--sidebar-accent: var(--flavor-ink-2);
+	--sidebar-accent-foreground: var(--flavor-chrome-ink-strong);
+	--sidebar-border: var(--flavor-ink);
+	--sidebar-outline: var(--flavor-ink-2);
+	--sidebar-ring: var(--flavor-chrome-ink-strong);
+	color: var(--flavor-chrome-ink);
+	color-scheme: dark;
+	background-color: var(--flavor-ink);
+}
+
+/* An ink panel floating on an ink band has no edge to show, so the bar is seated flat under
+   this flavor whatever the floating flag says. */
+:root[data-flavor="overlap"] [data-slot="page-header"] {
+	padding: 0;
+	background-color: var(--flavor-ink);
+}
+
+:root[data-flavor="overlap"] [data-slot="page-header"][data-floating]::after {
+	background: none;
+}
+
+:root[data-flavor="overlap"] [data-slot="page-header-bar"] {
+	border-radius: 0;
+	border-bottom-color: transparent;
+	--tw-ring-color: transparent;
+	--tw-shadow: 0 0 #0000;
+}
+
+/* The intro IS the band: it paints its own ground, bleeds to the window edges, and its ink
+   inverts with it. It meets the sticky bar above with no seam, both being the same ink. */
+:root[data-flavor="overlap"] [data-slot="page-intro"] {
+	color: var(--flavor-chrome-ink-strong);
+	border-color: var(--flavor-ink-2);
+	background-color: var(--flavor-ink);
+	box-shadow: 0 0 0 100vmax var(--flavor-ink);
+	clip-path: inset(0 -100vmax);
+}
+
+:root[data-flavor="overlap"] [data-slot="page-intro"] p {
+	color: var(--flavor-chrome-ink);
+}
+
+:root[data-flavor="overlap"] [data-slot="sidebar-container"] {
+	border-color: var(--flavor-ink);
+}
+
+/* ==========================================================================================
+ * GLOW — one soft brand spotlight, hanging above the page.
+ *
+ * THE STOPS ARE LIGHTNESS-PINNED, which is the whole reason this is safe: a tint of the raw
+ * brand would drag the page ground toward the brand's own lightness and take `--muted-foreground`
+ * with it, and that token is already the tightest pair in the kit. Pinned at L 0.90 in light and
+ * L 0.34 in dark, the composite stays inside the page's own band and every measured ratio holds.
+ *
+ * A CHROMA FLOOR, so the two achromatic palettes get a faint neutral halo rather than nothing.
+ * ========================================================================================== */
+
+:root[data-flavor="glow"] {
+	--flavor-glow-1: color-mix(in oklab, var(--primary) 16%, transparent);
+	--flavor-glow-2: color-mix(in oklab, var(--sidebar-primary) 10%, transparent);
+}
+
+:root[data-flavor="glow"].dark {
+	--flavor-glow-1: color-mix(in oklab, var(--primary) 22%, transparent);
+	--flavor-glow-2: color-mix(in oklab, var(--sidebar-primary) 14%, transparent);
+}
+
+@supports (color: oklch(from red l c h)) {
+	:root[data-flavor="glow"] {
+		--flavor-glow-1: oklch(from var(--primary) 0.9 max(c, 0.07) h / 0.65);
+		--flavor-glow-2: oklch(from var(--primary) 0.92 max(c, 0.05) calc(h - 40) / 0.45);
+	}
+
+	:root[data-flavor="glow"].dark {
+		--flavor-glow-1: oklch(from var(--primary) 0.34 max(c, 0.07) h / 0.75);
+		--flavor-glow-2: oklch(from var(--primary) 0.32 max(c, 0.05) calc(h - 40) / 0.55);
+	}
+}
+
+:root[data-flavor="glow"] [data-slot="sidebar-wrapper"]::before {
+	background-image:
+		radial-gradient(ellipse 62vw 48vh at 50% -8%, var(--flavor-glow-1), transparent 70%),
+		radial-gradient(ellipse 30vw 26vh at 16% -4%, var(--flavor-glow-2), transparent 72%);
+}
+
+/* ==========================================================================================
+ * AURORA — three colour fields, drifting.
+ *
+ * A TRIAD, NOT A TINT. The three blobs are the brand hue and its two 120° neighbours, which is
+ * what keeps this from reading as a bigger `glow`; they are placed in three different quadrants
+ * for the same reason, so the still frame alone is a different composition.
+ *
+ * THE BLUR IS THE GRADIENT'S OWN FEATHER, never `filter: blur()`. A blurred layer is re-convolved
+ * on every frame it moves, which is the classic way to spend 90ms a frame on a decoration; a wide
+ * radial stop costs nothing and looks the same. Only `transform` animates, on the layer itself —
+ * `will-change` goes there and NOT on the wrapper, which would re-parent the fixed rail.
+ *
+ * THE STILL FRAME IS A DESIGNED FRAME. Under `prefers-reduced-motion` the composition stays and
+ * only the drift stops, so the flavor keeps its identity rather than degrading to an empty page.
+ * Browsers pause CSS animations in hidden tabs, so there is nothing to script.
+ * ========================================================================================== */
+
+:root[data-flavor="aurora"] {
+	--flavor-aur-1: color-mix(in oklab, var(--primary) 18%, transparent);
+	--flavor-aur-2: color-mix(in oklab, var(--success) 14%, transparent);
+	--flavor-aur-3: color-mix(in oklab, var(--info) 13%, transparent);
+}
+
+:root[data-flavor="aurora"].dark {
+	--flavor-aur-1: color-mix(in oklab, var(--primary) 24%, transparent);
+	--flavor-aur-2: color-mix(in oklab, var(--success) 18%, transparent);
+	--flavor-aur-3: color-mix(in oklab, var(--info) 17%, transparent);
+}
+
+@supports (color: oklch(from red l c h)) {
+	:root[data-flavor="aurora"] {
+		--flavor-aur-1: oklch(from var(--primary) 0.9 max(c, 0.08) h / 0.7);
+		--flavor-aur-2: oklch(from var(--primary) 0.91 max(c, 0.08) calc(h + 120) / 0.6);
+		--flavor-aur-3: oklch(from var(--primary) 0.92 max(c, 0.08) calc(h - 120) / 0.55);
+	}
+
+	:root[data-flavor="aurora"].dark {
+		--flavor-aur-1: oklch(from var(--primary) 0.34 max(c, 0.09) h / 0.8);
+		--flavor-aur-2: oklch(from var(--primary) 0.33 max(c, 0.09) calc(h + 120) / 0.7);
+		--flavor-aur-3: oklch(from var(--primary) 0.32 max(c, 0.09) calc(h - 120) / 0.65);
+	}
+}
+
+:root[data-flavor="aurora"] [data-slot="sidebar-wrapper"]::before {
+	/* Room to drift without ever exposing an edge of the layer. */
+	inset: -20%;
+	background-image:
+		radial-gradient(ellipse 45vw 40vh at 16% 84%, var(--flavor-aur-1), transparent 70%),
+		radial-gradient(ellipse 40vw 46vh at 88% 52%, var(--flavor-aur-2), transparent 70%),
+		radial-gradient(ellipse 36vw 30vh at 78% 8%, var(--flavor-aur-3), transparent 70%);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+	:root[data-flavor="aurora"] [data-slot="sidebar-wrapper"]::before {
+		will-change: transform;
+		animation: flavor-aurora-drift 22s ease-in-out infinite alternate;
+	}
+}
+
+@keyframes flavor-aurora-drift {
+	from {
+		transform: translate3d(-3%, -2%, 0) rotate(-4deg);
+	}
+
+	to {
+		transform: translate3d(3%, 2%, 0) rotate(4deg);
+	}
+}
+
+/* ==========================================================================================
+ * GLASS — frosted chrome, over a light faint enough to be a texture.
+ *
+ * GLASS OVER A FLAT GROUND IS A GREY SMUDGE — a blur needs something behind it to blur. So this
+ * flavor borrows the pinned light layer at a quarter strength: the rail and the bar then have a
+ * gradient and the scrolling page underneath them, which is what the effect is actually made of.
+ * The bar can only do this because the shared block above cleared the sticky header wrapper's
+ * opaque ground; with it in place the blur would sample a flat rectangle.
+ *
+ * OPAQUE-FIRST. The fill is a variable so the `@supports` branch can raise it to 92 % where
+ * `backdrop-filter` does not exist, and `prefers-reduced-transparency` returns the surface to the
+ * solid token outright. Two blurred elements at most, and the popovers stay opaque: the cost of
+ * `backdrop-filter` scales with area times radius, and stacking them multiplies it.
+ * ========================================================================================== */
+
+:root[data-flavor="glass"] {
+	--flavor-glass-fill: 72%;
+	--flavor-glass-edge: rgb(255 255 255 / 0.35);
+	--flavor-glow-1: color-mix(in oklab, var(--primary) 12%, transparent);
+	--flavor-glow-2: color-mix(in oklab, var(--sidebar-primary) 8%, transparent);
+}
+
+:root[data-flavor="glass"].dark {
+	--flavor-glass-edge: rgb(255 255 255 / 0.1);
+	--flavor-glow-1: color-mix(in oklab, var(--primary) 18%, transparent);
+	--flavor-glow-2: color-mix(in oklab, var(--sidebar-primary) 12%, transparent);
+}
+
+@supports (color: oklch(from red l c h)) {
+	:root[data-flavor="glass"] {
+		--flavor-glow-1: oklch(from var(--primary) 0.9 max(c, 0.07) h / 0.45);
+		--flavor-glow-2: oklch(from var(--primary) 0.92 max(c, 0.05) calc(h - 40) / 0.3);
+	}
+
+	:root[data-flavor="glass"].dark {
+		--flavor-glow-1: oklch(from var(--primary) 0.34 max(c, 0.07) h / 0.55);
+		--flavor-glow-2: oklch(from var(--primary) 0.32 max(c, 0.05) calc(h - 40) / 0.4);
+	}
+}
+
+:root[data-flavor="glass"] [data-slot="sidebar-wrapper"]::before {
+	background-image:
+		radial-gradient(ellipse 62vw 48vh at 50% -8%, var(--flavor-glow-1), transparent 70%),
+		radial-gradient(ellipse 30vw 26vh at 16% -4%, var(--flavor-glow-2), transparent 72%);
+}
+
+:root[data-flavor="glass"] :is([data-sidebar="sidebar"], [data-slot="page-header-bar"]) {
+	background-color: color-mix(in srgb, var(--sidebar) var(--flavor-glass-fill), transparent);
+	/* A 1px lit edge along the top, the way a pane of glass catches the light. */
+	background-image: linear-gradient(to bottom, var(--flavor-glass-edge), transparent 1px);
+	-webkit-backdrop-filter: blur(16px) saturate(1.3);
+	backdrop-filter: blur(16px) saturate(1.3);
+}
+
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+	:root[data-flavor="glass"] {
+		--flavor-glass-fill: 92%;
+	}
+}
+
+@media (prefers-reduced-transparency: reduce) {
+	:root[data-flavor="glass"] :is([data-sidebar="sidebar"], [data-slot="page-header-bar"]) {
+		background-color: var(--sidebar);
+		-webkit-backdrop-filter: none;
+		backdrop-filter: none;
+	}
+}
+
+/* ==========================================================================================
+ * EDITORIAL — a display serif for the headings, and for the one word of chrome that is a name.
+ *
+ * IT IS KEYED ON THE SIZE STEPS, not on `h1, h2, h3`. A serif at weight 400 is legal above 24px
+ * and thin below it, and the tags say nothing about size here — `CardTitle` is a `<div>`, and the
+ * section heading is 20px. So the rule takes `.text-2xl` and up, plus the section heading at one
+ * weight more, and leaves card titles and body to the sans.
+ *
+ * THE WORDMARK IS THE ANCHOR. Without it the flavor is invisible on any page whose content
+ * happens to start with a paragraph; with it, every route carries the voice in the rail.
+ *
+ * CARDS BECOME COLUMNS: the ring goes and a bottom rule takes its place, which is what makes a
+ * dashboard read as a page rather than as a tray of tiles. It rides on `--tw-shadow` so the
+ * composed focus ring survives.
+ *
+ * SOFT 60 / WONK 1, NOT THE SOBER 20/0 THIS STARTED WITH. Measured on screen, the sober cut was
+ * a serif nobody would name — and a difference nobody notices reads as an accident rather than
+ * as a decision, which is the exact failure this whole axis exists to fix. The wonk axis is what
+ * makes Fraunces recognisably itself.
+ * ========================================================================================== */
+
+:root[data-flavor="editorial"] {
+	--flavor-display: "Fraunces Variable", Georgia, "Times New Roman", serif;
+	--flavor-display-weight: 400;
+}
+
+/* A high-contrast serif thins out on a dark ground; the variable axis takes it back. */
+:root[data-flavor="editorial"].dark {
+	--flavor-display-weight: 450;
+}
+
+:root[data-flavor="editorial"] :is(.text-2xl, .text-3xl, .text-4xl, [data-slot="section-heading"]) {
+	font-family: var(--flavor-display);
+	font-weight: var(--flavor-display-weight);
+	font-optical-sizing: auto;
+	font-variation-settings:
+		"SOFT" 60,
+		"WONK" 1;
+	letter-spacing: -0.01em;
+}
+
+:root[data-flavor="editorial"] [data-slot="section-heading"] {
+	font-weight: calc(var(--flavor-display-weight) + 100);
+}
+
+:root[data-flavor="editorial"]
+	[data-slot="sidebar-header"]
+	:is([data-sidebar="menu-button"] > div > span:first-child, [data-slot="brand-wordmark"]) {
+	font-family: var(--flavor-display);
+	font-size: 1.0625rem;
+	font-weight: 500;
+	font-optical-sizing: auto;
+	font-variation-settings:
+		"SOFT" 60,
+		"WONK" 1;
+}
+
+:root[data-flavor="editorial"] [data-slot="card"] {
+	--tw-ring-color: transparent;
+	--tw-shadow: 0 1px 0 var(--border);
+}
+
+/* ==========================================================================================
+ * DEVTOOL — mono as a second voice, sharp corners, and a faint engineering grid.
+ *
+ * THE MONO GOES ON META, NEVER ON PROSE OR ON WHOLE NUMERIC TABLES. It takes the breadcrumb, the
+ * badges, the keycaps, the column heads and the eyebrow labels — the text that names things
+ * rather than says them — at 13px, which is the floor below which a label stops being content.
+ * Figures get `tabular-nums` on the canvas instead, which is what a numeric table actually wants.
+ *
+ * A SOLVED META INK. The kit's `--muted-foreground` measures 2.37:1 on a white card, so a flavor
+ * that leans on small labels cannot inherit it; mixing it 60/40 toward `--foreground` darkens it
+ * in light and lightens it in dark, in one declaration that follows every palette.
+ *
+ * THE GRID IS A BACKGROUND ON THE SCROLLER, hidden under the content column by a ground-coloured
+ * ellipse painted as the TOP layer. A `mask-image` would have been the obvious tool and is the
+ * wrong one: masking the canvas would clip its own overflow, and the canvas is the shell's one
+ * scroll container.
+ * ========================================================================================== */
+
+:root[data-flavor="devtool"] {
+	--font-mono: "Geist Mono Variable", ui-monospace, "SFMono-Regular", Menlo, monospace;
+	--radius-factor: 0.33;
+	--radius: calc(0.375rem * 0.33);
+	--flavor-meta: color-mix(in oklab, var(--muted-foreground) 60%, var(--foreground));
+	--flavor-grid: color-mix(in oklab, var(--foreground) 12%, transparent);
+	--flavor-grid-chrome: color-mix(in oklab, var(--sidebar-foreground) 10%, transparent);
+}
+
+:root[data-flavor="devtool"]
+	:is(
+		[data-slot="breadcrumb-link"],
+		[data-slot="breadcrumb-page"],
+		[data-slot="badge"],
+		[data-slot="kbd"],
+		[data-slot="table-head"],
+		.tracking-label,
+		code,
+		time
+	) {
+	font-family: var(--font-mono);
+	font-size: 0.8125rem;
+	font-weight: 500;
+}
+
+/* Colour only where the slot is a muted label already; a filled badge keeps its own ink. */
+:root[data-flavor="devtool"]
+	:is([data-slot="breadcrumb-link"], [data-slot="table-head"], .tracking-label) {
+	color: var(--flavor-meta);
+}
+
+:root[data-flavor="devtool"] [data-slot="sidebar-inset"] {
+	background-image:
+		radial-gradient(ellipse 62% 100% at 50% 40%, var(--background) 45%, transparent 100%),
+		linear-gradient(to right, var(--flavor-grid) 1px, transparent 1px),
+		linear-gradient(to bottom, var(--flavor-grid) 1px, transparent 1px);
+	background-size:
+		100% 100%,
+		40px 40px,
+		40px 40px;
+	font-variant-numeric: tabular-nums slashed-zero;
+}
+
+:root[data-flavor="devtool"] :is([data-sidebar="sidebar"], [data-slot="page-header-bar"]) {
+	background-image:
+		linear-gradient(to right, var(--flavor-grid-chrome) 1px, transparent 1px),
+		linear-gradient(to bottom, var(--flavor-grid-chrome) 1px, transparent 1px);
+	background-size: 40px 40px;
+}
+
+/* ==========================================================================================
+ * PEBBLE — soft and rounded: the shape flavor at the opposite end from `brutalist`.
+ *
+ * THE RADIUS MOVES THROUGH THE FACTOR IN `app.css`, because `@theme inline` inlines each step
+ * into the utility that uses it: overriding `--radius-lg` here would change a variable
+ * `rounded-lg` no longer reads. `--radius` is restated beside it — it is the one step the ladder
+ * takes by reference, and four unlayered rules read it directly.
+ *
+ * THE PAGE DARKENS, THE CARDS DO NOT. An inset canvas is the oldest trick for making a card read
+ * without a border, and it derives from `--card` rather than from itself — a token that mixes
+ * with its own value is a cycle, and the page loses its ground.
+ *
+ * DEPTH SWITCHES AT THE MODE. Light gets a hue-matched three-layer shadow; dark gets none at all,
+ * because a dark shadow on a dark ground is a smudge, and lifts the card tonally instead — capped
+ * at the palette ladder's own step, so `--muted-foreground` keeps the ratio it was solved for.
+ * ========================================================================================== */
+
+:root[data-flavor="pebble"] {
+	--radius-factor: 2;
+	--radius: 0.75rem;
+	--flavor-display: "Manrope Variable", var(--font-sans);
+	--flavor-shadow: color-mix(in oklab, var(--primary) 55%, black);
+}
+
+:root[data-flavor="pebble"]:not(.dark) {
+	--background: color-mix(in oklab, var(--card) 95%, var(--foreground));
+}
+
+:root[data-flavor="pebble"].dark {
+	--card: color-mix(in oklab, var(--background) 92%, var(--primary));
+}
+
+@supports (color: oklch(from red l c h)) {
+	:root[data-flavor="pebble"] {
+		--flavor-shadow: oklch(from var(--primary) 0.45 calc(c * 0.6) h);
+	}
+
+	:root[data-flavor="pebble"].dark {
+		--card: oklch(from var(--background) calc(l + 0.033) calc(c + 0.01) h);
+	}
+}
+
+:root[data-flavor="pebble"]
+	:is(
+		[data-slot="button"],
+		[data-slot="input"],
+		[data-slot="input-group"],
+		[data-slot="select-trigger"],
+		[data-slot="native-select"],
+		[data-slot="tabs-list"],
+		[data-slot="tabs-trigger"],
+		[data-sidebar="menu-button"],
+		[data-slot="sidebar-menu-sub-button"]
+	) {
+	border-radius: 9999px;
+}
+
+:root[data-flavor="pebble"]
+	:is([data-slot="button"]:not([data-size^="icon"]), [data-slot="select-trigger"]) {
+	padding-inline: 1rem;
+}
+
+:root[data-flavor="pebble"]:not(.dark)
+	:is([data-slot="card"], [data-slot="sidebar-inner"], [data-slot="page-header-bar"]) {
+	--tw-ring-color: transparent;
+	--tw-shadow:
+		0 1px 1px color-mix(in oklab, var(--flavor-shadow) 14%, transparent),
+		0 2px 4px color-mix(in oklab, var(--flavor-shadow) 10%, transparent),
+		0 8px 16px color-mix(in oklab, var(--flavor-shadow) 7%, transparent);
+}
+
+:root[data-flavor="pebble"].dark
+	:is([data-slot="card"], [data-slot="sidebar-inner"], [data-slot="page-header-bar"]) {
+	--tw-ring-color: transparent;
+	--tw-shadow: 0 0 #0000;
+}
+
+/* Dark has no shadow to separate a field from its card, so the field takes a ground instead. */
+:root[data-flavor="pebble"].dark
+	:is([data-slot="input"], [data-slot="select-trigger"], [data-slot="input-group"]) {
+	background-color: var(--secondary);
+	border-color: transparent;
+}
+
+:root[data-flavor="pebble"] :is(.text-2xl, .text-3xl, .text-4xl, [data-slot="section-heading"]) {
+	font-family: var(--flavor-display);
+	font-weight: 700;
+	letter-spacing: -0.01em;
+}
+
+/* ==========================================================================================
+ * BRUTALIST — no radius, thick ink borders, a hard offset shadow and one loud fill.
+ *
+ * THE INK IS `--foreground`, which is exactly the right token: a near-black on a light page and
+ * a near-white on a dark one, per palette, already measured. Binding borders and shadows to it is
+ * what makes this flavor legible in dark instead of a black shadow on a black page.
+ *
+ * THE LOUD FILL IS `--warning`, NOT A LITERAL YELLOW. The style's famous fill is a saturated
+ * yellow, and the palette already ships one with a SOLVED ink on it — `--warning-foreground` is
+ * audited against `--warning` in every theme and both modes. A hard-coded `#ffdc58` would have
+ * been a raw colour with a hand-guessed ink, and white on it measures 1.3:1.
+ *
+ * THE FOCUS RING STAYS INK. The loud fill would be the stylish choice and a 1.5:1 indicator on a
+ * light page; the ring is the one part of a look that is not allowed to be decorative.
+ *
+ * THE PAGE AND THE CARDS GO FLUSH, in opposite directions per mode so neither derivation is a
+ * cycle: the light page takes the card's white, the dark card takes the page's ground. The
+ * borders do the separating, which is the entire premise of the style.
+ * ========================================================================================== */
+
+:root[data-flavor="brutalist"] {
+	--radius-factor: 0;
+	--radius: 0;
+	--flavor-loud: var(--warning);
+	--flavor-loud-ink: var(--warning-foreground);
+	--border: var(--foreground);
+	--input: var(--foreground);
+	--ring: var(--foreground);
+	--sidebar-border: var(--foreground);
+	--sidebar-outline: var(--foreground);
+	--sidebar-ring: var(--foreground);
+}
+
+:root[data-flavor="brutalist"]:not(.dark) {
+	--background: var(--card);
+}
+
+:root[data-flavor="brutalist"].dark {
+	--card: var(--background);
+	--border: var(--foreground);
+	--input: var(--foreground);
+	--ring: var(--foreground);
+	--sidebar-border: var(--foreground);
+	--sidebar-outline: var(--foreground);
+	--sidebar-ring: var(--foreground);
+}
+
+:root[data-flavor="brutalist"]
+	:is(
+		[data-slot="card"],
+		[data-slot="popover-content"],
+		[data-slot="dropdown-menu-content"],
+		[data-slot="select-content"],
+		[data-slot="dialog-content"],
+		[data-slot="input"],
+		[data-slot="input-group"],
+		[data-slot="textarea"],
+		[data-slot="select-trigger"],
+		[data-variant="floating"] [data-slot="sidebar-inner"]
+	) {
+	border: 2px solid var(--foreground);
+	--tw-ring-color: transparent;
+	--tw-shadow: 4px 4px 0 var(--foreground);
+}
+
+/*
+ * Buttons carry no `shadow-*` utility, so there is no composed `box-shadow` to join and the
+ * longhand is written out — with Tailwind's own four slots ahead of it, so a focus ring drawn on
+ * top of this still appears.
+ */
+:root[data-flavor="brutalist"] [data-slot="button"]:is(.bg-primary, .bg-secondary, .bg-background) {
+	border: 2px solid var(--foreground);
+	--tw-shadow: 4px 4px 0 var(--foreground);
+	box-shadow:
+		var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow),
+		var(--tw-ring-shadow), var(--tw-shadow);
+}
+
+:root[data-flavor="brutalist"]
+	[data-slot="button"]:is(
+		[data-size="sm"],
+		[data-size="xs"],
+		[data-size="icon-sm"],
+		[data-size="icon-xs"]
+	) {
+	--tw-shadow: 2px 2px 0 var(--foreground);
+}
+
+/* Pressed means pressed: the surface travels the offset and the shadow goes under it. */
+:root[data-flavor="brutalist"] :is([data-slot="button"], [data-sidebar="menu-button"]):active {
+	translate: 4px 4px;
+	--tw-shadow: 0 0 #0000;
+}
+
+:root[data-flavor="brutalist"] [data-slot="sidebar-container"] {
+	border-inline-end-width: 2px;
+	border-color: var(--foreground);
+}
+
+:root[data-flavor="brutalist"] [data-slot="page-header-bar"] {
+	border-bottom-width: 2px;
+	border-bottom-color: var(--foreground);
+}
+
+:root[data-flavor="brutalist"]
+	[data-slot="page-header"][data-floating]
+	[data-slot="page-header-bar"] {
+	border: 2px solid var(--foreground);
+	--tw-ring-color: transparent;
+	--tw-shadow: 4px 4px 0 var(--foreground);
+}
+
+:root[data-flavor="brutalist"] [data-slot="page-header"][data-floating]::after {
+	background: none;
+}
+
+:root[data-flavor="brutalist"] [data-sidebar="menu-button"][data-active="true"] {
+	background-color: var(--flavor-loud);
+	color: var(--flavor-loud-ink);
+}
+
+:root[data-flavor="brutalist"] :is(.text-2xl, .text-3xl, .text-4xl, [data-slot="section-heading"]) {
+	font-weight: 700;
+	letter-spacing: -0.02em;
+}
+
+/* ==========================================================================================
+ * CREST — identity as one object rather than a painted surface.
+ *
+ * The tile, the wordmark and the icon column carry the brand; the chrome and the canvas stay
+ * exactly as the palette left them. Every platform design system that has an opinion recommends
+ * this over colouring surfaces, on the grounds that a large brand area dilutes hierarchy.
+ *
+ * THE TILE FOLLOWS THE RAIL'S MODE, NOT THE PAGE'S. L 0.70 is right on a dark panel and fails 3:1
+ * on a white one, so the twin keys on the three ways the rail can be dark: a dark page whose rail
+ * is not pinned light, or a rail pinned dark on either page.
+ *
+ * PRIVATE TOKENS, mapped onto `--sidebar-primary` INSIDE the rail header only. Assigning to
+ * `--sidebar-primary` at the root would have recoloured the active nav item too, and every
+ * palette restates that token at a specificity this flavor would have to fight.
+ * ========================================================================================== */
+
+:root[data-flavor="crest"] {
+	--flavor-tile-light: color-mix(in oklab, var(--primary) 85%, black);
+	--flavor-tile-dark: color-mix(in oklab, var(--primary) 72%, white);
+	--flavor-tile-ink-dark: var(--scrim);
+	--flavor-tile: var(--flavor-tile-light);
+	--flavor-tile-ink: #fff;
+	accent-color: var(--primary);
+	scrollbar-color: color-mix(in oklab, var(--primary) 35%, var(--background)) transparent;
+}
+
+@supports (color: oklch(from red l c h)) {
+	:root[data-flavor="crest"] {
+		--flavor-tile-light: oklch(from var(--primary) 0.55 max(c, 0.05) h);
+		--flavor-tile-dark: oklch(from var(--primary) 0.7 max(c, 0.05) h);
+		--flavor-tile-ink-dark: oklch(from var(--primary) 0.18 calc(c * 0.5) h);
+	}
+}
+
+:root[data-flavor="crest"]:is(.dark:not([data-sidebar-mode="light"]), [data-sidebar-mode="dark"]) {
+	--flavor-tile: var(--flavor-tile-dark);
+	--flavor-tile-ink: var(--flavor-tile-ink-dark);
+}
+
+:root[data-flavor="crest"] [data-slot="sidebar-header"] {
+	--sidebar-primary: var(--flavor-tile);
+	--sidebar-primary-foreground: var(--flavor-tile-ink);
+}
+
+:root[data-flavor="crest"] [data-slot="sidebar-content"] [data-sidebar="menu-button"] > svg {
+	color: var(--flavor-tile);
+}
+
+:root[data-flavor="crest"]
+	[data-slot="sidebar-header"]
+	:is([data-sidebar="menu-button"] > div > span:first-child, [data-slot="brand-wordmark"]) {
+	font-weight: 600;
+	letter-spacing: -0.02em;
+}
+
+:root[data-flavor="crest"] ::selection {
+	background-color: color-mix(in oklab, var(--primary) 22%, var(--background));
+	color: var(--foreground);
+}
+
+/* ==========================================================================================
+ * THE KILL SWITCHES.
+ *
+ * Last in the file, and each written at or above the specificity of the rule it neutralises, so
+ * none of them needs `!important`. Between them they answer the four states in which a decoration
+ * is not a decoration but an obstacle.
+ * ========================================================================================== */
+
+/*
+ * Reduced motion: the drift stops and the composition stays. `reduce` is not `none` — a preset
+ * that emptied itself would lose the identity the reader chose it for.
+ */
+@media (prefers-reduced-motion: reduce) {
+	:root[data-flavor] [data-slot="sidebar-wrapper"]::before {
+		animation: none;
+		transform: none;
+	}
+
+	:root[data-flavor] :is([data-slot="button"], [data-sidebar="menu-button"]):active {
+		translate: none;
+	}
+}
+
+/*
+ * More contrast: every decoration collapses to the solid token its surface already declares, and
+ * the card's decorative ring is thickened to the boundary value. Only IMAGES are dropped, never
+ * a solid ground — `overlap`'s intro band is a background-colour with the ink inverted against
+ * it, and removing that would leave pale text on the page's own ground.
+ */
+@media (prefers-contrast: more) {
+	:root[data-flavor] [data-slot="sidebar-wrapper"]::before {
+		content: none;
+	}
+
+	:root[data-flavor] [data-sidebar="sidebar"] {
+		background-image: none;
+	}
+
+	:root[data-flavor] [data-slot="sidebar-inset"] {
+		background-image: none;
+	}
+
+	:root[data-flavor][data-flavor][data-flavor] [data-slot="page-header-bar"] {
+		background-image: none;
+	}
+
+	:root[data-flavor="glass"] :is([data-sidebar="sidebar"], [data-slot="page-header-bar"]) {
+		background-color: var(--sidebar);
+		-webkit-backdrop-filter: none;
+		backdrop-filter: none;
+	}
+
+	:root[data-flavor] [data-slot="card"] {
+		--tw-ring-color: var(--input);
+	}
+}
+
+/*
+ * Forced colours strip exactly what a flavor adds — gradients become `none`, shadows and
+ * backdrops are dropped, every colour becomes a system colour. A transparent border is the one
+ * thing the system will repaint, so the three surfaces that would otherwise lose their edge
+ * declare one.
+ */
+@media (forced-colors: active) {
+	:root[data-flavor] [data-slot="sidebar-wrapper"]::before {
+		content: none;
+	}
+
+	:root[data-flavor]
+		:is([data-sidebar="sidebar"], [data-slot="page-header-bar"], [data-slot="card"]) {
+		border: 1px solid transparent;
+	}
+
+	:root[data-flavor="glass"] :is([data-sidebar="sidebar"], [data-slot="page-header-bar"]) {
+		-webkit-backdrop-filter: none;
+		backdrop-filter: none;
+	}
+}
+
+/*
+ * Print: `app.css` un-pins the shell and lets the canvas flow, so the pinned light layer would
+ * be a rectangle at the top of page one and the bands and grids would be ink on every sheet.
+ */
+@media print {
+	:root[data-flavor] [data-slot="sidebar-wrapper"]::before {
+		content: none;
+	}
+
+	:root[data-flavor]
+		:is([data-slot="sidebar-inset"], [data-sidebar="sidebar"], [data-slot="page-header"]) {
+		background-image: none;
+	}
+
+	:root[data-flavor] :is([data-sidebar="sidebar"], [data-slot="page-header-bar"]) {
+		-webkit-backdrop-filter: none;
+		backdrop-filter: none;
+	}
+}
