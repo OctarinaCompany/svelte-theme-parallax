@@ -260,10 +260,9 @@
 		<DocSection title="Flavor">
 			{#snippet blurb()}
 				A fifth axis, layered over the palette and the mode rather than beside them: the palette
-				decides what the surfaces are painted with, and a flavor decides what is painted — a
-				gradient down the rail, a band on the bar, a light behind the page, a serif, a radius. Every
-				one derives its colours from the live tokens, so all twelve compose with all
-				{THEMES.length} palettes in both halves. The header's wand carries the same switch.
+				decides what the surfaces are painted with, and a flavor decides what is painted behind them
+				— a light hanging above the page. Each derives its colours from the live tokens, so both
+				compose with all {THEMES.length} palettes in both halves. The header's wand carries the same switch.
 			{/snippet}
 			<Card.Root>
 				<Card.Content>

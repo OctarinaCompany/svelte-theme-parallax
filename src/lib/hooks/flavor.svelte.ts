@@ -8,11 +8,11 @@
  * rather than beside them, so every flavor composes with every palette in either mode, and each
  * one derives its colours from the live tokens instead of restating them.
  *
- * WHY IT EXISTS. Twelve palettes over one token set change the hue and nothing else, so twelve
- * applications built on this kit are twelve pages of the same drawing in different inks. A flavor
- * is the axis that answers "which application is this?" before a single label is read.
+ * WHY IT EXISTS. Palettes over one token set change the hue and nothing else, so two applications
+ * built on this kit are two pages of the same drawing in different inks. A flavor is the axis that
+ * answers "which application is this?" before a single label is read.
  *
- * SEVEN VALUES, ONE OF THEM ABSENT. `stock` writes NO attribute — `src/flavors.css` has no block
+ * THREE VALUES, ONE OF THEM ABSENT. `stock` writes NO attribute — `src/flavors.css` has no block
  * for it, so it is the kit exactly as it ships and needs no CSS to be correct. That absence is the
  * same third state the two chrome axes use, and it is why the default costs nothing. Every other
  * id is written verbatim as `data-flavor` on `<html>`: THE IDS ARE THE ATTRIBUTE VALUES, so a
@@ -35,16 +35,19 @@ export const FLAVOR_STORAGE_KEY = "flavor";
 export const FLAVOR_ATTRIBUTE = "data-flavor";
 
 /**
- * Every flavor, in the order the picker lists them: the control first, then the families in
- * widening scope — light, type, shape.
+ * Every flavor, in the order the picker lists them: the control first, then the lights.
  *
- * FIVE WERE BUILT AND CUT, on the owner's verdict after seeing all twelve on screen: `masthead`,
- * `overlap`, `glass`, `editorial` and `crest`. A sixth, `cascade`, was not cut but PROMOTED — it
- * turned out to be describing a chrome option rather than a decoration, so it is now the third
- * value of the sidebar's and the header's own axis (`src/vibrant.css`). Nothing here paints the
- * rail or the bar any more; the axes that own those surfaces do.
+ * TWELVE WERE BUILT AND EIGHT WERE CUT, on the owner's verdict after seeing each on screen —
+ * `masthead`, `overlap`, `glass`, `editorial` and `crest` first, then `devtool`, `pebble` and
+ * `brutalist`. A ninth, `cascade`, was not cut but PROMOTED: it turned out to be describing a
+ * chrome option rather than a decoration, so it is now the third value of the sidebar's and the
+ * header's own axis (`src/vibrant.css`).
+ *
+ * WHAT SURVIVED IS ONE IDEA. Nothing here paints the rail or the bar — the axes that own those
+ * surfaces do — and nothing here changes type or shape either. A flavor is now strictly a light
+ * behind the page, which is why `glow` and `aurora` share every mechanic in `src/flavors.css`.
  */
-export const FLAVOR_IDS = ["stock", "glow", "aurora", "devtool", "pebble", "brutalist"] as const;
+export const FLAVOR_IDS = ["stock", "glow", "aurora"] as const;
 
 export type FlavorId = (typeof FLAVOR_IDS)[number];
 
@@ -54,8 +57,12 @@ export const DEFAULT_FLAVOR: FlavorId = "stock";
 /**
  * What a flavor mostly changes. The picker rules a line between families rather than labelling
  * them: a flat list of rows reads as a list, grouped rows read as a menu.
+ *
+ * `type` and `shape` went with the flavors that were the only members of them. The union keeps
+ * `none` and `light` only — a family nothing is in cannot be rendered, and leaving the names here
+ * would suggest the picker still groups by something it no longer has.
  */
-export type FlavorFamily = "none" | "light" | "type" | "shape";
+export type FlavorFamily = "none" | "light";
 
 export type Flavor = {
 	id: FlavorId;
@@ -88,24 +95,6 @@ export const FLAVORS: Flavor[] = [
 		name: "Aurora",
 		blurb: "Three colour fields drifting slowly behind the content.",
 		family: "light",
-	},
-	{
-		id: "devtool",
-		name: "Devtool",
-		blurb: "Mono labels, sharp corners and a faint engineering grid.",
-		family: "type",
-	},
-	{
-		id: "pebble",
-		name: "Pebble",
-		blurb: "Soft and rounded: pills, wide corners, tinted shadows.",
-		family: "shape",
-	},
-	{
-		id: "brutalist",
-		name: "Brutalist",
-		blurb: "No radius, thick ink borders, a hard offset shadow and one loud fill.",
-		family: "shape",
 	},
 ];
 

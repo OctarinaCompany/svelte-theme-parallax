@@ -41,8 +41,9 @@
 	 *
 	 * TWO-LINE ROWS, and a rule between families. The whole point of the picker is to be explored
 	 * by someone who has not seen these before, so each row carries the sentence that says what it
-	 * does; twelve of those read as a list rather than a menu, and the family rules break them
-	 * into five groups a glance can hold.
+	 * does. The rule matters less at three rows than it did at twelve, but it still separates the
+	 * one row that turns the axis OFF from the ones that turn it on, which is the distinction a
+	 * glance most needs.
 	 *
 	 * @see $lib/hooks/flavor.svelte.ts — the axis, and why `stock` writes no attribute
 	 */
@@ -55,7 +56,7 @@
 	<!--
 		The label names the CURRENT value, not just the action: `aria-label` replaces the trigger's
 		whole contents for a screen reader, and the contents here are one glyph, so a bare "Change
-		flavor" would leave no way to know which of the twelve is on.
+		flavor" would leave no way to know which one is on.
 	-->
 	<DropdownMenu.Trigger
 		class={cn(buttonVariants({ variant: "ghost", size: "icon" }), className)}

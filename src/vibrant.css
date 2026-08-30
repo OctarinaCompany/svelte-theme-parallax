@@ -83,12 +83,13 @@
  * when a stop is near-achromatic, which is the case two of these palettes are.
  *
  * WHY ITS OWN FILE. It is not a flavor, so it does not belong in `src/flavors.css`; and it is
- * imported AFTER that file on purpose, so that a flavor which decorates the same two surfaces —
- * `devtool` paints a grid on both — loses to the explicit chrome choice rather than winning on
- * source order. It stays out of `src/app.css` for now because that file is audited block by block
- * by the registry generator; publishing this axis is a separate, deliberate step, and one this
- * needs no per-theme generation for: every value is derived from `--primary`, so one block serves
- * all twelve palettes.
+ * imported AFTER that file on purpose, so that a flavor which decorated the same two surfaces
+ * would lose to the explicit chrome choice rather than winning on source order. None does today —
+ * the flavors that painted chrome were cut — but the ordering is the guarantee, not the current
+ * contents. It stays out of `src/app.css` for now because that file is audited block by block by
+ * the registry generator; publishing this axis is a separate, deliberate step, and one this needs
+ * no per-theme generation for: every value is derived from `--primary`, so one block serves all
+ * eighteen palettes.
  *
  * @see src/lib/hooks/sidebar-mode.svelte.ts — the axis, and why `vibrant` writes itself verbatim
  * @see src/lib/hooks/header-mode.svelte.ts — and why a vibrant rail forces the bar to speak up
