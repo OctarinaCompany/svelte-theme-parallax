@@ -26,13 +26,20 @@
 	import { setSidebarFloating, sidebarFloating } from "$lib/hooks/sidebar-behaviour.svelte.js";
 	import HeaderToggle from "$lib/components/navigation/HeaderToggle.svelte";
 	import SidebarModeToggle from "$lib/components/navigation/SidebarModeToggle.svelte";
+	import {
+		FLAVORS,
+		activeFlavor,
+		DEFAULT_FLAVOR,
+		setFlavor,
+		type FlavorId,
+	} from "$lib/hooks/flavor.svelte.js";
 	import { headerMode, setHeaderMode, type HeaderMode } from "$lib/hooks/header-mode.svelte.js";
 	import { setSidebarMode, sidebarMode, type SidebarMode } from "$lib/hooks/sidebar-mode.svelte.js";
 	import { href } from "$lib/hooks/route.svelte.js";
 
 	/**
 	 * The Settings page: every look-and-feel control the theme has, on one page, driving the
-	 * persisted state directly (six localStorage keys plus the sidebar cookie) — so a switch here
+	 * persisted state directly (seven localStorage keys plus the sidebar cookie) — so a switch here
 	 * and the header's own toggle are the same state, in both directions.
 	 *
 	 * IT IS NOW THE ONLY HOME for three of them. The header bar carried four unlabelled icon
@@ -42,7 +49,9 @@
 	 * `System` mode, since that toggle is a deliberate two-state Swap.
 	 *
 	 * The organising idea is scope: one section per surface — the document, the palette, the
-	 * sidebar, the header — which is the same widening order the icons used to sit in.
+	 * flavor, the sidebar, the header — which is the same widening order the icons used to sit in.
+	 * The flavor sits beside the palette because the two are read together: one chooses the ink,
+	 * the other what is drawn with it.
 	 */
 
 	const sidebar = useSidebar();
@@ -100,6 +109,7 @@
 	function resetAll(): void {
 		setMode("system");
 		setTheme(DEFAULT_THEME);
+		setFlavor(DEFAULT_FLAVOR);
 		setSidebarMode("default");
 		setHeaderMode("default");
 		setSidebarFloating(true);
@@ -227,6 +237,42 @@
 										</span>
 									{/each}
 								</span>
+							</button>
+						{/each}
+					</div>
+				</Card.Content>
+			</Card.Root>
+		</DocSection>
+
+		<DocSection title="Flavor">
+			{#snippet blurb()}
+				A fifth axis, layered over the palette and the mode rather than beside them: the palette
+				decides what the surfaces are painted with, and a flavor decides what is painted — a
+				gradient down the rail, a band on the bar, a light behind the page, a serif, a radius. Every
+				one derives its colours from the live tokens, so all twelve compose with all
+				{THEMES.length} palettes in both halves. The header's wand carries the same switch.
+			{/snippet}
+			<Card.Root>
+				<Card.Content>
+					<div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+						{#each FLAVORS as flavor (flavor.id)}
+							{@const active = flavor.id === activeFlavor.current}
+							<button
+								type="button"
+								aria-pressed={active}
+								onclick={() => setFlavor(flavor.id as FlavorId)}
+								class={cn(
+									"flex flex-col gap-1.5 rounded-lg border p-4 text-start transition-colors hover:bg-accent",
+									active && "border-primary bg-primary-subtle hover:bg-primary-subtle",
+								)}
+							>
+								<span class="flex items-center gap-2">
+									<span class="text-sm font-medium">{flavor.name}</span>
+									{#if active}
+										<CheckIcon class="ms-auto size-4 text-primary" />
+									{/if}
+								</span>
+								<span class="text-xs text-muted-foreground">{flavor.blurb}</span>
 							</button>
 						{/each}
 					</div>
