@@ -29,13 +29,22 @@
  * `100lvh`, not `dvh`: the rail is `inset-y-0` against the LAYOUT viewport, and `dvh` would
  * re-lay the gradient out on every iOS toolbar animation.
  *
- * THE DARK BAND SITS ABOVE THE PAGE, WHICH IS THE WHOLE FIX. Measured in this kit, every dark
- * `--background` is L 0.264-0.267 and every dark `--sidebar`/`--card` is L 0.297-0.304 — the
- * house elevation step is +0.035. The first cut of this surface ran 0.22 -> 0.14, which is BELOW
- * the page for its whole length: a hole rather than a panel, in a region of sRGB too narrow to
- * carry any chroma, which is exactly why it read as flat near-black. It now runs 0.42 -> 0.315,
- * the same 0.105 of travel as the light ramp, with its dimmest point still above the rail the kit
- * ships with neither value set.
+ * THE DARK BAND SITS JUST ABOVE THE PAGE, AND IT TOOK TWO CORRECTIONS TO LAND THERE. Measured in
+ * this kit, every dark `--background` is L 0.264-0.267 and every dark `--sidebar`/`--card` is
+ * L 0.297-0.304 — the house elevation step is +0.035.
+ *
+ * The first cut ran 0.22 -> 0.14, BELOW the page for its whole length: a hole rather than a
+ * panel, in a region of sRGB too narrow to carry any chroma, which is why it read as flat
+ * near-black. The second overcorrected to 0.42 -> 0.315 — above the page, but also above the
+ * LIGHT ramp's own 0.40 -> 0.28, so the surface looked the same in both halves and the dark mode
+ * appeared not to be doing anything at all.
+ *
+ * It now runs 0.37 -> 0.285. The foot is +0.02 over the page ground: a step a reader can see,
+ * without the panel floating free of the document the way a card does. And the chroma goes UP as
+ * the lightness comes down (multiplier 0.55 -> 0.62, ceiling 0.105 -> 0.125), which is not a
+ * second decision but the same one: saturation reads as C/L, so holding chroma while lowering
+ * lightness already reads as more colourful, and raising it as well is what keeps the surface
+ * vibrant while it gets darker.
  *
  * CHROMA IS CLAMPED TO THE sRGB GAMUT AT EACH STOP'S OWN LIGHTNESS, not to taste. The first cut
  * authored up to 0.044 past the gamut, and the browser clips with an algorithm that shifts hue —
@@ -112,24 +121,24 @@
 
 :root:is([data-sidebar-mode="vibrant"], [data-header-mode="vibrant"]).dark {
 	/*
-	 * The dark fallback is where the original bug actually lived: mixing the primary toward black
-	 * inherits its lightness, and in dark ten of the twelve palettes ship a primary that is
-	 * already a light tint. Mixing toward a slightly whitened page ground instead anchors both
-	 * stops above `--background` on all twelve.
+	 * The dark fallback is where the original bug lived: mixing the primary toward black inherits
+	 * its lightness, and in dark ten of the twelve palettes ship a primary that is already a light
+	 * tint. Mixing toward a slightly whitened page ground instead anchors both stops above
+	 * `--background` on all twelve — and the whitening is what sets how far above.
 	 */
 	--vibrant-a: color-mix(
 		in oklab,
 		var(--primary) 12%,
-		color-mix(in oklab, white 16%, var(--background))
+		color-mix(in oklab, white 9%, var(--background))
 	);
 	--vibrant-b: color-mix(
 		in oklab,
 		var(--primary) 6%,
-		color-mix(in oklab, white 6%, var(--background))
+		color-mix(in oklab, white 2%, var(--background))
 	);
 
 	/* `soft-light` scales its effect by the backdrop, so the 10% that dithers a near-white rail is
-	   close to inert over an L 0.42 one — and the dark ramp has fewer 8-bit codes to spend. */
+	   close to inert over an L 0.37 one — and the dark ramp has fewer 8-bit codes to spend. */
 	--vibrant-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='182' height='182'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.14'/%3E%3C/svg%3E");
 }
 
@@ -150,10 +159,10 @@
 
 	:root:is([data-sidebar-mode="vibrant"], [data-header-mode="vibrant"]).dark {
 		--vibrant-a: oklch(
-			from var(--primary) 0.42 clamp(0.045, calc(c * 0.55), 0.105) calc(h + var(--vibrant-torsion))
+			from var(--primary) 0.37 clamp(0.06, calc(c * 0.62), 0.125) calc(h + var(--vibrant-torsion))
 		);
 		--vibrant-b: oklch(
-			from var(--primary) 0.315 clamp(0.04, calc(c * 0.46), 0.09) calc(h - var(--vibrant-torsion))
+			from var(--primary) 0.285 clamp(0.045, calc(c * 0.48), 0.088) calc(h - var(--vibrant-torsion))
 		);
 	}
 }
