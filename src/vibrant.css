@@ -29,34 +29,45 @@
  * `100lvh`, not `dvh`: the rail is `inset-y-0` against the LAYOUT viewport, and `dvh` would
  * re-lay the gradient out on every iOS toolbar animation.
  *
- * THE DARK BAND STARTS FROM THE DEFAULT, and that anchor is the whole design rather than a
- * number picked by eye. Measured in this kit, every dark `--background` is L 0.264-0.267 and
- * every dark `--sidebar` — the colour the rail wears under `default`, which is the look the kit
- * already ships and the owner already accepts — is L 0.297-0.304.
+ * THE DARK BAND LANDS ON THE PAGE. The foot is `--background` taken VERBATIM — not a lightness
+ * pinned near it, the token itself — so at the far end of each limb the panel melts into the page
+ * with nothing left to drift, whatever the palette. Every dark background in this kit is a
+ * palette-hued neutral-ink at L 0.264-0.267 (the default palette's navy sits at 0.264 too), and
+ * because the foot is the page it also gives up its share of the torsion: it IS the page's hue.
  *
- * So the head is pinned at 0.305: the panel is exactly as light as it would be with the axis set
- * to `default`, and every drop of the flavor is spent on CHROMA instead. Nothing about vibrant
- * makes the rail brighter than the kit's own chrome; it makes it more coloured. The ramp then
- * falls to 0.245, a shade under the page, so the far end reads as the same surface with the light
- * off it rather than as a second panel.
+ * The head is pinned at 0.305, which is the lightness the rail ALREADY WEARS with the axis set to
+ * `default` (measured across this kit: every dark `--sidebar` is L 0.297-0.304). So vibrant does
+ * not lift the panel at all in dark — it only colours it, and then falls to the page. That is the
+ * owner's chosen intensity, and deriving it from a value the kit already states is what keeps it
+ * from drifting: the subtlest head that does not go DARKER than the kit's own chrome.
  *
- * THREE EARLIER CUTS ARE WHY THE ANCHOR IS WRITTEN DOWN. 0.22 -> 0.14 ran below the page for its
+ * Dark is therefore the light ramp's complement rather than its copy — light paints a coloured
+ * panel ON the page, dark tints the page's own ground at the corner and lets it go.
+ *
+ * FIVE EARLIER CUTS ARE WHY THE ANCHORS ARE WRITTEN DOWN. 0.22 -> 0.14 ran below the page for its
  * whole length: a hole, in a region of sRGB too narrow to carry any chroma, which is why it read
  * as flat near-black. 0.42 -> 0.315 overcorrected past the LIGHT ramp's own 0.40 -> 0.28, so both
  * halves rendered at the same lightness and switching modes appeared to do nothing. 0.37 -> 0.285
  * and 0.34 -> 0.268 were both still above the default the rail wears without the flavor, which is
- * what "too light in dark" meant. Deriving from a value the kit already states cannot drift that
- * way again.
+ * what "too light in dark" meant. 0.305 -> 0.245 kept that same head but ran the foot a shade
+ * UNDER the page, so the band spent its whole travel getting darker away from the corner and read
+ * as a shadowed surface rather than a lit one — the foot, not the head, was the error. And
+ * 0.33 -> page was the right shape at too much amplitude: a real lift above the default rail,
+ * which is more than the owner wants dark to announce. Both anchors are now tokens or measured
+ * bands the kit already states, and cannot drift these ways again.
  *
- * WHAT KEEPS IT A SURFACE AT THE FOOT is not lightness — there is none left to spend — but the
- * two things that do not depend on it: the chroma, which stays high all the way down, and the lit
- * hairline every edge is drawn with. Saturation reads as C/L, so holding chroma while lightness
- * falls already reads as more colourful.
+ * WHAT KEEPS IT A SURFACE AT THE FOOT is nothing — deliberately. The foot is the page, the melt
+ * is the point, and the only boundary left there is the lit hairline every edge is drawn with.
+ * The panel reads as a panel from its head: the chroma and the light both live at the elbow and
+ * fade together.
  *
  * CHROMA IS CLAMPED TO THE sRGB GAMUT AT EACH STOP'S OWN LIGHTNESS, not to taste. The first cut
  * authored up to 0.044 past the gamut, and the browser clips with an algorithm that shifts hue —
  * so eight of the twelve palettes rendered a colour nobody wrote. The floors are what the two
- * deliberately achromatic brands need to be a tinted surface rather than a grey one.
+ * deliberately achromatic brands need to be a tinted surface rather than a grey one. The dark
+ * head's cap is a VARIABLE (`--vibrant-cap`), because four hues are narrower at L 0.305 than the
+ * shared 0.115 cap assumes — harbor, evergreen, sandstone and ember carry measured per-theme caps
+ * below, where the shared clamp would hand the browser an out-of-gamut colour to mangle.
  *
  * A 12deg TORSION, because a ramp that holds one hue and only drops lightness reads as a colour
  * with the lights turned down rather than as a lit surface. It is also a gamut decision: teal and
@@ -91,10 +102,16 @@
 	--vibrant-ink-soft: color-mix(in oklab, white 70%, var(--vibrant-a));
 
 	/*
-	 * EVERY EDGE THE PANEL DRAWS IS A LIT ONE, and there is exactly one value for all of them.
-	 * A hairline on a painted surface is light catching an edge, so it is white at low alpha —
-	 * which also means it reads identically at any point of the field, where a solid colour would
-	 * be right at one stop and wrong at the other.
+	 * EVERY EDGE THE PANEL DRAWS IS A LIT ONE, and there is exactly one value for all of them in a
+	 * given mode. A hairline on a painted surface is light catching an edge, so it is white at low
+	 * alpha — which also means it reads identically at any point of the field, where a solid colour
+	 * would be right at one stop and wrong at the other.
+	 *
+	 * THE ALPHA IS PER-MODE, THOUGH, and the reason is what the edge has on its OTHER side. In
+	 * light the panel is dark and the page is near-white, so this hairline lands BETWEEN the two
+	 * and is read as part of that transition. In dark the page is as dark as the panel's own foot,
+	 * so the same white is lighter than the panel AND lighter than the page: an isolated bright
+	 * line where light mode has a fold. See the `.dark` block for the value and its anchor.
 	 */
 	--vibrant-edge: rgb(255 255 255 / 0.2);
 
@@ -126,23 +143,64 @@
 	--vibrant-torsion: -6;
 }
 
+/*
+ * The dark head's per-theme gamut caps — see the clamp note in the header. Measured sRGB ceilings
+ * at the head's own L 0.305, against what the shared `c * 0.62` asks for:
+ *
+ *   harbor     h190   asks 0.071   ceiling 0.0527
+ *   evergreen  h166   asks 0.065   ceiling 0.0633
+ *   sandstone  h74    asks 0.068   ceiling 0.0646
+ *   ember      h56    asks 0.084   ceiling 0.0746
+ *
+ * FOUR AND NOT TWO, because the list grows as the head comes down: the gamut narrows toward black,
+ * so lowering the anchor pulls more hues under the shared cap. That is a fact about sRGB, not a
+ * sign the approach is fraying — the eight palettes absent from this list have ceilings from 0.068
+ * (sepia) to 0.205 (parallax) and never touch it.
+ */
+:root[data-theme="harbor"].dark:is([data-sidebar-mode="vibrant"], [data-header-mode="vibrant"]) {
+	--vibrant-cap: 0.052;
+}
+:root[data-theme="evergreen"].dark:is([data-sidebar-mode="vibrant"], [data-header-mode="vibrant"]) {
+	--vibrant-cap: 0.063;
+}
+:root[data-theme="sandstone"].dark:is([data-sidebar-mode="vibrant"], [data-header-mode="vibrant"]) {
+	--vibrant-cap: 0.064;
+}
+:root[data-theme="ember"].dark:is([data-sidebar-mode="vibrant"], [data-header-mode="vibrant"]) {
+	--vibrant-cap: 0.074;
+}
+
 :root:is([data-sidebar-mode="vibrant"], [data-header-mode="vibrant"]).dark {
 	/*
-	 * The dark fallback is where the original bug lived: mixing the primary toward black inherits
-	 * its lightness, and in dark ten of the twelve palettes ship a primary that is already a light
-	 * tint. Mixing toward a slightly whitened page ground instead anchors both stops above
-	 * `--background` on all twelve — and the whitening is what sets how far above.
+	 * The dark fallback mixes toward the BACKGROUND, not toward black: mixing the primary toward
+	 * black inherits its lightness, and in dark ten of the twelve palettes ship a primary that is
+	 * already a light tint. A small primary share into a slightly whitened page ground lands the
+	 * head just above the page on all twelve — and the foot is the page itself, verbatim.
 	 */
 	--vibrant-a: color-mix(
 		in oklab,
-		var(--primary) 8%,
-		color-mix(in oklab, black 6%, var(--sidebar))
+		var(--primary) 7%,
+		color-mix(in oklab, white 2%, var(--background))
 	);
-	--vibrant-b: color-mix(
-		in oklab,
-		var(--primary) 5%,
-		color-mix(in oklab, black 20%, var(--sidebar))
-	);
+	--vibrant-b: var(--background);
+
+	/*
+	 * THE HAIRLINE, AT THE WEIGHT THE KIT ITSELF SPENDS ON A DARK SEPARATION — not a value picked
+	 * by eye. Measured on the default palette: `--sidebar-outline` sits 0.046 of lightness off the
+	 * dark panel, a card's `--border` sits 0.085 off the dark page, and the default dark
+	 * `--sidebar-border` is FLUSH with the panel at 0.000. That is the kit's whole vocabulary for
+	 * separating two dark surfaces: 0.04 to 0.09.
+	 *
+	 * A 20% white on this panel spends 0.149-0.165 — two to four times the kit's own step, which
+	 * is why the rail and the bar were drawing a visibly brighter outline in dark than anything
+	 * else on the page does. At 7% the same white spends 0.052-0.059: inside the kit's band, next
+	 * to the outline step rather than the card step, and the fold reads as a fold again.
+	 *
+	 * It stays a white alpha rather than becoming a solid, for the reason the light value gives —
+	 * one value has to be right at both ends of a ramp. Nothing accessible rides on it: control
+	 * boundaries take `--input` (solved ink, WCAG 1.4.11) and focus takes its own two-tone pair.
+	 */
+	--vibrant-edge: rgb(255 255 255 / 0.07);
 
 	/* `soft-light` scales its effect by the backdrop, so the 10% that dithers a near-white rail is
 	   close to inert over an L 0.31 one — and the dark ramp has fewer 8-bit codes to spend. */
@@ -166,11 +224,10 @@
 
 	:root:is([data-sidebar-mode="vibrant"], [data-header-mode="vibrant"]).dark {
 		--vibrant-a: oklch(
-			from var(--primary) 0.305 clamp(0.05, calc(c * 0.62), 0.115) calc(h + var(--vibrant-torsion))
+			from var(--primary) 0.305 clamp(0.05, calc(c * 0.62), var(--vibrant-cap, 0.115))
+				calc(h + var(--vibrant-torsion))
 		);
-		--vibrant-b: oklch(
-			from var(--primary) 0.245 clamp(0.04, calc(c * 0.5), 0.088) calc(h - var(--vibrant-torsion))
-		);
+		--vibrant-b: var(--background);
 	}
 }
 
