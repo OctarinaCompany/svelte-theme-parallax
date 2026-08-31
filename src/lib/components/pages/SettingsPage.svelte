@@ -1,5 +1,8 @@
 <script lang="ts">
 	import CheckIcon from "@lucide/svelte/icons/check";
+	import CircleOffIcon from "@lucide/svelte/icons/circle-off";
+	import Grid3x3Icon from "@lucide/svelte/icons/grid-3x3";
+	import GripIcon from "@lucide/svelte/icons/grip";
 	import ContrastIcon from "@lucide/svelte/icons/contrast";
 	import DropletIcon from "@lucide/svelte/icons/droplet";
 	import MonitorIcon from "@lucide/svelte/icons/monitor";
@@ -30,10 +33,21 @@
 	import {
 		BACKDROPS,
 		activeBackdrop,
+		backdropAngle,
+		backdropDensity,
+		BACKDROP_DENSITY_MAX,
+		BACKDROP_DENSITY_MIN,
 		DEFAULT_BACKDROP,
+		DEFAULT_BACKDROP_ANGLE,
+		DEFAULT_BACKDROP_DENSITY,
 		setBackdrop,
+		setBackdropAngle,
+		setBackdropDensity,
+		backdropById,
+		type BackdropCategory,
 		type BackdropId,
 	} from "$lib/hooks/backdrop.svelte.js";
+	import { Slider } from "$lib/components/ui/slider/index.js";
 	import { headerMode, setHeaderMode, type HeaderMode } from "$lib/hooks/header-mode.svelte.js";
 	import { setSidebarMode, sidebarMode, type SidebarMode } from "$lib/hooks/sidebar-mode.svelte.js";
 	import { href } from "$lib/hooks/route.svelte.js";
@@ -57,6 +71,21 @@
 
 	const sidebar = useSidebar();
 
+	/*
+	 * The category is DERIVED from the active backdrop rather than stored beside it. Two sources of
+	 * truth for "which group am I in" is how a picker ends up showing a category whose backdrop is
+	 * no longer selected. Choosing a category therefore means choosing its first backdrop, which is
+	 * also what makes the control feel like a switch rather than a filter.
+	 */
+
+	const activeCategory = $derived(backdropById(activeBackdrop.current).category);
+	const backdropsInCategory = $derived(BACKDROPS.filter((b) => b.category === activeCategory));
+
+	function chooseCategory(value: string): void {
+		const first = BACKDROPS.find((b) => b.category === (value as BackdropCategory));
+		if (first) setBackdrop(first.id);
+	}
+
 	type PageMode = "light" | "dark" | "system";
 
 	type Choice<T extends string> = {
@@ -65,6 +94,23 @@
 		hint: string;
 		icon: typeof SunIcon;
 	};
+
+	const backdropCategories: Choice<BackdropCategory>[] = [
+		{ value: "none", label: "None", hint: "The kit as it ships.", icon: CircleOffIcon },
+		{
+			value: "gradient",
+			label: "Gradient",
+			hint: "Light, from a bearing you choose.",
+			icon: SunIcon,
+		},
+		{ value: "grain", label: "Grain", hint: "Texture, at a density you choose.", icon: GripIcon },
+		{
+			value: "pattern",
+			label: "Pattern",
+			hint: "A drawn lattice, turned to taste.",
+			icon: Grid3x3Icon,
+		},
+	];
 
 	const modeChoices: Choice<PageMode>[] = [
 		{ value: "light", label: "Light", hint: "Always the light half.", icon: SunIcon },
@@ -123,6 +169,8 @@
 		setMode("system");
 		setTheme(DEFAULT_THEME);
 		setBackdrop(DEFAULT_BACKDROP);
+		setBackdropAngle(DEFAULT_BACKDROP_ANGLE);
+		setBackdropDensity(DEFAULT_BACKDROP_DENSITY);
 		setSidebarMode("default");
 		setHeaderMode("default");
 		setSidebarFloating(true);
@@ -261,34 +309,94 @@
 			{#snippet blurb()}
 				A fifth axis, layered over the palette and the mode rather than beside them: the palette
 				decides what the surfaces are painted with, and a backdrop decides what is painted behind
-				them. It does not change the page colour — that stays the palette's — it paints a light over
-				it. Each derives its colours from the live tokens, so both compose with all
-				{THEMES.length} palettes in both halves. The header's wand carries the same switch.
+				them. It does not change the page colour — that stays the palette's — it paints over it.
+				Every one derives its colours from the live tokens, so all {BACKDROPS.length - 1} compose with
+				all {THEMES.length} palettes in both halves. The header's wand carries the same switch.
 			{/snippet}
 			<Card.Root>
-				<Card.Content>
-					<div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-						{#each BACKDROPS as backdrop (backdrop.id)}
-							{@const active = backdrop.id === activeBackdrop.current}
-							<button
-								type="button"
-								aria-pressed={active}
-								onclick={() => setBackdrop(backdrop.id as BackdropId)}
-								class={cn(
-									"flex flex-col gap-1.5 rounded-lg border p-4 text-start transition-colors hover:bg-accent",
-									active && "border-primary bg-primary-subtle hover:bg-primary-subtle",
-								)}
-							>
-								<span class="flex items-center gap-2">
-									<span class="text-sm font-medium">{backdrop.name}</span>
-									{#if active}
-										<CheckIcon class="ms-auto size-4 text-primary" />
+				<Card.Content class="flex flex-col gap-6">
+					{@render choiceGrid(backdropCategories, activeCategory, chooseCategory)}
+
+					{#if activeCategory !== "none"}
+						<div class="flex flex-col gap-3 border-t pt-6">
+							<div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+								{#each backdropsInCategory as backdrop (backdrop.id)}
+									{@const active = backdrop.id === activeBackdrop.current}
+									<button
+										type="button"
+										aria-pressed={active}
+										onclick={() => setBackdrop(backdrop.id as BackdropId)}
+										class={cn(
+											"flex flex-col gap-1.5 rounded-lg border p-4 text-start transition-colors hover:bg-accent",
+											active && "border-primary bg-primary-subtle hover:bg-primary-subtle",
+										)}
+									>
+										<span class="flex items-center gap-2">
+											<span class="text-sm font-medium">{backdrop.name}</span>
+											{#if active}
+												<CheckIcon class="ms-auto size-4 text-primary" />
+											{/if}
+										</span>
+										<span class="text-xs text-muted-foreground">{backdrop.blurb}</span>
+									</button>
+								{/each}
+							</div>
+						</div>
+
+						<!--
+							One control per category, because each category has exactly one thing worth
+							adjusting. The angle is a bearing — 0 at the top, running clockwise — which is how
+							a person points at a light rather than how CSS measures an angle.
+						-->
+						<div class="flex flex-col gap-2 border-t pt-6">
+							{#if activeCategory === "grain"}
+								<div class="flex items-baseline justify-between gap-4">
+									<Label for="backdrop-density">Density</Label>
+									<span class="font-mono text-xs text-muted-foreground tabular-nums">
+										{backdropDensity.current}%
+									</span>
+								</div>
+								<p class="text-sm text-muted-foreground">
+									The scale of the grain. Lower is finer — the same noise, sampled smaller.
+								</p>
+								<Slider
+									id="backdrop-density"
+									type="single"
+									class="mt-2"
+									min={BACKDROP_DENSITY_MIN}
+									max={BACKDROP_DENSITY_MAX}
+									step={5}
+									value={backdropDensity.current}
+									onValueChange={setBackdropDensity}
+								/>
+							{:else}
+								<div class="flex items-baseline justify-between gap-4">
+									<Label for="backdrop-angle">Angle</Label>
+									<span class="font-mono text-xs text-muted-foreground tabular-nums">
+										{backdropAngle.current}°
+									</span>
+								</div>
+								<p class="text-sm text-muted-foreground">
+									{#if activeCategory === "pattern"}
+										Turns the lattice. The ring-based motifs — Dots, Kanoko, Shippō, Seigaiha,
+										Asanoha — are radially symmetric, so there is nothing in them to turn.
+									{:else}
+										Where the light comes from, as a bearing: 0° at the top, running clockwise.
 									{/if}
-								</span>
-								<span class="text-xs text-muted-foreground">{backdrop.blurb}</span>
-							</button>
-						{/each}
-					</div>
+								</p>
+								<Slider
+									id="backdrop-angle"
+									type="single"
+									class="mt-2"
+									min={0}
+									max={359}
+									step={1}
+									value={backdropAngle.current}
+									onValueChange={setBackdropAngle}
+								/>
+							{/if}
+						</div>
+					{/if}
 				</Card.Content>
 			</Card.Root>
 		</DocSection>

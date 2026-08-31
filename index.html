@@ -57,12 +57,13 @@
       Inline and non-module on purpose: a classic inline script blocks parsing and runs before
       anything paints, where `type="module"` would be deferred and defeat the point.
 
-      THE FIVE KEYS AND THE DEFAULT MUST MATCH THE APP. The first two are mode-watcher's own
+      THE SEVEN KEYS AND THE DEFAULT MUST MATCH THE APP. The first two are mode-watcher's own
       defaults; `mode-watcher-theme` is also stated as `THEME_STORAGE_KEY` in
       `src/lib/themes/index.ts`, `sidebar-mode` as `SIDEBAR_MODE_STORAGE_KEY` in
       `src/lib/hooks/sidebar-mode.svelte.ts`, `header-mode` as `HEADER_MODE_STORAGE_KEY` in
       `src/lib/hooks/header-mode.svelte.ts`, `backdrop` as `BACKDROP_STORAGE_KEY` in
-      `src/lib/hooks/backdrop.svelte.ts`, and `parallax` is `DEFAULT_THEME`, the `defaultTheme`
+      `src/lib/hooks/backdrop.svelte.ts` — which also names `backdrop-angle` and
+      `backdrop-density`, the backdrop's two adjustments — and `parallax` is `DEFAULT_THEME`, the `defaultTheme`
       passed to `ModeWatcher` in `App.svelte`. Nothing enforces the agreement across a plain HTML
       file, so it is written down on both ends.
 
@@ -80,10 +81,28 @@
       painted from `<body>` before the app has mounted anything, so echoing it here is the same
       kind of saving `data-theme` makes.
 
+      The two adjustments are the exception to the paragraph above: they are CUSTOM PROPERTIES
+      rather than attributes, because they carry a number from a continuum rather than a choice
+      from a known set. They are written only alongside a backdrop, since nothing else reads them.
+
       `try`/`catch` because reading `localStorage` throws outright when a browser is set to
       block storage; the failure then costs a flash, not a blank page.
     -->
 		<script>
+			/*
+			 * ABSENT IS NOT ZERO, which is the whole reason this is a function and not two inline
+			 * reads. `localStorage.getItem` answers `null` for a key that was never written, and
+			 * `Number(null)` is 0 — so the obvious one-liner writes `--backdrop-density: 0` on a
+			 * first visit, the grain tile scales to nothing, and the backdrop silently does not
+			 * paint. Testing the RAW string for absence before coercing is the fix.
+			 */
+			function echo(key, property) {
+				var raw = localStorage.getItem(key);
+				if (raw === null || raw === "") return;
+				var value = Number(raw);
+				if (!isFinite(value)) return;
+				document.documentElement.style.setProperty(property, String(value));
+			}
 			try {
 				var root = document.documentElement;
 				var mode = localStorage.getItem("mode-watcher-mode") || "system";
@@ -100,7 +119,19 @@
 				 * stored value and repairs the attribute at module evaluation.
 				 */
 				var backdrop = localStorage.getItem("backdrop");
-				if (backdrop && backdrop !== "none") root.setAttribute("data-backdrop", backdrop);
+				if (backdrop && backdrop !== "none") {
+					root.setAttribute("data-backdrop", backdrop);
+					/*
+					 * The two adjustments are NUMBERS, and unlike the id they are VALIDATED here. A
+					 * stale id costs one frame of no backdrop; a junk number costs the backdrop
+					 * entirely and for good, because `calc(1deg * var(--backdrop-angle))` with an
+					 * unparseable value invalidates the whole declaration rather than falling back.
+					 * `isFinite` on the coerced value is the cheapest form of that check; the hook
+					 * clamps to range on mount, which only narrows what already parses.
+					 */
+					echo("backdrop-angle", "--backdrop-angle");
+					echo("backdrop-density", "--backdrop-density");
+				}
 				/*
 				 * The two chrome axes are RELATIVE TO THE PAGE ("inverted" = the opposite half) and
 				 * independent of each other, but the stylesheets key on absolute light/dark

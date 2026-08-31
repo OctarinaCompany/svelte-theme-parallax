@@ -211,6 +211,7 @@
 	background-image: var(--backdrop-tile, none);
 	background-size: var(--backdrop-tile-size, 256px 256px);
 	background-position: var(--backdrop-tile-position, 0 0);
+	/* No transform here, deliberately — see the note on the patterns below. */
 	mask-image: var(--backdrop-tile-mask, none);
 	-webkit-mask-image: var(--backdrop-tile-mask, none);
 }
@@ -426,6 +427,7 @@
 	background-image: var(--backdrop-tile, none);
 	background-size: var(--backdrop-tile-size, 256px 256px);
 	background-position: var(--backdrop-tile-position, 0 0);
+	/* No transform here, deliberately — see the note on the patterns below. */
 	mask-image: var(--backdrop-tile-mask, none);
 	-webkit-mask-image: var(--backdrop-tile-mask, none);
 }
@@ -473,7 +475,11 @@
 	}
 }
 :root[data-backdrop="spotlight"] {
-	--backdrop-light: radial-gradient(70vw 46vh at 50% -6%, var(--backdrop-spot), transparent 72%);
+	--backdrop-light: radial-gradient(
+		96vw 82vh at var(--backdrop-from),
+		var(--backdrop-spot),
+		transparent 72%
+	);
 }
 
 /* HORIZON — the only one that is not a spot. A vertical ramp reads as a sky, so the light belongs
@@ -493,7 +499,11 @@
 	}
 }
 :root[data-backdrop="horizon"] {
-	--backdrop-light: linear-gradient(in oklab to bottom, var(--backdrop-sky), transparent 62%);
+	--backdrop-light: linear-gradient(
+		var(--backdrop-toward) in oklab,
+		var(--backdrop-sky),
+		transparent 62%
+	);
 }
 
 /* CORNER — glow's asymmetric sibling, thrown from the far corner instead of overhead. It is the
@@ -566,7 +576,34 @@
  * So the drawn patterns take one value, thin radiant geometry a second, and radiant geometry that
  * fills real area a third, each markedly lighter than the last.
  */
+/*
+ * THE TWO ADJUSTMENTS, resolved once here so no backdrop does its own trigonometry.
+ *
+ * `--backdrop-angle` is a bearing: 0 at the top, running clockwise, which is how a person points
+ * at a light source rather than how CSS measures an angle. `--backdrop-from` turns it into the
+ * pair of percentages a gradient wants for its centre, on a circle wide enough that the source
+ * sits just outside the viewport at every bearing — 62% rather than 50%, so the light always
+ * arrives from off-screen and never sits as a visible blob on the page.
+ *
+ * The sign and the phase are the whole subtlety. CSS `sin()`/`cos()` measure anticlockwise from
+ * the positive x-axis, and the y axis points DOWN, so a bearing b maps to
+ * `x = 50% + r·sin(b)` and `y = 50% − r·cos(b)`. Written the other way round it turns the wrong
+ * way, which looks almost right and is not.
+ *
+ * `--backdrop-toward` is the same bearing as a CSS angle for gradients that have a direction
+ * rather than a source: `linear-gradient(var(--backdrop-toward), …)` runs FROM the bearing TO its
+ * opposite, so light thrown from the north falls southward, which is what the radial ones do too.
+ *
+ * `--backdrop-turn` is for tiles, which are rotated rather than re-anchored.
+ */
 :root[data-backdrop] {
+	--backdrop-bearing: calc(1deg * var(--backdrop-angle, 0));
+	--backdrop-from-x: calc(50% + 62% * sin(var(--backdrop-bearing)));
+	--backdrop-from-y: calc(50% - 62% * cos(var(--backdrop-bearing)));
+	--backdrop-from: var(--backdrop-from-x) var(--backdrop-from-y);
+	--backdrop-toward: calc(180deg + var(--backdrop-bearing));
+	--backdrop-turn: var(--backdrop-bearing);
+
 	/* Drawn lattices — hairlines over a mostly empty tile. */
 	--backdrop-ink: color-mix(in oklab, var(--foreground) 14%, transparent);
 	--backdrop-tile-mask: linear-gradient(to bottom, transparent 320px, #000 640px);
@@ -617,7 +654,11 @@
  */
 :root[data-backdrop="grain"] {
 	--backdrop-tile: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='256' height='256'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.62' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)' opacity='.13'/%3E%3C/svg%3E");
-	--backdrop-tile-size: 256px 256px;
+	/* Density is the tile's scale: the same noise sampled larger or smaller, which is what reads
+	   as coarser or finer grain. Scaling a noise tile is the one case where resampling is not a
+	   defect — there is no structure to distort. */
+	--backdrop-tile-size: calc(2.56px * var(--backdrop-density, 100))
+		calc(2.56px * var(--backdrop-density, 100));
 	/* The one pattern that does NOT mask: noise has no phase, so the band can repeat it from its
 	   own corner, and the fold stays continuous — which is exactly what aurora relies on. */
 	--backdrop-tile-mask: none;
@@ -639,8 +680,8 @@
    the pitch that reads as paper rather than as a table. */
 :root[data-backdrop="grid"] {
 	--backdrop-tile:
-		linear-gradient(to right, var(--backdrop-ink) 1px, transparent 1px),
-		linear-gradient(to bottom, var(--backdrop-ink) 1px, transparent 1px);
+		linear-gradient(calc(90deg + var(--backdrop-turn)), var(--backdrop-ink) 1px, transparent 1px),
+		linear-gradient(var(--backdrop-turn), var(--backdrop-ink) 1px, transparent 1px);
 	--backdrop-tile-size: 24px 24px;
 }
 
@@ -649,10 +690,10 @@
    layer's list is fixed rather than variable. */
 :root[data-backdrop="graph"] {
 	--backdrop-tile:
-		linear-gradient(to right, var(--backdrop-ink) 1px, transparent 1px),
-		linear-gradient(to bottom, var(--backdrop-ink) 1px, transparent 1px),
-		linear-gradient(to right, var(--backdrop-ink) 1px, transparent 1px),
-		linear-gradient(to bottom, var(--backdrop-ink) 1px, transparent 1px);
+		linear-gradient(calc(90deg + var(--backdrop-turn)), var(--backdrop-ink) 1px, transparent 1px),
+		linear-gradient(var(--backdrop-turn), var(--backdrop-ink) 1px, transparent 1px),
+		linear-gradient(calc(90deg + var(--backdrop-turn)), var(--backdrop-ink) 1px, transparent 1px),
+		linear-gradient(var(--backdrop-turn), var(--backdrop-ink) 1px, transparent 1px);
 	--backdrop-tile-size: 100px 100px, 100px 100px, 20px 20px, 20px 20px;
 }
 
@@ -660,7 +701,7 @@
    with a direction, which is what makes it read as energy rather than as substrate. */
 :root[data-backdrop="hatch"] {
 	--backdrop-tile: repeating-linear-gradient(
-		45deg,
+		calc(45deg + var(--backdrop-turn)),
 		var(--backdrop-ink) 0 1px,
 		transparent 1px 12px
 	);
@@ -671,9 +712,21 @@
    loudest of the geometric family: it reads as depth even though nothing here has perspective. */
 :root[data-backdrop="isometric"] {
 	--backdrop-tile:
-		repeating-linear-gradient(30deg, var(--backdrop-ink) 0 1px, transparent 1px 22px),
-		repeating-linear-gradient(150deg, var(--backdrop-ink) 0 1px, transparent 1px 22px),
-		repeating-linear-gradient(90deg, var(--backdrop-ink) 0 1px, transparent 1px 22px);
+		repeating-linear-gradient(
+			calc(30deg + var(--backdrop-turn)),
+			var(--backdrop-ink) 0 1px,
+			transparent 1px 22px
+		),
+		repeating-linear-gradient(
+			calc(150deg + var(--backdrop-turn)),
+			var(--backdrop-ink) 0 1px,
+			transparent 1px 22px
+		),
+		repeating-linear-gradient(
+			calc(90deg + var(--backdrop-turn)),
+			var(--backdrop-ink) 0 1px,
+			transparent 1px 22px
+		);
 	--backdrop-tile-size: 44px 44px;
 }
 
@@ -802,7 +855,7 @@
  */
 :root[data-backdrop="beams"] {
 	--backdrop-light: repeating-linear-gradient(
-		102deg,
+		calc(var(--backdrop-toward) + 12deg),
 		transparent 0 26px,
 		var(--backdrop-radiant-soft) 34px 44px,
 		transparent 52px 92px
@@ -824,7 +877,7 @@
  */
 :root[data-backdrop="sunrise"] {
 	--backdrop-light: radial-gradient(
-		circle at 50% 118%,
+		circle at var(--backdrop-from),
 		var(--backdrop-radiant-soft) 0 26vmin,
 		transparent 26vmin 31vmin,
 		var(--backdrop-radiant-soft) 31vmin 38vmin,
@@ -893,7 +946,7 @@
  */
 :root[data-backdrop="corona"] {
 	--backdrop-light: radial-gradient(
-		circle at 74% 22%,
+		circle at var(--backdrop-from),
 		transparent 0 27vmin,
 		var(--backdrop-radiant-soft) 31vmin,
 		transparent 37vmin
@@ -972,6 +1025,20 @@
  * stencil, because its spokes are a subset of a triangular lattice and a gradient cannot omit
  * selected segments.
  *
+ * THE ANGLE REACHES THE DIRECTIONAL PATTERNS ONLY, and that is a limit of the medium rather than
+ * an omission. A pattern made of straight rules — grid, graph, hatch, isometric, uroko — carries
+ * its direction in the gradients themselves, so the bearing simply adds to each one and the whole
+ * lattice turns. A pattern built from rings has no direction to add to: dots, kanoko, shippō,
+ * seigaiha and asanoha are radially symmetric, and turning them would mean rotating the LAYER.
+ *
+ * That was tried and removed. The layer also carries the mask that fades the pattern out below the
+ * header, and a mask rides the same transform as its element — so the fade left the horizontal and
+ * ran diagonally, and the pattern reappeared under the bar at most bearings. Covering the corners a
+ * rotation leaves empty then means oversizing the layer, which moves the mask's own origin away
+ * from the top of the screen, so the fade lands somewhere else again. Two compensations chasing
+ * each other is how a seam gets shipped. Turning a dot lattice or a ring of circles is close to a
+ * no-op anyway — the symmetry is the reason there is nothing to turn.
+ *
  * THE MOTIFS THEMSELVES ARE CENTURIES OLD AND NOT COPYRIGHTABLE — only a particular vector file
  * would be, and none is used here; the geometry below is authored from the construction rules.
  * Names are the traditional transliterations, which are pattern names rather than anyone's brand.
@@ -1043,8 +1110,16 @@
  */
 :root[data-backdrop="uroko"] {
 	--backdrop-tile:
-		linear-gradient(135deg, var(--backdrop-ink) 0 1px, transparent 1px),
-		linear-gradient(-135deg, var(--backdrop-ink) 0 1px, transparent 1px);
+		linear-gradient(
+			calc(135deg + var(--backdrop-turn)),
+			var(--backdrop-ink) 0 1px,
+			transparent 1px
+		),
+		linear-gradient(
+			calc(-135deg + var(--backdrop-turn)),
+			var(--backdrop-ink) 0 1px,
+			transparent 1px
+		);
 	--backdrop-tile-size: 28px 28px;
 }
 

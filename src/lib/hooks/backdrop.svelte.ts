@@ -46,6 +46,29 @@ export const BACKDROP_STORAGE_KEY = "backdrop";
 export const BACKDROP_ATTRIBUTE = "data-backdrop";
 
 /**
+ * THE TWO ADJUSTMENTS, and why they are custom properties rather than attributes.
+ *
+ * An attribute can carry a choice from a known set — which is what `data-backdrop` is. These are
+ * continuous, so they are written as custom properties on `<html>` and read by the stylesheet with
+ * `var()`. That also means a backdrop that ignores an adjustment costs nothing: an unread property
+ * is inert, so `grain` never looks at the angle and no pattern looks at the density.
+ *
+ * Both are stored as bare NUMBERS, not as `45deg` or `120%`. The stylesheet multiplies by the unit
+ * it needs (`calc(1deg * var(--backdrop-angle))`), which keeps the stored value arithmetic and lets
+ * the same number drive a rotation in one place and a trigonometric position in another.
+ */
+export const BACKDROP_ANGLE_STORAGE_KEY = "backdrop-angle";
+export const BACKDROP_DENSITY_STORAGE_KEY = "backdrop-density";
+
+/** Bearing the light comes from, degrees clockwise from the top. Wraps, so 360 is 0. */
+export const DEFAULT_BACKDROP_ANGLE = 0;
+
+/** Grain tile scale, as a percentage of its natural size. Lower is finer. */
+export const DEFAULT_BACKDROP_DENSITY = 100;
+export const BACKDROP_DENSITY_MIN = 40;
+export const BACKDROP_DENSITY_MAX = 220;
+
+/**
  * Every backdrop, in the order the picker lists them: the control first, then the lights.
  *
  * TWELVE WERE BUILT AND EIGHT WERE CUT, on the owner's verdict after seeing each on screen —
@@ -99,11 +122,28 @@ export const DEFAULT_BACKDROP: BackdropId = "none";
  * The picker still rules a line, but it draws it where the meaning actually is — between the row
  * that turns the axis OFF and the rows that turn it on — which it can read from the id.
  */
+/**
+ * WHAT A BACKDROP IS MADE OF, which is also how it is adjusted.
+ *
+ * `gradient` — anchored light. One knob: the ANGLE the light comes from, as a bearing round the
+ *              viewport, 0 at the top and running clockwise. A radial moves its source along that
+ *              bearing; a linear turns to face it. Both are the same idea — where is the sun.
+ * `grain`    — texture. One knob: DENSITY, which is the tile's scale. Finer grain is the same
+ *              noise sampled smaller, not a different noise.
+ * `pattern`  — drawn, tiled. One knob: the ANGLE the lattice is turned to.
+ * `none`     — the axis off. No knobs, and no attribute either.
+ *
+ * The category is what the Settings page groups by, and what decides which control it shows. It is
+ * derived from the backdrop rather than stored: a backdrop cannot change category at runtime.
+ */
+export type BackdropCategory = "none" | "gradient" | "grain" | "pattern";
+
 export type Backdrop = {
 	id: BackdropId;
 	name: string;
 	/** One line, for the picker's row and the Settings card. */
 	blurb: string;
+	category: BackdropCategory;
 };
 
 /**
@@ -116,121 +156,145 @@ export const BACKDROPS: Backdrop[] = [
 		id: "none",
 		name: "None",
 		blurb: "The kit exactly as it ships. Nothing is painted.",
+		category: "none",
 	},
 	{
 		id: "spotlight",
 		name: "Spotlight",
 		blurb: "One wide light from the top. The quietest of them.",
+		category: "gradient",
 	},
 	{
 		id: "horizon",
 		name: "Horizon",
 		blurb: "A sky: lighter at the head, weightier at the foot.",
+		category: "gradient",
 	},
 	{
 		id: "corner",
 		name: "Corner",
 		blurb: "A low light thrown from the far corner of the page.",
+		category: "gradient",
 	},
 	{
 		id: "glow",
 		name: "Glow",
 		blurb: "One soft brand spotlight, hanging above the page.",
+		category: "gradient",
 	},
 	{
 		id: "weave",
 		name: "Weave",
 		blurb: "Two fields blended into each other, quietly iridescent.",
+		category: "gradient",
 	},
 	{
 		id: "aurora",
 		name: "Aurora",
 		blurb: "Three colour fields drifting slowly behind the content.",
+		category: "gradient",
 	},
 	{
 		id: "grain",
 		name: "Grain",
 		blurb: "Paper grain over a low wash. The one you feel more than see.",
+		category: "grain",
 	},
 	{
 		id: "dots",
 		name: "Dots",
 		blurb: "A fine dot lattice, fading in below the header.",
+		category: "pattern",
 	},
 	{
 		id: "grid",
 		name: "Grid",
 		blurb: "A one-pixel rule every 24px. Blueprint, not table.",
+		category: "pattern",
 	},
 	{
 		id: "graph",
 		name: "Graph",
 		blurb: "The grid with a heavier rule every fifth line.",
+		category: "pattern",
 	},
 	{
 		id: "hatch",
 		name: "Hatch",
 		blurb: "Diagonal hatching, drawn rather than printed.",
+		category: "pattern",
 	},
 	{
 		id: "isometric",
 		name: "Isometric",
 		blurb: "Three axes of rule work. Depth without perspective.",
+		category: "pattern",
 	},
 	{
 		id: "rays",
 		name: "Rays",
 		blurb: "Light fanning from off-corner, its apex off past the edge.",
+		category: "gradient",
 	},
 	{
 		id: "hiashi",
 		name: "Hiashi",
 		blurb: "A twelve-rayed sun low on the page, after the old crest.",
+		category: "gradient",
 	},
 	{
 		id: "sunrise",
 		name: "Sunrise",
 		blurb: "Wide bands rising from below the foot of the page.",
+		category: "gradient",
 	},
 	{
 		id: "beams",
 		name: "Beams",
 		blurb: "Parallel shafts of light falling across the page.",
+		category: "gradient",
 	},
 	{
 		id: "ripple",
 		name: "Ripple",
 		blurb: "Rings widening as they go, the way water does.",
+		category: "gradient",
 	},
 	{
 		id: "corona",
 		name: "Corona",
 		blurb: "A single ring with nothing inside it. An eclipse.",
+		category: "gradient",
 	},
 	{
 		id: "seigaiha",
 		name: "Seigaiha",
 		blurb: "Overlapping wave crests — calm seas, and luck without end.",
+		category: "pattern",
 	},
 	{
 		id: "shippo",
 		name: "Shippō",
 		blurb: "Interlocking circles: the seven treasures, endlessly linked.",
+		category: "pattern",
 	},
 	{
 		id: "asanoha",
 		name: "Asanoha",
 		blurb: "The hemp-leaf star lattice, a wish for straight growth.",
+		category: "pattern",
 	},
 	{
 		id: "uroko",
 		name: "Uroko",
 		blurb: "Scales, alternating. Worn as a charm against harm.",
+		category: "pattern",
 	},
 	{
 		id: "kanoko",
 		name: "Kanoko",
 		blurb: "Fawn spots — each ring one tied knot of shibori dye.",
+		category: "pattern",
 	},
 ];
 
@@ -268,7 +332,44 @@ function persist(value: BackdropId): void {
 	}
 }
 
+/**
+ * The adjustments are read the same defensive way the id is: storage can be absent, blocked, or
+ * hold anything at all. A number that does not parse, or lands outside its range, falls back
+ * rather than reaching the stylesheet — `calc()` with a junk value invalidates the whole
+ * declaration, which would take the backdrop out entirely rather than degrade it.
+ */
+function readNumber(key: string, fallback: number, min: number, max: number): number {
+	try {
+		if (typeof localStorage === "undefined") return fallback;
+		const raw = localStorage.getItem(key);
+		if (raw === null) return fallback;
+		const value = Number(raw);
+		if (!Number.isFinite(value)) return fallback;
+		return Math.min(max, Math.max(min, Math.round(value)));
+	} catch {
+		return fallback;
+	}
+}
+
+function persistNumber(key: string, value: number): void {
+	try {
+		if (typeof localStorage === "undefined") return;
+		localStorage.setItem(key, String(value));
+	} catch {
+		/* storage blocked — the property is still applied, it just will not survive a reload */
+	}
+}
+
 let current = $state<BackdropId>(read());
+let angle = $state<number>(readNumber(BACKDROP_ANGLE_STORAGE_KEY, DEFAULT_BACKDROP_ANGLE, 0, 360));
+let density = $state<number>(
+	readNumber(
+		BACKDROP_DENSITY_STORAGE_KEY,
+		DEFAULT_BACKDROP_DENSITY,
+		BACKDROP_DENSITY_MIN,
+		BACKDROP_DENSITY_MAX,
+	),
+);
 
 // Normalise storage once, so an unknown id is replaced by the one the app is actually showing —
 // which is also what stops the first-paint script writing it again on the next load.
@@ -294,7 +395,42 @@ $effect.root(() => {
 			document.documentElement.setAttribute(BACKDROP_ATTRIBUTE, current);
 		}
 	});
+
+	// The adjustments, in their own effect so moving a slider does not re-run the attribute write.
+	$effect(() => {
+		if (typeof document === "undefined") return;
+		document.documentElement.style.setProperty("--backdrop-angle", String(angle));
+		document.documentElement.style.setProperty("--backdrop-density", String(density));
+	});
 });
+
+/** Bearing the light comes from, in degrees. Read-only; write through {@link setBackdropAngle}. */
+export const backdropAngle = {
+	get current(): number {
+		return angle;
+	},
+};
+
+/** Grain scale as a percentage. Read-only; write through {@link setBackdropDensity}. */
+export const backdropDensity = {
+	get current(): number {
+		return density;
+	},
+};
+
+/** Turn the light. Wraps at 360 so a slider can run round without a discontinuity. */
+export function setBackdropAngle(value: number): void {
+	const next = ((Math.round(value) % 360) + 360) % 360;
+	angle = next;
+	persistNumber(BACKDROP_ANGLE_STORAGE_KEY, next);
+}
+
+/** Scale the grain. Clamped, because an unclamped tile size is a blank page or a grey one. */
+export function setBackdropDensity(value: number): void {
+	const next = Math.min(BACKDROP_DENSITY_MAX, Math.max(BACKDROP_DENSITY_MIN, Math.round(value)));
+	density = next;
+	persistNumber(BACKDROP_DENSITY_STORAGE_KEY, next);
+}
 
 /** The active backdrop, always a known id. Read-only; write through {@link setBackdrop}. */
 export const activeBackdrop = {
