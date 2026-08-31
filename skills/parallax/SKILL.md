@@ -119,6 +119,13 @@ Before adding or changing anything:
   - No scroll container may sit between the canvas and `PageHeader`: the sticky resolves
     against the nearest scrolling ancestor, and a wrapper that scrolls steals it. That is
     what the `overflow-x: hidden` rule under Installation is about.
+  - Sticky chrome you add inside the canvas needs a negative `scroll-margin-top`. The canvas
+    carries the `scroll-padding-top` AND resolves your sticky, so a toolbar or filter bar of
+    your own pinned at `top-0` sits inside that reserve permanently and reads as obscured:
+    focus landing in it scrolls the canvas after something it can never reveal, and the page
+    jumps. Stick it below the reserve, or cancel the reserve on the element AND its
+    descendants (`scroll-margin` does not inherit; over-cancelling is inert).
+    `parallax-shell` ships that cancellation for `PageHeader` alone.
 
 **Theming and tokens** — see [references/theming.md](references/theming.md)
 
@@ -255,7 +262,7 @@ Before adding or changing anything:
 4. Wire data at the root the project already owns (its router lives there too).
 5. Validate: `npx svelte-check`, then run the app and check both modes and at least one
    non-default palette before calling styling done. `svelte-check` says nothing about the
-   theme — run the eight console checks in
+   theme — run the nine console checks in
    [references/bootstrap.md](references/bootstrap.md#7-validate), which catch the failures
    that render fine and are wrong.
 

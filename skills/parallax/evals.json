@@ -92,6 +92,19 @@
 				"Leaves no `svh` anywhere in the shell — not on the panel, not on the provider, not on the inset",
 				"Writes Svelte 5 runes syntax and semantic tokens (bg-sidebar, border-sidebar-outline), no raw colour"
 			]
+		},
+		{
+			"name": "sticky-toolbar-inside-the-canvas",
+			"prompt": "This list page is long. Make the filter toolbar above the table stick to the top so it stays reachable while the rows scroll past.",
+			"expectations": [
+				"Knows the canvas (Sidebar.Inset) is the one scroll container and carries scroll-padding-top: calc(var(--page-header-height) + 0.5rem), so anything pinned at top-0 inside it lands in that reserve",
+				"Does not write a bare `sticky top-0`: it renders under the header's own sticky wrapper, and it parks the toolbar's controls inside the reserve permanently, where the browser reads every one of them as obscured and scrolls to reveal something that travels with the scrollport",
+				"Sticks it at the full depth of the reserve or lower — `top-[calc(var(--page-header-height)+0.5rem)]`, never the bar's own `top-16` — because any PART of a control left inside the band is enough to trigger the scroll, and the extra half-rem is the floating variant's inset",
+				"If the toolbar must sit at top-0 (a canvas rendering no PageHeader still carries the reserve), cancels it with a NEGATIVE scroll-margin-top at least a reserve deep, on the toolbar AND its descendants — scroll-margin does not inherit and the browser scrolls to the focused control, not to its container; over-cancelling is inert, since focus scrolls into view only if needed",
+				"Names the symptom the offset prevents — a menu in the toolbar closing, or Shift+Tab back into it, throwing the canvas hundreds of pixels upwards or clean to the top — instead of treating it as a z-index, overflow or stacking fault",
+				"Adds no scroll handler, no saved-and-restored scrollTop and no preventScroll patch: bits-ui's focus scope restores with a bare .focus() and Shift+Tab is the browser's own sequential-focus scroll, so the answer has to be geometric",
+				"Writes Svelte 5 runes syntax and semantic tokens (bg-background, border), no raw colour and no window.scrollY"
+			]
 		}
 	]
 }

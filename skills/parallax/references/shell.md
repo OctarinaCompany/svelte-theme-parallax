@@ -93,6 +93,10 @@ the `<main>`, which `AppShell` gives `id="main-content"` — is the one scroll c
 	scroll-padding-top: calc(var(--page-header-height) + 0.5rem);
 }
 
+:where([data-slot="page-header"], [data-slot="page-header"] *) {
+	scroll-margin-top: calc((var(--page-header-height) + 0.5rem) * -2);
+}
+
 @media print {
 	:where([data-slot="sidebar-wrapper"]) {
 		height: auto;
@@ -133,7 +137,21 @@ keeps the canvas from widening. The rail's own rule,
 the fixed rail by `inset-y-0` instead of `svh`, and still matters to a consumer who unlocks
 the document.
 
-What it means for your code, as five pairs.
+The negative `scroll-margin-top` on the header is the other half of that reserve, and it is
+not optional: the bar is pinned at `top: 0` and is never taller than the reserve is deep, so
+its own controls sit inside the band permanently, the browser reads every one of them as
+obscured, and focus landing on one scrolls the canvas to reveal something that travels with
+the scrollport and can never be revealed — measured as a 361px jump upwards, or clean to the
+top when there was less than that above. It bites on every dialog, menu or popover in the bar
+closing (bits-ui's focus scope restores focus with a bare `.focus()`, no `preventScroll`) and
+again on Shift+Tab back into the bar, which is the browser's own sequential-focus scroll and
+reachable by no script at all. Two bars' worth rather than one, because the auto-hide option
+translates the bar a further full height off the top; over-cancelling is inert, since focus
+scrolls into view only if needed. Everything outside the bar keeps the reserve. If you set a
+different `scroll-padding-top` — on the canvas, or on `:root` once the document scrolls again
+— mirror it here.
+
+What it means for your code, as six pairs.
 
 Incorrect — a right-hand rail sized like a viewport (the recipe the fixed rail used to
 carry; on iPad it is cut to the small viewport and a strip of page shows under it):
@@ -235,6 +253,50 @@ Correct — `clip` is not a scroll container:
 </div>
 ```
 
+Incorrect — sticky chrome of your own at the top of the canvas: a filter bar over a long
+table, a second header, a section nav. Nothing between it and the canvas scrolls, so it
+sticks to the CANVAS and inherits the canvas's reserve, which parks its controls inside the
+band permanently — the same trap the bar's negative `scroll-margin-top` cancels, on a box the
+shipped rule has no selector for. A menu in it closing, or Shift+Tab from the rows below,
+throws the page upwards:
+
+```svelte
+<div class="sticky top-0 z-30 flex items-center gap-2 bg-background py-3">
+	<Input bind:value={query} class="w-64 min-w-0" placeholder="Filter rows" />
+	<Button variant="outline">Columns</Button>
+</div>
+<Table.Root>…</Table.Root>
+```
+
+Correct — park it at the reserve's depth rather than at zero. Below the band nothing is
+obscured, so nothing scrolls; and it is where the chrome belongs anyway, since at `top-0` it
+sits under the bar's `z-40` — the same bug wearing its visible half:
+
+```svelte
+<div class="sticky top-[calc(var(--page-header-height)+0.5rem)] z-30 flex items-center gap-2 bg-background py-3">
+	…
+</div>
+```
+
+If it truly has to sit at zero — a page you render without `PageHeader` still gets the
+reserve, because the canvas rule is unconditional — cancel it the way `parallax-shell`
+cancels it for the bar. Stamp a `data-slot` of your own on the box and key a rule off it: a
+class on the box alone will not do, because `scroll-margin` does not inherit and the browser
+scrolls to the focused CONTROL, so the rule has to reach the descendants. The doubled value
+is the shipped one; over-cancelling is inert, and it covers chrome of yours that hides on
+scroll as well:
+
+```css
+:where([data-slot="filter-bar"], [data-slot="filter-bar"] *) {
+	scroll-margin-top: calc((var(--page-header-height) + 0.5rem) * -2);
+}
+```
+
+A sticky `Table.Header` needs none of this: `Table.Root` wraps the table in its own
+`overflow-x-auto` box, so that sticky resolves against a container carrying no scroll-padding
+at all. The jump needs both halves — scroll-padding on the box the sticky resolves against,
+and the sticky sitting inside the band it reserves.
+
 **Printing** is the one escape the kit ships: under `@media print` both boxes grow and
 release their overflow, so a print is the whole page rather than one viewport.
 
@@ -305,6 +367,12 @@ Contracts that make overrides safe:
   canvas and the header both steals the sticky and becomes what auto-hide measures, and a
   page that scrolls a box of its own while the canvas never moves gives the bar nothing to
   react to. [The scroll model](#the-scroll-model) has the pairs.
+- **Everything in the bar carries a negative `scroll-margin-top`**, the markup you pass to
+  `search` and `controls` included: it cancels the canvas's reserve, so focus landing in the
+  bar — a menu of yours closing, Shift+Tab from the page below — cannot move the page. The one
+  thing it breaks is an explicit `scrollIntoView({ block: "start" })` on a control in the bar,
+  which now overshoots by a bar's height; that control takes the offset back with
+  `scroll-mt-0!` (the `!` because Parallax CSS is unlayered).
 
 Incorrect — search field without the giver classes (clips the right-hand controls as soon
 as the bar is over-subscribed):

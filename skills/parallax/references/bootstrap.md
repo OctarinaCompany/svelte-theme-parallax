@@ -254,7 +254,7 @@ A clean `svelte-check` here is meaningful, and narrow: it proves the aliases res
 dependency versions agree, and `utils` landed. It proves **nothing about the theme**. Every
 failure this file warns about is silent at build time — a missing base layer, a stylesheet
 merge that stopped halfway, a canvas that scrolls sideways — and each one leaves a page
-that renders, so *"it displays"* is not a check. Load the page and run these eight:
+that renders, so *"it displays"* is not a check. Load the page and run these nine:
 
 ```js
 (() => {
@@ -275,6 +275,8 @@ that renders, so *"it displays"* is not a check. Load the page and run these eig
 	const inset = document.querySelector('[data-slot="sidebar-inset"]');
 	const insetMin = inset && getComputedStyle(inset).minWidth;
 	const insetOverflow = inset && getComputedStyle(inset).overflowY;
+	const header = document.querySelector('[data-slot="page-header"]');
+	const headerScrollMargin = header && getComputedStyle(header).scrollMarginTop;
 	const wrapper = document.querySelector('[data-slot="sidebar-wrapper"]');
 	const wrapperOverflow = wrapper && getComputedStyle(wrapper).overflowY;
 	// Wide content pans the canvas, never the root, under the clipped wrapper: measure the inset.
@@ -291,6 +293,7 @@ that renders, so *"it displays"* is not a check. Load the page and run these eig
 		{ check: "shell pinned", ok: wrapperOverflow === "clip", detail: wrapper ? `wrapper overflow-y: ${wrapperOverflow}` : "no [data-slot=sidebar-wrapper] on this page" },
 		{ check: "app scroll", ok: scroller.scrollHeight <= scroller.clientHeight + 1, detail: `${scroller.scrollHeight}px of document in a ${scroller.clientHeight}px window` },
 		{ check: "canvas scrolls", ok: insetOverflow === "auto", detail: inset ? `inset overflow-y: ${insetOverflow}` : "no [data-slot=sidebar-inset] on this page" },
+		{ check: "bar exempt", ok: parseFloat(headerScrollMargin) < 0, detail: header ? `page-header scroll-margin-top: ${headerScrollMargin}` : "no [data-slot=page-header] on this page" },
 	]);
 })();
 ```
@@ -305,6 +308,7 @@ that renders, so *"it displays"* is not a check. Load the page and run these eig
 | **shell pinned** | The wrapper rule never reached the stylesheet — the shell scrolls the document, Safari collapses its toolbars on iPad. Same cause as **kit CSS**, same fix; or an `overflow-*` utility on the provider took the clip back. |
 | **app scroll** | The DOCUMENT scrolls, which the shell is built to prevent: the wrapper rule (`100dvh` + `overflow: clip`) never reached the stylesheet, or a utility on the provider overrode it. On iPad the browser toolbars collapse as you scroll, and a panel sized `h-svh` shows a strip at its foot. Note the check can only fail on a page taller than the window — the short page step 6 leaves you passes it either way, which is what **shell pinned** is for. |
 | **canvas scrolls** | `Sidebar.Inset` is not a scroll container: the shell CSS predates the scroll model, or an `overflow-*` utility on the inset overrode it. Either nothing scrolls, or the document does. |
+| **bar exempt** | The header is not exempt from the canvas's scroll reserve: the shell CSS predates the fix. Its controls sit inside `scroll-padding-top` permanently, so closing any menu in the bar — or Shift+Tab back into it — throws the canvas hundreds of pixels upwards, or clean to the top. Re-run the `add` with `--overwrite`. Nothing looks wrong until someone opens something in the bar, which is why it is a check and not an eye test. |
 
 Compare colours as **resolved** values, never a computed colour against a raw token: a
 custom property reads back as its literal text (`#3c354a`) while `getComputedStyle` returns

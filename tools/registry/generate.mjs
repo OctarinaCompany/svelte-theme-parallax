@@ -332,11 +332,11 @@ const CONTROLS = {
 /**
  * The selectors `parallax-shell` lifts out of app.css, in source order — which matters once:
  * the grouped active-marker block ties on specificity with the two placement blocks after it,
- * so their order IS the cascade. 14 sidebar restyle blocks, the 5 layout rules that make the
+ * so their order IS the cascade. 14 sidebar restyle blocks, the 6 layout rules that make the
  * shell the viewport (the rail's height, the wrapper pin, the document's bounce cut at the root,
- * the canvas's scroll role, the print escape), 13 sheet/mobile-drawer blocks (including both
- * backdrop keyframes), and the menu-cursor rule every shell dropdown renders through.
- * Deliberately absent: `@layer base` and
+ * the canvas's scroll role, the sticky bar's exemption from that canvas's scroll reserve, and the
+ * print escape), 13 sheet/mobile-drawer blocks (including both backdrop keyframes), and the
+ * menu-cursor rule every shell dropdown renders through. Deliberately absent: `@layer base` and
  * the popover shadow-kill rule — both are application-global opinions a shell item has no
  * business imposing (the docs say so instead).
  */
@@ -366,6 +366,9 @@ const SHELL_CSS_SELECTORS = [
 	':where(:root:has([data-slot="sidebar-wrapper"]))',
 	// The canvas beside the rail: the one box that scrolls, and not widened by a wide table.
 	':where([data-slot="sidebar-inset"])',
+	// The header's exemption from that canvas's scroll reserve, without which focus returning to
+	// any control in the sticky bar throws the page towards the top.
+	':where([data-slot="page-header"], [data-slot="page-header"] *)',
 	// Print takes the pin and the scroll role back, so a sheet gets the page and not a viewport.
 	"@media print",
 	// The mobile drawer the sidebar opens in below the breakpoint, plus its scrim — and the
@@ -490,6 +493,7 @@ const SHELL = {
 		"",
 		"- The shell is the viewport. The CSS this item adds pins `Sidebar.Provider`'s wrapper to `100dvh` and clips it (`AppShell` narrows that to the visual viewport's height, as `--shell-height`, while a software keyboard is up), cuts the document's own iOS rubber band at the root, and makes `Sidebar.Inset` — the `<main>` — the one scroll container, so the document never scrolls; that is what keeps iOS Safari's toolbars still. After each in-app navigation move focus to `Sidebar.Inset` (`#main-content`, `tabindex={-1}`, `focus({ preventScroll: true })`), or keyboard scrolling has nowhere to start. Nothing inside the shell may claim `h-svh`, `min-h-svh` or `h-screen`: a full-height sibling of the canvas stretches as a flex child of the wrapper, and content fills with `flex-1 min-h-0`. Read the scroll position from the scroll parent, never `window.scrollY`, and scroll with the scroll parent's `scrollTo` or with `scrollIntoView` (which honours the canvas's `scroll-padding-top`) — `src/lib/shared/scroll-parent.ts`, from `parallax-primitives`, answers which box that is. Print takes the pin back so a sheet gets the whole page.",
 		"- Nothing between `Sidebar.Inset` and `PageHeader` may gain `overflow-x: hidden` — beside an `overflow-y: visible` it computes as `auto`, silently putting a second scroll container between the canvas and the header and stealing the sticky with no error anywhere. Use `overflow-x: clip` if a clip is ever needed.",
+		"- A sticky of your OWN inside the canvas needs its own offset. The canvas reserves `calc(var(--page-header-height) + 0.5rem)` at its top so focus never lands under the bar, and this item cancels that reserve for `PageHeader` alone \u2014 `scroll-margin-top` on `[data-slot=\u0022page-header\u0022]` and every descendant, twice the bar's height so it holds while the auto-hide has the bar translated off the top. Nothing shipped can reach a selector of yours: a toolbar, filter bar or section nav pinned at `top: 0` inside `Sidebar.Inset` sits in that reserve permanently, so the browser reads its controls as obscured and every focus landing there \u2014 a menu in it closing, a Shift+Tab from the page \u2014 scrolls the canvas to reveal something that travels with the scrollport and never can be: hundreds of pixels upwards, or clean to the top. Stick it BELOW the reserve (`top: calc(var(--page-header-height) + 0.5rem)`), which is also what keeps it clear of the bar; or, if it must sit at `top: 0`, restate the cancellation on it and its descendants \u2014 `scroll-margin` does not inherit, and the browser scrolls to the focused control, not to its container. A box with a scrolling height of its own is out of scope: `Table.Root`'s container scrolls, so a sticky table head resolves against it and never sees this padding.",
 		"- The CSS this item adds is unlayered on purpose (it must outrank the sidebar's own utilities), so it also outranks YOUR utility classes on the same slots — override it in plain CSS, not with a utility.",
 		"- Two fidelity notes against the Parallax gallery: dropdown menus keep the upstream shadow, and the collapsed rail's tooltips keep the upstream look. Both are application-global restyles this item deliberately does not ship — they arrive with `parallax-restyle`. Buttons are not among them: this item depends on `parallax-button`, so the sizes it installs are the gallery's own token-driven ramp.",
 	].join("\n"),

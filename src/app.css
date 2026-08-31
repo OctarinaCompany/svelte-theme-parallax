@@ -1426,6 +1426,61 @@
 }
 
 /*
+ * THE BAR IS EXEMPT FROM THE RESERVE ABOVE: focus inside a sticky header must not move the page.
+ *
+ * WHAT WAS MEASURED. With the canvas at 3000px, opening the header's command palette and
+ * dismissing it — Escape, or a click on the overlay — left the canvas at 2639. At 300 it left it
+ * at 0, which reads as the page throwing itself to the top. Nothing in the palette scrolls
+ * anything: the movement is the FOCUS RESTORE on close, and every control in the bar does the same
+ * — the sidebar trigger, the trail's links, the search field, the repository link, the toggle.
+ *
+ * THE MECHANISM IS THE RESERVE ITSELF. A browser scrolls a newly focused element clear of the
+ * scroll-padding band, and on a bar pinned at `top: 0` that band is exactly where the bar's
+ * controls live — permanently, because the bar is never taller than the band is deep. So every one of
+ * them reads as obscured, and the scroll to reveal one can never succeed: the bar travels with the
+ * scrollport, so the page moves and the control does not. Blink centres a target it considers
+ * hidden inside the padded region, which is the whole of the 361px: the control's centre at 40px
+ * against the padded region's at 400.5px.
+ *
+ * `preventScroll` CANNOT REACH IT, twice over. bits-ui's focus scope restores the previously
+ * focused element with a bare `.focus()` and no `{ preventScroll: true }` — Radix's React original
+ * passes it — so every dialog, menu and popover whose trigger is in the bar moves the page when it
+ * closes. Even with that patched, Shift+Tab from the page back into the bar moves it by the same
+ * 361px, and THAT scroll is the browser's own sequential-focus navigation, with no script invoked
+ * to prevent. The answer has to be geometric rather than procedural, which is why it is here and
+ * not in a handler.
+ *
+ * SO THE TARGET CANCELS THE RESERVE AND THE CONTAINER KEEPS IT. `scroll-margin-top` shrinks the box
+ * the browser tries to reveal, and this rule reaches nothing outside the bar: a heading reached by
+ * a fragment, and a page control tabbed to from below while it sits under the bar, both still land
+ * clear at exactly the reserve's depth. WCAG 2.2 SC 2.4.11, which the reserve exists for, is
+ * untouched — verified, not assumed.
+ *
+ * TWICE THE BAR, NOT ONCE. One bar's worth cancels the reserve, which is all a pinned bar needs.
+ * The second covers the auto-hide state: while `data-hidden` holds, the bar is translated a full
+ * height off the top and a control focused there is genuinely outside the scrollport, so the
+ * browser scrolls for it — 397px with a single cancel — even though the `:has(:focus-visible)` veto
+ * beside that rule is about to slide the bar back on its own. Over-cancelling is inert, because
+ * focus scrolls into view IF NEEDED and a target needing no scroll is one the browser leaves alone:
+ * measured 0 at 100, 300, 800, 3000 and 7000, flat and floating, hidden and pinned, on a canvas
+ * already at the top, and unchanged at a hundred times this value.
+ *
+ * WHAT IT IS NOT SAFE AGAINST is an EXPLICIT alignment. A `scrollIntoView({ block: "start" })` on
+ * something in the bar would now overshoot by a bar's height. Nothing does that today; anything
+ * that needs to takes the offset back with `scroll-mt-0!` — the `!` for the same reason `min-w-max!`
+ * needs it above.
+ *
+ * `scroll-margin-top` RATHER THAN THE SHORTHAND, and a descendant `*` rather than a list of
+ * focusable selectors. `scroll-margin` does not inherit, so the rule has to reach the elements the
+ * browser actually scrolls TO, and what those are is not knowable from here: `search` and
+ * `controls` are snippets, so the markup inside the bar is a consumer's. The single longhand keeps
+ * a future inline scroller inside the bar from picking up a bogus offset on the other three sides.
+ */
+:where([data-slot="page-header"], [data-slot="page-header"] *) {
+	scroll-margin-top: calc((var(--page-header-height) + 0.5rem) * -2);
+}
+
+/*
  * Print gets the whole page, not one viewport of it.
  *
  * Pagination is a property of the DOCUMENT: the print engine breaks what overflows the document

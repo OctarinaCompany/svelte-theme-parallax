@@ -240,6 +240,21 @@ installing the item named, never by hand-porting gallery code:
   same move — use `overflow-x: clip`), or the app scrolls a box the header is not inside (a
   page that scrolls its own `<div>` while the canvas never moves), so there is nothing for
   the bar to react to.
+- **Closing a menu in the header throws the page to the top** — or Shift+Tab from the page
+  back into the bar does. Nothing in the overlay scrolls anything; the movement is the FOCUS
+  RESTORE. The canvas reserves `calc(var(--page-header-height) + 0.5rem)` at its top so focus
+  never lands under the bar, and the bar is pinned INSIDE that reserve, so its controls read
+  as obscured and the scroll to reveal one can never succeed — the bar travels with the
+  scrollport, so the page moves and the control does not. `parallax-shell` ships the
+  cancellation (`scroll-margin-top: calc((var(--page-header-height) + 0.5rem) * -2)` on
+  `[data-slot="page-header"]` and every descendant); an install that predates it is missing
+  the rule, and
+  `getComputedStyle(document.querySelector('[data-slot=page-header]')).scrollMarginTop` says
+  so — it must be negative, else re-run the `add` with `--overwrite`. If the box that jumps is
+  a sticky of YOUR OWN inside the canvas, no shipped rule reaches it: stick it below the
+  reserve, or restate the cancellation on it and its descendants. `preventScroll` fixes
+  neither — bits-ui restores focus with a bare `.focus()`, and Shift+Tab is the browser's own
+  sequential-focus scroll, which no script is invoked to prevent.
 - **PageDown / Space does nothing after clicking a rail link** — the app's router does not
   move focus to the canvas. Keyboard scrolling starts from the FOCUSED element and walks up
   its ancestors, never across to a sibling scroller; after a rail click focus sits in the
