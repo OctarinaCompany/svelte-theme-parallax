@@ -214,13 +214,15 @@ export const BACKDROP_DENSITY_MIN = 0;
 export const BACKDROP_DENSITY_MAX = 100;
 
 /**
- * The mark's offsets are INSETS from the anchored corner — see {@link MARK_ANCHORS} — so a negative
- * value would only push it off the page, and the anchor does the coarse placement the old
- * viewport-wide range existed for. 600px reaches the far side of a phone from any corner.
+ * The mark's offsets are counted from the anchored corner — see {@link MARK_ANCHORS} — so the
+ * anchor does the coarse placement and the range only has to cover a composition: 600px inward
+ * reaches the far side of a phone from any corner, and 600px OUTWARD lets a mark bleed off its
+ * corner, which is how an ornament this size is usually placed. Symmetric, so the slider's centre
+ * is the corner itself.
  */
 export const DEFAULT_MARK_X = 60;
 export const DEFAULT_MARK_Y = 120;
-export const MARK_OFFSET_MIN = 0;
+export const MARK_OFFSET_MIN = -600;
 export const MARK_OFFSET_MAX = 600;
 
 /** Rendered size in pixels. Below 100 a mark is a speck; past 1200 it is off the page. */

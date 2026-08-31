@@ -654,7 +654,7 @@
 											{@const fromEdge = (edge: string) =>
 												anchor.id === "center"
 													? "From the centre of the viewport."
-													: `From the ${edge.toLowerCase()} edge of the viewport.`}
+													: `From the ${edge.toLowerCase()} edge of the viewport. Below 0 it runs off the page.`}
 											<div class={settingsCell}>
 												{@render slider({
 													id: "settings-backdrop-mark-opacity",
