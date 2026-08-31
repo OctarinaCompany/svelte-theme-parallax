@@ -69,6 +69,20 @@ export const BACKDROP_DENSITY_MIN = 40;
 export const BACKDROP_DENSITY_MAX = 220;
 
 /**
+ * How far a pattern's fade runs, in pixels — the distance at which the lattice reaches full
+ * strength. Zero means no fade, and the pattern covers the page.
+ *
+ * THE ANGLE IS SHARED WITH THE GRADIENTS ON PURPOSE. A gradient's angle says where its light comes
+ * from; a pattern's says which side its fade runs out toward. Both are one direction, only one
+ * category is ever on screen at a time, and a second stored bearing would be a second thing to
+ * keep in step for no gain the user can see.
+ */
+export const BACKDROP_FADE_STORAGE_KEY = "backdrop-fade";
+export const DEFAULT_BACKDROP_FADE = 640;
+export const BACKDROP_FADE_MIN = 0;
+export const BACKDROP_FADE_MAX = 1400;
+
+/**
  * Every backdrop, in the order the picker lists them: the control first, then the lights.
  *
  * TWELVE WERE BUILT AND EIGHT WERE CUT, on the owner's verdict after seeing each on screen —
@@ -102,7 +116,7 @@ export const BACKDROP_IDS = [
 	"sunrise",
 	"beams",
 	"ripple",
-	"corona",
+	"eclipse",
 	// The wagara — traditional Japanese geometric patterns.
 	"seigaiha",
 	"shippo",
@@ -261,9 +275,9 @@ export const BACKDROPS: Backdrop[] = [
 		category: "gradient",
 	},
 	{
-		id: "corona",
-		name: "Corona",
-		blurb: "A single ring with nothing inside it. An eclipse.",
+		id: "eclipse",
+		name: "Eclipse",
+		blurb: "A rim of light around a dark disc, with streamers combing out of it.",
 		category: "gradient",
 	},
 	{
@@ -370,6 +384,14 @@ let density = $state<number>(
 		BACKDROP_DENSITY_MAX,
 	),
 );
+let fade = $state<number>(
+	readNumber(
+		BACKDROP_FADE_STORAGE_KEY,
+		DEFAULT_BACKDROP_FADE,
+		BACKDROP_FADE_MIN,
+		BACKDROP_FADE_MAX,
+	),
+);
 
 // Normalise storage once, so an unknown id is replaced by the one the app is actually showing —
 // which is also what stops the first-paint script writing it again on the next load.
@@ -401,6 +423,7 @@ $effect.root(() => {
 		if (typeof document === "undefined") return;
 		document.documentElement.style.setProperty("--backdrop-angle", String(angle));
 		document.documentElement.style.setProperty("--backdrop-density", String(density));
+		document.documentElement.style.setProperty("--backdrop-fade", String(fade));
 	});
 });
 
@@ -417,6 +440,20 @@ export const backdropDensity = {
 		return density;
 	},
 };
+
+/** How far a pattern's fade runs. Read-only; write through {@link setBackdropFade}. */
+export const backdropFade = {
+	get current(): number {
+		return fade;
+	},
+};
+
+/** Stretch the fade. Clamped; 0 is a legitimate value and means no fade at all. */
+export function setBackdropFade(value: number): void {
+	const next = Math.min(BACKDROP_FADE_MAX, Math.max(BACKDROP_FADE_MIN, Math.round(value)));
+	fade = next;
+	persistNumber(BACKDROP_FADE_STORAGE_KEY, next);
+}
 
 /** Turn the light. Wraps at 360 so a slider can run round without a discontinuity. */
 export function setBackdropAngle(value: number): void {

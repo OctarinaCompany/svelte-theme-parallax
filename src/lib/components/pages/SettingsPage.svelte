@@ -35,14 +35,19 @@
 		activeBackdrop,
 		backdropAngle,
 		backdropDensity,
+		backdropFade,
 		BACKDROP_DENSITY_MAX,
 		BACKDROP_DENSITY_MIN,
+		BACKDROP_FADE_MAX,
+		BACKDROP_FADE_MIN,
 		DEFAULT_BACKDROP,
 		DEFAULT_BACKDROP_ANGLE,
 		DEFAULT_BACKDROP_DENSITY,
+		DEFAULT_BACKDROP_FADE,
 		setBackdrop,
 		setBackdropAngle,
 		setBackdropDensity,
+		setBackdropFade,
 		backdropById,
 		type BackdropCategory,
 		type BackdropId,
@@ -192,6 +197,7 @@
 		setBackdrop(DEFAULT_BACKDROP);
 		setBackdropAngle(DEFAULT_BACKDROP_ANGLE);
 		setBackdropDensity(DEFAULT_BACKDROP_DENSITY);
+		setBackdropFade(DEFAULT_BACKDROP_FADE);
 		setSidebarMode("default");
 		setHeaderMode("default");
 		setSidebarFloating(true);
@@ -411,8 +417,7 @@
 										<span id="backdrop-angle-label" class="text-sm font-medium">Angle</span>
 										<p id="backdrop-angle-hint" class="text-sm text-muted-foreground">
 											{#if activeCategory === "pattern"}
-												Turns the lattice. The ring-based motifs — Dots, Kanoko, Shippō, Seigaiha,
-												Asanoha — are radially symmetric, so there is nothing in them to turn.
+												Which side the lattice fades out toward: 0° at the top, running clockwise.
 											{:else}
 												Where the light comes from, as a bearing: 0° at the top, running clockwise.
 											{/if}
@@ -438,6 +443,31 @@
 										<AngleSlider.Value />
 									</AngleSlider.Root>
 								</div>
+
+								{#if activeCategory === "pattern"}
+									<div class="mt-2 flex flex-col gap-2">
+										<div class="flex items-baseline justify-between gap-4">
+											<Label for="backdrop-fade">Fade length</Label>
+											<span class="font-mono text-xs text-muted-foreground tabular-nums">
+												{backdropFade.current}px
+											</span>
+										</div>
+										<p class="text-sm text-muted-foreground">
+											How far the fade runs before the lattice is at full strength. At 0 there is no
+											fade and the pattern covers the page.
+										</p>
+										<Slider
+											id="backdrop-fade"
+											type="single"
+											class="mt-2"
+											min={BACKDROP_FADE_MIN}
+											max={BACKDROP_FADE_MAX}
+											step={20}
+											value={backdropFade.current}
+											onValueChange={setBackdropFade}
+										/>
+									</div>
+								{/if}
 							{/if}
 						</div>
 					{/if}

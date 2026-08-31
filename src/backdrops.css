@@ -186,6 +186,14 @@
 		calc(-100lvh * var(--backdrop-light-spread, 0));
 }
 
+/* Right-to-left puts the rail on the other side, so the header shares the LEFT edge instead —
+   for the tile layers' masks as much as for the field. */
+:root[dir="rtl"][data-backdrop] [data-slot="sidebar-wrapper"]::after,
+:root[dir="rtl"][data-backdrop] [data-slot="page-header"]::before {
+	mask-position: left top;
+	-webkit-mask-position: left top;
+}
+
 /* Right-to-left puts the rail on the other side, so the header shares the LEFT edge instead. */
 :root[dir="rtl"][data-backdrop] [data-slot="page-header"] {
 	background-position: left calc(-100vw * var(--backdrop-light-spread, 0)) top
@@ -211,9 +219,39 @@
 	background-image: var(--backdrop-tile, none);
 	background-size: var(--backdrop-tile-size, 256px 256px);
 	background-position: var(--backdrop-tile-position, 0 0);
+	/*
+	 * ANCHORED TO THE VIEWPORT, NOT TO THE BOX. The two carriers are different boxes — the wrapper
+	 * spans the shell, the header's band starts after the rail — so `0 0` is a different point in
+	 * each, and a 24px lattice offset by the rail's width joggles along the header's bottom edge.
+	 * It never showed before because the fade hid the pattern under the header entirely; now that
+	 * the fade can point elsewhere, it would. `fixed` resolves both against the viewport, so the
+	 * lattice is one lattice. Neither element scrolls, so nothing else changes.
+	 */
+	background-attachment: fixed;
 	/* No transform here, deliberately — see the note on the patterns below. */
 	mask-image: var(--backdrop-tile-mask, none);
 	-webkit-mask-image: var(--backdrop-tile-mask, none);
+	/*
+	 * THE MASK NEEDS THE SAME VIEWPORT REGISTER THE FIELD ALREADY HAS, and this was measured rather
+	 * than reasoned: seigaiha at a bearing of 135 read 23 at the fold while every other pattern read
+	 * 0 or 1. `mask-size` defaults to `auto`, so the fade gradient resolves in each carrier's own
+	 * box — 1440x900 for the wrapper against roughly 1190x72 for the band. Straight down that costs
+	 * nothing, because both boxes start at the top of the screen and the gradient has no horizontal
+	 * term; at any other bearing the width enters the arithmetic and the two disagree. Only the
+	 * densest pattern showed it, which is the whole argument for measuring the worst case rather
+	 * than the typical one.
+	 *
+	 * Sizing the mask to the viewport and anchoring it to the corner the two carriers SHARE — the
+	 * right edge in LTR — makes one gradient out of two, the same trick and the same corner the
+	 * field's own `background-position` uses above. It also puts a repeating mask tile in phase,
+	 * which is why asanoha's second layer is anchored the same way.
+	 */
+	mask-size: 100vw 100lvh;
+	-webkit-mask-size: 100vw 100lvh;
+	mask-position: right top;
+	-webkit-mask-position: right top;
+	mask-repeat: no-repeat;
+	-webkit-mask-repeat: no-repeat;
 }
 
 :root[data-backdrop] [data-slot="page-header"][data-floating]::after {
@@ -257,8 +295,18 @@
    band both sample it, and one source is what stops them drifting apart. */
 :root[data-backdrop="glow"] {
 	--backdrop-light:
-		radial-gradient(ellipse 62vw 48vh at 50% -8%, var(--backdrop-glow-1), transparent 70%),
-		radial-gradient(ellipse 30vw 26vh at 16% -4%, var(--backdrop-glow-2), transparent 72%);
+		radial-gradient(
+			ellipse 62vw 48vh at calc(50% + 1% * 58 * sin(var(--backdrop-bearing) + 0deg))
+				calc(50% - 1% * 58 * cos(var(--backdrop-bearing) + 0deg)),
+			var(--backdrop-glow-1),
+			transparent 70%
+		),
+		radial-gradient(
+			ellipse 30vw 26vh at calc(50% + 1% * 63.8 * sin(var(--backdrop-bearing) + 327.8deg))
+				calc(50% - 1% * 63.8 * cos(var(--backdrop-bearing) + 327.8deg)),
+			var(--backdrop-glow-2),
+			transparent 72%
+		);
 }
 
 /* ==========================================================================================
@@ -405,9 +453,27 @@
 	   `--backdrop-light-grain` in the shared block above. */
 	--backdrop-tile: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='256' height='256'%3E%3Cfilter id='d'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='1' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23d)' opacity='.035'/%3E%3C/svg%3E");
 	--backdrop-light:
-		radial-gradient(58% 46% at 14% 82% in oklab, var(--backdrop-aur-1) 0%, 38%, transparent 74%),
-		radial-gradient(46% 54% at 88% 46% in oklab, var(--backdrop-aur-2) 0%, 34%, transparent 70%),
-		radial-gradient(38% 32% at 74% 6% in oklab, var(--backdrop-aur-3) 0%, 42%, transparent 66%);
+		radial-gradient(
+			58% 46% at calc(50% + 1% * 48.2 * sin(var(--backdrop-bearing) + 228.4deg))
+				calc(50% - 1% * 48.2 * cos(var(--backdrop-bearing) + 228.4deg)) in oklab,
+			var(--backdrop-aur-1) 0%,
+			38%,
+			transparent 74%
+		),
+		radial-gradient(
+			46% 54% at calc(50% + 1% * 38.2 * sin(var(--backdrop-bearing) + 84deg))
+				calc(50% - 1% * 38.2 * cos(var(--backdrop-bearing) + 84deg)) in oklab,
+			var(--backdrop-aur-2) 0%,
+			34%,
+			transparent 70%
+		),
+		radial-gradient(
+			38% 32% at calc(50% + 1% * 50.1 * sin(var(--backdrop-bearing) + 28.6deg))
+				calc(50% - 1% * 50.1 * cos(var(--backdrop-bearing) + 28.6deg)) in oklab,
+			var(--backdrop-aur-3) 0%,
+			42%,
+			transparent 66%
+		);
 }
 
 /*
@@ -427,9 +493,39 @@
 	background-image: var(--backdrop-tile, none);
 	background-size: var(--backdrop-tile-size, 256px 256px);
 	background-position: var(--backdrop-tile-position, 0 0);
+	/*
+	 * ANCHORED TO THE VIEWPORT, NOT TO THE BOX. The two carriers are different boxes — the wrapper
+	 * spans the shell, the header's band starts after the rail — so `0 0` is a different point in
+	 * each, and a 24px lattice offset by the rail's width joggles along the header's bottom edge.
+	 * It never showed before because the fade hid the pattern under the header entirely; now that
+	 * the fade can point elsewhere, it would. `fixed` resolves both against the viewport, so the
+	 * lattice is one lattice. Neither element scrolls, so nothing else changes.
+	 */
+	background-attachment: fixed;
 	/* No transform here, deliberately — see the note on the patterns below. */
 	mask-image: var(--backdrop-tile-mask, none);
 	-webkit-mask-image: var(--backdrop-tile-mask, none);
+	/*
+	 * THE MASK NEEDS THE SAME VIEWPORT REGISTER THE FIELD ALREADY HAS, and this was measured rather
+	 * than reasoned: seigaiha at a bearing of 135 read 23 at the fold while every other pattern read
+	 * 0 or 1. `mask-size` defaults to `auto`, so the fade gradient resolves in each carrier's own
+	 * box — 1440x900 for the wrapper against roughly 1190x72 for the band. Straight down that costs
+	 * nothing, because both boxes start at the top of the screen and the gradient has no horizontal
+	 * term; at any other bearing the width enters the arithmetic and the two disagree. Only the
+	 * densest pattern showed it, which is the whole argument for measuring the worst case rather
+	 * than the typical one.
+	 *
+	 * Sizing the mask to the viewport and anchoring it to the corner the two carriers SHARE — the
+	 * right edge in LTR — makes one gradient out of two, the same trick and the same corner the
+	 * field's own `background-position` uses above. It also puts a repeating mask tile in phase,
+	 * which is why asanoha's second layer is anchored the same way.
+	 */
+	mask-size: 100vw 100lvh;
+	-webkit-mask-size: 100vw 100lvh;
+	mask-position: right top;
+	-webkit-mask-position: right top;
+	mask-repeat: no-repeat;
+	-webkit-mask-repeat: no-repeat;
 }
 
 @media (prefers-reduced-motion: no-preference) {
@@ -461,6 +557,8 @@
  * ========================================================================================== */
 
 :root[data-backdrop="spotlight"] {
+	--backdrop-home-a: 0;
+	--backdrop-home-r: 56;
 	--backdrop-spot: color-mix(in oklab, var(--primary) 14%, transparent);
 }
 :root[data-backdrop="spotlight"].dark {
@@ -526,14 +624,17 @@
 	}
 }
 :root[data-backdrop="corner"] {
+	--backdrop-home-a: 135;
+	--backdrop-home-r: 70.7;
 	--backdrop-light: radial-gradient(
-		80vw 70vh at 100% 100%,
+		80vw 70vh at var(--backdrop-from),
 		var(--backdrop-corner),
 		transparent 68%
 	);
 }
+/* The mirrored corner is now a different HOME, not a second copy of the geometry. */
 :root[dir="rtl"][data-backdrop="corner"] {
-	--backdrop-light: radial-gradient(80vw 70vh at 0 100%, var(--backdrop-corner), transparent 68%);
+	--backdrop-home-a: 225;
 }
 
 /* ==========================================================================================
@@ -594,21 +695,73 @@
  * rather than a source: `linear-gradient(var(--backdrop-toward), …)` runs FROM the bearing TO its
  * opposite, so light thrown from the north falls southward, which is what the radial ones do too.
  *
- * `--backdrop-turn` is for tiles, which are rotated rather than re-anchored.
+ * The same bearing turns a pattern's FADE, which is the one thing on a tile layer that has a
+ * direction — see the note on `--backdrop-tile-mask` below.
  */
 :root[data-backdrop] {
 	--backdrop-bearing: calc(1deg * var(--backdrop-angle, 0));
-	--backdrop-from-x: calc(50% + 62% * sin(var(--backdrop-bearing)));
-	--backdrop-from-y: calc(50% - 62% * cos(var(--backdrop-bearing)));
+
+	/*
+	 * EVERY GRADIENT KEEPS ITS OWN ZERO. The first cut made the bearing absolute — 0 was due north
+	 * for all of them — and that quietly moved four backdrops off the composition they were chosen
+	 * for: sunrise stopped rising from below, corner stopped being a corner, the eclipse's ring and
+	 * hiashi's sun drifted off the page. Their names and blurbs then described something the page
+	 * no longer did.
+	 *
+	 * So each declares WHERE IT ALREADY SITS, as a bearing and a radius from the centre of the
+	 * viewport, and the dial turns it from there. At 0 every gradient is exactly as it shipped.
+	 * Both numbers are derived from the position that was written by hand before — they are the
+	 * same point in polar form, not a new design.
+	 */
+	--backdrop-home-a: 0;
+	--backdrop-home-r: 62;
+	--backdrop-aim: calc(var(--backdrop-bearing) + 1deg * var(--backdrop-home-a));
+
+	/*
+	 * The sign and the phase are the whole subtlety: CSS `sin()`/`cos()` measure anticlockwise from
+	 * the positive x-axis and the y axis points DOWN, so a bearing b is
+	 * `x = 50% + r·sin(b)`, `y = 50% − r·cos(b)`. Written the other way round it turns the wrong
+	 * way, which looks almost right and is not.
+	 */
+	--backdrop-from-x: calc(50% + 1% * var(--backdrop-home-r) * sin(var(--backdrop-aim)));
+	--backdrop-from-y: calc(50% - 1% * var(--backdrop-home-r) * cos(var(--backdrop-aim)));
 	--backdrop-from: var(--backdrop-from-x) var(--backdrop-from-y);
-	--backdrop-toward: calc(180deg + var(--backdrop-bearing));
-	--backdrop-turn: var(--backdrop-bearing);
+
+	/* For gradients that have a DIRECTION rather than a source: light thrown from the bearing
+	   falls toward its opposite. */
+	--backdrop-toward: calc(180deg + var(--backdrop-aim));
 
 	/* Drawn lattices — hairlines over a mostly empty tile. */
 	--backdrop-ink: color-mix(in oklab, var(--foreground) 14%, transparent);
-	--backdrop-tile-mask: linear-gradient(to bottom, transparent 320px, #000 640px);
+	/*
+	 * THE FADE IS THE PATTERN'S ADJUSTMENT, not the lattice. Turning a tile means rotating the
+	 * LAYER, and the layer carries this mask — the fade went diagonal and the pattern came back
+	 * under the header. Turning the FADE has none of that trouble: it is one gradient, it is the
+	 * only thing on the layer with a direction, and half the patterns are radially symmetric and
+	 * had nothing to turn anyway.
+	 *
+	 * The bearing names the side the pattern fades OUT toward, so 0 is the top, as shipped. A
+	 * gradient runs from that side to its opposite, which is `bearing + 180deg` — at 0 that is
+	 * `180deg`, exactly the `to bottom` this replaces.
+	 *
+	 * The length is the distance at which the pattern reaches full strength; it starts coming in at
+	 * half of that. ABSOLUTE LENGTHS, NEVER PERCENTAGES: the wrapper's layer and the header's band
+	 * are different boxes, and a percentage resolves against each — that is what measured 12 at the
+	 * fold when `rays` first carried a mask. At 0 there is no fade at all and the pattern covers
+	 * the page.
+	 */
+	--backdrop-fade: 640;
+	--backdrop-tile-mask: linear-gradient(
+		calc(180deg + var(--backdrop-bearing)),
+		transparent calc(0.5px * var(--backdrop-fade)),
+		#000 calc(1px * var(--backdrop-fade))
+	);
 
 	/* Thin radiant geometry: rays, rules, ticks. The calibration `rays` was cut back to. */
+	/* A ring covers a hundredth of the area a wash does, so it carries about twice the alpha to
+	   read as the same weight. Same reasoning for the eclipse's rim, which is thinner still. */
+	--backdrop-ring: color-mix(in oklab, var(--primary) 11%, transparent);
+	--backdrop-rim: color-mix(in oklab, var(--primary) 22%, transparent);
 	--backdrop-radiant: color-mix(in oklab, var(--primary) 5%, transparent);
 
 	/* Radiant geometry that fills area: bands, beams, discs, haloes. */
@@ -617,6 +770,8 @@
 
 :root[data-backdrop].dark {
 	--backdrop-ink: color-mix(in oklab, var(--foreground) 10%, transparent);
+	--backdrop-ring: color-mix(in oklab, var(--primary) 15%, transparent);
+	--backdrop-rim: color-mix(in oklab, var(--primary) 28%, transparent);
 	--backdrop-radiant: color-mix(in oklab, var(--primary) 7%, transparent);
 	--backdrop-radiant-soft: color-mix(in oklab, var(--primary) 4%, transparent);
 }
@@ -624,12 +779,16 @@
 @supports (color: oklch(from red l c h)) {
 	:root[data-backdrop] {
 		--backdrop-ink: oklch(from var(--primary) 0.45 clamp(0.01, calc(c * 0.3), 0.05) h / 0.16);
+		--backdrop-ring: oklch(from var(--primary) 0.88 max(c, 0.06) h / 0.42);
+		--backdrop-rim: oklch(from var(--primary) 0.86 max(c, 0.07) h / 0.72);
 		--backdrop-radiant: oklch(from var(--primary) 0.9 max(c, 0.05) h / 0.22);
 		--backdrop-radiant-soft: oklch(from var(--primary) 0.92 max(c, 0.05) h / 0.12);
 	}
 
 	:root[data-backdrop].dark {
 		--backdrop-ink: oklch(from var(--primary) 0.82 clamp(0.01, calc(c * 0.25), 0.04) h / 0.14);
+		--backdrop-ring: oklch(from var(--primary) 0.46 max(calc(c * 0.7), 0.05) h / 0.34);
+		--backdrop-rim: oklch(from var(--primary) 0.52 max(calc(c * 0.7), 0.055) h / 0.6);
 		--backdrop-radiant: oklch(from var(--primary) 0.4 max(calc(c * 0.7), 0.04) h / 0.16);
 		--backdrop-radiant-soft: oklch(from var(--primary) 0.44 max(calc(c * 0.7), 0.04) h / 0.09);
 	}
@@ -680,8 +839,8 @@
    the pitch that reads as paper rather than as a table. */
 :root[data-backdrop="grid"] {
 	--backdrop-tile:
-		linear-gradient(calc(90deg + var(--backdrop-turn)), var(--backdrop-ink) 1px, transparent 1px),
-		linear-gradient(var(--backdrop-turn), var(--backdrop-ink) 1px, transparent 1px);
+		linear-gradient(to right, var(--backdrop-ink) 1px, transparent 1px),
+		linear-gradient(to bottom, var(--backdrop-ink) 1px, transparent 1px);
 	--backdrop-tile-size: 24px 24px;
 }
 
@@ -690,10 +849,10 @@
    layer's list is fixed rather than variable. */
 :root[data-backdrop="graph"] {
 	--backdrop-tile:
-		linear-gradient(calc(90deg + var(--backdrop-turn)), var(--backdrop-ink) 1px, transparent 1px),
-		linear-gradient(var(--backdrop-turn), var(--backdrop-ink) 1px, transparent 1px),
-		linear-gradient(calc(90deg + var(--backdrop-turn)), var(--backdrop-ink) 1px, transparent 1px),
-		linear-gradient(var(--backdrop-turn), var(--backdrop-ink) 1px, transparent 1px);
+		linear-gradient(to right, var(--backdrop-ink) 1px, transparent 1px),
+		linear-gradient(to bottom, var(--backdrop-ink) 1px, transparent 1px),
+		linear-gradient(to right, var(--backdrop-ink) 1px, transparent 1px),
+		linear-gradient(to bottom, var(--backdrop-ink) 1px, transparent 1px);
 	--backdrop-tile-size: 100px 100px, 100px 100px, 20px 20px, 20px 20px;
 }
 
@@ -701,7 +860,7 @@
    with a direction, which is what makes it read as energy rather than as substrate. */
 :root[data-backdrop="hatch"] {
 	--backdrop-tile: repeating-linear-gradient(
-		calc(45deg + var(--backdrop-turn)),
+		45deg,
 		var(--backdrop-ink) 0 1px,
 		transparent 1px 12px
 	);
@@ -712,21 +871,9 @@
    loudest of the geometric family: it reads as depth even though nothing here has perspective. */
 :root[data-backdrop="isometric"] {
 	--backdrop-tile:
-		repeating-linear-gradient(
-			calc(30deg + var(--backdrop-turn)),
-			var(--backdrop-ink) 0 1px,
-			transparent 1px 22px
-		),
-		repeating-linear-gradient(
-			calc(150deg + var(--backdrop-turn)),
-			var(--backdrop-ink) 0 1px,
-			transparent 1px 22px
-		),
-		repeating-linear-gradient(
-			calc(90deg + var(--backdrop-turn)),
-			var(--backdrop-ink) 0 1px,
-			transparent 1px 22px
-		);
+		repeating-linear-gradient(30deg, var(--backdrop-ink) 0 1px, transparent 1px 22px),
+		repeating-linear-gradient(150deg, var(--backdrop-ink) 0 1px, transparent 1px 22px),
+		repeating-linear-gradient(90deg, var(--backdrop-ink) 0 1px, transparent 1px 22px);
 	--backdrop-tile-size: 44px 44px;
 }
 
@@ -760,15 +907,20 @@
 	}
 }
 :root[data-backdrop="rays"] {
+	--backdrop-home-a: 335.7;
+	--backdrop-home-r: 68;
+	/* The fan turns with its apex: without the `from`, moving the apex would slide the page across
+	   a stationary fan and the wedges would appear to sweep past. */
 	--backdrop-light: repeating-conic-gradient(
-		from -18deg at 22% -12%,
+		from calc(-18deg + var(--backdrop-bearing)) at var(--backdrop-from),
 		var(--backdrop-ray) 0deg 4deg,
 		transparent 4deg 15deg
 	);
 }
 :root[dir="rtl"][data-backdrop="rays"] {
+	--backdrop-home-a: 24.3;
 	--backdrop-light: repeating-conic-gradient(
-		from 18deg at 78% -12%,
+		from calc(18deg + var(--backdrop-bearing)) at var(--backdrop-from),
 		var(--backdrop-ray) 0deg 4deg,
 		transparent 4deg 15deg
 	);
@@ -803,8 +955,18 @@
 }
 :root[data-backdrop="weave"] {
 	--backdrop-light:
-		radial-gradient(70vw 60vh at 12% 8%, var(--backdrop-warp), transparent 70%),
-		radial-gradient(60vw 55vh at 88% 30%, var(--backdrop-weft), transparent 68%);
+		radial-gradient(
+			70vw 60vh at calc(50% + 1% * 56.6 * sin(var(--backdrop-bearing) + 317.9deg))
+				calc(50% - 1% * 56.6 * cos(var(--backdrop-bearing) + 317.9deg)),
+			var(--backdrop-warp),
+			transparent 70%
+		),
+		radial-gradient(
+			60vw 55vh at calc(50% + 1% * 42.9 * sin(var(--backdrop-bearing) + 62.2deg))
+				calc(50% - 1% * 42.9 * cos(var(--backdrop-bearing) + 62.2deg)),
+			var(--backdrop-weft),
+			transparent 68%
+		);
 }
 /*
  * BOTH SURFACES MUST BLEND AGAINST THE SAME GROUND, and forgetting that measured 35 at the fold.
@@ -854,20 +1016,17 @@
  * mask slot — the last stop simply runs out before the far corner.
  */
 :root[data-backdrop="beams"] {
+	--backdrop-home-a: -78;
 	--backdrop-light: repeating-linear-gradient(
-		calc(var(--backdrop-toward) + 12deg),
+		var(--backdrop-toward),
 		transparent 0 26px,
 		var(--backdrop-radiant-soft) 34px 44px,
 		transparent 52px 92px
 	);
 }
+/* 78deg, as `--backdrop-toward` (180 + aim) — the mirrored shaft is one number now. */
 :root[dir="rtl"][data-backdrop="beams"] {
-	--backdrop-light: repeating-linear-gradient(
-		78deg,
-		transparent 0 26px,
-		var(--backdrop-radiant-soft) 34px 44px,
-		transparent 52px 92px
-	);
+	--backdrop-home-a: -102;
 }
 
 /*
@@ -876,6 +1035,8 @@
  * here can alias. Anchored bottom-CENTRE, so it is the one radiant backdrop that needs no RTL twin.
  */
 :root[data-backdrop="sunrise"] {
+	--backdrop-home-a: 180;
+	--backdrop-home-r: 68;
 	--backdrop-light: radial-gradient(
 		circle at var(--backdrop-from),
 		var(--backdrop-radiant-soft) 0 26vmin,
@@ -898,45 +1059,67 @@
  * It shares `rays`' anchor at 22% -12% on purpose: set side by side the two read as one family
  * seen twice, rather than as two unrelated backdrops.
  */
+/*
+ * A ONE-PIXEL RING IS NOT A THIN RING, IT IS AN INVISIBLE ONE. The first cut drew each ring as a
+ * hard step from transparent to ink and back over a single pixel. A radial gradient resolves its
+ * stops along the radius and antialiases what falls between two device pixels, so a 1px step at
+ * 16-22% alpha is averaged down to two or three code values — present in the pixel buffer, absent
+ * to the eye. Each ring is now 2px of full ink with a 2px shoulder either side, which is a shape
+ * the rasteriser can actually land on, and it carries its own ink at roughly twice the family's
+ * alpha because a ring covers a hundredth of the area a wash does.
+ *
+ * The radii are a geometric progression, generated rather than typed: the spacing rule then lives
+ * in the code instead of in eight numbers that can drift out of it.
+ */
 :root[data-backdrop="ripple"] {
+	--backdrop-home-a: 335.7;
+	--backdrop-home-r: 68;
 	--backdrop-light: radial-gradient(
-		circle at 22% -12%,
-		transparent 0 60px,
-		var(--backdrop-radiant) 60px 61px,
-		transparent 61px 132px,
-		var(--backdrop-radiant) 132px 133px,
-		transparent 133px 218px,
-		var(--backdrop-radiant) 218px 219px,
-		transparent 219px 320px,
-		var(--backdrop-radiant) 320px 321px,
-		transparent 321px 438px,
-		var(--backdrop-radiant) 438px 439px,
-		transparent 439px 572px,
-		var(--backdrop-radiant) 572px 573px,
-		transparent 573px 722px,
-		var(--backdrop-radiant) 722px 723px,
-		transparent 723px
+		circle at var(--backdrop-from),
+		transparent 59px,
+		var(--backdrop-ring) 61px 63px,
+		transparent 65px,
+		transparent 77px,
+		var(--backdrop-ring) 80px 82px,
+		transparent 84px,
+		transparent 101px,
+		var(--backdrop-ring) 104px 106px,
+		transparent 108px,
+		transparent 133px,
+		var(--backdrop-ring) 135px 137px,
+		transparent 140px,
+		transparent 174px,
+		var(--backdrop-ring) 176px 178px,
+		transparent 180px,
+		transparent 227px,
+		var(--backdrop-ring) 229px 231px,
+		transparent 234px,
+		transparent 296px,
+		var(--backdrop-ring) 298px 300px,
+		transparent 303px,
+		transparent 386px,
+		var(--backdrop-ring) 388px 390px,
+		transparent 392px,
+		transparent 502px,
+		var(--backdrop-ring) 505px 507px,
+		transparent 509px,
+		transparent 654px,
+		var(--backdrop-ring) 656px 659px,
+		transparent 661px,
+		transparent 851px,
+		var(--backdrop-ring) 854px 856px,
+		transparent 858px,
+		transparent 1108px,
+		var(--backdrop-ring) 1110px 1112px,
+		transparent 1114px,
+		transparent 1441px,
+		var(--backdrop-ring) 1443px 1446px,
+		transparent 1448px,
+		transparent
 	);
 }
 :root[dir="rtl"][data-backdrop="ripple"] {
-	--backdrop-light: radial-gradient(
-		circle at 78% -12%,
-		transparent 0 60px,
-		var(--backdrop-radiant) 60px 61px,
-		transparent 61px 132px,
-		var(--backdrop-radiant) 132px 133px,
-		transparent 133px 218px,
-		var(--backdrop-radiant) 218px 219px,
-		transparent 219px 320px,
-		var(--backdrop-radiant) 320px 321px,
-		transparent 321px 438px,
-		var(--backdrop-radiant) 438px 439px,
-		transparent 439px 572px,
-		var(--backdrop-radiant) 572px 573px,
-		transparent 573px 722px,
-		var(--backdrop-radiant) 722px 723px,
-		transparent 723px
-	);
+	--backdrop-home-a: 24.3;
 }
 
 /*
@@ -944,21 +1127,62 @@
  * Hollow is the point: every other radiant backdrop puts its energy at a centre, and this one puts
  * it on a boundary, so it is the only one that leaves the middle of the viewport alone.
  */
-:root[data-backdrop="corona"] {
-	--backdrop-light: radial-gradient(
-		circle at var(--backdrop-from),
-		transparent 0 27vmin,
-		var(--backdrop-radiant-soft) 31vmin,
-		transparent 37vmin
-	);
+/*
+ * ECLIPSE — a rim, a dark disc, and streamers combing out of it.
+ *
+ * FIVE LAYERS, AND THE ORDER IS THE DESIGN. The first image in a `background-image` list paints on
+ * top, so this reads top-down: the rim, then the disc that hollows it, then the halo, then an
+ * occluder, then the streamers underneath everything.
+ *
+ * THE TWO OCCLUDERS ARE THE PAGE'S OWN GROUND, and that is a trick with a precondition. A conic
+ * gradient has no falloff — its wedges run to the edge of the box — so the streamers have to be
+ * taken away rather than faded, inside the disc and again beyond the halo. Painting `--background`
+ * over them is invisible only because BOTH carriers genuinely sit on that colour: the wrapper
+ * paints it, and the band carries the component's own `bg-background`. `loader-comet-spinner`
+ * rejects exactly this trick for exactly this reason — a loader can land on a card or a toolbar,
+ * where the ground is not known. Do not copy it anywhere the ground is not guaranteed.
+ *
+ * And never combine it with `background-blend-mode`: a blended occluder stops occluding, which is
+ * the same fault that measured 35 at the fold in `weave`.
+ */
+:root[data-backdrop="eclipse"] {
+	--backdrop-home-a: 40.6;
+	--backdrop-home-r: 36.9;
+	--backdrop-light:
+		/* the rim: thin, bright, and the only hard-edged thing here */
+		radial-gradient(
+			circle at var(--backdrop-from),
+			transparent 0 24.4vmin,
+			var(--backdrop-rim) 25vmin 25.6vmin,
+			transparent 26.2vmin
+		),
+		/* the disc: the page's own ground, so the centre is genuinely empty */
+		radial-gradient(
+				circle at var(--backdrop-from),
+				var(--background) 0 24.6vmin,
+				transparent 25vmin
+			),
+		/* the halo, hugging the outside of the rim */
+		radial-gradient(
+				circle at var(--backdrop-from),
+				transparent 0 25.6vmin,
+				var(--backdrop-radiant-soft) 29vmin,
+				transparent 44vmin
+			),
+		/* the outer occluder, which is what gives the streamers a length */
+		radial-gradient(circle at var(--backdrop-from), transparent 0 30vmin, var(--background) 58vmin),
+		/* the streamers, fine and uneven so they do not read as a gear */
+		repeating-conic-gradient(
+				from calc(-4deg + var(--backdrop-bearing)) at var(--backdrop-from),
+				var(--backdrop-radiant) 0deg 0.9deg,
+				transparent 0.9deg 4.5deg,
+				var(--backdrop-radiant) 4.5deg 5.2deg,
+				transparent 5.2deg 12deg
+			);
 }
-:root[dir="rtl"][data-backdrop="corona"] {
-	--backdrop-light: radial-gradient(
-		circle at 26% 22%,
-		transparent 0 27vmin,
-		var(--backdrop-radiant-soft) 31vmin,
-		transparent 37vmin
-	);
+/* The mirrored eclipse is a different home, not a second copy of five layers. */
+:root[dir="rtl"][data-backdrop="eclipse"] {
+	--backdrop-home-a: 319.4;
 }
 
 /*
@@ -990,21 +1214,33 @@
  * derives from the palette — it is only ever reddish on one palette in eighteen, at 12% alpha.
  */
 :root[data-backdrop="hiashi"] {
+	--backdrop-home-a: 216.4;
+	--backdrop-home-r: 47.2;
 	--backdrop-light:
-		radial-gradient(circle at 22% 88%, var(--backdrop-radiant-soft) 0 15vmin, transparent 15vmin),
-		radial-gradient(circle at 22% 88%, var(--background) 0 15vmin, transparent 15vmin),
+		radial-gradient(
+			circle at var(--backdrop-from),
+			var(--backdrop-radiant-soft) 0 15vmin,
+			transparent 15vmin
+		),
+		radial-gradient(circle at var(--backdrop-from), var(--background) 0 15vmin, transparent 15vmin),
 		repeating-conic-gradient(
-			from -6deg at 22% 88%,
+			from calc(-6deg + var(--backdrop-bearing)) at var(--backdrop-from),
 			var(--backdrop-radiant) 0deg 4deg,
 			transparent 4deg 30deg
 		);
 }
+/* The mirrored sun is a home and the fan's own sign; the three layers stay where they were. */
 :root[dir="rtl"][data-backdrop="hiashi"] {
+	--backdrop-home-a: 143.6;
 	--backdrop-light:
-		radial-gradient(circle at 78% 88%, var(--backdrop-radiant-soft) 0 15vmin, transparent 15vmin),
-		radial-gradient(circle at 78% 88%, var(--background) 0 15vmin, transparent 15vmin),
+		radial-gradient(
+			circle at var(--backdrop-from),
+			var(--backdrop-radiant-soft) 0 15vmin,
+			transparent 15vmin
+		),
+		radial-gradient(circle at var(--backdrop-from), var(--background) 0 15vmin, transparent 15vmin),
 		repeating-conic-gradient(
-			from 6deg at 78% 88%,
+			from calc(6deg + var(--backdrop-bearing)) at var(--backdrop-from),
 			var(--backdrop-radiant) 0deg 4deg,
 			transparent 4deg 30deg
 		);
@@ -1110,16 +1346,8 @@
  */
 :root[data-backdrop="uroko"] {
 	--backdrop-tile:
-		linear-gradient(
-			calc(135deg + var(--backdrop-turn)),
-			var(--backdrop-ink) 0 1px,
-			transparent 1px
-		),
-		linear-gradient(
-			calc(-135deg + var(--backdrop-turn)),
-			var(--backdrop-ink) 0 1px,
-			transparent 1px
-		);
+		linear-gradient(135deg, var(--backdrop-ink) 0 1px, transparent 1px),
+		linear-gradient(-135deg, var(--backdrop-ink) 0 1px, transparent 1px);
 	--backdrop-tile-size: 28px 28px;
 }
 
@@ -1170,11 +1398,19 @@
 		var(--backdrop-tile-mask),
 		url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='27.71' height='48' viewBox='0 0 27.71 48'%3E%3Cpath d='M0 0L0 -16M0 0L-13.86 -8M-13.86 8L0 16M0 0L-13.86 8M0 16L13.86 8M0 0L0 16M13.86 8L13.86 -8M0 0L13.86 8M0 0L13.86 -8M27.71 0L27.71 -16M27.71 0L13.86 -8M13.86 8L27.71 16M27.71 0L13.86 8M27.71 16L41.57 8M27.71 0L27.71 16M27.71 0L41.57 8M27.71 0L41.57 -8M-13.86 40L0 32M0 32L0 16M-13.86 24L0 32M-13.86 24L0 16M13.86 24L13.86 8M13.86 24L0 16M0 32L13.86 40M13.86 24L0 32M13.86 40L27.71 32M13.86 24L13.86 40M27.71 32L27.71 16M13.86 24L27.71 32M13.86 24L27.71 16M41.57 24L27.71 16M27.71 32L41.57 40M41.57 24L27.71 32M0 48L0 32M0 48L-13.86 40M0 48L-13.86 56M0 48L0 64M13.86 56L13.86 40M0 48L13.86 56M0 48L13.86 40M27.71 48L27.71 32M27.71 48L13.86 40M27.71 48L13.86 56M27.71 48L27.71 64M27.71 48L41.57 56M27.71 48L41.57 40' fill='none' stroke='%23000' stroke-width='1'/%3E%3C/svg%3E");
 	mask-size:
-		auto,
+		100vw 100lvh,
 		27.71px 48px;
+	mask-position:
+		right top,
+		right top;
+	mask-repeat: no-repeat, repeat;
 	-webkit-mask-size:
-		auto,
+		100vw 100lvh,
 		27.71px 48px;
+	-webkit-mask-position:
+		right top,
+		right top;
+	-webkit-mask-repeat: no-repeat, repeat;
 	mask-repeat: no-repeat, repeat;
 	-webkit-mask-repeat: no-repeat, repeat;
 	mask-composite: intersect;
