@@ -71,6 +71,7 @@
 		type PatternId,
 	} from "$lib/hooks/backdrop.svelte.js";
 	import { Slider } from "$lib/components/ui/slider/index.js";
+	import * as Select from "$lib/components/ui/select/index.js";
 	import * as AngleSlider from "$lib/components/ui/angle-slider/index.js";
 	import { headerMode, setHeaderMode, type HeaderMode } from "$lib/hooks/header-mode.svelte.js";
 	import { setSidebarMode, sidebarMode, type SidebarMode } from "$lib/hooks/sidebar-mode.svelte.js";
@@ -339,7 +340,7 @@
 					<Card.Description>A light thrown across the page.</Card.Description>
 				</Card.Header>
 				<Card.Content class="flex flex-col gap-6">
-					{@render lookGrid(GRADIENTS, activeGradient.current, (id) =>
+					{@render lookPicker("Gradient", GRADIENTS, activeGradient.current, (id) =>
 						setGradient(id as GradientId),
 					)}
 
@@ -369,7 +370,9 @@
 					<Card.Description>A drawn lattice, fading out toward a bearing.</Card.Description>
 				</Card.Header>
 				<Card.Content class="flex flex-col gap-6">
-					{@render lookGrid(PATTERNS, activePattern.current, (id) => setPattern(id as PatternId))}
+					{@render lookPicker("Pattern", PATTERNS, activePattern.current, (id) =>
+						setPattern(id as PatternId),
+					)}
 
 					{#if activePattern.current !== "none"}
 						<div class="flex flex-col gap-4 border-t pt-6 sm:flex-row sm:items-center sm:gap-8">
@@ -614,49 +617,54 @@
 	dial. Written out per card it was the same twenty lines five times over, which is how the fade
 	slider and the density slider drift apart.
 -->
-{#snippet lookGrid(
+<!--
+	A DROPDOWN, NOT A GRID OF CARDS. Twelve gradients and ten patterns as two-line cards ran to
+	about nine hundred pixels of Settings before the first adjustment, which buried the very
+	controls the cards were there to introduce. The blurb is not lost: the chosen look's own
+	sentence sits under the select, so the page still says what is on — it just says it once
+	instead of twenty-two times.
+
+	`Select` rather than `NativeSelect`: the rows carry a name and a sentence, and a native
+	`<option>` is one line of unstyled text.
+-->
+{#snippet lookPicker(
+	label: string,
 	looks: { id: string; name: string; blurb: string }[],
 	active: string,
 	choose: (id: string) => void,
 )}
-	<div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-		<button
-			type="button"
-			aria-pressed={active === "none"}
-			onclick={() => choose("none")}
-			class={cn(
-				"flex flex-col gap-1.5 rounded-lg border p-4 text-start transition-colors hover:bg-accent",
-				active === "none" && "border-primary bg-primary-subtle hover:bg-primary-subtle",
-			)}
-		>
-			<span class="flex items-center gap-2">
-				<span class="text-sm font-medium">None</span>
-				{#if active === "none"}
-					<CheckIcon class="ms-auto size-4 text-primary" />
-				{/if}
-			</span>
-			<span class="text-xs text-muted-foreground">This layer paints nothing.</span>
-		</button>
-		{#each looks as look (look.id)}
-			{@const on = look.id === active}
-			<button
-				type="button"
-				aria-pressed={on}
-				onclick={() => choose(look.id)}
-				class={cn(
-					"flex flex-col gap-1.5 rounded-lg border p-4 text-start transition-colors hover:bg-accent",
-					on && "border-primary bg-primary-subtle hover:bg-primary-subtle",
-				)}
+	{@const chosen = looks.find((look) => look.id === active)}
+	<div class="flex flex-col gap-2">
+		<Select.Root type="single" value={active} onValueChange={choose}>
+			<Select.Trigger class="w-full sm:w-64" aria-label={label}>
+				{chosen ? chosen.name : "None"}
+			</Select.Trigger>
+			<!--
+				The height cap because two-line rows run past a laptop viewport once the list is this
+				long — the generated content scrolls but carries no height of its own.
+			-->
+			<Select.Content
+				class="max-h-(--bits-floating-available-height) w-(--bits-select-anchor-width)"
 			>
-				<span class="flex items-center gap-2">
-					<span class="text-sm font-medium">{look.name}</span>
-					{#if on}
-						<CheckIcon class="ms-auto size-4 text-primary" />
-					{/if}
-				</span>
-				<span class="text-xs text-muted-foreground">{look.blurb}</span>
-			</button>
-		{/each}
+				<Select.Item value="none" label="None">
+					<span class="flex min-w-0 flex-col">
+						<span class="font-medium">None</span>
+						<span class="text-xs text-wrap text-muted-foreground">This layer paints nothing.</span>
+					</span>
+				</Select.Item>
+				{#each looks as look (look.id)}
+					<Select.Item value={look.id} label={look.name}>
+						<span class="flex min-w-0 flex-col">
+							<span class="font-medium">{look.name}</span>
+							<span class="text-xs text-wrap text-muted-foreground">{look.blurb}</span>
+						</span>
+					</Select.Item>
+				{/each}
+			</Select.Content>
+		</Select.Root>
+		<p class="text-sm text-muted-foreground">
+			{chosen ? chosen.blurb : "This layer paints nothing."}
+		</p>
 	</div>
 {/snippet}
 
