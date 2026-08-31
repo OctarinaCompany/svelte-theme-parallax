@@ -1222,22 +1222,31 @@
 
 /*
  * WEAVE — two fields interacting rather than stacking, which is the one thing a single gradient
- * cannot do. `soft-light` is the only blend mode that survives both halves: `multiply` disappears
- * on a dark ground and `screen` disappears on a light one, so either would need two designs.
+ * cannot do. IT NEEDS A MODE PER HALF, and the note here used to claim otherwise — that
+ * `soft-light` survived both, so neither `multiply` nor `screen` was worth two designs. Measured,
+ * that was wrong in the light half: weave was invisible there.
+ *
+ * `soft-light` moves a backdrop by a factor that goes as `b(1-b)`, which collapses at BOTH ends
+ * near white. On a page ground of 0.955 there is nothing left to move, whichever side the source
+ * sits on — and the light inks sat at L 0.9, the lightening side, where the headroom is smaller
+ * still. So light multiplies and dark keeps soft-light, and the inks are calibrated per half to
+ * suit. Two designs, because the two grounds are genuinely different problems.
  *
  * It blends on the LAYER's own background list (`background-blend-mode`), not across elements
  * (`mix-blend-mode`) — the latter creates a stacking context that would then fight every portaled
  * menu and dialog in the kit.
  */
+/* The fallback multiplies the brand itself, which is darker than the relative-colour path picks,
+   so it carries less of it to land at the same weight. */
 :root[data-backdrop-gradient="weave"] {
 	--backdrop-warp: color-mix(
 		in oklab,
-		var(--primary) calc(14% * var(--backdrop-gradient-k)),
+		var(--primary) calc(7% * var(--backdrop-gradient-k)),
 		transparent
 	);
 	--backdrop-weft: color-mix(
 		in oklab,
-		var(--primary) calc(10% * var(--backdrop-gradient-k)),
+		var(--primary) calc(5% * var(--backdrop-gradient-k)),
 		transparent
 	);
 }
@@ -1256,10 +1265,10 @@
 @supports (color: oklch(from red l c h)) {
 	:root[data-backdrop-gradient="weave"] {
 		--backdrop-warp: oklch(
-			from var(--primary) 0.9 max(c, 0.06) calc(h + 26) / calc(0.58 * var(--backdrop-gradient-k))
+			from var(--primary) 0.9 max(c, 0.06) calc(h + 26) / calc(0.11 * var(--backdrop-gradient-k))
 		);
 		--backdrop-weft: oklch(
-			from var(--primary) 0.88 max(c, 0.05) calc(h - 30) / calc(0.5 * var(--backdrop-gradient-k))
+			from var(--primary) 0.92 max(c, 0.05) calc(h - 30) / calc(0.09 * var(--backdrop-gradient-k))
 		);
 	}
 	:root[data-backdrop-gradient="weave"].dark {
@@ -1299,6 +1308,11 @@
 :root[data-backdrop-gradient="weave"] [data-slot="sidebar-wrapper"]::before,
 :root[data-backdrop-gradient="weave"] [data-slot="page-header"] {
 	background-color: var(--background);
+	/* Light: the only direction with any room over a near-white ground. */
+	background-blend-mode: multiply;
+}
+:root[data-backdrop-gradient="weave"].dark [data-slot="sidebar-wrapper"]::before,
+:root[data-backdrop-gradient="weave"].dark [data-slot="page-header"] {
 	background-blend-mode: soft-light;
 }
 
