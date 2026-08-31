@@ -4,6 +4,7 @@
 	import PageHeader from "$lib/components/layout/PageHeader.svelte";
 	import PageIntro from "$lib/components/layout/PageIntro.svelte";
 	import CommandPalette from "$lib/components/navigation/CommandPalette.svelte";
+	import BackdropSelector from "$lib/components/navigation/BackdropSelector.svelte";
 	import ModeToggle from "$lib/components/navigation/ModeToggle.svelte";
 	import RepositoryLink from "$lib/components/navigation/RepositoryLink.svelte";
 	import {
@@ -318,8 +319,17 @@
 
 	`controls` is the same seam for the same reason. Overriding it means rendering the GROUP, so
 	the light/dark toggle is repeated here rather than inherited: that is the slot's contract, and
-	the header's own comment says so. The repository link goes first because the toggle is the
-	control a reader reaches for repeatedly and belongs closest to the edge it always sits at.
+	the header's own comment says so. The order is: the link that LEAVES the site first, then the
+	two appearance controls, with the toggle closest to the edge — it is the one a reader reaches
+	for repeatedly, and it has always sat there.
+
+	THE BACKDROP PICKER IS A DELIBERATE DEPARTURE from the rule this bar settled on, which is that
+	the header carries the light/dark toggle and every other appearance axis lives on the Settings
+	page, where it can be named and explained. A backdrop is chosen the way a palette is — once — so
+	by that rule it belongs there too, and it is on the bar anyway because it is the axis this
+	gallery exists to let someone COMPARE: switching backdrops is a thing you do on the
+	page you are judging, not on a settings screen you have to leave. It costs one 40px button of
+	the search field's width between 768px and 893px, and the Settings page carries it as well.
 -->
 <PageHeader {trail}>
 	{#snippet search()}
@@ -327,6 +337,7 @@
 	{/snippet}
 	{#snippet controls()}
 		<RepositoryLink />
+		<BackdropSelector />
 		<ModeToggle />
 	{/snippet}
 </PageHeader>

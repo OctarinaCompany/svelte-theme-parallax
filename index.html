@@ -7,7 +7,7 @@
 		<title>Parallax — a dashboard theme kit for shadcn-svelte</title>
 		<meta
 			name="description"
-			content="A dashboard theme kit for shadcn-svelte — twelve palettes over one token set, an installable app shell, and 128 components, every one of them rendered on a live page."
+			content="A dashboard theme kit for shadcn-svelte — eighteen palettes over one token set, an installable app shell, and 128 components, every one of them rendered on a live page."
 		/>
 
 		<!-- Link-preview metadata.
@@ -25,7 +25,7 @@
 		<meta property="og:title" content="Parallax — a dashboard theme kit for shadcn-svelte" />
 		<meta
 			property="og:description"
-			content="A dashboard theme kit for shadcn-svelte — twelve palettes over one token set, an installable app shell, and 128 components, every one of them rendered on a live page."
+			content="A dashboard theme kit for shadcn-svelte — eighteen palettes over one token set, an installable app shell, and 128 components, every one of them rendered on a live page."
 		/>
 		<meta property="og:type" content="website" />
 		<meta property="og:url" content="https://octarinacompany.github.io/svelte-theme-parallax/" />
@@ -57,28 +57,84 @@
       Inline and non-module on purpose: a classic inline script blocks parsing and runs before
       anything paints, where `type="module"` would be deferred and defeat the point.
 
-      THE FOUR KEYS AND THE DEFAULT MUST MATCH THE APP. The first two are mode-watcher's own
+      THE KEYS AND THE DEFAULT MUST MATCH THE APP. The first two are mode-watcher's own
       defaults; `mode-watcher-theme` is also stated as `THEME_STORAGE_KEY` in
       `src/lib/themes/index.ts`, `sidebar-mode` as `SIDEBAR_MODE_STORAGE_KEY` in
       `src/lib/hooks/sidebar-mode.svelte.ts`, `header-mode` as `HEADER_MODE_STORAGE_KEY` in
-      `src/lib/hooks/header-mode.svelte.ts`, and `parallax` is `DEFAULT_THEME`, the `defaultTheme`
+      `src/lib/hooks/header-mode.svelte.ts`, the `backdrop-*` keys as the `KEYS` table in
+      `src/lib/hooks/backdrop.svelte.ts`, and `parallax` is `DEFAULT_THEME`, the `defaultTheme`
       passed to `ModeWatcher` in `App.svelte`. Nothing enforces the agreement across a plain HTML
       file, so it is written down on both ends.
 
-      Each chrome attribute is set only for `light` and `dark`. Its absence is the third state —
-      the surface follows what is around it — so writing `"auto"` would be writing a value no
-      stylesheet answers, and one more thing to strip later.
+      Each chrome attribute is set only for `light` and `dark`, and each backdrop layer's attribute
+      only while that layer is on. That absence is the third state — the surface follows what is
+      around it, the page wears the kit as it ships — so writing `"auto"` or `"none"` would be
+      writing a value no stylesheet answers, and one more thing to strip later.
 
-      BE HONEST ABOUT WHAT THE LAST TWO BUY. Unlike `.dark` and `data-theme`, neither prevents a
-      flash: both surfaces are client-rendered, and each hook writes its attribute at module
-      evaluation, before the component that imports it can render. They are here for the reason
-      this block already exists — every appearance key declared in one place, and all four read the
-      same way in devtools — and they cost four lines each.
+      BE HONEST ABOUT WHAT EACH ONE BUYS. Unlike `.dark` and `data-theme`, the two chrome axes
+      prevent no flash: both surfaces are client-rendered, and each hook writes its attribute at
+      module evaluation, before the component that imports it can render. They are here for the
+      reason this block already exists — every appearance key declared in one place, and every one
+      read the same way in devtools — and they cost four lines each. The backdrop attributes are the
+      exception: a backdrop repaints the page ground and the chrome, which are painted from `<body>`
+      before the app has mounted anything, so echoing them here is the same kind of saving
+      `data-theme` makes.
+
+      THE BACKDROP'S NUMBERS ARE CUSTOM PROPERTIES rather than attributes — bearings, a length, a
+      density, two intensities — because each carries a value from a continuum rather than a choice
+      from a known set. They are written only alongside a layer that is on, since nothing else reads
+      them, and unlike the ids they are CLAMPED, not merely parsed: an out-of-range id selects no
+      block for a frame, but an out-of-range number can invalidate a whole declaration — the
+      intensity factor is a divisor in the stylesheet — so the hook's ranges are restated beside the
+      keys below.
 
       `try`/`catch` because reading `localStorage` throws outright when a browser is set to
       block storage; the failure then costs a flash, not a blank page.
     -->
 		<script>
+			/*
+			 * ABSENT IS NOT ZERO, which is the whole reason this is a function and not two inline
+			 * reads. `localStorage.getItem` answers `null` for a key that was never written, and
+			 * `Number(null)` is 0 — so the obvious one-liner writes `--backdrop-density: 0` on a
+			 * first visit, the grain tile scales to nothing, and the backdrop silently does not
+			 * paint. Testing the RAW string for absence before coercing is the fix.
+			 */
+			function num(key) {
+				var raw = localStorage.getItem(key);
+				if (raw === null || raw === "") return null;
+				var value = Number(raw);
+				return isFinite(value) ? value : null;
+			}
+			/*
+			 * THE RANGES, RESTATED BY HAND. A plain HTML file cannot import, so the hook's ranges are
+			 * copied here and named after their source in `src/lib/hooks/backdrop.svelte.ts`: the two
+			 * bearings are degrees, `backdrop-fade` is BACKDROP_FADE_MIN..MAX, `backdrop-density` is
+			 * BACKDROP_DENSITY_MIN..MAX, and the two intensities are LAYER_OPACITY_MIN up to
+			 * GRADIENT_OPACITY_MAX and PATTERN_OPACITY_MAX respectively. The third column is the
+			 * divisor: the intensities are stored as percentages and written as FACTORS, because the
+			 * stylesheet multiplies alphas by them and `calc(0.22 * 80%)` is not a number.
+			 *
+			 * Clamped rather than merely parsed, because the stylesheet divides by `(1 - A) + A*k` to
+			 * make the intensity saturate, and that denominator only stays positive while k >= 0 — a
+			 * negative value out of storage would take a whole declaration out. The hook clamps to the
+			 * same ranges on hydration, so a value stored under an older range lands on the nearest
+			 * end once, without a frame outside it first.
+			 */
+			var RANGES = {
+				"backdrop-angle": [0, 360, 1],
+				"backdrop-fade-angle": [0, 360, 1],
+				"backdrop-fade": [0, 1400, 1],
+				"backdrop-density": [0, 100, 1],
+				"backdrop-gradient-opacity": [10, 300, 100],
+				"backdrop-pattern-opacity": [10, 200, 100],
+			};
+			function echo(key, property) {
+				var value = num(key);
+				if (value === null) return;
+				var range = RANGES[key];
+				value = Math.min(range[1], Math.max(range[0], value));
+				document.documentElement.style.setProperty(property, String(value / range[2]));
+			}
 			try {
 				var root = document.documentElement;
 				var mode = localStorage.getItem("mode-watcher-mode") || "system";
@@ -88,6 +144,38 @@
 				root.classList.toggle("dark", !light);
 				root.style.colorScheme = light ? "light" : "dark";
 				root.setAttribute("data-theme", localStorage.getItem("mode-watcher-theme") || "parallax");
+				/*
+				 * The four backdrop layers are ECHOED, NOT VALIDATED, exactly as the palette above them:
+				 * an allowlist here would be a second copy of the id lists for a plain HTML file to
+				 * drift from. A stale id selects no block — one frame of no layer — and the hook
+				 * narrows the stored value and repairs the attribute at module evaluation.
+				 *
+				 * `data-backdrop` is the boolean the stylesheet's shared rules key on: the layer
+				 * carriers and the four kill switches ask "is anything on?", not "which one".
+				 *
+				 * NOTHING OF THE MARK IS ECHOED. Its image is built from a file this script cannot wait
+				 * for, and its position and size only mean anything once the image exists, so the hook
+				 * writes all three together one frame later.
+				 */
+				var gradient = localStorage.getItem("backdrop-gradient");
+				var pattern = localStorage.getItem("backdrop-pattern");
+				var markOn = localStorage.getItem("backdrop-mark") === "on";
+				var grainOn = localStorage.getItem("backdrop-grain") === "on";
+				var hasGradient = !!gradient && gradient !== "none";
+				var hasPattern = !!pattern && pattern !== "none";
+				if (hasGradient) root.setAttribute("data-backdrop-gradient", gradient);
+				if (hasPattern) root.setAttribute("data-backdrop-pattern", pattern);
+				if (markOn) root.setAttribute("data-backdrop-mark", "");
+				if (grainOn) root.setAttribute("data-backdrop-grain", "");
+				if (hasGradient || hasPattern || markOn || grainOn) {
+					root.setAttribute("data-backdrop", "");
+					echo("backdrop-angle", "--backdrop-angle");
+					echo("backdrop-fade-angle", "--backdrop-fade-angle");
+					echo("backdrop-fade", "--backdrop-fade");
+					echo("backdrop-density", "--backdrop-density");
+					echo("backdrop-gradient-opacity", "--backdrop-gradient-k");
+					echo("backdrop-pattern-opacity", "--backdrop-pattern-k");
+				}
 				/*
 				 * The two chrome axes are RELATIVE TO THE PAGE ("inverted" = the opposite half) and
 				 * independent of each other, but the stylesheets key on absolute light/dark
@@ -100,21 +188,28 @@
 				var pageWear = light ? "light" : "dark";
 				var railWear = pageWear;
 				var sidebar = localStorage.getItem("sidebar-mode");
-				if (sidebar === "inverted" || sidebar === "dark") {
+				var railVibrant = sidebar === "vibrant";
+				if (railVibrant) {
+					/* Absolute, and written verbatim: its stylesheet answers `.dark` itself. */
+					railWear = "dark";
+					root.setAttribute("data-sidebar-mode", "vibrant");
+				} else if (sidebar === "inverted" || sidebar === "dark") {
 					railWear = light ? "dark" : "light";
 					root.setAttribute("data-sidebar-mode", railWear);
 				}
-				var barWear =
-					localStorage.getItem("header-mode") === "inverted"
-						? light
-							? "dark"
-							: "light"
-						: pageWear;
-				if (barWear !== railWear) {
-					root.setAttribute("data-header-mode", barWear);
+				var header = localStorage.getItem("header-mode");
+				if (header === "vibrant") {
+					root.setAttribute("data-header-mode", "vibrant");
+				} else {
+					var barWear = header === "inverted" ? (light ? "dark" : "light") : pageWear;
+					/* Beside a VIBRANT rail there is nothing to inherit — the panel keeps its tokens
+					   to itself — so the bar states its own value even when the two wears coincide. */
+					if (railVibrant || barWear !== railWear) {
+						root.setAttribute("data-header-mode", barWear);
+					}
 				}
 			} catch (e) {
-				/* storage blocked — the app applies all four on mount instead */
+				/* storage blocked — the app applies every key on mount instead */
 			}
 		</script>
 	</head>

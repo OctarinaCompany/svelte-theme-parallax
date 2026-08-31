@@ -12,6 +12,15 @@ ships today is listed here.
 
 ### Added
 
+- Six more palettes, taking the set to eighteen. Three widen the spectrum: `moss` and `fern`
+  fill the 104° of hue circle that had nothing in it between Sandstone and Evergreen — the
+  yellow-green and the kit's first true green — and `heather` takes the untouched arc between
+  Amethyst and Orchid, the first purple here that keeps its full chroma on the dark page. Three
+  depart on the axes the kit had never moved rather than on hue: `bluestone` is a deep, quiet
+  petrol that enters the crowded blue arc by lightness, `damson` tints every neutral to the
+  brand's own hue in both modes so nothing reads as grey, and `kiln` pairs the only warm
+  near-achromatic neutrals with a deep bronze. Each is eight numbers in `tools/themes/themes.mjs`;
+  every token is solved from them by the generator and cleared by the audit.
 - The AI chat family: twelve house components under a new `AI chat` catalog group —
   conversation, message (Markdown through `svelte-streamdown`), prompt input, suggestion,
   reasoning, tool, chain of thought, task, confirmation, question, context usage and model

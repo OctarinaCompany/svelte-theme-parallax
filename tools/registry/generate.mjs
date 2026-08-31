@@ -197,7 +197,7 @@ const THEME = {
 	type: "registry:theme",
 	title: "Parallax theme",
 	description:
-		"The Parallax palette: the base light and dark tokens, the eleven alternate palettes behind `data-theme`, and the Tailwind mappings for the token families shadcn does not ship — success, warning, info, the subtle family, and `--sidebar-outline`.",
+		"The Parallax palette: the base light and dark tokens, the seventeen alternate palettes behind `data-theme`, and the Tailwind mappings for the token families shadcn does not ship — success, warning, info, the subtle family, and `--sidebar-outline`.",
 	dependencies: ["mode-watcher", "@fontsource-variable/hanken-grotesk"].map(pinned),
 	/*
 	 * Empty rather than absent, BOTH of them: `registry.json` requires `registryDependencies`
@@ -919,7 +919,7 @@ const UI_DESCRIPTIONS = {
 	skeleton:
 		"The house skeleton: shadcn's pulsing placeholder on the muted ground rather than the accent one.",
 	slider:
-		"The house slider: shadcn's API with the pale thumb and focus ring the theme's controls share, horizontal or vertical.",
+		"The house slider: shadcn's API with the pale thumb and focus ring the theme's controls share, horizontal or vertical. Its name, description and value text reach the thumb — where the slider role lives — through `thumbLabel`, `aria-labelledby` / `aria-describedby` and `thumbValueText`.",
 	sortable:
 		"Drag-and-drop reordering for a list or a grid, operable with a pointer, with touch and from the keyboard alone. Kanban composes it.",
 	"speed-dial":

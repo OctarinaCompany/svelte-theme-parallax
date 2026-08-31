@@ -39,6 +39,30 @@
 @import "./themes.css";
 
 /*
+ * The backdrops, keyed on `data-backdrop` — a fifth appearance axis, layered over the palette and
+ * the mode: a gradient on the rail, a band on the bar, a light behind the page, a serif, a
+ * radius. Each derives its colours from the live tokens, so it composes with all twelve
+ * palettes in both modes.
+ *
+ * IT IS A SEPARATE FILE FOR TWO REASONS. `tools/registry/generate.mjs` audits THIS file
+ * exhaustively — exactly three top-level `:root` blocks, two `@layer base`, and every other
+ * top-level block claimed by a registry item in `tools/registry/css-claims.mjs` — and a dozen
+ * backdrop blocks would be a dozen claims for something no item ships. And it imports below
+ * `themes.css` on purpose: backdrop rules that tie a palette block on specificity win on source
+ * order. An `@import` is a statement rather than a block, so the audit reads straight past this.
+ */
+@import "./backdrops.css";
+
+/*
+ * `vibrant`, the third value of the sidebar's and the header's own appearance axis — the brand
+ * painted onto those two surfaces as one corner light. Not a backdrop, so not in the file above;
+ * imported AFTER it on purpose, so that a backdrop decorating the same two surfaces would lose to
+ * the explicit chrome choice rather than winning on source order. No backdrop does today — the ones
+ * that painted chrome were cut — but the ordering is the guarantee, not the current contents.
+ */
+@import "./vibrant.css";
+
+/*
  * Tailwind scans this project's own source, and `svelte-streamdown` — the Markdown renderer
  * `ui/message` wraps — ships PRE-BUILT class strings in its `dist`, which no file here mentions.
  * Without this line Tailwind never emits those utilities and a rendered answer arrives unstyled:
@@ -580,15 +604,25 @@
 	 * `lg` and `xl` are deliberately equal. The scale has nothing between the card radius
 	 * (0.5rem) and the decorative 1rem, and cards here use `rounded-xl` while
 	 * the sidebar and tabs use `rounded-lg` — both must land on the card value.
+	 *
+	 * EVERY STEP IS SCALED BY `--radius-factor`, WHICH DEFAULTS TO 1 AND SO CHANGES NOTHING.
+	 * The multiplier exists for `src/backdrops.css`, where a shape backdrop squares the whole
+	 * interface (0) or rounds it (2) in one declaration. It has to live HERE rather than in the
+	 * backdrop's own block because `@theme inline` INLINES these values into every `rounded-*`
+	 * utility: a backdrop overriding `--radius-lg` on `<html>` would change a variable the
+	 * utility no longer reads. Inlining the `calc()` instead means the utility carries the
+	 * multiplication and resolves it per element, against whatever `--radius-factor` it
+	 * inherits. A backdrop that turns the factor must also restate `--radius` (the one step this
+	 * scale takes by reference, and the value four unlayered rules read directly).
 	 */
-	--radius-xs: 0.1875rem; /* border-radius-xs */
-	--radius-sm: 0.25rem; /* border-radius-sm — dropdown items */
+	--radius-xs: calc(0.1875rem * var(--radius-factor, 1)); /* border-radius-xs */
+	--radius-sm: calc(0.25rem * var(--radius-factor, 1)); /* border-radius-sm — dropdown items */
 	--radius-md: var(--radius); /* border-radius — buttons, inputs, popovers */
-	--radius-lg: 0.5rem; /* border-radius-lg — sidebar, tabs list, chart tooltip */
-	--radius-xl: 0.5rem; /* card-border-radius = border-radius-lg — cards, dialogs */
-	--radius-2xl: 1rem; /* the decorative step, untouched */
-	--radius-3xl: 2rem; /* the largest decorative step, untouched */
-	--radius-4xl: 50rem; /* border-radius-pill — its only consumer here is Badge */
+	--radius-lg: calc(0.5rem * var(--radius-factor, 1)); /* border-radius-lg — sidebar, tabs */
+	--radius-xl: calc(0.5rem * var(--radius-factor, 1)); /* card-border-radius — cards, dialogs */
+	--radius-2xl: calc(1rem * var(--radius-factor, 1)); /* the decorative step, untouched */
+	--radius-3xl: calc(2rem * var(--radius-factor, 1)); /* the largest decorative step */
+	--radius-4xl: calc(50rem * var(--radius-factor, 1)); /* border-radius-pill — Badge only */
 }
 
 /*

@@ -21,7 +21,14 @@
 	} = $props();
 </script>
 
-<div class="mb-8 border-b py-6">
+<!--
+	`data-slot`, so a stylesheet can address this block by name rather than by shape. It was added
+	for the `overlap` flavor, which ran a band of chrome ink behind exactly this block; that look
+	was cut, so nothing selects the slot today. It stays because the name is the stable hook — the
+	alternative, `:has(> h1)`, would silently claim any other element that ever grows a direct
+	`h1` child, which is the failure this exists to avoid.
+-->
+<div data-slot="page-intro" class="mb-8 border-b py-6">
 	<h1 class="text-2xl font-medium">{title}</h1>
 	{#if subtitle}
 		<p class="mt-1.5 text-sm text-muted-foreground">{@render subtitle()}</p>

@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { Component } from "svelte";
 	import ContrastIcon from "@lucide/svelte/icons/contrast";
+	import DropletIcon from "@lucide/svelte/icons/droplet";
 	import PanelTopIcon from "@lucide/svelte/icons/panel-top";
 	import SunMoonIcon from "@lucide/svelte/icons/sun-moon";
 	import * as DropdownMenu from "$lib/components/ui/dropdown-menu/index.js";
@@ -37,15 +38,17 @@
 	let { class: className }: { class?: string } = $props();
 
 	/**
-	 * The two rows, both relative to the PAGE and independent of the rail's axis: `Default`
-	 * wears the page's mode even beside an inverted rail, `Inverted` wears the opposite half
-	 * (owner decision; the retired vocabulary was Follow sidebar / Light / Dark, and a first
-	 * cut of `Default` followed the rail — rejected because inverting the rail dragged the bar
-	 * with it).
+	 * The three rows, all independent of the rail's axis: `Default` wears the page's mode even
+	 * beside an inverted rail, `Inverted` wears the opposite half (owner decision; the retired
+	 * vocabulary was Follow sidebar / Light / Dark, and a first cut of `Default` followed the rail
+	 * — rejected because inverting the rail dragged the bar with it). `Vibrant` is last because it
+	 * is not a light/dark answer at all: it paints the bar with the palette's brand, and the same
+	 * value on the rail draws the two as one L-shaped surface.
 	 */
 	const OPTIONS: { value: HeaderMode; label: string; icon: Component }[] = [
 		{ value: "default", label: "Default", icon: SunMoonIcon },
 		{ value: "inverted", label: "Inverted", icon: ContrastIcon },
+		{ value: "vibrant", label: "Vibrant", icon: DropletIcon },
 	];
 
 	const current = $derived(OPTIONS.find((o) => o.value === headerMode.current) ?? OPTIONS[0]);

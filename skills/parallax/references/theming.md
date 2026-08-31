@@ -1,14 +1,14 @@
 # Theming, tokens and the appearance axes
 
 Contents: [Token families](#token-families) · [Type, radius, tracking](#type-radius-tracking) ·
-[The 12 palettes](#the-12-palettes) · [Programmatic control](#programmatic-control) ·
+[The 18 palettes](#the-18-palettes) · [Programmatic control](#programmatic-control) ·
 [The appearance axes](#the-appearance-axes) · [The first-paint script](#the-first-paint-script)
 
 ## Token families
 
 Every mapping generates the full Tailwind utility set (`bg-*`, `text-*`, `border-*`,
 `ring-*`, `fill-*`, `stroke-*`, plus `/opacity` modifiers). Use these — never raw palette
-colors — so all 12 themes and both modes keep working.
+colors — so every theme and both modes keep working.
 
 **Status, solid** (emphasis fills; pair with their own foreground):
 
@@ -62,17 +62,16 @@ Role-mapped scale — body runs 15px, larger than shadcn's 14px:
 - `font-sans` is Hanken Grotesk Variable — needs
   `@import "@fontsource-variable/hanken-grotesk";` in the global stylesheet.
 
-## The 12 palettes
+## The 18 palettes
 
 `graphite, sepia, nordic, harbor, evergreen, sandstone, ember, crimson, orchid, amethyst,
-indigo, parallax`. Palette and light/dark are independent axes: every theme defines both
-modes, so `<html class="dark" data-theme="ember">` is an ordinary state.
+indigo, moss, fern, heather, bluestone, damson, kiln, parallax`. Palette and light/dark are
+independent axes: every theme defines both modes, so `<html class="dark" data-theme="ember">`
+is an ordinary state.
 
 `parallax` is the base and **has no `[data-theme]` block on purpose** — it IS the
-`:root`/`.dark` palette. Base is not default: a missing or unknown stored id narrows to
-`DEFAULT_THEME`, which the kit ships as `amethyst`, and that is the palette a first visit
-wears. The two were the same id until Amethyst took over, so `data-theme` is now written on
-the first frame rather than left absent.
+`:root`/`.dark` palette. It is also `DEFAULT_THEME`, so a missing or unknown stored id narrows
+to it; `data-theme` is still written on the first frame rather than left absent.
 
 ## Programmatic control
 
@@ -98,8 +97,8 @@ Four module-level hooks (`$lib/hooks/`), importable anywhere, no provider. All p
 
 | Axis              | Hook module                  | Read                       | Write                      | Values / default            |
 | ----------------- | ---------------------------- | -------------------------- | -------------------------- | --------------------------- |
-| Header inverted   | `header-mode.svelte.ts`      | `headerMode`, `headerWear` | `setHeaderMode(v)`         | `"default" \| "inverted"`   |
-| Sidebar inverted  | `sidebar-mode.svelte.ts`     | `sidebarMode`, `sidebarWear` | `setSidebarMode(v)`      | `"default" \| "inverted"`   |
+| Header inverted   | `header-mode.svelte.ts`      | `headerMode`, `headerWear` | `setHeaderMode(v)`         | `"default" \| "inverted" \| "vibrant"`¹   |
+| Sidebar inverted  | `sidebar-mode.svelte.ts`     | `sidebarMode`, `sidebarWear` | `setSidebarMode(v)`      | `"default" \| "inverted" \| "vibrant"`¹   |
 | Header floating   | `header-behaviour.svelte.ts` | `headerFloating.current`   | `setHeaderFloating(v)`     | boolean, default `false`    |
 | Header auto-hide  | `header-behaviour.svelte.ts` | `headerAutoHide.current`   | `setHeaderAutoHide(v)`     | boolean, default `false`    |
 | Sidebar floating  | `sidebar-behaviour.svelte.ts`| `sidebarFloating.current`  | `setSidebarFloating(v)`    | boolean, **default `true`** |
@@ -110,6 +109,10 @@ and stays opposite when the page flips". They resolve to absolute `data-sidebar-
 be inherited). The behaviour flags write no attribute — components read them directly.
 Drive everything through the setters; the ready-made UI is `HeaderToggle` /
 `SidebarModeToggle` / the Settings-page pattern.
+
+¹ Both hooks accept `"vibrant"` — the brand-painted chrome — but it is drawn by `src/vibrant.css`,
+which the registry does not ship yet. In a consumer project the value sets the attribute and paints
+nothing; use `"default"` or `"inverted"` until the stylesheet is published.
 
 ## The first-paint script
 
@@ -144,9 +147,9 @@ the `dark` line above:
 ```js
 root.classList.toggle("dark", dark);
 root.style.colorScheme = dark ? "dark" : "light";
-root.setAttribute("data-theme", localStorage.getItem("mode-watcher-theme") || "amethyst");
+root.setAttribute("data-theme", localStorage.getItem("mode-watcher-theme") || "parallax");
 ```
 
 Write the default palette as a literal and keep it in step with the `defaultTheme` you pass
-`<ModeWatcher />` — `DEFAULT_THEME`, `amethyst` as the kit ships. Nothing across a plain
+`<ModeWatcher />` — `DEFAULT_THEME`, `parallax` as the kit ships. Nothing across a plain
 HTML file enforces that agreement, so it is stated at both ends.

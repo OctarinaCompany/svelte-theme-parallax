@@ -77,6 +77,19 @@ reads the scope stack it hands back, and paints `ui/code-block`'s own token clas
 colour on screen is this repository's `src/app.css`, not anybody's editor palette, and the twelve
 Parallax palettes keep working unchanged.
 
+## Backdrop mark
+
+`public/backdrop-mark.svg` is a placeholder for the backdrop axis's mark layer, meant to be
+replaced with a project's own file of the same name. It is redrawn from
+[Corner Ornament Black Up Right](https://commons.wikimedia.org/wiki/File:Corner_Ornament_Black_Up_Right.svg)
+on Wikimedia Commons, released under the
+[Creative Commons CC0 1.0 Universal Public Domain Dedication](https://creativecommons.org/publicdomain/zero/1.0/).
+
+CC0 waives attribution, so this entry records provenance rather than discharging an obligation —
+which also means a consumer replacing the file inherits no condition from it. Only the path data
+was kept; the DTD, the stylesheet block and the millimetre dimensions were dropped, and the fill
+became `currentColor` so the page decides the ink.
+
 ## Everything else
 
 The remaining runtime and build dependencies (Svelte, Vite, Tailwind CSS, LayerChart,

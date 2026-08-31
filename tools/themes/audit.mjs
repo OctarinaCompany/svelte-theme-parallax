@@ -112,7 +112,7 @@ const acc = (theme, mode, pairing, measured, baseline, why) => ({
 });
 
 const WHY_INFO =
-	"a legible solid info badge costs contrast on a white card — one cause across all 11 themes, see the group note";
+	"a legible solid info badge costs contrast on a white card — one cause shared by every theme in the group below, see the group note";
 const WHY_PAIR =
 	"success/info end a step closer than the anchor palette on all three channels; dHue ≥ 50° and the tone ladder still separate them";
 const WHY_CHART2 =
@@ -159,6 +159,12 @@ const ACCEPTED_REGRESSIONS = [
 	// the same pairing, now that the base is the nudged palette rather than the original.
 	acc("amethyst", "light", "info on card", 2.41, 2.55, WHY_INFO),
 	acc("indigo", "light", "info on card", 2.38, 2.55, WHY_INFO),
+	// The four newcomers that inherit the same walk. `heather` and `damson` do not appear here:
+	// their info lands at 2.44, at or above the base's own number, exactly as `orchid` does.
+	acc("moss", "light", "info on card", 2.38, 2.46, WHY_INFO),
+	acc("fern", "light", "info on card", 2.38, 2.46, WHY_INFO),
+	acc("bluestone", "light", "info on card", 2.35, 2.46, WHY_INFO),
+	acc("kiln", "light", "info on card", 2.38, 2.46, WHY_INFO),
 
 	/*
 	 * These themes resolve success/info a step closer than the base's pair on every channel at
@@ -180,6 +186,14 @@ const ACCEPTED_REGRESSIONS = [
 	acc("crimson", "light", "success/info", 1.08, 1.43, WHY_PAIR),
 	acc("amethyst", "light", "success/info", 1.08, 1.43, WHY_PAIR),
 	acc("indigo", "light", "success/info", 1.07, 1.43, WHY_PAIR),
+	// All six newcomers land here, which is the rule rather than the exception: the pair is set by
+	// the solver's walk, not by the palette, so a new hue inherits it whatever it does.
+	acc("moss", "light", "success/info", 1.06, 1.43, WHY_PAIR),
+	acc("fern", "light", "success/info", 1.06, 1.43, WHY_PAIR),
+	acc("heather", "light", "success/info", 1.09, 1.43, WHY_PAIR),
+	acc("bluestone", "light", "success/info", 1.05, 1.43, WHY_PAIR),
+	acc("damson", "light", "success/info", 1.09, 1.43, WHY_PAIR),
+	acc("kiln", "light", "success/info", 1.07, 1.43, WHY_PAIR),
 
 	// `harbor` and `evergreen` are out for the same reason as `orchid` above: the base moved under
 	// them by a hair and their chart-2 is no longer below it.

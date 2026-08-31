@@ -411,6 +411,108 @@ export const THEMES = [
 		brandH: 278,
 		brandC: 0.19,
 	},
+	// THE GREEN ARC, which every theme above leaves empty. Sandstone ends at h 68 and Evergreen
+	// picks up again at 172, so 104° of the circle — the whole yellow-green through true-green
+	// span — had nothing in it. These two take the two ends of it.
+	{
+		id: "moss",
+		name: "Moss",
+		why: "A yellow-green sits 38° from both the warning and the success anchor, so neither has to move.",
+		blurb: "Olive-cast greys under a yellow-green primary.",
+		// The head of the empty arc, and the only window in it that clears BOTH neighbouring status
+		// anchors on hue alone: warning is at 84 and success at 160, and 122 is 38° from each.
+		nh: 118,
+		nc: 0.5,
+		brandH: 122,
+		brandC: 0.12,
+	},
+	{
+		id: "fern",
+		name: "Fern",
+		why: "The kit’s first true green: Evergreen is a sea-green and Harbor a teal, and neither reads as leaf.",
+		blurb: "Green-cast greys under a leaf-green primary.",
+		// h 145 is the crest of sRGB's green lobe — chroma ceilings 0.170 light and 0.225 dark — so
+		// this is the one newcomer with real headroom on both sides. Its 15° from success is closer
+		// than the rule of thumb likes, but the pair separates on lightness instead (dL 0.188), which
+		// is exactly how Evergreen's own brand clears the same anchor.
+		nh: 142,
+		nc: 0.45,
+		brandH: 145,
+		brandC: 0.145,
+	},
+	{
+		id: "heather",
+		name: "Heather",
+		why: "A magenta-violet that keeps its full chroma on the dark page, which no other purple here does.",
+		blurb: "Mauve greys under a heather primary.",
+		// The widest arc no status band touches, between Amethyst 302 and Orchid 340. It is also the
+		// first purple in the kit whose dark lift returns the chroma it asks for: Amethyst asks 0.200
+		// and gets 0.161, Indigo asks 0.191 and gets 0.137, this asks 0.190 and keeps it.
+		nh: 312,
+		nc: 0.55,
+		brandH: 320,
+		brandC: 0.19,
+	},
+	// THE THREE THAT ANSWER A DIFFERENT QUESTION. Every theme above departs on HUE. These depart on
+	// the axes the kit has never moved: how deep a brand may sit, how quiet it may be, and how far a
+	// neutral may be tinted. Each takes its rule — never its values — from a well-known palette,
+	// named here the way Nordic names Nord: in the comment, never in the id or anything shipped.
+	{
+		id: "bluestone",
+		name: "Bluestone",
+		why: "A deep, quiet petrol enters the crowded blue arc by lightness where another hue could not.",
+		blurb: "Quiet slate under a deep petrol primary.",
+		// Solarized's rule is that neither mode ever reaches an extreme — its base00 measures L 0.568
+		// and base0 L 0.660, never black and never white. This is that rule as a brand: placed deep
+		// enough that its own label clears 6.9:1 where the house lands at 4.75, and quiet enough to
+		// sit in the chroma gap between Sepia's ink and Harbor, which nothing else occupies. Entering
+		// the harbor-to-nordic arc on hue is impossible — a normal-chroma brand at h 215 measures
+		// ΔEok 0.032 from Harbor, tighter than any pair the kit ships — so it enters on depth instead.
+		// The cream ground that palette is known for is out of reach here and deliberately not
+		// attempted: this kit's lightest ground carries at most C 0.0034.
+		nh: 205,
+		nc: 0.5,
+		brandH: 220,
+		brandC: 0.08,
+		brandL: 0.46,
+	},
+	{
+		id: "damson",
+		name: "Damson",
+		why: "Neutrals tinted to the brand’s own hue in both modes, so no surface anywhere reads as grey.",
+		blurb: "Violet-tinted neutrals under a muted iris primary.",
+		// Rosé Pine tints every neutral toward the ground's own hue in BOTH variants, which is why
+		// there is no grey anywhere in it. Here that is the kit's full neutral cast at a hue nothing
+		// else claims — dark ground #26213A, card #2E2846 — under a brand quiet enough to be the
+		// second occupant of the chroma gap Bluestone opens.
+		nh: 292,
+		nc: 0.85,
+		brandH: 306,
+		brandC: 0.075,
+	},
+	{
+		id: "kiln",
+		name: "Kiln",
+		why: "A deep bronze over near-achromatic warm greys; warning steps up to leave the brand its band.",
+		blurb: "Near-achromatic warm neutrals under a deep bronze primary.",
+		// Gruvbox is the one well-known palette whose LIGHT mode is the reason people reach for it,
+		// and its faded accents are genuinely deeper than anything here. The depth is what transfers.
+		// The cream does not, and is not attempted, for the reason given on Bluestone.
+		//
+		// This is the kit's only warm near-achromatic neutral — Graphite is near-achromatic but cool
+		// at nh 264, Sepia is warm but at nc 0.55 — and with Crimson the only brand that stays deep
+		// in BOTH modes. The dark brand is hand-placed because 0.59 is the single value that works:
+		// 0.58 drops its text on the page below the base, 0.60 drops its own label below it.
+		nh: 88,
+		nc: 0.15,
+		brandH: 76,
+		brandC: 0.1,
+		brandL: 0.46,
+		brandDark: { L: 0.59, C: 0.125 },
+		// The brand sits at 76 and warning defaults to 84 — 8° apart, which nothing can rescue. Warning
+		// steps to the top of its documented band, 26° clear, and success is far enough away already.
+		status: { warning: { h: 102 } },
+	},
 	// LAST ON PURPOSE, AND THE BASE. Every theme above answers "what if the brand were another
 	// hue"; this one answers "what if it were the same hue, measured again", so it belongs at the
 	// end of the list rather than beside the eleven that actually depart.

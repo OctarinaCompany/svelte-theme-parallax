@@ -6,7 +6,7 @@ build strips each item's `docs` field from the published JSON.
 
 ## parallax-theme
 
-The Parallax palette: the base light and dark tokens, the eleven alternate palettes behind `data-theme`, and the Tailwind mappings for the token families shadcn does not ship — success, warning, info, the subtle family, and `--sidebar-outline`.
+The Parallax palette: the base light and dark tokens, the seventeen alternate palettes behind `data-theme`, and the Tailwind mappings for the token families shadcn does not ship — success, warning, info, the subtle family, and `--sidebar-outline`.
 
 ```sh
 npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-theme.json
@@ -978,7 +978,7 @@ npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-para
 
 ## parallax-slider
 
-The house slider: shadcn's API with the pale thumb and focus ring the theme's controls share, horizontal or vertical.
+The house slider: shadcn's API with the pale thumb and focus ring the theme's controls share, horizontal or vertical. Its name, description and value text reach the thumb — where the slider role lives — through `thumbLabel`, `aria-labelledby` / `aria-describedby` and `thumbValueText`.
 
 ```sh
 npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-slider.json

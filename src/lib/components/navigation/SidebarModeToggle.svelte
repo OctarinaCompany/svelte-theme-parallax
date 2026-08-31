@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { Component } from "svelte";
 	import ContrastIcon from "@lucide/svelte/icons/contrast";
+	import DropletIcon from "@lucide/svelte/icons/droplet";
 	import PanelLeftIcon from "@lucide/svelte/icons/panel-left";
 	import SunMoonIcon from "@lucide/svelte/icons/sun-moon";
 	import * as DropdownMenu from "$lib/components/ui/dropdown-menu/index.js";
@@ -31,13 +32,16 @@
 	let { class: className }: { class?: string } = $props();
 
 	/**
-	 * The two rows. `Default` follows the page; `Inverted` wears the opposite half and KEEPS
+	 * The three rows. `Default` follows the page; `Inverted` wears the opposite half and KEEPS
 	 * wearing it when the page mode flips — a relative choice, not a pin (owner decision; the
-	 * retired vocabulary was Follow page / Light / Dark).
+	 * retired vocabulary was Follow page / Light / Dark). `Vibrant` is the odd one out and
+	 * deliberately last: it is not a light/dark answer at all but the palette's brand painted onto
+	 * the panel, so it belongs at the end of a list the first two form a pair in.
 	 */
 	const OPTIONS: { value: SidebarMode; label: string; icon: Component }[] = [
 		{ value: "default", label: "Default", icon: SunMoonIcon },
 		{ value: "inverted", label: "Inverted", icon: ContrastIcon },
+		{ value: "vibrant", label: "Vibrant", icon: DropletIcon },
 	];
 
 	const current = $derived(OPTIONS.find((o) => o.value === sidebarMode.current) ?? OPTIONS[0]);
