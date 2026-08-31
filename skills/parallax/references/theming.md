@@ -97,8 +97,8 @@ Four module-level hooks (`$lib/hooks/`), importable anywhere, no provider. All p
 
 | Axis              | Hook module                  | Read                       | Write                      | Values / default            |
 | ----------------- | ---------------------------- | -------------------------- | -------------------------- | --------------------------- |
-| Header inverted   | `header-mode.svelte.ts`      | `headerMode`, `headerWear` | `setHeaderMode(v)`         | `"default" \| "inverted"`   |
-| Sidebar inverted  | `sidebar-mode.svelte.ts`     | `sidebarMode`, `sidebarWear` | `setSidebarMode(v)`      | `"default" \| "inverted"`   |
+| Header inverted   | `header-mode.svelte.ts`      | `headerMode`, `headerWear` | `setHeaderMode(v)`         | `"default" \| "inverted" \| "vibrant"`¹   |
+| Sidebar inverted  | `sidebar-mode.svelte.ts`     | `sidebarMode`, `sidebarWear` | `setSidebarMode(v)`      | `"default" \| "inverted" \| "vibrant"`¹   |
 | Header floating   | `header-behaviour.svelte.ts` | `headerFloating.current`   | `setHeaderFloating(v)`     | boolean, default `false`    |
 | Header auto-hide  | `header-behaviour.svelte.ts` | `headerAutoHide.current`   | `setHeaderAutoHide(v)`     | boolean, default `false`    |
 | Sidebar floating  | `sidebar-behaviour.svelte.ts`| `sidebarFloating.current`  | `setSidebarFloating(v)`    | boolean, **default `true`** |
@@ -109,6 +109,10 @@ and stays opposite when the page flips". They resolve to absolute `data-sidebar-
 be inherited). The behaviour flags write no attribute — components read them directly.
 Drive everything through the setters; the ready-made UI is `HeaderToggle` /
 `SidebarModeToggle` / the Settings-page pattern.
+
+¹ Both hooks accept `"vibrant"` — the brand-painted chrome — but it is drawn by `src/vibrant.css`,
+which the registry does not ship yet. In a consumer project the value sets the attribute and paints
+nothing; use `"default"` or `"inverted"` until the stylesheet is published.
 
 ## The first-paint script
 
@@ -143,9 +147,9 @@ the `dark` line above:
 ```js
 root.classList.toggle("dark", dark);
 root.style.colorScheme = dark ? "dark" : "light";
-root.setAttribute("data-theme", localStorage.getItem("mode-watcher-theme") || "amethyst");
+root.setAttribute("data-theme", localStorage.getItem("mode-watcher-theme") || "parallax");
 ```
 
 Write the default palette as a literal and keep it in step with the `defaultTheme` you pass
-`<ModeWatcher />` — `DEFAULT_THEME`, `amethyst` as the kit ships. Nothing across a plain
+`<ModeWatcher />` — `DEFAULT_THEME`, `parallax` as the kit ships. Nothing across a plain
 HTML file enforces that agreement, so it is stated at both ends.

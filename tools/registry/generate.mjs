@@ -913,7 +913,7 @@ const UI_DESCRIPTIONS = {
 	skeleton:
 		"The house skeleton: shadcn's pulsing placeholder on the muted ground rather than the accent one.",
 	slider:
-		"The house slider: shadcn's API with the pale thumb and focus ring the theme's controls share, horizontal or vertical.",
+		"The house slider: shadcn's API with the pale thumb and focus ring the theme's controls share, horizontal or vertical. Its name, description and value text reach the thumb — where the slider role lives — through `thumbLabel`, `aria-labelledby` / `aria-describedby` and `thumbValueText`.",
 	sortable:
 		"Drag-and-drop reordering for a list or a grid, operable with a pointer, with touch and from the keyboard alone. Kanban composes it.",
 	"speed-dial":

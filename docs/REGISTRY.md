@@ -967,7 +967,7 @@ npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-para
 
 ## parallax-slider
 
-The house slider: shadcn's API with the pale thumb and focus ring the theme's controls share, horizontal or vertical.
+The house slider: shadcn's API with the pale thumb and focus ring the theme's controls share, horizontal or vertical. Its name, description and value text reach the thumb — where the slider role lives — through `thumbLabel`, `aria-labelledby` / `aria-describedby` and `thumbValueText`.
 
 ```sh
 npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-slider.json

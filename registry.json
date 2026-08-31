@@ -7774,7 +7774,7 @@
 			"name": "parallax-slider",
 			"type": "registry:ui",
 			"title": "Slider",
-			"description": "The house slider: shadcn's API with the pale thumb and focus ring the theme's controls share, horizontal or vertical.",
+			"description": "The house slider: shadcn's API with the pale thumb and focus ring the theme's controls share, horizontal or vertical. Its name, description and value text reach the thumb — where the slider role lives — through `thumbLabel`, `aria-labelledby` / `aria-describedby` and `thumbValueText`.",
 			"dependencies": [
 				"bits-ui@^2.19.0"
 			],

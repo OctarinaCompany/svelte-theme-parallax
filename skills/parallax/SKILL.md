@@ -1,6 +1,6 @@
 ---
 name: parallax
-description: Build and style dashboards with Parallax, the shadcn-svelte theme kit (Svelte 5 + Tailwind v4). Use when a project consumes the Parallax registry (svelte-theme-parallax), when AppShell/AppSidebar/PageHeader or parallax-* registry items appear in the code, or when the user asks to install Parallax, start a new Svelte dashboard project from an empty directory, add a sidebar/header shell, add a full-height panel beside the page, react to or drive scrolling inside the shell, fix Safari's collapsing toolbar on iPad, theme a dashboard, use the success/warning/info or subtle token families, or drive the floating/inverted/auto-hide appearance axes. Covers bootstrapping a project from scratch, registry installation, shell composition through typed props and snippets, the shell-owned scroll model, nav data wiring with an isActive predicate, the 18 palettes over mode-watcher, and the appearance hooks. Not for generic shadcn-svelte components that Parallax does not ship.
+description: Build and style dashboards with Parallax, the shadcn-svelte theme kit (Svelte 5 + Tailwind v4). Use when a project consumes the Parallax registry (svelte-theme-parallax), when AppShell/AppSidebar/PageHeader or parallax-* registry items appear in the code, or when the user asks to install Parallax, start a new Svelte dashboard project from an empty directory, add a sidebar/header shell, add a full-height panel beside the page, react to or drive scrolling inside the shell, fix Safari's collapsing toolbar on iPad, theme a dashboard, use the success/warning/info or subtle token families, or drive the floating/inverted/auto-hide appearance axes, or apply a look exported from another Parallax project as `parallax-appearance.json`. Covers bootstrapping a project from scratch, registry installation, shell composition through typed props and snippets, the shell-owned scroll model, nav data wiring with an isActive predicate, the 18 palettes over mode-watcher, and the appearance hooks. Not for generic shadcn-svelte components that Parallax does not ship.
 license: MIT
 ---
 
@@ -125,9 +125,9 @@ Before adding or changing anything:
   text-warning-subtle-foreground`, never `text-warning` on `bg-warning-subtle`.
 - **Switch palettes through `setTheme(id)`** from `$lib/themes/index.js`, never by writing
   `data-theme` or `localStorage` directly; light/dark goes through `mode-watcher`.
-- **The `parallax` theme id has no CSS block on purpose** — it IS the `:root`/`.dark` base.
-  Base is not default: a first visit wears `DEFAULT_THEME`, which the kit ships as
-  `amethyst`.
+- **The `parallax` theme id has no CSS block on purpose** — it IS the `:root`/`.dark` base,
+  and it is also `DEFAULT_THEME`: a first visit wears the base. Keep the literal in the
+  first-paint script in step with whatever `defaultTheme` the project passes `<ModeWatcher />`.
 - **Drive the axes through their setters** (`setHeaderFloating`, `setSidebarMode`, …),
   never by toggling classes or attributes yourself.
 - **Round an `Avatar.Root` and everything follows** — ring, image and fallback are
@@ -225,6 +225,7 @@ Before adding or changing anything:
 | Palette switch UI                        | `ThemeSelector` (`compact` for a header slot; full form on a settings page) |
 | Light/dark toggle                        | `ModeToggle` (or `toggleMode()` from mode-watcher)                   |
 | Floating / inverted / auto-hide controls | `HeaderToggle`, `SidebarModeToggle`, or the hook setters             |
+| A look exported from another Parallax app (`parallax-appearance.json`) | the key → item → setter table and procedure in [references/appearance-export.md](references/appearance-export.md) |
 | Table-in-a-card page, page header block, list group, upload UI, data table/grid | the recipes in [references/patterns.md](references/patterns.md) |
 
 ## Workflow
@@ -267,6 +268,9 @@ List group, …). The COMPONENTS it uses are installable; the composition is wha
   classes, the 18 palettes, the appearance hooks, the first-paint script
 - [references/install.md](references/install.md) — the registry items, install order,
   manual steps, fidelity notes, troubleshooting
+- [references/appearance-export.md](references/appearance-export.md) — applying a
+  `parallax-appearance.json` exported from the gallery's Settings page: which keys the
+  project can honour, and how to apply them
 - [references/bootstrap.md](references/bootstrap.md) — empty directory to running
   dashboard: scaffolding, the hand-written `components.json`, what `init` leaves behind,
   and the version traps
