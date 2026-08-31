@@ -7,17 +7,14 @@
  * so every backdrop composes with every palette in either mode, and each one derives its colours
  * from the live tokens instead of restating them.
  *
- * FOUR AXES, NOT ONE CHOICE, and that is the shape this file has been rebuilt around. A backdrop
- * used to be a single id out of twenty-four, which made "grid" and "spotlight" alternatives when
- * they are nothing of the kind — one is a lattice drawn over the page and the other is a light
- * thrown across it, and wanting both is the obvious thing to want. They are now four independent
- * selections that compose:
+ * FOUR INDEPENDENT LAYERS, in painting order — the order the stylesheet stacks them, the order the
+ * Settings page and the header menu list them, and the order this file keeps throughout:
  *
  *   - GRADIENT — a light, from a bearing you choose. Twelve of them, or none.
- *   - PATTERN — a drawn lattice, fading out toward a bearing, over a length you choose. Ten, or
+ *   - PATTERN — a drawn lattice that fades out toward a bearing, over a length you choose. Ten, or
  *     none.
- *   - GRAIN — a texture, at a density you choose. On or off.
- *   - MARK — one SVG file, translated, scaled and turned. On or off.
+ *   - MARK — one SVG file, placed from a corner, scaled and turned. On or off.
+ *   - GRAIN — a texture over everything else, at a density you choose. On or off.
  *
  * Each writes its own attribute on `<html>`, and `data-backdrop` is set whenever ANY of them is —
  * a boolean the stylesheet's shared rules key on, so the layer carriers and the kill switches do
@@ -37,6 +34,11 @@
  * place and a trigonometric position in another. An adjustment nobody reads is inert, so a
  * gradient never looks at the density and no pattern looks at the mark's zoom.
  *
+ * WHAT IS EXPORTED IS WHAT THE TWO CONSUMERS USE — the Settings page and the header's
+ * `BackdropSelector`: the lists, the ranges, the read-only getters and the setters. Storage keys,
+ * attribute names and the guards are this file's business; `index.html` restates the keys by hand
+ * because a plain HTML file cannot import, and says so.
+ *
  * @see src/backdrops.css — the blocks these attributes select, and the three layer pairs
  * @see index.html — the first-paint copy of the same keys, and why it has to exist
  * @see public/backdrop-mark.svg — the file the mark axis draws, meant to be replaced per project
@@ -46,8 +48,6 @@
 // The two lists of named looks.
 // ================================================================================================
 
-export type BackdropCategory = "gradient" | "pattern" | "grain" | "mark";
-
 /** A row in a picker. */
 export type BackdropChoice = {
 	id: string;
@@ -55,7 +55,7 @@ export type BackdropChoice = {
 	blurb: string;
 };
 
-export const GRADIENT_IDS = [
+const GRADIENT_IDS = [
 	"spotlight",
 	"horizon",
 	"corner",
@@ -70,7 +70,7 @@ export const GRADIENT_IDS = [
 	"eclipse",
 ] as const;
 
-export const PATTERN_IDS = [
+const PATTERN_IDS = [
 	"dots",
 	"grid",
 	"graph",
@@ -148,42 +148,56 @@ export const PATTERNS: BackdropChoice[] = [
 // Keys, attributes and ranges.
 // ================================================================================================
 
-export const BACKDROP_ATTRIBUTE = "data-backdrop";
+/**
+ * The attributes the stylesheet selects on. `any` is the boolean the shared rules key on; the
+ * other four carry the layer's id, or are present-and-empty for the two on/off layers.
+ */
+const ATTRIBUTES = {
+	any: "data-backdrop",
+	gradient: "data-backdrop-gradient",
+	pattern: "data-backdrop-pattern",
+	mark: "data-backdrop-mark",
+	grain: "data-backdrop-grain",
+} as const;
 
-export const GRADIENT_STORAGE_KEY = "backdrop-gradient";
-export const PATTERN_STORAGE_KEY = "backdrop-pattern";
-export const GRAIN_STORAGE_KEY = "backdrop-grain";
-export const MARK_STORAGE_KEY = "backdrop-mark";
-
-export const BACKDROP_ANGLE_STORAGE_KEY = "backdrop-angle";
-export const BACKDROP_FADE_ANGLE_STORAGE_KEY = "backdrop-fade-angle";
-export const BACKDROP_FADE_STORAGE_KEY = "backdrop-fade";
-export const BACKDROP_DENSITY_STORAGE_KEY = "backdrop-density";
-export const GRADIENT_OPACITY_STORAGE_KEY = "backdrop-gradient-opacity";
-export const PATTERN_OPACITY_STORAGE_KEY = "backdrop-pattern-opacity";
-export const MARK_X_STORAGE_KEY = "backdrop-mark-x";
-export const MARK_Y_STORAGE_KEY = "backdrop-mark-y";
-export const MARK_ZOOM_STORAGE_KEY = "backdrop-mark-zoom";
-export const MARK_ANGLE_STORAGE_KEY = "backdrop-mark-angle";
-export const MARK_ANCHOR_STORAGE_KEY = "backdrop-mark-anchor";
-export const MARK_OPACITY_STORAGE_KEY = "backdrop-mark-opacity";
+/** The localStorage keys. `index.html` repeats these by hand, and names this table as its source. */
+const KEYS = {
+	gradient: "backdrop-gradient",
+	pattern: "backdrop-pattern",
+	mark: "backdrop-mark",
+	grain: "backdrop-grain",
+	angle: "backdrop-angle",
+	fadeAngle: "backdrop-fade-angle",
+	fade: "backdrop-fade",
+	density: "backdrop-density",
+	gradientOpacity: "backdrop-gradient-opacity",
+	patternOpacity: "backdrop-pattern-opacity",
+	markX: "backdrop-mark-x",
+	markY: "backdrop-mark-y",
+	markZoom: "backdrop-mark-zoom",
+	markAngle: "backdrop-mark-angle",
+	markAnchor: "backdrop-mark-anchor",
+	markOpacity: "backdrop-mark-opacity",
+} as const;
 
 /** The file the mark axis draws. Replace it, keeping the name, to brand a project. */
-export const MARK_SOURCE = `${import.meta.env.BASE_URL}backdrop-mark.svg`;
+const MARK_SOURCE = `${import.meta.env.BASE_URL}backdrop-mark.svg`;
 
 /**
- * Intensity, as a percentage of the weight each look was DESIGNED at. 100 is what this file's
- * alphas were calibrated to; the control multiplies rather than replaces, so 0 is genuinely
- * nothing and there is headroom above for a page that wants to be louder than the kit's taste.
- */
-export const DEFAULT_LAYER_OPACITY = 100;
-export const LAYER_OPACITY_MIN = 0;
-/*
+ * Intensity, as a percentage of the weight each look was DESIGNED at. 100 is what the alphas in
+ * `src/backdrops.css` were calibrated to; the stylesheet saturates rather than multiplies, so there
+ * is real headroom above for a page that wants to be louder than the kit's taste.
+ *
+ * THE FLOOR IS NOT ZERO. A layer at 0% is indistinguishable from the layer switched off, and two
+ * ways to say "off" is one too many — the picker's "None" and the switches are the off state.
+ *
  * THE TWO CEILINGS DIFFER BECAUSE THE TWO LAYERS DO. A gradient is a wash the eye reads as depth
- * and it saturates gracefully, so it is worth being able to push well past the kit’s own taste. A
+ * and it saturates gracefully, so it is worth being able to push well past the kit's own taste. A
  * pattern is drawn hairlines over text; past roughly twice its designed weight it stops being a
  * texture and becomes a grid the reader has to look through.
  */
+export const DEFAULT_LAYER_OPACITY = 100;
+export const LAYER_OPACITY_MIN = 10;
 export const GRADIENT_OPACITY_MAX = 300;
 export const PATTERN_OPACITY_MAX = 200;
 
@@ -199,32 +213,38 @@ export const DEFAULT_BACKDROP_DENSITY = 50;
 export const BACKDROP_DENSITY_MIN = 0;
 export const BACKDROP_DENSITY_MAX = 100;
 
+/**
+ * The mark's offsets are INSETS from the anchored corner — see {@link MARK_ANCHORS} — so a negative
+ * value would only push it off the page, and the anchor does the coarse placement the old
+ * viewport-wide range existed for. 600px reaches the far side of a phone from any corner.
+ */
 export const DEFAULT_MARK_X = 60;
 export const DEFAULT_MARK_Y = 120;
-export const MARK_OFFSET_MIN = -600;
-export const MARK_OFFSET_MAX = 2000;
+export const MARK_OFFSET_MIN = 0;
+export const MARK_OFFSET_MAX = 600;
 
+/** Rendered size in pixels. Below 100 a mark is a speck; past 1200 it is off the page. */
 export const DEFAULT_MARK_ZOOM = 420;
-export const MARK_ZOOM_MIN = 60;
-export const MARK_ZOOM_MAX = 1600;
+export const MARK_ZOOM_MIN = 100;
+export const MARK_ZOOM_MAX = 1200;
 
 export const DEFAULT_MARK_ANGLE = 0;
 
-/** How strongly the mark is painted, as a percentage mixed into the page's own ink. */
+/** How strongly the mark is painted, as a percentage of the page's own ink. Never 0: see above. */
 export const DEFAULT_MARK_OPACITY = 7;
-export const MARK_OPACITY_MIN = 0;
+export const MARK_OPACITY_MIN = 1;
 export const MARK_OPACITY_MAX = 40;
 
 /**
  * WHICH CORNER THE OFFSETS ARE MEASURED FROM. Two numbers are not a position until you say what
- * they are counted from, and "60, 120" meant the top-left corner only because that is what CSS
- * defaults to — a mark meant to sit in the bottom-right then had to be placed by arithmetic
- * against a viewport size nobody knows in advance, and moved on every resize.
+ * they are counted from; anchoring to the corner you actually want makes the offsets small, stable
+ * and readable, and it is the browser that does the arithmetic. `background-position` takes a
+ * four-value form — `right 40px bottom 24px` — that names an edge per axis. The centre is the
+ * exception, since that form does not accept `center` with an offset, so it is written as a
+ * percentage plus the offset.
  *
- * Anchoring to the corner you actually want makes the offsets small, stable and readable, and it
- * is the browser that does the arithmetic: `background-position` takes a four-value form —
- * `right 40px bottom 24px` — that names an edge per axis. The centre is the exception, since that
- * form does not accept `center` with an offset, so it is written as a percentage plus the offset.
+ * `x` and `y` are the captions the two offset controls take, so "Left" reads as the edge counted
+ * from; for the centre there is no edge, and the captions say which axis instead.
  */
 export const MARK_ANCHORS = [
 	{ id: "top-left", name: "Top left", x: "Left", y: "Top" },
@@ -237,10 +257,8 @@ export const MARK_ANCHORS = [
 export type MarkAnchor = (typeof MARK_ANCHORS)[number]["id"];
 export const DEFAULT_MARK_ANCHOR: MarkAnchor = "top-left";
 
-export function isMarkAnchor(value: string | null | undefined): value is MarkAnchor {
-	return (
-		typeof value === "string" && MARK_ANCHORS.some((anchor) => anchor.id === (value as MarkAnchor))
-	);
+function isMarkAnchor(value: string | null | undefined): value is MarkAnchor {
+	return typeof value === "string" && MARK_ANCHORS.some((anchor) => anchor.id === value);
 }
 
 /**
@@ -248,7 +266,7 @@ export function isMarkAnchor(value: string | null | undefined): value is MarkAnc
  * That is why the centre case adds rather than subtracts on both axes: everywhere else "more" is
  * "further from that edge", and the centre has no edge to be further from.
  */
-export function markPosition(anchor: MarkAnchor, x: number, y: number): string {
+function markPosition(anchor: MarkAnchor, x: number, y: number): string {
 	if (anchor === "center") return `calc(50% + ${x}px) calc(50% + ${y}px)`;
 	const [vertical, horizontal] = anchor.split("-");
 	return `${horizontal} ${x}px ${vertical} ${y}px`;
@@ -258,11 +276,11 @@ export function markPosition(anchor: MarkAnchor, x: number, y: number): string {
 // Reading and writing what is stored.
 // ================================================================================================
 
-export function isGradientId(value: string | null | undefined): value is GradientId {
+function isGradientId(value: string | null | undefined): value is GradientId {
 	return typeof value === "string" && (GRADIENT_IDS as readonly string[]).includes(value);
 }
 
-export function isPatternId(value: string | null | undefined): value is PatternId {
+function isPatternId(value: string | null | undefined): value is PatternId {
 	return typeof value === "string" && (PATTERN_IDS as readonly string[]).includes(value);
 }
 
@@ -291,10 +309,22 @@ function readFlag(key: string): boolean {
 	}
 }
 
+function readAnchor(): MarkAnchor {
+	try {
+		if (typeof localStorage === "undefined") return DEFAULT_MARK_ANCHOR;
+		const stored = localStorage.getItem(KEYS.markAnchor);
+		return isMarkAnchor(stored) ? stored : DEFAULT_MARK_ANCHOR;
+	} catch {
+		return DEFAULT_MARK_ANCHOR;
+	}
+}
+
 /**
  * Numbers are read the same defensive way. One that does not parse, or lands outside its range,
  * falls back rather than reaching the stylesheet — `calc()` with a junk value invalidates the
- * whole declaration, which would take the layer out entirely rather than degrade it.
+ * whole declaration, which would take the layer out entirely rather than degrade it. The clamp is
+ * also how a range can move between versions: a value stored under the old range lands on the
+ * nearest end of the new one.
  */
 function readNumber(key: string, fallback: number, min: number, max: number): number {
 	try {
@@ -309,84 +339,82 @@ function readNumber(key: string, fallback: number, min: number, max: number): nu
 	}
 }
 
-function persist(key: string, value: string): void {
+/**
+ * PERSISTENCE IS COALESCED TO ONE WRITE PER FRAME. A slider calls its setter on every pointer
+ * move, and `localStorage.setItem` is synchronous — dragging the mark across its range used to be
+ * a few hundred storage writes in a second. The pending values sit in a map and the map is flushed
+ * on the next animation frame, so a drag costs one write per key per frame, and the last value
+ * always wins. `pagehide` flushes too, so a value set in the last frame before navigation is not
+ * lost — that is the one case a frame-deferred write would otherwise drop.
+ */
+const pending = new Map<string, string>();
+let flushScheduled = false;
+
+function flush(): void {
+	flushScheduled = false;
+	if (pending.size === 0) return;
 	try {
 		if (typeof localStorage === "undefined") return;
-		localStorage.setItem(key, value);
+		for (const [key, value] of pending) localStorage.setItem(key, value);
 	} catch {
 		/* storage blocked — the session still switches, it just will not survive a reload */
+	} finally {
+		pending.clear();
 	}
+}
+
+function persist(key: string, value: string): void {
+	pending.set(key, value);
+	if (flushScheduled) return;
+	flushScheduled = true;
+	if (typeof requestAnimationFrame === "function") requestAnimationFrame(flush);
+	else setTimeout(flush, 0);
+}
+
+if (typeof window !== "undefined") {
+	window.addEventListener("pagehide", flush);
+	document.addEventListener("visibilitychange", () => {
+		if (document.visibilityState === "hidden") flush();
+	});
 }
 
 // ================================================================================================
 // The state.
 // ================================================================================================
 
-let gradient = $state<GradientId>(readId(GRADIENT_STORAGE_KEY, isGradientId));
-let pattern = $state<PatternId>(readId(PATTERN_STORAGE_KEY, isPatternId));
-let grain = $state<boolean>(readFlag(GRAIN_STORAGE_KEY));
-let mark = $state<boolean>(readFlag(MARK_STORAGE_KEY));
+let gradient = $state<GradientId>(readId(KEYS.gradient, isGradientId));
+let pattern = $state<PatternId>(readId(KEYS.pattern, isPatternId));
+let mark = $state<boolean>(readFlag(KEYS.mark));
+let grain = $state<boolean>(readFlag(KEYS.grain));
 
-let angle = $state<number>(readNumber(BACKDROP_ANGLE_STORAGE_KEY, DEFAULT_BACKDROP_ANGLE, 0, 360));
-let fadeAngle = $state<number>(
-	readNumber(BACKDROP_FADE_ANGLE_STORAGE_KEY, DEFAULT_BACKDROP_FADE_ANGLE, 0, 360),
-);
+let angle = $state<number>(readNumber(KEYS.angle, DEFAULT_BACKDROP_ANGLE, 0, 360));
+let fadeAngle = $state<number>(readNumber(KEYS.fadeAngle, DEFAULT_BACKDROP_FADE_ANGLE, 0, 360));
 let fade = $state<number>(
-	readNumber(
-		BACKDROP_FADE_STORAGE_KEY,
-		DEFAULT_BACKDROP_FADE,
-		BACKDROP_FADE_MIN,
-		BACKDROP_FADE_MAX,
-	),
+	readNumber(KEYS.fade, DEFAULT_BACKDROP_FADE, BACKDROP_FADE_MIN, BACKDROP_FADE_MAX),
 );
 let density = $state<number>(
-	readNumber(
-		BACKDROP_DENSITY_STORAGE_KEY,
-		DEFAULT_BACKDROP_DENSITY,
-		BACKDROP_DENSITY_MIN,
-		BACKDROP_DENSITY_MAX,
-	),
+	readNumber(KEYS.density, DEFAULT_BACKDROP_DENSITY, BACKDROP_DENSITY_MIN, BACKDROP_DENSITY_MAX),
 );
-let markX = $state<number>(
-	readNumber(MARK_X_STORAGE_KEY, DEFAULT_MARK_X, MARK_OFFSET_MIN, MARK_OFFSET_MAX),
-);
-let markY = $state<number>(
-	readNumber(MARK_Y_STORAGE_KEY, DEFAULT_MARK_Y, MARK_OFFSET_MIN, MARK_OFFSET_MAX),
-);
-let markZoom = $state<number>(
-	readNumber(MARK_ZOOM_STORAGE_KEY, DEFAULT_MARK_ZOOM, MARK_ZOOM_MIN, MARK_ZOOM_MAX),
-);
-let markAngle = $state<number>(readNumber(MARK_ANGLE_STORAGE_KEY, DEFAULT_MARK_ANGLE, 0, 360));
 let gradientOpacity = $state<number>(
-	readNumber(
-		GRADIENT_OPACITY_STORAGE_KEY,
-		DEFAULT_LAYER_OPACITY,
-		LAYER_OPACITY_MIN,
-		GRADIENT_OPACITY_MAX,
-	),
+	readNumber(KEYS.gradientOpacity, DEFAULT_LAYER_OPACITY, LAYER_OPACITY_MIN, GRADIENT_OPACITY_MAX),
 );
 let patternOpacity = $state<number>(
-	readNumber(
-		PATTERN_OPACITY_STORAGE_KEY,
-		DEFAULT_LAYER_OPACITY,
-		LAYER_OPACITY_MIN,
-		PATTERN_OPACITY_MAX,
-	),
+	readNumber(KEYS.patternOpacity, DEFAULT_LAYER_OPACITY, LAYER_OPACITY_MIN, PATTERN_OPACITY_MAX),
 );
+let markX = $state<number>(
+	readNumber(KEYS.markX, DEFAULT_MARK_X, MARK_OFFSET_MIN, MARK_OFFSET_MAX),
+);
+let markY = $state<number>(
+	readNumber(KEYS.markY, DEFAULT_MARK_Y, MARK_OFFSET_MIN, MARK_OFFSET_MAX),
+);
+let markZoom = $state<number>(
+	readNumber(KEYS.markZoom, DEFAULT_MARK_ZOOM, MARK_ZOOM_MIN, MARK_ZOOM_MAX),
+);
+let markAngle = $state<number>(readNumber(KEYS.markAngle, DEFAULT_MARK_ANGLE, 0, 360));
 let markAnchor = $state<MarkAnchor>(readAnchor());
 let markOpacity = $state<number>(
-	readNumber(MARK_OPACITY_STORAGE_KEY, DEFAULT_MARK_OPACITY, MARK_OPACITY_MIN, MARK_OPACITY_MAX),
+	readNumber(KEYS.markOpacity, DEFAULT_MARK_OPACITY, MARK_OPACITY_MIN, MARK_OPACITY_MAX),
 );
-
-function readAnchor(): MarkAnchor {
-	try {
-		if (typeof localStorage === "undefined") return DEFAULT_MARK_ANCHOR;
-		const stored = localStorage.getItem(MARK_ANCHOR_STORAGE_KEY);
-		return isMarkAnchor(stored) ? stored : DEFAULT_MARK_ANCHOR;
-	} catch {
-		return DEFAULT_MARK_ANCHOR;
-	}
-}
 
 /** The mark file's own markup, fetched once. `null` until it arrives, `""` if it cannot. */
 let markSource = $state<string | null>(null);
@@ -447,71 +475,46 @@ function wrapMark(markup: string, turn: number, colour: string): string {
 	return `url("data:image/svg+xml,${encodeURIComponent(svg)}")`;
 }
 
+/** The ink the mark is painted in: the page's own foreground, at the chosen strength. */
+function markInk(): string {
+	if (typeof document === "undefined") return "rgba(0,0,0,0.05)";
+	const fg = getComputedStyle(document.documentElement).getPropertyValue("--foreground").trim();
+	if (!fg) return "rgba(0,0,0,0.05)";
+	// `color-mix` in a data URI is fine — it is resolved by the SVG's own renderer, which is the
+	// same engine.
+	return `color-mix(in oklab, ${fg} ${markOpacity}%, transparent)`;
+}
+
+// ================================================================================================
+// The grain: one noise tile, balanced on the page ground.
+// ================================================================================================
+
 /**
- * THE GRAIN, AND WHY A GREY VEIL CAN NEVER BE NEUTRAL. The first grain was one turbulence rect at
- * a fixed opacity. Composited over a ground B it lands at `B(1-a) + 0.5a`, so it pulls everything
- * toward mid-grey — measured, it lifted the dark page by +7, +6, +5 on the three channels, which on
- * a ground of rgb(15,38,63) is a HALF as much red again. No opacity makes that neutral; it only
- * makes it smaller. And the density control could not help, because it scaled the tile rather than
- * the amount, so all three densities lifted by exactly the same +7.
+ * ONE TILE WHOSE COLOUR RAMPS AROUND THE PAGE GROUND, which is what lets grain texture a page
+ * without lifting it. A grey noise layer at any opacity pulls a dark page toward mid-grey — the
+ * first grain measured +7, +6, +5 code values on the three channels of a dark page, and a
+ * white-and-black pair of speckles held the luminance but shifted the hue. So the tile is a single
+ * rect whose colour runs from `ground − D` to `ground + D` as the noise runs 0 to 1: its mean is
+ * the ground exactly, because the noise's mean is its midpoint (measured: 127.4 of 255), and that
+ * is one property of the noise rather than the shape of two clamped curves.
  *
- * The fix is two complementary speckles from the SAME turbulence: white where the noise is above
- * its midpoint, black where it is below. Their mean cancels when the two carry alphas in the ratio
- * of the ground they sit on — light at `s·B`, dark at `s·(1−B)` — which is zero-mean for ANY B by
- * construction, and needs no blend mode, so nothing here can disagree across the header fold.
+ * THE EXCURSION IS PER CHANNEL. Zero-mean is a per-channel property, so each channel takes its own
+ * symmetric headroom (`min(255 − c, c)`) — red on the dark blue page moves ±15, blue ±63 — and the
+ * texture is a modulation along the ground's own light-to-dark line rather than a hue shift. One
+ * shared excursion would be the smallest channel's, which halved the visible texture for nothing.
  *
- * It also behaves the way film does: the visible amplitude goes as `B(1−B)`, largest on a mid
- * ground and small at either extreme, because there is less room to move a page that is nearly
- * black or nearly white.
+ * Two details are load-bearing. Filter results are passed on PREMULTIPLIED and `feTurbulence`
+ * fills alpha with noise too, so alpha is forced opaque before the ramp reads red; otherwise the
+ * distribution is not centred where the arithmetic assumes. And
+ * `color-interpolation-filters="sRGB"` is not optional — the default is linearRGB, which puts the
+ * noise's midpoint somewhere else.
  *
- * `color-interpolation-filters="sRGB"` is not optional — the default is linearRGB, which makes the
- * midpoint of the noise land somewhere other than where this arithmetic puts it.
+ * It is BUILT rather than a static image because the balance depends on the page ground, which no
+ * stylesheet can hand to a data URI. Density is the tile's alpha: how much grain, not how large.
  */
 function buildGrain(amount: number, ground: [number, number, number]): string {
 	if (amount <= 0) return "";
 
-	/*
-	 * ONE LAYER THAT MOVES AROUND THE GROUND, not two speckles that are meant to cancel.
-	 *
-	 * Three cuts of this got the balance wrong in three different ways, all measured on the dark
-	 * page against the same page with no grain:
-	 *
-	 *   1. One grey rect at a fixed opacity pulled everything toward mid-grey: +7.3 +6.3 +5.2.
-	 *      No opacity fixes that — a grey veil over a dark ground can only lighten it.
-	 *   2. A white speckle and a black one, weighted by the ground's headroom, held LUMINANCE but
-	 *      not colour: +3.1 red against −4.5 blue at full strength, which is the page desaturating.
-	 *   3. Giving those two speckles the ground's own colour should have cancelled exactly, and did
-	 *      not: two clamped ramps out of `feTurbulence` do not cover equal area, so the weights that
-	 *      balance on paper leave +10 on the page. Forcing the intermediate opaque helped and did
-	 *      not fix it.
-	 *
-	 * So there is one rect, fully covering, whose colour RAMPS from `ground − D` to `ground + D` as
-	 * the noise runs 0 to 1, at a constant alpha. Its mean is the ground whenever the noise's mean
-	 * is its midpoint — one property of the noise rather than the shape of two clamped curves. The
-	 * excursion is symmetric, `D = min(headroom up, headroom down)`, so neither end clips and the
-	 * hue never moves: every channel takes the same offset, which is a modulation of the ground
-	 * rather than a mix with some other colour.
-	 *
-	 * The alpha row is forced opaque before the ramp reads red. Filter results are passed on
-	 * PREMULTIPLIED, and `feTurbulence` fills alpha with noise too, so un-premultiplying amplifies
-	 * red wherever alpha is small and the distribution stops being centred where the arithmetic
-	 * needs it.
-	 *
-	 * `color-interpolation-filters="sRGB"` is not optional: the default is linearRGB, which puts
-	 * the midpoint somewhere else entirely.
-	 */
-	/*
-	 * THE EXCURSION IS PER CHANNEL, and that is what makes the grain visible at all. One shared
-	 * excursion has to be the SMALLEST channel's headroom, which on the dark page is red's 15 out
-	 * of 255 — the mean held perfectly and the texture came out at 2.5 rms, half of what the old
-	 * broken grain had. Each channel keeps its own symmetric room instead: red moves ±15, blue
-	 * ±63, and each one's mean is still exactly its own ground value, because zero-mean is a
-	 * per-channel property and never needed them to agree.
-	 *
-	 * The texture that gives is a modulation along the ground's own light-to-dark line rather than
-	 * a hue shift — the dark end runs toward black, the light end toward a brighter version of the
-	 * same colour, which is what a grain over a tint looks like.
-	 */
 	const spans = ground.map((c) => Math.min(255 - c, c));
 	if (Math.max(...spans) <= 0) return "";
 	const gain = spans.map((s) => ((2 * s) / 255).toFixed(4));
@@ -534,18 +537,18 @@ function buildGrain(amount: number, ground: [number, number, number]): string {
 /**
  * The page ground in 8-bit channels — what the grain balances itself against.
  *
- * READ THROUGH THE BROWSER, NOT PARSED BY HAND. `--background` can be `oklch()`, `hsl()` or a hex
+ * READ THROUGH THE BROWSER, NOT PARSED BY HAND: `--background` can be `oklch()`, `hsl()` or a hex
  * depending on the palette and on whether relative colour is supported, and `getComputedStyle`
- * hands back `rgb()` whatever went in. A throwaway element is the cheapest way to ask.
- *
- * NO REGULAR EXPRESSION HERE, DELIBERATELY. The first cut matched digits with a character class,
- * and the escape was lost on its way through a shell heredoc — the class became "the letter d or a
- * dot", matched nothing in `rgb(15, 38, 63)`, and the function silently fell back to mid-grey. The
- * grain then balanced itself against a page that does not exist and lifted the real one by nearly
- * sixty code values. Splitting on punctuation cannot fail that way, and the fallback is the only
- * path that can now hide a mistake, so it is worth being blunt about.
+ * hands back `rgb()` whatever went in. A throwaway element is the cheapest way to ask — but it is a
+ * forced layout, so the answer is CACHED and only thrown away when the mode or the palette moves
+ * (the observer below), never recomputed per slider tick. Splitting on punctuation rather than
+ * matching digits with a pattern: a character class cannot lose an escape in transit and silently
+ * fall back to the mid-grey default, which is the one failure here that would not show.
  */
+let groundCache: [number, number, number] | null = null;
+
 function groundColour(): [number, number, number] {
+	if (groundCache) return groundCache;
 	if (typeof document === "undefined" || !document.body) return [128, 128, 128];
 	const probe = document.createElement("span");
 	probe.style.cssText = "position:absolute;visibility:hidden;color:var(--background)";
@@ -562,29 +565,20 @@ function groundColour(): [number, number, number] {
 		.map(Number)
 		.filter((value) => Number.isFinite(value));
 	if (channels.length < 3) return [128, 128, 128];
-	return channels.slice(0, 3).map((v) => Math.round(Math.min(255, Math.max(0, v)))) as [
+	groundCache = channels.slice(0, 3).map((v) => Math.round(Math.min(255, Math.max(0, v)))) as [
 		number,
 		number,
 		number,
 	];
-}
-
-/** The ink the mark is painted in — a soft neutral, resolved from the live tokens. */
-function markInk(): string {
-	if (typeof document === "undefined") return "rgba(0,0,0,0.05)";
-	const styles = getComputedStyle(document.documentElement);
-	const fg = styles.getPropertyValue("--foreground").trim();
-	if (!fg) return "rgba(0,0,0,0.05)";
-	const strength = markOpacity;
-	// `color-mix` in a data URI is fine — it is resolved by the SVG's own renderer, which is the
-	// same engine. The alpha is the family's: a mark is a wash, not a logo lockup.
-	return `color-mix(in oklab, ${fg} ${strength}%, transparent)`;
+	return groundCache;
 }
 
 // ================================================================================================
 // The effects that write to the document.
 // ================================================================================================
 
+// A module-level root, alive for the life of the page and never disposed — by design, since the
+// axis is a singleton the whole application reads.
 $effect.root(() => {
 	// The four attributes, plus the boolean the shared rules key on.
 	$effect(() => {
@@ -596,13 +590,13 @@ $effect.root(() => {
 			else root.setAttribute(name, value);
 		};
 
-		set("data-backdrop-gradient", gradient === "none" ? null : gradient);
-		set("data-backdrop-pattern", pattern === "none" ? null : pattern);
-		set("data-backdrop-grain", grain ? "" : null);
-		set("data-backdrop-mark", mark ? "" : null);
+		set(ATTRIBUTES.gradient, gradient === "none" ? null : gradient);
+		set(ATTRIBUTES.pattern, pattern === "none" ? null : pattern);
+		set(ATTRIBUTES.mark, mark ? "" : null);
+		set(ATTRIBUTES.grain, grain ? "" : null);
 
-		const any = gradient !== "none" || pattern !== "none" || grain || mark;
-		set(BACKDROP_ATTRIBUTE, any ? "" : null);
+		const any = gradient !== "none" || pattern !== "none" || mark || grain;
+		set(ATTRIBUTES.any, any ? "" : null);
 	});
 
 	// The adjustments, in their own effect so moving a slider does not rewrite five attributes.
@@ -640,11 +634,21 @@ $effect.root(() => {
 		};
 	});
 
+	// The wrapped mark. Reruns on the angle and the strength; the observer below covers the ink.
+	$effect(() => {
+		if (typeof document === "undefined") return;
+		const style = document.documentElement.style;
+		if (!mark || !markSource) {
+			style.removeProperty("--backdrop-mark-image");
+			return;
+		}
+		style.setProperty("--backdrop-mark-image", wrapMark(markSource, markAngle, markInk()));
+	});
+
 	/*
-	 * The grain is BUILT, not a static image, for the same reason the mark is: its balance depends
-	 * on the page ground, which no stylesheet can hand to a data URI. The property is REMOVED when
-	 * grain is off rather than set to `none`, because an inline style on `<html>` outranks every
-	 * rule — leaving it there would clobber aurora's own dither, which writes the same variable.
+	 * The grain property is REMOVED when the layer is off rather than set to `none`, because an
+	 * inline style on `<html>` outranks every rule — leaving it there would clobber aurora's own
+	 * dither, which writes the same variable.
 	 */
 	$effect(() => {
 		if (typeof document === "undefined") return;
@@ -656,29 +660,17 @@ $effect.root(() => {
 		style.setProperty("--backdrop-grain-image", buildGrain(density, groundColour()));
 	});
 
-	// The wrapped image. Reruns on the angle, and on anything that could move `--foreground`.
-	$effect(() => {
-		if (typeof document === "undefined") return;
-		const style = document.documentElement.style;
-		if (!mark || !markSource) {
-			style.removeProperty("--backdrop-mark-image");
-			return;
-		}
-		// Read inside the effect so the dependency is recorded; the value is not otherwise used.
-		void markAngle;
-		style.setProperty("--backdrop-mark-image", wrapMark(markSource, markAngle, markInk()));
-	});
-
 	/*
-	 * THE MARK'S COLOUR IS BAKED, SO IT HAS TO BE REBAKED. Everything else on this axis reads live
-	 * tokens through `var()` and follows a palette or mode change on its own; the mark cannot,
-	 * because its ink is inside a data URI. An observer on the two attributes that carry those
-	 * changes is the cheapest way to notice, and it is idle the rest of the time.
+	 * BOTH BUILT IMAGES BAKE A COLOUR, SO BOTH HAVE TO BE REBAKED. Everything else on this axis
+	 * reads live tokens through `var()` and follows a palette or mode change on its own; the mark's
+	 * ink and the grain's ground are inside data URIs and cannot. An observer on the two attributes
+	 * that carry those changes is the cheapest way to notice, and it is idle the rest of the time.
 	 */
 	$effect(() => {
 		if (typeof document === "undefined" || (!mark && !grain)) return;
 		const root = document.documentElement;
 		const observer = new MutationObserver(() => {
+			groundCache = null;
 			if (mark && markSource) {
 				root.style.setProperty("--backdrop-mark-image", wrapMark(markSource, markAngle, markInk()));
 			}
@@ -692,7 +684,7 @@ $effect.root(() => {
 });
 
 // ================================================================================================
-// The public API.
+// The public API: read-only getters, and setters that validate.
 // ================================================================================================
 
 export const activeGradient = {
@@ -705,14 +697,14 @@ export const activePattern = {
 		return pattern;
 	},
 };
-export const grainOn = {
-	get current(): boolean {
-		return grain;
-	},
-};
 export const markOn = {
 	get current(): boolean {
 		return mark;
+	},
+};
+export const grainOn = {
+	get current(): boolean {
+		return grain;
 	},
 };
 
@@ -736,6 +728,16 @@ export const backdropDensity = {
 		return density;
 	},
 };
+export const gradientStrength = {
+	get current(): number {
+		return gradientOpacity;
+	},
+};
+export const patternStrength = {
+	get current(): number {
+		return patternOpacity;
+	},
+};
 export const markOffsetX = {
 	get current(): number {
 		return markX;
@@ -756,14 +758,9 @@ export const markTurn = {
 		return markAngle;
 	},
 };
-export const gradientStrength = {
-	get current(): number {
-		return gradientOpacity;
-	},
-};
-export const patternStrength = {
-	get current(): number {
-		return patternOpacity;
+export const markCorner = {
+	get current(): MarkAnchor {
+		return markAnchor;
 	},
 };
 export const markInkStrength = {
@@ -771,30 +768,25 @@ export const markInkStrength = {
 		return markOpacity;
 	},
 };
-export const markCorner = {
-	get current(): MarkAnchor {
-		return markAnchor;
-	},
-};
 
 export function setGradient(value: GradientId): void {
 	gradient = isGradientId(value) ? value : "none";
-	persist(GRADIENT_STORAGE_KEY, gradient);
+	persist(KEYS.gradient, gradient);
 }
 
 export function setPattern(value: PatternId): void {
 	pattern = isPatternId(value) ? value : "none";
-	persist(PATTERN_STORAGE_KEY, pattern);
-}
-
-export function setGrain(value: boolean): void {
-	grain = value;
-	persist(GRAIN_STORAGE_KEY, value ? "on" : "off");
+	persist(KEYS.pattern, pattern);
 }
 
 export function setMark(value: boolean): void {
 	mark = value;
-	persist(MARK_STORAGE_KEY, value ? "on" : "off");
+	persist(KEYS.mark, value ? "on" : "off");
+}
+
+export function setGrain(value: boolean): void {
+	grain = value;
+	persist(KEYS.grain, value ? "on" : "off");
 }
 
 /** Turn a bearing. Wraps at 360, so a dial can run round without a discontinuity. */
@@ -802,88 +794,88 @@ function wrapDegrees(value: number): number {
 	return ((Math.round(value) % 360) + 360) % 360;
 }
 
+function clamp(value: number, min: number, max: number): number {
+	return Math.min(max, Math.max(min, Math.round(value)));
+}
+
 export function setBackdropAngle(value: number): void {
 	angle = wrapDegrees(value);
-	persist(BACKDROP_ANGLE_STORAGE_KEY, String(angle));
+	persist(KEYS.angle, String(angle));
 }
 
 export function setBackdropFadeAngle(value: number): void {
 	fadeAngle = wrapDegrees(value);
-	persist(BACKDROP_FADE_ANGLE_STORAGE_KEY, String(fadeAngle));
-}
-
-function clamp(value: number, min: number, max: number): number {
-	return Math.min(max, Math.max(min, Math.round(value)));
+	persist(KEYS.fadeAngle, String(fadeAngle));
 }
 
 /** Stretch the fade. 0 is a legitimate value and means no fade at all. */
 export function setBackdropFade(value: number): void {
 	fade = clamp(value, BACKDROP_FADE_MIN, BACKDROP_FADE_MAX);
-	persist(BACKDROP_FADE_STORAGE_KEY, String(fade));
+	persist(KEYS.fade, String(fade));
 }
 
-/** Scale the grain. Clamped, because an unclamped tile size is a blank page or a grey one. */
+/** How much grain — the tile's alpha. 0 is none. */
 export function setBackdropDensity(value: number): void {
 	density = clamp(value, BACKDROP_DENSITY_MIN, BACKDROP_DENSITY_MAX);
-	persist(BACKDROP_DENSITY_STORAGE_KEY, String(density));
-}
-
-export function setMarkOffsetX(value: number): void {
-	markX = clamp(value, MARK_OFFSET_MIN, MARK_OFFSET_MAX);
-	persist(MARK_X_STORAGE_KEY, String(markX));
-}
-
-export function setMarkOffsetY(value: number): void {
-	markY = clamp(value, MARK_OFFSET_MIN, MARK_OFFSET_MAX);
-	persist(MARK_Y_STORAGE_KEY, String(markY));
-}
-
-export function setMarkScale(value: number): void {
-	markZoom = clamp(value, MARK_ZOOM_MIN, MARK_ZOOM_MAX);
-	persist(MARK_ZOOM_STORAGE_KEY, String(markZoom));
+	persist(KEYS.density, String(density));
 }
 
 export function setGradientStrength(value: number): void {
 	gradientOpacity = clamp(value, LAYER_OPACITY_MIN, GRADIENT_OPACITY_MAX);
-	persist(GRADIENT_OPACITY_STORAGE_KEY, String(gradientOpacity));
+	persist(KEYS.gradientOpacity, String(gradientOpacity));
 }
 
 export function setPatternStrength(value: number): void {
 	patternOpacity = clamp(value, LAYER_OPACITY_MIN, PATTERN_OPACITY_MAX);
-	persist(PATTERN_OPACITY_STORAGE_KEY, String(patternOpacity));
+	persist(KEYS.patternOpacity, String(patternOpacity));
 }
 
-export function setMarkInkStrength(value: number): void {
-	markOpacity = clamp(value, MARK_OPACITY_MIN, MARK_OPACITY_MAX);
-	persist(MARK_OPACITY_STORAGE_KEY, String(markOpacity));
+export function setMarkOffsetX(value: number): void {
+	markX = clamp(value, MARK_OFFSET_MIN, MARK_OFFSET_MAX);
+	persist(KEYS.markX, String(markX));
 }
 
-export function setMarkAnchor(value: MarkAnchor): void {
-	markAnchor = isMarkAnchor(value) ? value : DEFAULT_MARK_ANCHOR;
-	persist(MARK_ANCHOR_STORAGE_KEY, markAnchor);
+export function setMarkOffsetY(value: number): void {
+	markY = clamp(value, MARK_OFFSET_MIN, MARK_OFFSET_MAX);
+	persist(KEYS.markY, String(markY));
+}
+
+export function setMarkScale(value: number): void {
+	markZoom = clamp(value, MARK_ZOOM_MIN, MARK_ZOOM_MAX);
+	persist(KEYS.markZoom, String(markZoom));
 }
 
 export function setMarkTurn(value: number): void {
 	markAngle = wrapDegrees(value);
-	persist(MARK_ANGLE_STORAGE_KEY, String(markAngle));
+	persist(KEYS.markAngle, String(markAngle));
+}
+
+export function setMarkAnchor(value: MarkAnchor): void {
+	markAnchor = isMarkAnchor(value) ? value : DEFAULT_MARK_ANCHOR;
+	persist(KEYS.markAnchor, markAnchor);
+}
+
+export function setMarkInkStrength(value: number): void {
+	markOpacity = clamp(value, MARK_OPACITY_MIN, MARK_OPACITY_MAX);
+	persist(KEYS.markOpacity, String(markOpacity));
 }
 
 /** Everything back to the kit as it ships — used by the Settings page's Reset. */
 export function resetBackdrop(): void {
 	setGradient("none");
 	setPattern("none");
-	setGrain(false);
 	setMark(false);
+	setGrain(false);
 	setBackdropAngle(DEFAULT_BACKDROP_ANGLE);
 	setBackdropFadeAngle(DEFAULT_BACKDROP_FADE_ANGLE);
 	setBackdropFade(DEFAULT_BACKDROP_FADE);
 	setBackdropDensity(DEFAULT_BACKDROP_DENSITY);
+	setGradientStrength(DEFAULT_LAYER_OPACITY);
+	setPatternStrength(DEFAULT_LAYER_OPACITY);
 	setMarkOffsetX(DEFAULT_MARK_X);
 	setMarkOffsetY(DEFAULT_MARK_Y);
 	setMarkScale(DEFAULT_MARK_ZOOM);
 	setMarkTurn(DEFAULT_MARK_ANGLE);
 	setMarkAnchor(DEFAULT_MARK_ANCHOR);
 	setMarkInkStrength(DEFAULT_MARK_OPACITY);
-	setGradientStrength(DEFAULT_LAYER_OPACITY);
-	setPatternStrength(DEFAULT_LAYER_OPACITY);
 }

@@ -63,7 +63,6 @@
 		MARK_OFFSET_MIN,
 		MARK_ZOOM_MAX,
 		MARK_ZOOM_MIN,
-		MARK_SOURCE,
 		resetBackdrop,
 		setBackdropAngle,
 		setBackdropDensity,
@@ -81,6 +80,7 @@
 		setGradientStrength,
 		setPatternStrength,
 		setPattern,
+		type BackdropChoice,
 		type GradientId,
 		type MarkAnchor,
 		type PatternId,
@@ -96,7 +96,7 @@
 
 	/**
 	 * The Settings page: every look-and-feel control the theme has, on one page, driving the
-	 * persisted state directly (seven localStorage keys plus the sidebar cookie) — so a switch here
+	 * persisted state directly (the stored appearance keys, plus the sidebar cookie) — so a switch here
 	 * and the header's own toggle are the same state, in both directions.
 	 *
 	 * IT IS NOW THE ONLY HOME for three of them. The header bar carried four unlabelled icon
@@ -122,14 +122,72 @@
 	 * component clamps −1 away before `onValueChange` is ever called.
 	 *
 	 * The root runs the caller's `onkeydown` BEFORE its own and stands down if the event was
-	 * consumed, which is the seam to use: at 0, a decrementing key is answered with 359 and the
-	 * component never sees it. Dragging needs no such help — a pointer crosses the top by moving,
-	 * not by counting. One helper serves all three dials, since they differ only in their setter.
+	 * consumed, which is the seam to use: at 0, a decrementing key is answered here and the component
+	 * never sees it. Two details keep this faithful to the component's own keyboard model: Shift and
+	 * PageDown are its ×10 step, so they land on 350 rather than 359; and under RTL it swaps the two
+	 * horizontal arrows, so the decrementing one is read from the resolved direction rather than
+	 * assumed. Dragging needs no such help — a pointer crosses the top by moving, not by counting.
 	 */
-	const anchorNames = Object.fromEntries(MARK_ANCHORS.map((a) => [a.id, a.name]));
-	const anchorLabels = $derived(
-		MARK_ANCHORS.find((a) => a.id === markCorner.current) ?? MARK_ANCHORS[0],
+	function wrapAtZero(event: KeyboardEvent, value: number, set: (next: number) => void): void {
+		if (value !== 0) return;
+		const rtl = getComputedStyle(event.currentTarget as Element).direction === "rtl";
+		const towardZero = rtl ? "ArrowRight" : "ArrowLeft";
+		if (event.key !== "ArrowDown" && event.key !== "PageDown" && event.key !== towardZero) return;
+		event.preventDefault();
+		set(event.key === "PageDown" || event.shiftKey ? 350 : 359);
+	}
+
+	const anchor = $derived(
+		MARK_ANCHORS.find((entry) => entry.id === markCorner.current) ?? MARK_ANCHORS[0],
 	);
+
+	/*
+	 * THE PANEL IS THE YARDSTICK, NOT THE VIEWPORT. Each backdrop panel lays its controls out as
+	 * picker | settings | dial, and whether those fit side by side depends on the width the PANEL
+	 * gets, which the viewport does not say: the rail spends 250px and the card and the accordion's
+	 * indent spend more, so the row measures 645px at a 1440px viewport, 539 at 1280, 485 at 1024
+	 * and 346 at 768. A viewport breakpoint switched to three columns at 640px and squeezed the
+	 * slider to nothing on a tablet. `@container` asks the panel how wide IT is — the same reasoning
+	 * as the card in TablesInCardsPage — and the container is NAMED so the query can never resolve
+	 * against the card header's own `@container`.
+	 *
+	 * Three shapes: one column below 28rem; picker beside the dial with the settings spanning a
+	 * second row from 28rem; the full three-column row from 36rem. Placement is EXPLICIT rather than
+	 * `grid-template-areas`, because a named area keeps its row (and the row's gap) even when the
+	 * cell is absent — and the settings and the dial only render while the layer is on. Explicit
+	 * starts create a row only when something sits in it. The same grid serves all four panels, so
+	 * the settings column lines up whether or not a panel has a dial.
+	 */
+	const panelBody = cn("@container/panel flex flex-col gap-4 ps-11");
+	const panelGrid = cn(
+		"grid grid-cols-1 items-start gap-6 @md/panel:grid-cols-[minmax(0,1fr)_10rem] @md/panel:gap-x-8 @xl/panel:grid-cols-[13rem_minmax(0,1fr)_10rem]",
+	);
+	const settingsCell = cn(
+		"flex min-w-0 flex-col gap-5 @md/panel:col-start-1 @md/panel:col-end-3 @md/panel:row-start-2 @xl/panel:col-start-2 @xl/panel:col-end-3 @xl/panel:row-start-1",
+	);
+	/* Label's own type, restated for the captions that cannot be a `<label for>` — see the snippets. */
+	const caption = "text-sm leading-none font-medium select-none";
+	const NOTHING_DRAWN = "Nothing is drawn.";
+
+	type SliderSpec = {
+		id: string;
+		label: string;
+		unit: string;
+		hint: string;
+		min: number;
+		max: number;
+		step: number;
+		value: number;
+		set: (next: number) => void;
+	};
+
+	type DialSpec = {
+		id: string;
+		label: string;
+		hint: string;
+		value: number;
+		set: (next: number) => void;
+	};
 
 	/*
 	 * ONE ROOT, `type="multiple"`, because these four are not alternatives — a single-select
@@ -149,13 +207,6 @@
 			grainOn.current ? "grain" : null,
 		].filter((value) => value !== null),
 	);
-
-	function wrapAtZero(event: KeyboardEvent, value: number, set: (next: number) => void): void {
-		if (value !== 0) return;
-		if (event.key !== "ArrowDown" && event.key !== "ArrowLeft" && event.key !== "PageDown") return;
-		event.preventDefault();
-		set(event.key === "PageDown" ? 350 : 359);
-	}
 
 	type PageMode = "light" | "dark" | "system";
 
@@ -361,182 +412,137 @@
 
 		<DocSection title="Backdrop">
 			{#snippet blurb()}
-				A fifth axis, layered over the palette and the mode rather than beside them: the palette
-				decides what the surfaces are painted with, and a backdrop decides what is painted behind
-				them. It does not change the page colour — that stays the palette's — it paints over it.
-				Four independent layers that COMPOSE: a light, a lattice, one mark and a texture. Every one
-				derives its colours from the live tokens, so they all work with all {THEMES.length}
-				palettes in both halves. The header's wand carries the same switches.
+				What is painted behind the page: a light, a lattice, a mark and a texture, each switched on
+				and tuned on its own. Every layer takes its colours from the active palette, so all of them
+				suit all {THEMES.length} palettes in both modes. The header's wand carries the same switches.
 			{/snippet}
 
 			<!--
-				FOUR SECTIONS THAT FOLD, because four axes' worth of controls open at once is a page
+				FOUR SECTIONS THAT FOLD, because four layers' worth of controls open at once is a page
 				rather than a section — the mark alone carries six. Each row still says what it is doing
 				while shut: the badge names the chosen look, or reads "On", so the state of all four is
 				one glance rather than four expansions.
 
 				THE ORDER IS THE PAINTING ORDER, top to bottom: the light goes down first, the lattice
 				over it, then the mark, and the grain last because it is a texture over everything else.
+				The hook and the header menu list them the same way.
 			-->
 			<Card.Root>
 				<Card.Content>
 					<Accordion.Root type="multiple" bind:value={openPanels}>
 						<Accordion.Item value="gradient">
-							<Accordion.Trigger class="items-center font-semibold hover:no-underline">
-								<div class="flex min-w-0 items-center gap-3">
-									<div class="flex size-8 shrink-0 items-center justify-center rounded-lg bg-muted">
-										<SunIcon class="size-4 text-muted-foreground" />
-									</div>
-									<span>Gradient</span>
-									{#if GRADIENTS.find((g) => g.id === activeGradient.current)?.name}
-										<Badge variant="success-subtle" class="ms-1"
-											>{GRADIENTS.find((g) => g.id === activeGradient.current)?.name}</Badge
-										>
-									{/if}
-								</div>
-							</Accordion.Trigger>
+							{@const chosen = GRADIENTS.find((look) => look.id === activeGradient.current)}
+							{@render panelTrigger(SunIcon, "Gradient", chosen?.name)}
 							<Accordion.Content>
-								<div class="flex flex-col gap-4 ps-11 pe-2">
-									<p class="text-sm text-muted-foreground">A light thrown across the page.</p>
-									<div class="flex flex-col gap-6 sm:flex-row sm:items-start sm:gap-8">
+								<div class={panelBody}>
+									<div class="text-sm text-muted-foreground">A light thrown across the page.</div>
+									<div class={panelGrid}>
 										{@render lookPicker("Gradient", GRADIENTS, activeGradient.current, (id) =>
 											setGradient(id as GradientId),
 										)}
 										{#if activeGradient.current !== "none"}
-											<div class="flex min-w-0 flex-1 flex-col gap-2">
-												{@render slider(
-													"backdrop-gradient-opacity",
-													"Opacity",
-													gradientStrength.current + "%",
-													"As a share of the weight this light was designed at. It saturates rather than multiplying, so the whole range stays live.",
-													LAYER_OPACITY_MIN,
-													GRADIENT_OPACITY_MAX,
-													5,
-													gradientStrength.current,
-													setGradientStrength,
-												)}
+											<div class={settingsCell}>
+												{@render slider({
+													id: "settings-backdrop-gradient-intensity",
+													label: "Intensity",
+													unit: "%",
+													hint: "100% is the designed weight.",
+													min: LAYER_OPACITY_MIN,
+													max: GRADIENT_OPACITY_MAX,
+													step: 5,
+													value: gradientStrength.current,
+													set: setGradientStrength,
+												})}
 											</div>
-											{@render dial(
-												"Angle",
-												"Where the light comes from. 0° is where this gradient sits by default.",
-												backdropAngle.current,
-												setBackdropAngle,
-												"backdrop-angle",
-											)}
+											{@render dial({
+												id: "settings-backdrop-angle",
+												label: "Angle",
+												hint: "Where the light comes from.",
+												value: backdropAngle.current,
+												set: setBackdropAngle,
+											})}
 										{/if}
 									</div>
 								</div>
 							</Accordion.Content>
 						</Accordion.Item>
+
 						<Accordion.Item value="pattern">
-							<Accordion.Trigger class="items-center font-semibold hover:no-underline">
-								<div class="flex min-w-0 items-center gap-3">
-									<div class="flex size-8 shrink-0 items-center justify-center rounded-lg bg-muted">
-										<Grid3x3Icon class="size-4 text-muted-foreground" />
-									</div>
-									<span>Pattern</span>
-									{#if PATTERNS.find((x) => x.id === activePattern.current)?.name}
-										<Badge variant="success-subtle" class="ms-1"
-											>{PATTERNS.find((x) => x.id === activePattern.current)?.name}</Badge
-										>
-									{/if}
-								</div>
-							</Accordion.Trigger>
+							{@const chosen = PATTERNS.find((look) => look.id === activePattern.current)}
+							{@render panelTrigger(Grid3x3Icon, "Pattern", chosen?.name)}
 							<Accordion.Content>
-								<div class="flex flex-col gap-4 ps-11 pe-2">
-									<p class="text-sm text-muted-foreground">
-										A drawn lattice, fading out toward a bearing.
-									</p>
-									<div class="flex flex-col gap-6 sm:flex-row sm:items-start sm:gap-8">
+								<div class={panelBody}>
+									<div class="text-sm text-muted-foreground">
+										A drawn lattice that fades out toward one side.
+									</div>
+									<div class={panelGrid}>
 										{@render lookPicker("Pattern", PATTERNS, activePattern.current, (id) =>
 											setPattern(id as PatternId),
 										)}
 										{#if activePattern.current !== "none"}
-											<div class="flex min-w-0 flex-1 flex-col gap-5">
-												{@render slider(
-													"backdrop-pattern-opacity",
-													"Opacity",
-													patternStrength.current + "%",
-													"As a share of the weight this lattice was designed at.",
-													LAYER_OPACITY_MIN,
-													PATTERN_OPACITY_MAX,
-													5,
-													patternStrength.current,
-													setPatternStrength,
-												)}
-												{@render slider(
-													"backdrop-fade",
-													"Fade length",
-													backdropFade.current + "px",
-													"How far the fade runs before the lattice is at full strength. At 0 it covers the page.",
-													BACKDROP_FADE_MIN,
-													BACKDROP_FADE_MAX,
-													20,
-													backdropFade.current,
-													setBackdropFade,
-												)}
+											<div class={settingsCell}>
+												{@render slider({
+													id: "settings-backdrop-pattern-intensity",
+													label: "Intensity",
+													unit: "%",
+													hint: "100% is the designed weight.",
+													min: LAYER_OPACITY_MIN,
+													max: PATTERN_OPACITY_MAX,
+													step: 5,
+													value: patternStrength.current,
+													set: setPatternStrength,
+												})}
+												{@render slider({
+													id: "settings-backdrop-fade",
+													label: "Fade length",
+													unit: "px",
+													hint: "Distance before the lattice reaches full strength. 0 covers the page.",
+													min: BACKDROP_FADE_MIN,
+													max: BACKDROP_FADE_MAX,
+													step: 20,
+													value: backdropFade.current,
+													set: setBackdropFade,
+												})}
 											</div>
-											{@render dial(
-												"Fade angle",
-												"Which side the lattice fades out toward. The lattice itself does not turn.",
-												backdropFadeAngle.current,
-												setBackdropFadeAngle,
-												"backdrop-fade-angle",
-											)}
+											{@render dial({
+												id: "settings-backdrop-fade-angle",
+												label: "Fade angle",
+												hint: "Which side the lattice fades toward.",
+												value: backdropFadeAngle.current,
+												set: setBackdropFadeAngle,
+											})}
 										{/if}
 									</div>
 								</div>
 							</Accordion.Content>
 						</Accordion.Item>
+
 						<Accordion.Item value="mark">
-							<Accordion.Trigger class="items-center font-semibold hover:no-underline">
-								<div class="flex min-w-0 items-center gap-3">
-									<div class="flex size-8 shrink-0 items-center justify-center rounded-lg bg-muted">
-										<StampIcon class="size-4 text-muted-foreground" />
-									</div>
-									<span>Mark</span>
-									{#if markOn.current}
-										<Badge variant="success-subtle" class="ms-1">On</Badge>
-									{/if}
-								</div>
-							</Accordion.Trigger>
+							{@render panelTrigger(StampIcon, "Mark", markOn.current ? "On" : undefined)}
 							<Accordion.Content>
-								<div class="flex flex-col gap-4 ps-11 pe-2">
-									<p class="text-sm text-muted-foreground">
-										One SVG drawn behind the interface. It is a file rather than a setting — <code
-											class="font-mono text-xs">{MARK_SOURCE}</code
-										> — so a project brands itself by replacing that file, keeping the name.
-									</p>
-									<div class="flex flex-col gap-6 sm:flex-row sm:items-start sm:gap-8">
-										<div class="flex flex-col gap-3 sm:w-56 sm:shrink-0">
-											<div class="flex items-center gap-3">
-												<Switch
-													id="backdrop-mark"
-													checked={markOn.current}
-													onCheckedChange={setMark}
-												/>
-												<Label for="backdrop-mark">Mark</Label>
-											</div>
+								<div class={panelBody}>
+									<div class="text-sm text-muted-foreground">
+										One SVG drawn behind the interface, read from
+										<code class="text-[87.5%] text-primary">public/backdrop-mark.svg</code>. Replace
+										that file, keeping its name, to brand a project.
+									</div>
+									<div class={panelGrid}>
+										<div class="col-start-1 row-start-1 flex flex-col gap-3">
+											{@render toggle("settings-backdrop-mark", markOn.current, setMark)}
 											{#if markOn.current}
-												<!--
-									THE OFFSETS ARE NOT A POSITION UNTIL YOU SAY WHAT THEY COUNT FROM. They used
-									to mean the top-left corner, because that is what CSS defaults to, which left
-									a mark meant for the bottom-right to be placed by arithmetic against a
-									viewport size nobody knows in advance — and moved on every resize.
-								-->
 												<div class="flex flex-col gap-1.5">
-													<Label for="backdrop-mark-anchor">Measured from</Label>
+													<Label for="settings-backdrop-mark-anchor">Measured from</Label>
 													<Select.Root
 														type="single"
 														value={markCorner.current}
 														onValueChange={(value) => setMarkAnchor(value as MarkAnchor)}
 													>
-														<Select.Trigger id="backdrop-mark-anchor" class="w-full">
-															{anchorNames[markCorner.current]}
+														<Select.Trigger id="settings-backdrop-mark-anchor" class="w-full">
+															{anchor.name}
 														</Select.Trigger>
 														<Select.Content>
-															{#each MARK_ANCHORS as anchor (anchor.id)}
-																<Select.Item value={anchor.id} label={anchor.name} />
+															{#each MARK_ANCHORS as option (option.id)}
+																<Select.Item value={option.id} label={option.name} />
 															{/each}
 														</Select.Content>
 													</Select.Root>
@@ -544,94 +550,91 @@
 											{/if}
 										</div>
 										{#if markOn.current}
-											<div class="flex min-w-0 flex-1 flex-col gap-5">
-												{@render slider(
-													"backdrop-mark-opacity",
-													"Opacity",
-													markInkStrength.current + "%",
-													"How much of the page’s own ink the mark is mixed from.",
-													MARK_OPACITY_MIN,
-													MARK_OPACITY_MAX,
-													1,
-													markInkStrength.current,
-													setMarkInkStrength,
-												)}
-												{@render slider(
-													"backdrop-mark-x",
-													anchorLabels.x,
-													markOffsetX.current + "px",
-													`Counted from the ${anchorLabels.x.toLowerCase()} edge of the viewport.`,
-													MARK_OFFSET_MIN,
-													MARK_OFFSET_MAX,
-													10,
-													markOffsetX.current,
-													setMarkOffsetX,
-												)}
-												{@render slider(
-													"backdrop-mark-y",
-													anchorLabels.y,
-													markOffsetY.current + "px",
-													`Counted from the ${anchorLabels.y.toLowerCase()} edge of the viewport.`,
-													MARK_OFFSET_MIN,
-													MARK_OFFSET_MAX,
-													10,
-													markOffsetY.current,
-													setMarkOffsetY,
-												)}
-												{@render slider(
-													"backdrop-mark-zoom",
-													"Size",
-													markScale.current + "px",
-													"The file scales without loss, so this can go well past the page.",
-													MARK_ZOOM_MIN,
-													MARK_ZOOM_MAX,
-													10,
-													markScale.current,
-													setMarkScale,
-												)}
+											{@const fromEdge = (edge: string) =>
+												anchor.id === "center"
+													? "From the centre of the viewport."
+													: `From the ${edge.toLowerCase()} edge of the viewport.`}
+											<div class={settingsCell}>
+												{@render slider({
+													id: "settings-backdrop-mark-opacity",
+													label: "Opacity",
+													unit: "%",
+													hint: "How strongly the mark is drawn.",
+													min: MARK_OPACITY_MIN,
+													max: MARK_OPACITY_MAX,
+													step: 1,
+													value: markInkStrength.current,
+													set: setMarkInkStrength,
+												})}
+												{@render slider({
+													id: "settings-backdrop-mark-x",
+													label: anchor.x,
+													unit: "px",
+													hint: fromEdge(anchor.x),
+													min: MARK_OFFSET_MIN,
+													max: MARK_OFFSET_MAX,
+													step: 5,
+													value: markOffsetX.current,
+													set: setMarkOffsetX,
+												})}
+												{@render slider({
+													id: "settings-backdrop-mark-y",
+													label: anchor.y,
+													unit: "px",
+													hint: fromEdge(anchor.y),
+													min: MARK_OFFSET_MIN,
+													max: MARK_OFFSET_MAX,
+													step: 5,
+													value: markOffsetY.current,
+													set: setMarkOffsetY,
+												})}
+												{@render slider({
+													id: "settings-backdrop-mark-size",
+													label: "Size",
+													unit: "px",
+													hint: "Rendered size of the mark.",
+													min: MARK_ZOOM_MIN,
+													max: MARK_ZOOM_MAX,
+													step: 10,
+													value: markScale.current,
+													set: setMarkScale,
+												})}
 											</div>
-											{@render dial(
-												"Rotation",
-												"Turned inside the image itself — a background cannot be rotated.",
-												markTurn.current,
-												setMarkTurn,
-												"backdrop-mark-angle",
-											)}
+											{@render dial({
+												id: "settings-backdrop-mark-angle",
+												label: "Rotation",
+												hint: "Clockwise, in degrees.",
+												value: markTurn.current,
+												set: setMarkTurn,
+											})}
 										{/if}
 									</div>
 								</div>
 							</Accordion.Content>
 						</Accordion.Item>
+
 						<Accordion.Item value="grain">
-							<Accordion.Trigger class="items-center font-semibold hover:no-underline">
-								<div class="flex min-w-0 items-center gap-3">
-									<div class="flex size-8 shrink-0 items-center justify-center rounded-lg bg-muted">
-										<GripIcon class="size-4 text-muted-foreground" />
-									</div>
-									<span>Grain</span>
-									{#if grainOn.current}
-										<Badge variant="success-subtle" class="ms-1">On</Badge>
-									{/if}
-								</div>
-							</Accordion.Trigger>
+							{@render panelTrigger(GripIcon, "Grain", grainOn.current ? "On" : undefined)}
 							<Accordion.Content>
-								<div class="flex flex-col gap-4 ps-11 pe-2">
-									<p class="text-sm text-muted-foreground">Paper texture over everything else.</p>
-									<div class="flex flex-col gap-6 sm:flex-row sm:items-start sm:gap-8">
-										{@render toggle("backdrop-grain", "Grain", grainOn.current, setGrain)}
+								<div class={panelBody}>
+									<div class="text-sm text-muted-foreground">
+										Paper texture over everything else.
+									</div>
+									<div class={panelGrid}>
+										{@render toggle("settings-backdrop-grain", grainOn.current, setGrain)}
 										{#if grainOn.current}
-											<div class="flex min-w-0 flex-1 flex-col gap-2">
-												{@render slider(
-													"backdrop-density",
-													"Density",
-													backdropDensity.current + "%",
-													"How much grain. It is balanced light against dark, so it textures the page without lifting it.",
-													BACKDROP_DENSITY_MIN,
-													BACKDROP_DENSITY_MAX,
-													5,
-													backdropDensity.current,
-													setBackdropDensity,
-												)}
+											<div class={settingsCell}>
+												{@render slider({
+													id: "settings-backdrop-density",
+													label: "Density",
+													unit: "%",
+													hint: "How much grain is laid over the page.",
+													min: BACKDROP_DENSITY_MIN,
+													max: BACKDROP_DENSITY_MAX,
+													step: 2,
+													value: backdropDensity.current,
+													set: setBackdropDensity,
+												})}
 											</div>
 										{/if}
 									</div>
@@ -712,12 +715,13 @@
 					>SidebarModeToggle</code
 				>
 				and <code class="text-[87.5%] text-primary">HeaderToggle</code> are the compact form of the
-				same two groups — the dropdowns this bar used to carry, published as
+				same two chrome groups — the dropdowns this bar used to carry, published as
 				<code class="text-[87.5%] text-primary">parallax-appearance-controls</code> for an
 				application that wants them back in the header through
 				<code class="text-[87.5%] text-primary">PageHeader</code>'s
 				<code class="text-[87.5%] text-primary">controls</code> snippet. They are live: change one and
-				the grids above follow, because both read the same state.
+				the grids above follow, because both read the same state. The backdrop's wand is not repeated
+				here: the bar above already renders it.
 			{/snippet}
 			<Card.Root>
 				<Card.Content>
@@ -740,7 +744,7 @@
 			{#snippet blurb()}
 				Back to the defaults: system mode, the {THEMES.find((t) => t.id === DEFAULT_THEME)?.name}
 				palette, both chrome axes on Default, the sidebar floating and expanded, the header bar floating
-				with auto-hide off.
+				with auto-hide off, and every backdrop layer off.
 			{/snippet}
 			<Card.Root>
 				<Card.Content>
@@ -755,16 +759,33 @@
 </DocPage>
 
 <!--
-	THREE SNIPPETS RATHER THAN FOUR COPIES OF EACH. The backdrop section grew from one card to
-	four, and every card needs the same shapes: a grid of named looks, a labelled slider, and the
-	dial. Written out per card it was the same twenty lines five times over, which is how the fade
-	slider and the density slider drift apart.
+	FIVE SNIPPETS RATHER THAN FOUR COPIES OF EACH. Every backdrop panel is built from the same
+	parts — a trigger, a picker or a toggle, a captioned slider, a dial — and written out per panel
+	they were the same twenty lines over and over, which is how two sliders drift apart. The slider
+	and the dial take ONE OBJECT rather than a positional list: nine positional parameters with four
+	consecutive numbers type-check in any order, and the readout is derived from the value here
+	instead of being passed beside it, so the two cannot disagree.
 -->
+
 <!--
-	FOUR SNIPPETS RATHER THAN FOUR COPIES OF EACH. Every card needs the same shapes — a picker, a
-	toggle, a labelled slider, a dial — and written out per card they were the same twenty lines
-	five times over, which is how the fade slider and the density slider drift apart.
+	Spans, not divs, inside the trigger: it renders a <button>, whose content model is phrasing
+	content. The tile is 8 units and the gap 3, which is where the panel body's `ps-11` comes from.
 -->
+{#snippet panelTrigger(Icon: typeof SunIcon, title: string, badge: string | undefined)}
+	<Accordion.Trigger class="items-center font-semibold hover:no-underline">
+		<span class="flex min-w-0 items-center gap-3">
+			<span class="flex size-8 shrink-0 items-center justify-center rounded-lg bg-muted">
+				<Icon class="size-4 text-muted-foreground" />
+			</span>
+			<span>{title}</span>
+			{#if badge}
+				<!-- `primary-subtle` is the kit's "current" affordance — the selected cards above use the
+				     same ground — where green would read as an outcome. -->
+				<Badge variant="primary-subtle" class="ms-1">{badge}</Badge>
+			{/if}
+		</span>
+	</Accordion.Trigger>
+{/snippet}
 
 <!--
 	A DROPDOWN, NOT A GRID OF CARDS. Twelve gradients and ten patterns as two-line cards ran to
@@ -778,12 +799,12 @@
 -->
 {#snippet lookPicker(
 	label: string,
-	looks: { id: string; name: string; blurb: string }[],
+	looks: BackdropChoice[],
 	active: string,
 	choose: (id: string) => void,
 )}
 	{@const chosen = looks.find((look) => look.id === active)}
-	<div class="flex min-w-0 flex-col gap-2 sm:w-56 sm:shrink-0">
+	<div class="col-start-1 row-start-1 flex min-w-0 flex-col gap-2">
 		<Select.Root type="single" value={active} onValueChange={choose}>
 			<Select.Trigger class="w-full" aria-label={label}>
 				{chosen ? chosen.name : "None"}
@@ -798,7 +819,7 @@
 				<Select.Item value="none" label="None">
 					<span class="flex min-w-0 flex-col">
 						<span class="font-medium">None</span>
-						<span class="text-xs text-wrap text-muted-foreground">This layer paints nothing.</span>
+						<span class="text-xs text-wrap text-muted-foreground">{NOTHING_DRAWN}</span>
 					</span>
 				</Select.Item>
 				{#each looks as look (look.id)}
@@ -811,93 +832,92 @@
 				{/each}
 			</Select.Content>
 		</Select.Root>
-		<p class="text-xs text-muted-foreground">
-			{chosen ? chosen.blurb : "This layer paints nothing."}
-		</p>
+		<p class="text-xs text-muted-foreground">{chosen ? chosen.blurb : NOTHING_DRAWN}</p>
 	</div>
 {/snippet}
 
-<!-- The on/off axes have no list, so their first cell is the switch itself. -->
-{#snippet toggle(id: string, label: string, on: boolean, set: (next: boolean) => void)}
-	<div class="flex items-center gap-3 sm:w-56 sm:shrink-0">
+<!-- The on/off layers have no list, so their first cell is the switch itself. -->
+{#snippet toggle(id: string, on: boolean, set: (next: boolean) => void)}
+	<div class="col-start-1 row-start-1 flex items-center gap-3">
 		<Switch {id} checked={on} onCheckedChange={set} />
-		<Label for={id}>{label}</Label>
-	</div>
-{/snippet}
-
-{#snippet slider(
-	id: string,
-	label: string,
-	readout: string,
-	hint: string,
-	min: number,
-	max: number,
-	step: number,
-	value: number,
-	set: (next: number) => void,
-)}
-	<!--
-		A `<Label for>` NAMES NOTHING HERE, exactly as it names nothing on the dial, and for the same
-		reason twice over: `for` binds only to a labelable element, and the Slider's root is a
-		`<span>` — so the id lands on it and the association is dead. Worse, `role="slider"` lives on
-		the THUMB, which is a different element again, so even a working root label would leave the
-		control a screen reader stops on with an empty name (WCAG 4.1.2).
-
-		The wrapper documents this and forwards `aria-labelledby` to the thumb when no direct name is
-		given, so the visible text carries an id and the thumb points at it. One string rather than a
-		visible label and a separate `aria-label` that can drift apart.
-
-		This was caught by review after being missed by a check of my own that looked right: it
-		asserted every `for` resolved to an existing id, and every one did — the id is on the span.
-		Resolving is not binding.
-	-->
-	<div class="flex flex-col gap-1.5">
-		<div class="flex items-baseline justify-between gap-4">
-			<span id="{id}-label" class="text-sm leading-none font-medium">{label}</span>
-			<span class="font-mono text-xs text-muted-foreground tabular-nums">{readout}</span>
-		</div>
-		<Slider
-			{id}
-			type="single"
-			aria-labelledby="{id}-label"
-			{min}
-			{max}
-			{step}
-			{value}
-			onValueChange={set}
-		/>
-		<p class="text-xs text-muted-foreground">{hint}</p>
+		<Label for={id}>Enabled</Label>
 	</div>
 {/snippet}
 
 <!--
-	The caption is not a `<Label for>`: the dial's root is a `<div>`, and `for` binds only to a
-	labelable element. The control is the THUMB, which carries `role="slider"`, so the caption and
-	the hint are pointed AT it instead — the association runs the other way round from a form
-	field's, which is also why both need ids of their own.
+	A `<Label for>` NAMES NOTHING HERE, exactly as it names nothing on the dial, and for the same
+	reason twice over: `for` binds only to a labelable element, and the Slider's root is a
+	`<span>` — so the id would land on it and the association would be dead. Worse, `role="slider"`
+	lives on the THUMB, a different element again, so even a working root label would leave the
+	control a screen reader stops on with an empty name (WCAG 4.1.2).
+
+	The wrapper forwards `aria-labelledby`, `aria-describedby` and the value text to the thumb, so
+	the visible caption and hint carry ids and the thumb points at them, and the unit is announced
+	with the number. A check that every `for` RESOLVES to an existing id would have passed here and
+	proved nothing — resolving is not binding.
 -->
-{#snippet dial(label: string, hint: string, value: number, set: (next: number) => void, id: string)}
-	<!-- `ms-auto` so the dial sits at the far edge whether or not the card has a middle cell:
-	     Gradient has none, and without it the dial hugged the select and left half the row empty. -->
-	<div class="flex shrink-0 flex-col items-center gap-1 self-center sm:ms-auto sm:self-start">
-		<span id="{id}-label" class="text-sm font-medium">{label}</span>
+{#snippet slider(spec: SliderSpec)}
+	<div class="flex flex-col gap-1.5">
+		<div class="flex items-baseline justify-between gap-4">
+			<span id="{spec.id}-label" class={caption}>{spec.label}</span>
+			<span class="font-mono text-xs text-muted-foreground tabular-nums">
+				{spec.value}{spec.unit}
+			</span>
+		</div>
+		<Slider
+			type="single"
+			aria-labelledby="{spec.id}-label"
+			aria-describedby="{spec.id}-hint"
+			thumbValueText="{spec.value}{spec.unit}"
+			min={spec.min}
+			max={spec.max}
+			step={spec.step}
+			value={spec.value}
+			onValueChange={spec.set}
+		/>
+		<p id="{spec.id}-hint" class="text-xs text-muted-foreground">{spec.hint}</p>
+	</div>
+{/snippet}
+
+<!--
+	The caption is not a `<Label for>` for the same reason as the slider's: the dial's control is
+	the THUMB. It is named twice on purpose — `aria-labelledby` pointing at the caption, and an
+	`aria-label` with the same text — because the thumb ships a default "Angle" label of its own,
+	and one name that agrees with the caption beats two that disagree.
+
+	The cell sits in the grid's last column from 28rem up, and centres its content, which is also
+	what centres it below that when it has the row to itself.
+-->
+{#snippet dial(spec: DialSpec)}
+	<div
+		class="flex flex-col items-center gap-1 @md/panel:col-start-2 @md/panel:row-start-1 @xl/panel:col-start-3"
+	>
+		<span id="{spec.id}-label" class={caption}>{spec.label}</span>
 		<AngleSlider.Root
 			min={0}
 			max={360}
 			step={1}
 			size={46}
-			value={[value]}
-			onValueChange={(next) => set(next[0] ?? 0)}
-			onkeydown={(event) => wrapAtZero(event, value, set)}
+			value={[spec.value]}
+			onValueChange={(next) => spec.set(next[0] ?? 0)}
+			onkeydown={(event) => wrapAtZero(event, spec.value, spec.set)}
 		>
 			<AngleSlider.Track>
 				<AngleSlider.Range />
 			</AngleSlider.Track>
-			<AngleSlider.Thumb aria-labelledby="{id}-label" aria-describedby="{id}-hint" />
+			<AngleSlider.Thumb
+				aria-label={spec.label}
+				aria-valuetext="{spec.value}°"
+				aria-labelledby="{spec.id}-label"
+				aria-describedby="{spec.id}-hint"
+			/>
 			<AngleSlider.Value />
 		</AngleSlider.Root>
-		<span id="{id}-hint" class="max-w-44 text-center text-xs text-balance text-muted-foreground">
-			{hint}
+		<span
+			id="{spec.id}-hint"
+			class="max-w-40 text-center text-xs text-balance text-muted-foreground"
+		>
+			{spec.hint}
 		</span>
 	</div>
 {/snippet}

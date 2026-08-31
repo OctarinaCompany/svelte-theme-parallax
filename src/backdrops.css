@@ -73,7 +73,7 @@
  * `--radius-factor`, which no backdrop sets any more — it defaults to 1 and is left in place as a
  * knob a CONSUMER can turn, which is what it became once it shipped in the registry.
  *
- * @see src/lib/hooks/backdrop.svelte.ts — the axis, and why `stock` writes no attribute
+ * @see src/lib/hooks/backdrop.svelte.ts — the axis, and why `none` writes no attribute
  * @see index.html — the first-paint echo
  */
 

@@ -27,11 +27,11 @@
 	 * the bar's `controls` snippet instead, and the published component stays ignorant of it.
 	 * It must NOT be moved under `ui/` — that tree is swept and published wholesale.
 	 *
-	 * TWO RADIO GROUPS AND TWO CHECKBOXES, which is the menu telling the truth about the model.
-	 * It used to be one radio group over everything, because a backdrop was one choice; the axes
-	 * now compose, so a gradient and a pattern are separate exclusive choices — each with its own
-	 * "None" — and the grain and the mark are simply on or off. Getting this wrong in the menu is
-	 * how someone concludes the axes are still alternatives.
+	 * TWO RADIO GROUPS AND TWO CHECKBOXES, which is the menu telling the truth about the model: a
+	 * gradient and a pattern are separate exclusive choices — each with its own "None" — and the
+	 * mark and the grain are simply on or off. A single radio group over all four would tell the
+	 * reader the layers are alternatives, and they compose. The order is the painting order the
+	 * Settings page and the hook use: gradient, pattern, mark, grain.
 	 *
 	 * AN ICON AND NOTHING ELSE, where the palette picker shows its name and a swatch. The bar's
 	 * appearance cluster is the one group in the header that cannot compress — an icon button has
@@ -42,10 +42,10 @@
 	 * three mode axes, and plain `sparkles` is already the account menu's "Upgrade to Pro". A wand
 	 * says "a look applied over what is there", which is precisely what a backdrop is.
 	 *
-	 * SINGLE-LINE ROWS NOW, where they used to carry a blurb apiece. Four axes cannot fit in a
-	 * menu at two lines a row without turning into a page; the sentences moved to the Settings
-	 * page, which is where someone meeting these for the first time is anyway. The menu is for
-	 * the person who already knows what they want.
+	 * SINGLE-LINE ROWS. Four layers' worth of looks cannot fit in a menu at two lines a row without
+	 * turning into a page; each look's sentence lives on the Settings page, which is where someone
+	 * meeting these for the first time is anyway. The menu is for the person who already knows
+	 * what they want.
 	 *
 	 * @see $lib/hooks/backdrop.svelte.ts — the axes, and why "none" writes no attribute
 	 */
@@ -63,9 +63,10 @@
 		const pattern = PATTERNS.find((p) => p.id === activePattern.current);
 		if (gradient) parts.push(gradient.name);
 		if (pattern) parts.push(pattern.name);
-		if (grainOn.current) parts.push("Grain");
 		if (markOn.current) parts.push("Mark");
-		return parts.length ? parts.join(", ") : "off";
+		if (grainOn.current) parts.push("Grain");
+		// "none", the same word the page's pickers use for the same state.
+		return parts.length ? parts.join(", ") : "none";
 	});
 </script>
 
@@ -107,11 +108,11 @@
 		</DropdownMenu.RadioGroup>
 
 		<DropdownMenu.Separator />
-		<DropdownMenu.CheckboxItem checked={grainOn.current} onCheckedChange={setGrain}>
-			Grain
-		</DropdownMenu.CheckboxItem>
 		<DropdownMenu.CheckboxItem checked={markOn.current} onCheckedChange={setMark}>
 			Mark
+		</DropdownMenu.CheckboxItem>
+		<DropdownMenu.CheckboxItem checked={grainOn.current} onCheckedChange={setGrain}>
+			Grain
 		</DropdownMenu.CheckboxItem>
 	</DropdownMenu.Content>
 </DropdownMenu.Root>
