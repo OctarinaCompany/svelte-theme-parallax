@@ -20,14 +20,26 @@
 	import { Switch } from "$lib/components/ui/switch/index.js";
 	import { useSidebar } from "$lib/components/ui/sidebar/index.js";
 	import { cn } from "$lib/utils.js";
-	import { activeTheme, DEFAULT_THEME, setTheme, THEMES } from "$lib/themes/index.js";
 	import {
+		activeTheme,
+		DEFAULT_THEME,
+		setTheme,
+		THEME_STORAGE_KEY,
+		THEMES,
+	} from "$lib/themes/index.js";
+	import {
+		HEADER_AUTO_HIDE_STORAGE_KEY,
+		HEADER_FLOATING_STORAGE_KEY,
 		headerAutoHide,
 		headerFloating,
 		setHeaderAutoHide,
 		setHeaderFloating,
 	} from "$lib/hooks/header-behaviour.svelte.js";
-	import { setSidebarFloating, sidebarFloating } from "$lib/hooks/sidebar-behaviour.svelte.js";
+	import {
+		SIDEBAR_FLOATING_STORAGE_KEY,
+		setSidebarFloating,
+		sidebarFloating,
+	} from "$lib/hooks/sidebar-behaviour.svelte.js";
 	import HeaderToggle from "$lib/components/navigation/HeaderToggle.svelte";
 	import SidebarModeToggle from "$lib/components/navigation/SidebarModeToggle.svelte";
 	import {
@@ -64,6 +76,7 @@
 		MARK_ZOOM_MAX,
 		MARK_ZOOM_MIN,
 		resetBackdrop,
+		backdropStorageSnapshot,
 		setBackdropAngle,
 		setBackdropDensity,
 		setBackdropFade,
@@ -90,8 +103,20 @@
 	import { Badge } from "$lib/components/ui/badge/index.js";
 	import * as Accordion from "$lib/components/ui/accordion/index.js";
 	import * as AngleSlider from "$lib/components/ui/angle-slider/index.js";
-	import { headerMode, setHeaderMode, type HeaderMode } from "$lib/hooks/header-mode.svelte.js";
-	import { setSidebarMode, sidebarMode, type SidebarMode } from "$lib/hooks/sidebar-mode.svelte.js";
+	import {
+		HEADER_MODE_STORAGE_KEY,
+		headerMode,
+		setHeaderMode,
+		type HeaderMode,
+	} from "$lib/hooks/header-mode.svelte.js";
+	import {
+		SIDEBAR_MODE_STORAGE_KEY,
+		setSidebarMode,
+		sidebarMode,
+		type SidebarMode,
+	} from "$lib/hooks/sidebar-mode.svelte.js";
+	import { SIDEBAR_COOKIE_NAME } from "$lib/components/ui/sidebar/constants.js";
+	import * as CodeBlock from "$lib/components/ui/code-block/index.js";
 	import { href } from "$lib/hooks/route.svelte.js";
 
 	/**
@@ -209,6 +234,82 @@
 	);
 
 	type PageMode = "light" | "dark" | "system";
+
+	/**
+	 * THE WHOLE LOOK AS ONE DOCUMENT, so it can be carried to another Parallax application — or
+	 * handed to an assistant working on one — and reproduced without interpretation.
+	 *
+	 * Two views of the same state, built in one place so they cannot drift: `appearance` is for
+	 * reading, and `storage` is for applying. The appearance state of this kit IS its localStorage
+	 * (plus the rail's one cookie) — the first-paint script and every hook read exactly these keys —
+	 * so writing the `storage` entries on the target origin and reloading is the entire procedure,
+	 * and the document says so in `apply`, in words an assistant can follow without reading this
+	 * file. Every key is present, including layers that are off and adjustments at their defaults:
+	 * the export is a complete state, not a diff, so applying it over a differently configured app
+	 * yields this look and not a merge of the two.
+	 *
+	 * The mark is the one thing a document cannot carry — it is a file — so the export names it.
+	 */
+	const exportJson = $derived.by(() => {
+		const mode = userPrefersMode.current;
+		const payload = {
+			kit: "parallax",
+			version: 1,
+			appearance: {
+				mode,
+				palette: activeTheme.current,
+				sidebar: {
+					chrome: sidebarMode.current,
+					floating: sidebarFloating.current,
+					expanded: sidebar.open,
+				},
+				header: {
+					chrome: headerMode.current,
+					floating: headerFloating.current,
+					hideOnScroll: headerAutoHide.current,
+				},
+				backdrop: {
+					gradient: {
+						look: activeGradient.current,
+						intensity: gradientStrength.current,
+						angle: backdropAngle.current,
+					},
+					pattern: {
+						look: activePattern.current,
+						intensity: patternStrength.current,
+						fadeLength: backdropFade.current,
+						fadeAngle: backdropFadeAngle.current,
+					},
+					mark: {
+						on: markOn.current,
+						anchor: markCorner.current,
+						x: markOffsetX.current,
+						y: markOffsetY.current,
+						size: markScale.current,
+						rotation: markTurn.current,
+						opacity: markInkStrength.current,
+						file: "public/backdrop-mark.svg",
+					},
+					grain: { on: grainOn.current, density: backdropDensity.current },
+				},
+			},
+			storage: {
+				// mode-watcher's own key, as index.html spells it; the library does not export it.
+				"mode-watcher-mode": mode,
+				[THEME_STORAGE_KEY]: activeTheme.current,
+				[SIDEBAR_MODE_STORAGE_KEY]: sidebarMode.current,
+				[SIDEBAR_FLOATING_STORAGE_KEY]: String(sidebarFloating.current),
+				[HEADER_MODE_STORAGE_KEY]: headerMode.current,
+				[HEADER_FLOATING_STORAGE_KEY]: String(headerFloating.current),
+				[HEADER_AUTO_HIDE_STORAGE_KEY]: String(headerAutoHide.current),
+				...backdropStorageSnapshot(),
+			},
+			cookie: { [SIDEBAR_COOKIE_NAME]: String(sidebar.open) },
+			apply:
+				"On the target Parallax application's origin: write every entry of `storage` into localStorage as-is (all values are strings), set the `cookie` entry as a cookie, then reload. The first-paint script and the appearance hooks read exactly these keys. If `appearance.backdrop.mark.on` is true, the SVG at `appearance.backdrop.mark.file` must exist in that project too.",
+		};
+		return JSON.stringify(payload, null, 2);
+	});
 
 	type Choice<T extends string> = {
 		value: T;
@@ -738,6 +839,28 @@
 					</div>
 				</Card.Content>
 			</Card.Root>
+		</DocSection>
+
+		<DocSection title="Export">
+			{#snippet blurb()}
+				Everything above, as one JSON document that follows every control on this page live. Paste
+				it into another Parallax application — or hand it to an assistant working on one — and the
+				look is reproduced: the <code class="text-[87.5%] text-primary">storage</code> entries are exactly
+				the keys the first-paint script and the hooks read, so writing them and reloading is the whole
+				procedure, and the document says so itself.
+			{/snippet}
+			<!--
+				The code block carries the copy button, as every code block in this kit does; the download
+				name makes the header offer the same document as a file, for the project that would rather
+				commit it than paste it.
+			-->
+			<CodeBlock.Root
+				label="Appearance"
+				filename="parallax-appearance.json"
+				language="json"
+				code={exportJson}
+				showLineNumbers={false}
+			/>
 		</DocSection>
 
 		<DocSection title="Reset">

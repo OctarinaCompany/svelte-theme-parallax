@@ -860,6 +860,37 @@ export function setMarkInkStrength(value: number): void {
 	persist(KEYS.markOpacity, String(markOpacity));
 }
 
+/**
+ * The current backdrop, as the localStorage entries that would reproduce it — key for key what
+ * the hook itself would have written. The Settings page's export section prints these so a look
+ * can be carried to another Parallax application (or handed to an assistant working on one): write
+ * the entries on that origin, reload, and the first-paint script and this hook read them back.
+ *
+ * Everything is written, including layers that are off and adjustments at their defaults, so the
+ * export is a complete state and not a diff — applying it over a differently configured app yields
+ * exactly this look, not a merge of the two.
+ */
+export function backdropStorageSnapshot(): Record<string, string> {
+	return {
+		[KEYS.gradient]: gradient,
+		[KEYS.gradientOpacity]: String(gradientOpacity),
+		[KEYS.angle]: String(angle),
+		[KEYS.pattern]: pattern,
+		[KEYS.patternOpacity]: String(patternOpacity),
+		[KEYS.fade]: String(fade),
+		[KEYS.fadeAngle]: String(fadeAngle),
+		[KEYS.mark]: mark ? "on" : "off",
+		[KEYS.markAnchor]: markAnchor,
+		[KEYS.markX]: String(markX),
+		[KEYS.markY]: String(markY),
+		[KEYS.markZoom]: String(markZoom),
+		[KEYS.markAngle]: String(markAngle),
+		[KEYS.markOpacity]: String(markOpacity),
+		[KEYS.grain]: grain ? "on" : "off",
+		[KEYS.density]: String(density),
+	};
+}
+
 /** Everything back to the kit as it ships — used by the Settings page's Reset. */
 export function resetBackdrop(): void {
 	setGradient("none");
