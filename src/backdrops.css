@@ -118,6 +118,8 @@
  *   --backdrop-tile         the repeating layer: grain, or a pattern. Drawn on the wrapper's
  *                           second layer and on the band's own.
  *   --backdrop-tile-size    that tile's size. Integer pixels — a percentage shimmers at 125% zoom.
+ *   --backdrop-tile-position where each layer of that tile starts. Only ever needed to offset one
+ *                           layer against another, which is how every staggered-row pattern works.
  *   --backdrop-tile-mask    a mask for the tile, on BOTH its layers.
  *
  * ONE SOURCE PER LAYER, for the reason `vibrant.css` gives about its own two limbs: a field
@@ -208,6 +210,7 @@
 	pointer-events: none;
 	background-image: var(--backdrop-tile, none);
 	background-size: var(--backdrop-tile-size, 256px 256px);
+	background-position: var(--backdrop-tile-position, 0 0);
 	mask-image: var(--backdrop-tile-mask, none);
 	-webkit-mask-image: var(--backdrop-tile-mask, none);
 }
@@ -422,6 +425,7 @@
 	pointer-events: none;
 	background-image: var(--backdrop-tile, none);
 	background-size: var(--backdrop-tile-size, 256px 256px);
+	background-position: var(--backdrop-tile-position, 0 0);
 	mask-image: var(--backdrop-tile-mask, none);
 	-webkit-mask-image: var(--backdrop-tile-mask, none);
 }
@@ -548,50 +552,49 @@
  * these is palette-aware for free.
  * ========================================================================================== */
 
-:root:is(
-	[data-backdrop="grain"],
-	[data-backdrop="dots"],
-	[data-backdrop="grid"],
-	[data-backdrop="graph"],
-	[data-backdrop="hatch"],
-	[data-backdrop="isometric"]
-) {
+/*
+ * THE INKS ARE DECLARED FOR EVERY BACKDROP, not for a list of them, and that is a simplification
+ * rather than sloppiness: a custom property nobody reads costs nothing. Each of these used to
+ * carry a six-id `:is()` list repeated four times over — light, dark, and the `@supports` twin of
+ * each — which is sixty-odd lines of pure selector that grows with every backdrop added and fails
+ * SILENTLY when one is left out of a single list. Declaring them on the bare `:root[data-backdrop]`
+ * is the same generalisation the skeleton itself took, and a backdrop that wants something else
+ * overrides it, exactly as `grain` already does for the mask.
+ *
+ * THREE INKS, BECAUSE COVERAGE IS NOT ALPHA. A hairline lattice and a filled band at the same alpha
+ * do not read as the same weight — alpha is per pixel, and coverage is how many pixels there are.
+ * So the drawn patterns take one value, thin radiant geometry a second, and radiant geometry that
+ * fills real area a third, each markedly lighter than the last.
+ */
+:root[data-backdrop] {
+	/* Drawn lattices — hairlines over a mostly empty tile. */
 	--backdrop-ink: color-mix(in oklab, var(--foreground) 14%, transparent);
 	--backdrop-tile-mask: linear-gradient(to bottom, transparent 320px, #000 640px);
+
+	/* Thin radiant geometry: rays, rules, ticks. The calibration `rays` was cut back to. */
+	--backdrop-radiant: color-mix(in oklab, var(--primary) 5%, transparent);
+
+	/* Radiant geometry that fills area: bands, beams, discs, haloes. */
+	--backdrop-radiant-soft: color-mix(in oklab, var(--primary) 3%, transparent);
 }
 
-:root:is(
-		[data-backdrop="grain"],
-		[data-backdrop="dots"],
-		[data-backdrop="grid"],
-		[data-backdrop="graph"],
-		[data-backdrop="hatch"],
-		[data-backdrop="isometric"]
-	).dark {
+:root[data-backdrop].dark {
 	--backdrop-ink: color-mix(in oklab, var(--foreground) 10%, transparent);
+	--backdrop-radiant: color-mix(in oklab, var(--primary) 7%, transparent);
+	--backdrop-radiant-soft: color-mix(in oklab, var(--primary) 4%, transparent);
 }
 
 @supports (color: oklch(from red l c h)) {
-	:root:is(
-		[data-backdrop="grain"],
-		[data-backdrop="dots"],
-		[data-backdrop="grid"],
-		[data-backdrop="graph"],
-		[data-backdrop="hatch"],
-		[data-backdrop="isometric"]
-	) {
+	:root[data-backdrop] {
 		--backdrop-ink: oklch(from var(--primary) 0.45 clamp(0.01, calc(c * 0.3), 0.05) h / 0.16);
+		--backdrop-radiant: oklch(from var(--primary) 0.9 max(c, 0.05) h / 0.22);
+		--backdrop-radiant-soft: oklch(from var(--primary) 0.92 max(c, 0.05) h / 0.12);
 	}
 
-	:root:is(
-			[data-backdrop="grain"],
-			[data-backdrop="dots"],
-			[data-backdrop="grid"],
-			[data-backdrop="graph"],
-			[data-backdrop="hatch"],
-			[data-backdrop="isometric"]
-		).dark {
+	:root[data-backdrop].dark {
 		--backdrop-ink: oklch(from var(--primary) 0.82 clamp(0.01, calc(c * 0.25), 0.04) h / 0.14);
+		--backdrop-radiant: oklch(from var(--primary) 0.4 max(calc(c * 0.7), 0.04) h / 0.16);
+		--backdrop-radiant-soft: oklch(from var(--primary) 0.44 max(calc(c * 0.7), 0.04) h / 0.09);
 	}
 }
 
@@ -762,6 +765,345 @@
 :root[data-backdrop="weave"] [data-slot="page-header"] {
 	background-color: var(--background);
 	background-blend-mode: soft-light;
+}
+
+/* ==========================================================================================
+ * THE RADIANT FIVE — geometry that comes from a point, or from a direction.
+ *
+ * ALIASING IS THE WHOLE DESIGN PROBLEM HERE, and it is inherent rather than a browser defect. A
+ * conic gradient's stops are ANGULAR, so a band's width in pixels is r × θ: a 1° stop is under a
+ * pixel at r = 50 and about thirty at r = 1800. The usual remedy — a 1° soft stop — therefore
+ * fixes the apex by blurring the rim, which on a full-page layer is the wrong trade in both
+ * directions. The CSSWG has confirmed this is intrinsic to the primitive, not something an
+ * implementation can tune away.
+ *
+ * SO THE FAMILY IS BUILT TO AVOID THE APEX RATHER THAN TREAT IT. Three of these five have no apex
+ * at all — parallel beams and concentric rings are radius-constant, so their edges antialias like
+ * any other curve. The two that converge either put the apex off-screen, as `rays` does, or cover
+ * it with an opaque disc, which is `hiashi` below.
+ *
+ * TWO THINGS NOT TO DO, both reproducible: never write sub-0.01° hard stops, which degenerate into
+ * literal static noise in Chrome, Edge and Firefox; and never animate one of these with
+ * `transform: scale()`, which rasterises the gradient at the painted size and bands.
+ *
+ * THE SOFT INK, NOT THE THIN ONE, for anything that fills area. `rays` is hairline wedges over
+ * mostly-empty page, so it can afford `--backdrop-radiant`. A band, a beam or a disc covers a
+ * large fraction of the viewport at once and needs `--backdrop-radiant-soft`, which is roughly
+ * half the alpha. Reaching for the same number would put a wash where a hairline was intended.
+ * ========================================================================================== */
+
+/*
+ * BEAMS — parallel shafts rather than converging ones, and the only geometry in the family with
+ * no failure mode at all: every edge is a soft stop on a straight line, so there is no radius for
+ * the aliasing to scale with, at any zoom or device pixel ratio.
+ *
+ * The falloff is inside the gradient rather than in a mask, because the continuous layer has no
+ * mask slot — the last stop simply runs out before the far corner.
+ */
+:root[data-backdrop="beams"] {
+	--backdrop-light: repeating-linear-gradient(
+		102deg,
+		transparent 0 26px,
+		var(--backdrop-radiant-soft) 34px 44px,
+		transparent 52px 92px
+	);
+}
+:root[dir="rtl"][data-backdrop="beams"] {
+	--backdrop-light: repeating-linear-gradient(
+		78deg,
+		transparent 0 26px,
+		var(--backdrop-radiant-soft) 34px 44px,
+		transparent 52px 92px
+	);
+}
+
+/*
+ * SUNRISE — concentric bands from below the foot of the page, which is the radiant idea with the
+ * apex removed by construction: the origin is off-screen and the edges are circular, so nothing
+ * here can alias. Anchored bottom-CENTRE, so it is the one radiant backdrop that needs no RTL twin.
+ */
+:root[data-backdrop="sunrise"] {
+	--backdrop-light: radial-gradient(
+		circle at 50% 118%,
+		var(--backdrop-radiant-soft) 0 26vmin,
+		transparent 26vmin 31vmin,
+		var(--backdrop-radiant-soft) 31vmin 38vmin,
+		transparent 38vmin 45vmin,
+		var(--backdrop-radiant-soft) 45vmin 54vmin,
+		transparent 54vmin 63vmin,
+		var(--backdrop-radiant-soft) 63vmin 74vmin,
+		transparent 74vmin
+	);
+}
+
+/*
+ * RIPPLE — rings rather than rays, and deliberately NOT `repeating-radial-gradient`: a repeating
+ * gradient has one fixed period, so its rings are evenly spaced, which reads as corduroy. Spacing
+ * the stops by hand lets the interval grow with radius, which is what water actually does and what
+ * separates this from a CSS demo. It costs a long declaration and nothing else.
+ *
+ * It shares `rays`' anchor at 22% -12% on purpose: set side by side the two read as one family
+ * seen twice, rather than as two unrelated backdrops.
+ */
+:root[data-backdrop="ripple"] {
+	--backdrop-light: radial-gradient(
+		circle at 22% -12%,
+		transparent 0 60px,
+		var(--backdrop-radiant) 60px 61px,
+		transparent 61px 132px,
+		var(--backdrop-radiant) 132px 133px,
+		transparent 133px 218px,
+		var(--backdrop-radiant) 218px 219px,
+		transparent 219px 320px,
+		var(--backdrop-radiant) 320px 321px,
+		transparent 321px 438px,
+		var(--backdrop-radiant) 438px 439px,
+		transparent 439px 572px,
+		var(--backdrop-radiant) 572px 573px,
+		transparent 573px 722px,
+		var(--backdrop-radiant) 722px 723px,
+		transparent 723px
+	);
+}
+:root[dir="rtl"][data-backdrop="ripple"] {
+	--backdrop-light: radial-gradient(
+		circle at 78% -12%,
+		transparent 0 60px,
+		var(--backdrop-radiant) 60px 61px,
+		transparent 61px 132px,
+		var(--backdrop-radiant) 132px 133px,
+		transparent 133px 218px,
+		var(--backdrop-radiant) 218px 219px,
+		transparent 219px 320px,
+		var(--backdrop-radiant) 320px 321px,
+		transparent 321px 438px,
+		var(--backdrop-radiant) 438px 439px,
+		transparent 439px 572px,
+		var(--backdrop-radiant) 572px 573px,
+		transparent 573px 722px,
+		var(--backdrop-radiant) 722px 723px,
+		transparent 723px
+	);
+}
+
+/*
+ * CORONA — a single ring with nothing inside it, which reads as an eclipse rather than as a sun.
+ * Hollow is the point: every other radiant backdrop puts its energy at a centre, and this one puts
+ * it on a boundary, so it is the only one that leaves the middle of the viewport alone.
+ */
+:root[data-backdrop="corona"] {
+	--backdrop-light: radial-gradient(
+		circle at 74% 22%,
+		transparent 0 27vmin,
+		var(--backdrop-radiant-soft) 31vmin,
+		transparent 37vmin
+	);
+}
+:root[dir="rtl"][data-backdrop="corona"] {
+	--backdrop-light: radial-gradient(
+		circle at 26% 22%,
+		transparent 0 27vmin,
+		var(--backdrop-radiant-soft) 31vmin,
+		transparent 37vmin
+	);
+}
+
+/*
+ * HIASHI 日足 — a rayed sun, and the one that answers the brief's "Japanese rising sun" directly.
+ *
+ * THREE LAYERS, AND THE MIDDLE ONE IS THE POINT. CSS paints the first background layer on top, so
+ * the order is: the tinted disc, then an OPAQUE disc of the page's own colour, then the rays. The
+ * tinted disc alone does not hide anything — it is a 12% wash, so the rays read straight through it
+ * and the sun looks like rays crossing a smudge. The opaque disc between them is what actually puts
+ * the rays behind the sun: they stop dead at its edge, which is what a sun does.
+ *
+ * PAINTING WITH `--background` IS SAFE HERE and would not be elsewhere. Both surfaces that carry
+ * this field are guaranteed to sit on that exact colour — the wrapper paints it, the band carries
+ * the component's `bg-background` — so the occluder is invisible as a shape. `loader-comet-spinner`
+ * rejects this same trick for itself, and is right to: a loader can land on a card or a toolbar,
+ * where a page-coloured disc would show as a coin.
+ *
+ * It also removes the apex aliasing for free, because the region where the wedges converge is
+ * underneath the disc. The disc's own edge is radial, and radial edges are radius-constant, so
+ * they antialias like any other circle.
+ *
+ * TWELVE RAYS, HAIRLINE, NO RED, ORIGIN AT THE FOOT — and each of those is a decision rather than
+ * a default. The contested military ensign is a specific configuration: sixteen solid wedges
+ * widening from a centred disc, saturated red on white, inside a flag-shaped rectangle. A rayed
+ * sun as such is not that; it is ancient, civilian and everywhere, including as `hiashi-mon`, the
+ * pre-Meiji Kyushu family crest this takes its name and its TWELVE rays from. This one breaks the
+ * flag's set on every axis: twelve rays not sixteen, wedges narrower than their gaps, the origin
+ * low and off-centre, no rectangular framing, and a colour that is never ours to choose because it
+ * derives from the palette — it is only ever reddish on one palette in eighteen, at 12% alpha.
+ */
+:root[data-backdrop="hiashi"] {
+	--backdrop-light:
+		radial-gradient(circle at 22% 88%, var(--backdrop-radiant-soft) 0 15vmin, transparent 15vmin),
+		radial-gradient(circle at 22% 88%, var(--background) 0 15vmin, transparent 15vmin),
+		repeating-conic-gradient(
+			from -6deg at 22% 88%,
+			var(--backdrop-radiant) 0deg 4deg,
+			transparent 4deg 30deg
+		);
+}
+:root[dir="rtl"][data-backdrop="hiashi"] {
+	--backdrop-light:
+		radial-gradient(circle at 78% 88%, var(--backdrop-radiant-soft) 0 15vmin, transparent 15vmin),
+		radial-gradient(circle at 78% 88%, var(--background) 0 15vmin, transparent 15vmin),
+		repeating-conic-gradient(
+			from 6deg at 78% 88%,
+			var(--backdrop-radiant) 0deg 4deg,
+			transparent 4deg 30deg
+		);
+}
+
+/* ==========================================================================================
+ * THE WAGARA FIVE — traditional Japanese geometric patterns, 和柄.
+ *
+ * THEY ARE TILES, NOT FIELDS, so they go on the repeating layer and inherit its mask, which fades
+ * them out before they reach the header. That is the same arrangement the drawn lattices use, and
+ * for the same two reasons: a tile's phase cannot be matched across the fold, and a pattern has no
+ * business behind the densest text on the page.
+ *
+ * FOUR OF THE FIVE ARE PURE CSS, which is not obvious and is worth recording. The trick for the
+ * arc-based ones is that the tile box CLIPS the gradient: a ring centred on the tile's top edge
+ * renders only its lower half, so `repeating-radial-gradient(circle at 50% 100%, …)` over a tile half
+ * as tall as it is wide gives exact semicircles with no SVG and no mask. Only `asanoha` needs a
+ * stencil, because its spokes are a subset of a triangular lattice and a gradient cannot omit
+ * selected segments.
+ *
+ * THE MOTIFS THEMSELVES ARE CENTURIES OLD AND NOT COPYRIGHTABLE — only a particular vector file
+ * would be, and none is used here; the geometry below is authored from the construction rules.
+ * Names are the traditional transliterations, which are pattern names rather than anyone's brand.
+ *
+ * ONE MOTIF WAS DELIBERATELY LEFT OUT. Sayagata (紗綾形) is a beautiful interlocking fret and its
+ * component glyph is the Buddhist manji, which predates and is unrelated to its later European
+ * appropriation — but the resemblance is unmistakable at any legible size, and a dashboard is not
+ * the place to litigate that. Karakusa was dropped for a duller reason: at 900-2000 bytes it costs
+ * an order of magnitude more than every other tile here.
+ * ========================================================================================== */
+
+/*
+ * SEIGAIHA 青海波 — "blue sea waves". Overlapping concentric arcs in offset rows; the oldest
+ * recorded use is a court dance costume, and the standardised rendering comes from a 17th-century
+ * craftsman whose flat brush laid several parallel arcs in one stroke — which is why the bands are
+ * of equal width rather than tapering. It means peaceful seas and good fortune without end.
+ *
+ * Two layers, the second offset by half a tile on both axes, which is what interlocks the rows.
+ */
+:root[data-backdrop="seigaiha"] {
+	--backdrop-tile:
+		repeating-radial-gradient(circle at 50% 100%, transparent 0 7px, var(--backdrop-ink) 7px 8px),
+		repeating-radial-gradient(circle at 50% 100%, transparent 0 7px, var(--backdrop-ink) 7px 8px);
+	--backdrop-tile-size: 48px 24px, 48px 24px;
+	/* The offset row is the pattern. Half a tile across and half down puts the second set of crests
+	   in the gaps the first leaves, which is what makes seigaiha interlock rather than stack. */
+	--backdrop-tile-position: 0 0, 24px 12px;
+}
+
+/*
+ * SHIPPŌ 七宝 — "seven treasures". Circles on a square lattice, each passing through its four
+ * neighbours' centres, so the overlaps draw a four-petal flower at every lattice point. The
+ * unending chain signifies harmony and relationships that keep widening — the best of these to
+ * put behind a dashboard, if one wants the blurb to mean anything.
+ */
+:root[data-backdrop="shippo"] {
+	--backdrop-tile:
+		radial-gradient(
+			circle at 0 0,
+			transparent 0 15px,
+			var(--backdrop-ink) 15px 16px,
+			transparent 16px
+		),
+		radial-gradient(
+			circle at 100% 0,
+			transparent 0 15px,
+			var(--backdrop-ink) 15px 16px,
+			transparent 16px
+		),
+		radial-gradient(
+			circle at 0 100%,
+			transparent 0 15px,
+			var(--backdrop-ink) 15px 16px,
+			transparent 16px
+		),
+		radial-gradient(
+			circle at 100% 100%,
+			transparent 0 15px,
+			var(--backdrop-ink) 15px 16px,
+			transparent 16px
+		);
+	--backdrop-tile-size: 32px 32px;
+}
+
+/*
+ * UROKO 鱗 — "scales". Alternating triangles, the simplest tessellation in the set and the one
+ * that needs nothing but two linear gradients. Fish, snake and dragon scales; worn as a charm
+ * against harm, and read as shedding what no longer serves.
+ */
+:root[data-backdrop="uroko"] {
+	--backdrop-tile:
+		linear-gradient(135deg, var(--backdrop-ink) 0 1px, transparent 1px),
+		linear-gradient(-135deg, var(--backdrop-ink) 0 1px, transparent 1px);
+	--backdrop-tile-size: 28px 28px;
+}
+
+/*
+ * KANOKO 鹿の子 — "fawn spots". A lattice of tiny ring-dots, each the impression of a single tied
+ * knot in shibori dyeing; it was the most labour-intensive technique there was, so the pattern
+ * reads as luxury. Two offset layers give the staggered lattice.
+ */
+:root[data-backdrop="kanoko"] {
+	--backdrop-tile:
+		radial-gradient(
+			circle at 50% 50%,
+			transparent 0 2px,
+			var(--backdrop-ink) 2px 3px,
+			transparent 3px
+		),
+		radial-gradient(
+			circle at 50% 50%,
+			transparent 0 2px,
+			var(--backdrop-ink) 2px 3px,
+			transparent 3px
+		);
+	--backdrop-tile-size: 20px 20px, 20px 20px;
+	/* The staggered lattice: the second ring sits at the centre of the first cell. */
+	--backdrop-tile-position: 0 0, 10px 10px;
+}
+
+/*
+ * ASANOHA 麻の葉 — "hemp leaf". A six-pointed star lattice on an equilateral grid; hemp grows fast
+ * and straight without tending, so the pattern was put on children's clothes as a wish for healthy
+ * growth. THE ONLY ONE HERE THAT NEEDS A STENCIL: its spokes are a subset of the triangular
+ * lattice's lines, and a gradient can draw every line of a lattice or none, never some of them.
+ *
+ * The SVG carries shape only and the colour comes from CSS, which is not a preference — a data-URI
+ * SVG is an isolated document and cannot read `var(--primary)`. As a mask it is palette-aware for
+ * free, in both modes, with one tile.
+ */
+:root[data-backdrop="asanoha"] {
+	--backdrop-tile: none;
+}
+:root[data-backdrop="asanoha"] [data-slot="sidebar-wrapper"]::after,
+:root[data-backdrop="asanoha"] [data-slot="page-header"]::before {
+	background-color: var(--backdrop-ink);
+	mask-image:
+		var(--backdrop-tile-mask),
+		url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='27.71' height='48' viewBox='0 0 27.71 48'%3E%3Cpath d='M0 0L0 -16M0 0L-13.86 -8M-13.86 8L0 16M0 0L-13.86 8M0 16L13.86 8M0 0L0 16M13.86 8L13.86 -8M0 0L13.86 8M0 0L13.86 -8M27.71 0L27.71 -16M27.71 0L13.86 -8M13.86 8L27.71 16M27.71 0L13.86 8M27.71 16L41.57 8M27.71 0L27.71 16M27.71 0L41.57 8M27.71 0L41.57 -8M-13.86 40L0 32M0 32L0 16M-13.86 24L0 32M-13.86 24L0 16M13.86 24L13.86 8M13.86 24L0 16M0 32L13.86 40M13.86 24L0 32M13.86 40L27.71 32M13.86 24L13.86 40M27.71 32L27.71 16M13.86 24L27.71 32M13.86 24L27.71 16M41.57 24L27.71 16M27.71 32L41.57 40M41.57 24L27.71 32M0 48L0 32M0 48L-13.86 40M0 48L-13.86 56M0 48L0 64M13.86 56L13.86 40M0 48L13.86 56M0 48L13.86 40M27.71 48L27.71 32M27.71 48L13.86 40M27.71 48L13.86 56M27.71 48L27.71 64M27.71 48L41.57 56M27.71 48L41.57 40' fill='none' stroke='%23000' stroke-width='1'/%3E%3C/svg%3E");
+	-webkit-mask-image:
+		var(--backdrop-tile-mask),
+		url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='27.71' height='48' viewBox='0 0 27.71 48'%3E%3Cpath d='M0 0L0 -16M0 0L-13.86 -8M-13.86 8L0 16M0 0L-13.86 8M0 16L13.86 8M0 0L0 16M13.86 8L13.86 -8M0 0L13.86 8M0 0L13.86 -8M27.71 0L27.71 -16M27.71 0L13.86 -8M13.86 8L27.71 16M27.71 0L13.86 8M27.71 16L41.57 8M27.71 0L27.71 16M27.71 0L41.57 8M27.71 0L41.57 -8M-13.86 40L0 32M0 32L0 16M-13.86 24L0 32M-13.86 24L0 16M13.86 24L13.86 8M13.86 24L0 16M0 32L13.86 40M13.86 24L0 32M13.86 40L27.71 32M13.86 24L13.86 40M27.71 32L27.71 16M13.86 24L27.71 32M13.86 24L27.71 16M41.57 24L27.71 16M27.71 32L41.57 40M41.57 24L27.71 32M0 48L0 32M0 48L-13.86 40M0 48L-13.86 56M0 48L0 64M13.86 56L13.86 40M0 48L13.86 56M0 48L13.86 40M27.71 48L27.71 32M27.71 48L13.86 40M27.71 48L13.86 56M27.71 48L27.71 64M27.71 48L41.57 56M27.71 48L41.57 40' fill='none' stroke='%23000' stroke-width='1'/%3E%3C/svg%3E");
+	mask-size:
+		auto,
+		27.71px 48px;
+	-webkit-mask-size:
+		auto,
+		27.71px 48px;
+	mask-repeat: no-repeat, repeat;
+	-webkit-mask-repeat: no-repeat, repeat;
+	mask-composite: intersect;
+	-webkit-mask-composite: source-in;
 }
 
 /* ==========================================================================================

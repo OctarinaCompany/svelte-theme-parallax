@@ -75,6 +75,17 @@ export const BACKDROP_IDS = [
 	"hatch",
 	"isometric",
 	"rays",
+	"hiashi",
+	"sunrise",
+	"beams",
+	"ripple",
+	"corona",
+	// The wagara — traditional Japanese geometric patterns.
+	"seigaiha",
+	"shippo",
+	"asanoha",
+	"uroko",
+	"kanoko",
 ] as const;
 
 export type BackdropId = (typeof BACKDROP_IDS)[number];
@@ -169,7 +180,57 @@ export const BACKDROPS: Backdrop[] = [
 	{
 		id: "rays",
 		name: "Rays",
-		blurb: "Light fanning from off-corner, its apex masked away.",
+		blurb: "Light fanning from off-corner, its apex off past the edge.",
+	},
+	{
+		id: "hiashi",
+		name: "Hiashi",
+		blurb: "A twelve-rayed sun low on the page, after the old crest.",
+	},
+	{
+		id: "sunrise",
+		name: "Sunrise",
+		blurb: "Wide bands rising from below the foot of the page.",
+	},
+	{
+		id: "beams",
+		name: "Beams",
+		blurb: "Parallel shafts of light falling across the page.",
+	},
+	{
+		id: "ripple",
+		name: "Ripple",
+		blurb: "Rings widening as they go, the way water does.",
+	},
+	{
+		id: "corona",
+		name: "Corona",
+		blurb: "A single ring with nothing inside it. An eclipse.",
+	},
+	{
+		id: "seigaiha",
+		name: "Seigaiha",
+		blurb: "Overlapping wave crests — calm seas, and luck without end.",
+	},
+	{
+		id: "shippo",
+		name: "Shippō",
+		blurb: "Interlocking circles: the seven treasures, endlessly linked.",
+	},
+	{
+		id: "asanoha",
+		name: "Asanoha",
+		blurb: "The hemp-leaf star lattice, a wish for straight growth.",
+	},
+	{
+		id: "uroko",
+		name: "Uroko",
+		blurb: "Scales, alternating. Worn as a charm against harm.",
+	},
+	{
+		id: "kanoko",
+		name: "Kanoko",
+		blurb: "Fawn spots — each ring one tied knot of shibori dye.",
 	},
 ];
 
