@@ -229,7 +229,34 @@
  * NO MASK HERE, deliberately. The pattern's fade lives on the pattern's own pair; grain has no
  * phase to hide and a mark that faded out under the header would look like a rendering fault.
  * ========================================================================================== */
-:root[data-backdrop] [data-slot="sidebar-inset"]::before,
+:root[data-backdrop] [data-slot="sidebar-inset"]::before {
+	/*
+	 * FIXED, NOT ABSOLUTE, AND THE INSET IS WHY. `[data-slot="sidebar-inset"]` is the `<main>` that
+	 * SCROLLS — `overflow: auto` — so an absolutely positioned child of it is placed at the origin
+	 * of the scrollable content, not of the viewport, and travels up and out of sight with the page.
+	 * The layer painted at the top of the document and vanished the moment anyone scrolled, which
+	 * reads as "grain does not work at all" until you happen to look at an unscrolled page.
+	 *
+	 * The other two pairs never met this because they sit on the wrapper, which does not scroll.
+	 * Fixed positioning takes the viewport as the containing block, so the layer stays put; it then
+	 * covers the rail as well, which costs nothing — the rail is in-flow content and paints over a
+	 * `z-index: -1` layer, exactly as it already does for the field and the pattern.
+	 */
+	content: "";
+	position: fixed;
+	inset: 0;
+	z-index: -1;
+	pointer-events: none;
+	background-attachment: fixed;
+	background-image: var(--backdrop-mark-image, none), var(--backdrop-grain-image, none);
+	background-size: var(--backdrop-mark-size, auto), var(--backdrop-grain-size, 256px 256px);
+	background-position:
+		var(--backdrop-mark-position, 50% 50%),
+		0 0;
+	background-repeat: no-repeat, repeat;
+}
+/* The band side stays absolute: the header does not scroll, and its own box IS the strip the
+   layer has to cover. `top`/`height` undo app.css's geometry for this pseudo-element. */
 :root[data-backdrop] [data-slot="page-header"]::after {
 	content: "";
 	position: absolute;

@@ -45,6 +45,8 @@
 		markOffsetY,
 		markScale,
 		markTurn,
+		markCorner,
+		MARK_ANCHORS,
 		BACKDROP_DENSITY_MAX,
 		BACKDROP_DENSITY_MIN,
 		BACKDROP_FADE_MAX,
@@ -66,8 +68,10 @@
 		setMarkOffsetY,
 		setMarkScale,
 		setMarkTurn,
+		setMarkAnchor,
 		setPattern,
 		type GradientId,
+		type MarkAnchor,
 		type PatternId,
 	} from "$lib/hooks/backdrop.svelte.js";
 	import { Slider } from "$lib/components/ui/slider/index.js";
@@ -109,6 +113,11 @@
 	 * component never sees it. Dragging needs no such help — a pointer crosses the top by moving,
 	 * not by counting. One helper serves all three dials, since they differ only in their setter.
 	 */
+	const anchorNames = Object.fromEntries(MARK_ANCHORS.map((a) => [a.id, a.name]));
+	const anchorLabels = $derived(
+		MARK_ANCHORS.find((a) => a.id === markCorner.current) ?? MARK_ANCHORS[0],
+	);
+
 	function wrapAtZero(event: KeyboardEvent, value: number, set: (next: number) => void): void {
 		if (value !== 0) return;
 		if (event.key !== "ArrowDown" && event.key !== "ArrowLeft" && event.key !== "PageDown") return;
@@ -435,14 +444,44 @@
 				</Card.Header>
 				<Card.Content>
 					<div class="flex flex-col gap-6 sm:flex-row sm:items-start sm:gap-8">
-						{@render toggle("backdrop-mark", "Mark", markOn.current, setMark)}
+						<div class="flex flex-col gap-3 sm:w-56 sm:shrink-0">
+							<div class="flex items-center gap-3">
+								<Switch id="backdrop-mark" checked={markOn.current} onCheckedChange={setMark} />
+								<Label for="backdrop-mark">Mark</Label>
+							</div>
+							{#if markOn.current}
+								<!--
+									THE OFFSETS ARE NOT A POSITION UNTIL YOU SAY WHAT THEY COUNT FROM. They used
+									to mean the top-left corner, because that is what CSS defaults to, which left
+									a mark meant for the bottom-right to be placed by arithmetic against a
+									viewport size nobody knows in advance — and moved on every resize.
+								-->
+								<div class="flex flex-col gap-1.5">
+									<Label for="backdrop-mark-anchor">Measured from</Label>
+									<Select.Root
+										type="single"
+										value={markCorner.current}
+										onValueChange={(value) => setMarkAnchor(value as MarkAnchor)}
+									>
+										<Select.Trigger id="backdrop-mark-anchor" class="w-full">
+											{anchorNames[markCorner.current]}
+										</Select.Trigger>
+										<Select.Content>
+											{#each MARK_ANCHORS as anchor (anchor.id)}
+												<Select.Item value={anchor.id} label={anchor.name} />
+											{/each}
+										</Select.Content>
+									</Select.Root>
+								</div>
+							{/if}
+						</div>
 						{#if markOn.current}
 							<div class="flex min-w-0 flex-1 flex-col gap-5">
 								{@render slider(
 									"backdrop-mark-x",
-									"Left",
+									anchorLabels.x,
 									markOffsetX.current + "px",
-									"Its left edge, from the left of the viewport.",
+									`Counted from the ${anchorLabels.x.toLowerCase()} edge of the viewport.`,
 									MARK_OFFSET_MIN,
 									MARK_OFFSET_MAX,
 									10,
@@ -451,9 +490,9 @@
 								)}
 								{@render slider(
 									"backdrop-mark-y",
-									"Top",
+									anchorLabels.y,
 									markOffsetY.current + "px",
-									"Its top edge, from the top of the viewport.",
+									`Counted from the ${anchorLabels.y.toLowerCase()} edge of the viewport.`,
 									MARK_OFFSET_MIN,
 									MARK_OFFSET_MAX,
 									10,

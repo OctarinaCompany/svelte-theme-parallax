@@ -163,6 +163,7 @@ export const MARK_X_STORAGE_KEY = "backdrop-mark-x";
 export const MARK_Y_STORAGE_KEY = "backdrop-mark-y";
 export const MARK_ZOOM_STORAGE_KEY = "backdrop-mark-zoom";
 export const MARK_ANGLE_STORAGE_KEY = "backdrop-mark-angle";
+export const MARK_ANCHOR_STORAGE_KEY = "backdrop-mark-anchor";
 
 /** The file the mark axis draws. Replace it, keeping the name, to brand a project. */
 export const MARK_SOURCE = `${import.meta.env.BASE_URL}backdrop-mark.svg`;
@@ -188,6 +189,45 @@ export const MARK_ZOOM_MIN = 60;
 export const MARK_ZOOM_MAX = 1600;
 
 export const DEFAULT_MARK_ANGLE = 0;
+
+/**
+ * WHICH CORNER THE OFFSETS ARE MEASURED FROM. Two numbers are not a position until you say what
+ * they are counted from, and "60, 120" meant the top-left corner only because that is what CSS
+ * defaults to — a mark meant to sit in the bottom-right then had to be placed by arithmetic
+ * against a viewport size nobody knows in advance, and moved on every resize.
+ *
+ * Anchoring to the corner you actually want makes the offsets small, stable and readable, and it
+ * is the browser that does the arithmetic: `background-position` takes a four-value form —
+ * `right 40px bottom 24px` — that names an edge per axis. The centre is the exception, since that
+ * form does not accept `center` with an offset, so it is written as a percentage plus the offset.
+ */
+export const MARK_ANCHORS = [
+	{ id: "top-left", name: "Top left", x: "Left", y: "Top" },
+	{ id: "top-right", name: "Top right", x: "Right", y: "Top" },
+	{ id: "bottom-left", name: "Bottom left", x: "Left", y: "Bottom" },
+	{ id: "bottom-right", name: "Bottom right", x: "Right", y: "Bottom" },
+	{ id: "center", name: "Centre", x: "Horizontal", y: "Vertical" },
+] as const;
+
+export type MarkAnchor = (typeof MARK_ANCHORS)[number]["id"];
+export const DEFAULT_MARK_ANCHOR: MarkAnchor = "top-left";
+
+export function isMarkAnchor(value: string | null | undefined): value is MarkAnchor {
+	return (
+		typeof value === "string" && MARK_ANCHORS.some((anchor) => anchor.id === (value as MarkAnchor))
+	);
+}
+
+/**
+ * The offsets are counted FROM the named edges, so a positive number always moves the mark inward.
+ * That is why the centre case adds rather than subtracts on both axes: everywhere else "more" is
+ * "further from that edge", and the centre has no edge to be further from.
+ */
+export function markPosition(anchor: MarkAnchor, x: number, y: number): string {
+	if (anchor === "center") return `calc(50% + ${x}px) calc(50% + ${y}px)`;
+	const [vertical, horizontal] = anchor.split("-");
+	return `${horizontal} ${x}px ${vertical} ${y}px`;
+}
 
 // ================================================================================================
 // Reading and writing what is stored.
@@ -292,6 +332,17 @@ let markZoom = $state<number>(
 	readNumber(MARK_ZOOM_STORAGE_KEY, DEFAULT_MARK_ZOOM, MARK_ZOOM_MIN, MARK_ZOOM_MAX),
 );
 let markAngle = $state<number>(readNumber(MARK_ANGLE_STORAGE_KEY, DEFAULT_MARK_ANGLE, 0, 360));
+let markAnchor = $state<MarkAnchor>(readAnchor());
+
+function readAnchor(): MarkAnchor {
+	try {
+		if (typeof localStorage === "undefined") return DEFAULT_MARK_ANCHOR;
+		const stored = localStorage.getItem(MARK_ANCHOR_STORAGE_KEY);
+		return isMarkAnchor(stored) ? stored : DEFAULT_MARK_ANCHOR;
+	} catch {
+		return DEFAULT_MARK_ANCHOR;
+	}
+}
 
 /** The mark file's own markup, fetched once. `null` until it arrives, `""` if it cannot. */
 let markSource = $state<string | null>(null);
@@ -395,7 +446,7 @@ $effect.root(() => {
 		style.setProperty("--backdrop-fade-angle", String(fadeAngle));
 		style.setProperty("--backdrop-fade", String(fade));
 		style.setProperty("--backdrop-density", String(density));
-		style.setProperty("--backdrop-mark-position", `${markX}px ${markY}px`);
+		style.setProperty("--backdrop-mark-position", markPosition(markAnchor, markX, markY));
 		style.setProperty("--backdrop-mark-size", `${markZoom}px ${markZoom}px`);
 	});
 
@@ -513,6 +564,11 @@ export const markTurn = {
 		return markAngle;
 	},
 };
+export const markCorner = {
+	get current(): MarkAnchor {
+		return markAnchor;
+	},
+};
 
 export function setGradient(value: GradientId): void {
 	gradient = isGradientId(value) ? value : "none";
@@ -580,6 +636,11 @@ export function setMarkScale(value: number): void {
 	persist(MARK_ZOOM_STORAGE_KEY, String(markZoom));
 }
 
+export function setMarkAnchor(value: MarkAnchor): void {
+	markAnchor = isMarkAnchor(value) ? value : DEFAULT_MARK_ANCHOR;
+	persist(MARK_ANCHOR_STORAGE_KEY, markAnchor);
+}
+
 export function setMarkTurn(value: number): void {
 	markAngle = wrapDegrees(value);
 	persist(MARK_ANGLE_STORAGE_KEY, String(markAngle));
@@ -599,4 +660,5 @@ export function resetBackdrop(): void {
 	setMarkOffsetY(DEFAULT_MARK_Y);
 	setMarkScale(DEFAULT_MARK_ZOOM);
 	setMarkTurn(DEFAULT_MARK_ANGLE);
+	setMarkAnchor(DEFAULT_MARK_ANCHOR);
 }

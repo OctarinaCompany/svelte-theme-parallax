@@ -102,11 +102,28 @@
 				var value = Number(raw);
 				return isFinite(value) ? value : null;
 			}
-			function echoPair(keyX, keyY, property) {
-				var x = num(keyX);
-				var y = num(keyY);
+			/*
+			 * The mark's offsets are counted from a CORNER, so this has to build the same string the
+			 * hook does — `markPosition` in `src/lib/hooks/backdrop.svelte.ts`, and the two have to
+			 * agree or the mark jumps on hydration. The anchor is echoed rather than validated, like
+			 * every other stored id here; an unknown one falls back to the top-left corner, which is
+			 * what CSS would have done anyway.
+			 */
+			function echoMarkPosition() {
+				var x = num("backdrop-mark-x");
+				var y = num("backdrop-mark-y");
 				if (x === null || y === null) return;
-				document.documentElement.style.setProperty(property, x + "px " + y + "px");
+				var anchor = localStorage.getItem("backdrop-mark-anchor") || "top-left";
+				var value;
+				if (anchor === "center") {
+					value = "calc(50% + " + x + "px) calc(50% + " + y + "px)";
+				} else {
+					var parts = anchor.split("-");
+					var vertical = parts[0] === "bottom" ? "bottom" : "top";
+					var horizontal = parts[1] === "right" ? "right" : "left";
+					value = horizontal + " " + x + "px " + vertical + " " + y + "px";
+				}
+				document.documentElement.style.setProperty("--backdrop-mark-position", value);
 			}
 			function echoSquare(key, property) {
 				var v = num(key);
@@ -160,7 +177,7 @@
 					echo("backdrop-fade-angle", "--backdrop-fade-angle");
 					echo("backdrop-fade", "--backdrop-fade");
 					echo("backdrop-density", "--backdrop-density");
-					echoPair("backdrop-mark-x", "backdrop-mark-y", "--backdrop-mark-position");
+					echoMarkPosition();
 					echoSquare("backdrop-mark-zoom", "--backdrop-mark-size");
 				}
 				/* The mark IMAGE is not echoed: it is built from the file this script cannot wait for.
