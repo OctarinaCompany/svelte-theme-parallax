@@ -96,6 +96,23 @@
 			 * first visit, the grain tile scales to nothing, and the backdrop silently does not
 			 * paint. Testing the RAW string for absence before coercing is the fix.
 			 */
+			function num(key) {
+				var raw = localStorage.getItem(key);
+				if (raw === null || raw === "") return null;
+				var value = Number(raw);
+				return isFinite(value) ? value : null;
+			}
+			function echoPair(keyX, keyY, property) {
+				var x = num(keyX);
+				var y = num(keyY);
+				if (x === null || y === null) return;
+				document.documentElement.style.setProperty(property, x + "px " + y + "px");
+			}
+			function echoSquare(key, property) {
+				var v = num(key);
+				if (v === null) return;
+				document.documentElement.style.setProperty(property, v + "px " + v + "px");
+			}
 			function echo(key, property) {
 				var raw = localStorage.getItem(key);
 				if (raw === null || raw === "") return;
@@ -118,21 +135,36 @@
 				 * stale id selects no block — one frame of no backdrop — and the hook narrows the
 				 * stored value and repairs the attribute at module evaluation.
 				 */
-				var backdrop = localStorage.getItem("backdrop");
-				if (backdrop && backdrop !== "none") {
-					root.setAttribute("data-backdrop", backdrop);
-					/*
-					 * The two adjustments are NUMBERS, and unlike the id they are VALIDATED here. A
-					 * stale id costs one frame of no backdrop; a junk number costs the backdrop
-					 * entirely and for good, because `calc(1deg * var(--backdrop-angle))` with an
-					 * unparseable value invalidates the whole declaration rather than falling back.
-					 * `isFinite` on the coerced value is the cheapest form of that check; the hook
-					 * clamps to range on mount, which only narrows what already parses.
-					 */
+				/*
+				 * The four backdrop axes are ECHOED, NOT VALIDATED, exactly as the palette above them:
+				 * an allowlist here would be a second copy of the id lists for a plain HTML file to
+				 * drift from. A stale id selects no block — one frame of no layer — and the hook
+				 * narrows the stored value and repairs the attribute at module evaluation.
+				 *
+				 * `data-backdrop` is the boolean the stylesheet's shared rules key on: the layer
+				 * carriers and the four kill switches ask "is anything on?", not "which one".
+				 */
+				var gradient = localStorage.getItem("backdrop-gradient");
+				var pattern = localStorage.getItem("backdrop-pattern");
+				var grainOn = localStorage.getItem("backdrop-grain") === "on";
+				var markOn = localStorage.getItem("backdrop-mark") === "on";
+				var hasGradient = !!gradient && gradient !== "none";
+				var hasPattern = !!pattern && pattern !== "none";
+				if (hasGradient) root.setAttribute("data-backdrop-gradient", gradient);
+				if (hasPattern) root.setAttribute("data-backdrop-pattern", pattern);
+				if (grainOn) root.setAttribute("data-backdrop-grain", "");
+				if (markOn) root.setAttribute("data-backdrop-mark", "");
+				if (hasGradient || hasPattern || grainOn || markOn) {
+					root.setAttribute("data-backdrop", "");
 					echo("backdrop-angle", "--backdrop-angle");
-					echo("backdrop-density", "--backdrop-density");
+					echo("backdrop-fade-angle", "--backdrop-fade-angle");
 					echo("backdrop-fade", "--backdrop-fade");
+					echo("backdrop-density", "--backdrop-density");
+					echoPair("backdrop-mark-x", "backdrop-mark-y", "--backdrop-mark-position");
+					echoSquare("backdrop-mark-zoom", "--backdrop-mark-size");
 				}
+				/* The mark IMAGE is not echoed: it is built from the file this script cannot wait for.
+				   The axis paints nothing until the hook has fetched it, which is one frame later. */
 				/*
 				 * The two chrome axes are RELATIVE TO THE PAGE ("inverted" = the opposite half) and
 				 * independent of each other, but the stylesheets key on absolute light/dark

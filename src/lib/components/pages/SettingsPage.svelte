@@ -31,26 +31,44 @@
 	import HeaderToggle from "$lib/components/navigation/HeaderToggle.svelte";
 	import SidebarModeToggle from "$lib/components/navigation/SidebarModeToggle.svelte";
 	import {
-		BACKDROPS,
-		activeBackdrop,
+		GRADIENTS,
+		PATTERNS,
+		activeGradient,
+		activePattern,
+		grainOn,
+		markOn,
 		backdropAngle,
 		backdropDensity,
 		backdropFade,
+		backdropFadeAngle,
+		markOffsetX,
+		markOffsetY,
+		markScale,
+		markTurn,
 		BACKDROP_DENSITY_MAX,
 		BACKDROP_DENSITY_MIN,
 		BACKDROP_FADE_MAX,
 		BACKDROP_FADE_MIN,
-		DEFAULT_BACKDROP,
-		DEFAULT_BACKDROP_ANGLE,
-		DEFAULT_BACKDROP_DENSITY,
-		DEFAULT_BACKDROP_FADE,
-		setBackdrop,
+		MARK_OFFSET_MAX,
+		MARK_OFFSET_MIN,
+		MARK_ZOOM_MAX,
+		MARK_ZOOM_MIN,
+		MARK_SOURCE,
+		resetBackdrop,
 		setBackdropAngle,
 		setBackdropDensity,
 		setBackdropFade,
-		backdropById,
-		type BackdropCategory,
-		type BackdropId,
+		setBackdropFadeAngle,
+		setGradient,
+		setGrain,
+		setMark,
+		setMarkOffsetX,
+		setMarkOffsetY,
+		setMarkScale,
+		setMarkTurn,
+		setPattern,
+		type GradientId,
+		type PatternId,
 	} from "$lib/hooks/backdrop.svelte.js";
 	import { Slider } from "$lib/components/ui/slider/index.js";
 	import * as AngleSlider from "$lib/components/ui/angle-slider/index.js";
@@ -77,18 +95,8 @@
 
 	const sidebar = useSidebar();
 
-	/*
-	 * The category is DERIVED from the active backdrop rather than stored beside it. Two sources of
-	 * truth for "which group am I in" is how a picker ends up showing a category whose backdrop is
-	 * no longer selected. Choosing a category therefore means choosing its first backdrop, which is
-	 * also what makes the control feel like a switch rather than a filter.
-	 */
-
-	const activeCategory = $derived(backdropById(activeBackdrop.current).category);
-	const backdropsInCategory = $derived(BACKDROPS.filter((b) => b.category === activeCategory));
-
 	/**
-	 * A BEARING HAS NO ENDS, AND THE DIAL DOES. `AngleSlider` clamps to `[min, max]` on every key,
+	 * A BEARING HAS NO ENDS, AND A DIAL DOES. `AngleSlider` clamps to `[min, max]` on every key,
 	 * which is right for what it is — a general arc control, where a 0–100 dial over a 270° sweep
 	 * must stop at both ends. On a full circle the two ends are the same place, so clamping shows up
 	 * as an asymmetry you can feel: turning clockwise past 360 wraps (the setter's own modulo takes
@@ -96,20 +104,15 @@
 	 * component clamps −1 away before `onValueChange` is ever called.
 	 *
 	 * The root runs the caller's `onkeydown` BEFORE its own and stands down if the event was
-	 * consumed, which is the seam to use: at 0, a decrementing key is answered here with 359 and the
+	 * consumed, which is the seam to use: at 0, a decrementing key is answered with 359 and the
 	 * component never sees it. Dragging needs no such help — a pointer crosses the top by moving,
-	 * not by counting.
+	 * not by counting. One helper serves all three dials, since they differ only in their setter.
 	 */
-	function wrapAngleAtZero(event: KeyboardEvent): void {
-		if (backdropAngle.current !== 0) return;
+	function wrapAtZero(event: KeyboardEvent, value: number, set: (next: number) => void): void {
+		if (value !== 0) return;
 		if (event.key !== "ArrowDown" && event.key !== "ArrowLeft" && event.key !== "PageDown") return;
 		event.preventDefault();
-		setBackdropAngle(event.key === "PageDown" ? 350 : 359);
-	}
-
-	function chooseCategory(value: string): void {
-		const first = BACKDROPS.find((b) => b.category === (value as BackdropCategory));
-		if (first) setBackdrop(first.id);
+		set(event.key === "PageDown" ? 350 : 359);
 	}
 
 	type PageMode = "light" | "dark" | "system";
@@ -120,23 +123,6 @@
 		hint: string;
 		icon: typeof SunIcon;
 	};
-
-	const backdropCategories: Choice<BackdropCategory>[] = [
-		{ value: "none", label: "None", hint: "The kit as it ships.", icon: CircleOffIcon },
-		{
-			value: "gradient",
-			label: "Gradient",
-			hint: "Light, from a bearing you choose.",
-			icon: SunIcon,
-		},
-		{ value: "grain", label: "Grain", hint: "Texture, at a density you choose.", icon: GripIcon },
-		{
-			value: "pattern",
-			label: "Pattern",
-			hint: "A drawn lattice, turned to taste.",
-			icon: Grid3x3Icon,
-		},
-	];
 
 	const modeChoices: Choice<PageMode>[] = [
 		{ value: "light", label: "Light", hint: "Always the light half.", icon: SunIcon },
@@ -194,10 +180,9 @@
 	function resetAll(): void {
 		setMode("system");
 		setTheme(DEFAULT_THEME);
-		setBackdrop(DEFAULT_BACKDROP);
-		setBackdropAngle(DEFAULT_BACKDROP_ANGLE);
-		setBackdropDensity(DEFAULT_BACKDROP_DENSITY);
-		setBackdropFade(DEFAULT_BACKDROP_FADE);
+		// One call rather than a dozen: the axis owns its own defaults, and a Reset that listed
+		// them here would go stale the next time one is added.
+		resetBackdrop();
 		setSidebarMode("default");
 		setHeaderMode("default");
 		setSidebarFloating(true);
@@ -337,138 +322,175 @@
 				A fifth axis, layered over the palette and the mode rather than beside them: the palette
 				decides what the surfaces are painted with, and a backdrop decides what is painted behind
 				them. It does not change the page colour — that stays the palette's — it paints over it.
-				Every one derives its colours from the live tokens, so all {BACKDROPS.length - 1} compose with
-				all {THEMES.length} palettes in both halves. The header's wand carries the same switch.
+				Four independent layers that COMPOSE: a light, a lattice, a texture and one mark. Every one
+				derives its colours from the live tokens, so they all work with all {THEMES.length}
+				palettes in both halves. The header's wand carries the same switches.
 			{/snippet}
-			<Card.Root>
-				<Card.Content class="flex flex-col gap-6">
-					{@render choiceGrid(backdropCategories, activeCategory, chooseCategory)}
 
-					{#if activeCategory !== "none"}
-						<div class="flex flex-col gap-3 border-t pt-6">
-							<div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-								{#each backdropsInCategory as backdrop (backdrop.id)}
-									{@const active = backdrop.id === activeBackdrop.current}
-									<button
-										type="button"
-										aria-pressed={active}
-										onclick={() => setBackdrop(backdrop.id as BackdropId)}
-										class={cn(
-											"flex flex-col gap-1.5 rounded-lg border p-4 text-start transition-colors hover:bg-accent",
-											active && "border-primary bg-primary-subtle hover:bg-primary-subtle",
-										)}
-									>
-										<span class="flex items-center gap-2">
-											<span class="text-sm font-medium">{backdrop.name}</span>
-											{#if active}
-												<CheckIcon class="ms-auto size-4 text-primary" />
-											{/if}
-										</span>
-										<span class="text-xs text-muted-foreground">{backdrop.blurb}</span>
-									</button>
-								{/each}
+			<!--
+				FOUR CARDS, NOT ONE, and the split is the model showing through. These used to be one
+				card with a category chooser at the top, because a backdrop was one choice out of
+				twenty-four and picking a gradient meant giving up a pattern. They compose now, so a
+				single card with one selection in it would be a lie about what the axis does.
+			-->
+			<Card.Root>
+				<Card.Header class="flex flex-col gap-1 space-y-0">
+					<Card.Title>Gradient</Card.Title>
+					<Card.Description>A light thrown across the page.</Card.Description>
+				</Card.Header>
+				<Card.Content class="flex flex-col gap-6">
+					{@render lookGrid(GRADIENTS, activeGradient.current, (id) =>
+						setGradient(id as GradientId),
+					)}
+
+					{#if activeGradient.current !== "none"}
+						<div class="flex flex-col gap-4 border-t pt-6 sm:flex-row sm:items-center sm:gap-8">
+							<div class="flex flex-col gap-1">
+								<span id="backdrop-angle-label" class="text-sm font-medium">Angle</span>
+								<p id="backdrop-angle-hint" class="text-sm text-muted-foreground">
+									Where the light comes from, as a bearing. 0° leaves each gradient where it sits by
+									default, and the dial turns it from there.
+								</p>
 							</div>
+							{@render dial(
+								backdropAngle.current,
+								setBackdropAngle,
+								"backdrop-angle-label",
+								"backdrop-angle-hint",
+							)}
+						</div>
+					{/if}
+				</Card.Content>
+			</Card.Root>
+
+			<Card.Root>
+				<Card.Header class="flex flex-col gap-1 space-y-0">
+					<Card.Title>Pattern</Card.Title>
+					<Card.Description>A drawn lattice, fading out toward a bearing.</Card.Description>
+				</Card.Header>
+				<Card.Content class="flex flex-col gap-6">
+					{@render lookGrid(PATTERNS, activePattern.current, (id) => setPattern(id as PatternId))}
+
+					{#if activePattern.current !== "none"}
+						<div class="flex flex-col gap-4 border-t pt-6 sm:flex-row sm:items-center sm:gap-8">
+							<div class="flex flex-col gap-1">
+								<span id="backdrop-fade-angle-label" class="text-sm font-medium">Fade angle</span>
+								<p id="backdrop-fade-angle-hint" class="text-sm text-muted-foreground">
+									Which side the lattice fades out toward: 0° at the top, running clockwise. The
+									lattice itself does not turn — the stylesheet says why.
+								</p>
+							</div>
+							{@render dial(
+								backdropFadeAngle.current,
+								setBackdropFadeAngle,
+								"backdrop-fade-angle-label",
+								"backdrop-fade-angle-hint",
+							)}
 						</div>
 
-						<!--
-							One control per category, because each category has exactly one thing worth
-							adjusting. The angle is a bearing — 0 at the top, running clockwise — which is how
-							a person points at a light rather than how CSS measures an angle.
-						-->
-						<div class="flex flex-col gap-2 border-t pt-6">
-							{#if activeCategory === "grain"}
-								<div class="flex items-baseline justify-between gap-4">
-									<Label for="backdrop-density">Density</Label>
-									<span class="font-mono text-xs text-muted-foreground tabular-nums">
-										{backdropDensity.current}%
-									</span>
-								</div>
-								<p class="text-sm text-muted-foreground">
-									The scale of the grain. Lower is finer — the same noise, sampled smaller.
-								</p>
-								<Slider
-									id="backdrop-density"
-									type="single"
-									class="mt-2"
-									min={BACKDROP_DENSITY_MIN}
-									max={BACKDROP_DENSITY_MAX}
-									step={5}
-									value={backdropDensity.current}
-									onValueChange={setBackdropDensity}
-								/>
-							{:else}
-								<!--
-									THE DIAL, NOT A LINE. The kit ships an angle slider, and a bearing is exactly
-									what it is for: its default `startAngle` of -90 puts 0 at twelve o'clock and
-									sweeps clockwise, which is the mapping this axis already uses, so no angles are
-									passed. It also has no ends — the value that a linear track splits between 359
-									and 0 is one position on a circle — and the thumb SHOWS the direction instead of
-									naming it, which is the whole reason a bearing is easier to point at than to type.
-								-->
-								<div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-8">
-									<!--
-										A `<Label for>` would name nothing here: the root is a `<div>`, and `for`
-										only binds to a labelable element. The control is the THUMB, which already
-										carries `role="slider"` and a default name, so the visible text and the
-										description are pointed AT it instead — the association runs the other way
-										round from a form field's.
-									-->
-									<div class="flex flex-col gap-1">
-										<span id="backdrop-angle-label" class="text-sm font-medium">Angle</span>
-										<p id="backdrop-angle-hint" class="text-sm text-muted-foreground">
-											{#if activeCategory === "pattern"}
-												Which side the lattice fades out toward: 0° at the top, running clockwise.
-											{:else}
-												Where the light comes from, as a bearing: 0° at the top, running clockwise.
-											{/if}
-										</p>
-									</div>
-									<AngleSlider.Root
-										class="shrink-0 self-center sm:ms-auto"
-										min={0}
-										max={360}
-										step={1}
-										size={52}
-										value={[backdropAngle.current]}
-										onValueChange={(next) => setBackdropAngle(next[0] ?? 0)}
-										onkeydown={wrapAngleAtZero}
-									>
-										<AngleSlider.Track>
-											<AngleSlider.Range />
-										</AngleSlider.Track>
-										<AngleSlider.Thumb
-											aria-labelledby="backdrop-angle-label"
-											aria-describedby="backdrop-angle-hint"
-										/>
-										<AngleSlider.Value />
-									</AngleSlider.Root>
-								</div>
+						{@render slider(
+							"backdrop-fade",
+							"Fade length",
+							backdropFade.current + "px",
+							"How far the fade runs before the lattice is at full strength. At 0 there is no fade and the pattern covers the page.",
+							BACKDROP_FADE_MIN,
+							BACKDROP_FADE_MAX,
+							20,
+							backdropFade.current,
+							setBackdropFade,
+						)}
+					{/if}
+				</Card.Content>
+			</Card.Root>
 
-								{#if activeCategory === "pattern"}
-									<div class="mt-2 flex flex-col gap-2">
-										<div class="flex items-baseline justify-between gap-4">
-											<Label for="backdrop-fade">Fade length</Label>
-											<span class="font-mono text-xs text-muted-foreground tabular-nums">
-												{backdropFade.current}px
-											</span>
-										</div>
-										<p class="text-sm text-muted-foreground">
-											How far the fade runs before the lattice is at full strength. At 0 there is no
-											fade and the pattern covers the page.
-										</p>
-										<Slider
-											id="backdrop-fade"
-											type="single"
-											class="mt-2"
-											min={BACKDROP_FADE_MIN}
-											max={BACKDROP_FADE_MAX}
-											step={20}
-											value={backdropFade.current}
-											onValueChange={setBackdropFade}
-										/>
-									</div>
-								{/if}
-							{/if}
+			<Card.Root>
+				<Card.Header class="flex flex-col gap-1 space-y-0">
+					<Card.Title>Grain</Card.Title>
+					<Card.Description>Paper texture over everything else.</Card.Description>
+				</Card.Header>
+				<Card.Content class="flex flex-col gap-6">
+					<div class="flex items-center justify-between gap-4">
+						<Label for="backdrop-grain">Grain</Label>
+						<Switch id="backdrop-grain" checked={grainOn.current} onCheckedChange={setGrain} />
+					</div>
+					{#if grainOn.current}
+						{@render slider(
+							"backdrop-density",
+							"Density",
+							backdropDensity.current + "%",
+							"The scale of the grain. Lower is finer — the same noise, sampled smaller.",
+							BACKDROP_DENSITY_MIN,
+							BACKDROP_DENSITY_MAX,
+							5,
+							backdropDensity.current,
+							setBackdropDensity,
+						)}
+					{/if}
+				</Card.Content>
+			</Card.Root>
+
+			<Card.Root>
+				<Card.Header class="flex flex-col gap-1 space-y-0">
+					<Card.Title>Mark</Card.Title>
+					<Card.Description>
+						One SVG, drawn behind the interface. It is a file rather than a setting —
+						<code class="font-mono text-xs">{MARK_SOURCE}</code> — so a project brands itself by replacing
+						that file, keeping the name.
+					</Card.Description>
+				</Card.Header>
+				<Card.Content class="flex flex-col gap-6">
+					<div class="flex items-center justify-between gap-4">
+						<Label for="backdrop-mark">Mark</Label>
+						<Switch id="backdrop-mark" checked={markOn.current} onCheckedChange={setMark} />
+					</div>
+					{#if markOn.current}
+						{@render slider(
+							"backdrop-mark-x",
+							"Left",
+							markOffsetX.current + "px",
+							"Where its left edge sits, measured from the left of the viewport.",
+							MARK_OFFSET_MIN,
+							MARK_OFFSET_MAX,
+							10,
+							markOffsetX.current,
+							setMarkOffsetX,
+						)}
+						{@render slider(
+							"backdrop-mark-y",
+							"Top",
+							markOffsetY.current + "px",
+							"Where its top edge sits, measured from the top of the viewport.",
+							MARK_OFFSET_MIN,
+							MARK_OFFSET_MAX,
+							10,
+							markOffsetY.current,
+							setMarkOffsetY,
+						)}
+						{@render slider(
+							"backdrop-mark-zoom",
+							"Size",
+							markScale.current + "px",
+							"How large it is drawn. The file scales without loss, so this can go well past the page.",
+							MARK_ZOOM_MIN,
+							MARK_ZOOM_MAX,
+							10,
+							markScale.current,
+							setMarkScale,
+						)}
+						<div class="flex flex-col gap-4 border-t pt-6 sm:flex-row sm:items-center sm:gap-8">
+							<div class="flex flex-col gap-1">
+								<span id="backdrop-mark-angle-label" class="text-sm font-medium">Rotation</span>
+								<p id="backdrop-mark-angle-hint" class="text-sm text-muted-foreground">
+									How far it is turned, clockwise. The rotation is applied inside the image itself —
+									a background cannot be rotated, and the mark is painted on two carriers at once.
+								</p>
+							</div>
+							{@render dial(
+								markTurn.current,
+								setMarkTurn,
+								"backdrop-mark-angle-label",
+								"backdrop-mark-angle-hint",
+							)}
 						</div>
 					{/if}
 				</Card.Content>
@@ -585,3 +607,101 @@
 		</DocSection>
 	</div>
 </DocPage>
+
+<!--
+	THREE SNIPPETS RATHER THAN FOUR COPIES OF EACH. The backdrop section grew from one card to
+	four, and every card needs the same shapes: a grid of named looks, a labelled slider, and the
+	dial. Written out per card it was the same twenty lines five times over, which is how the fade
+	slider and the density slider drift apart.
+-->
+{#snippet lookGrid(
+	looks: { id: string; name: string; blurb: string }[],
+	active: string,
+	choose: (id: string) => void,
+)}
+	<div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+		<button
+			type="button"
+			aria-pressed={active === "none"}
+			onclick={() => choose("none")}
+			class={cn(
+				"flex flex-col gap-1.5 rounded-lg border p-4 text-start transition-colors hover:bg-accent",
+				active === "none" && "border-primary bg-primary-subtle hover:bg-primary-subtle",
+			)}
+		>
+			<span class="flex items-center gap-2">
+				<span class="text-sm font-medium">None</span>
+				{#if active === "none"}
+					<CheckIcon class="ms-auto size-4 text-primary" />
+				{/if}
+			</span>
+			<span class="text-xs text-muted-foreground">This layer paints nothing.</span>
+		</button>
+		{#each looks as look (look.id)}
+			{@const on = look.id === active}
+			<button
+				type="button"
+				aria-pressed={on}
+				onclick={() => choose(look.id)}
+				class={cn(
+					"flex flex-col gap-1.5 rounded-lg border p-4 text-start transition-colors hover:bg-accent",
+					on && "border-primary bg-primary-subtle hover:bg-primary-subtle",
+				)}
+			>
+				<span class="flex items-center gap-2">
+					<span class="text-sm font-medium">{look.name}</span>
+					{#if on}
+						<CheckIcon class="ms-auto size-4 text-primary" />
+					{/if}
+				</span>
+				<span class="text-xs text-muted-foreground">{look.blurb}</span>
+			</button>
+		{/each}
+	</div>
+{/snippet}
+
+{#snippet slider(
+	id: string,
+	label: string,
+	readout: string,
+	hint: string,
+	min: number,
+	max: number,
+	step: number,
+	value: number,
+	set: (next: number) => void,
+)}
+	<div class="flex flex-col gap-2 border-t pt-6">
+		<div class="flex items-baseline justify-between gap-4">
+			<Label for={id}>{label}</Label>
+			<span class="font-mono text-xs text-muted-foreground tabular-nums">{readout}</span>
+		</div>
+		<p class="text-sm text-muted-foreground">{hint}</p>
+		<Slider {id} type="single" class="mt-2" {min} {max} {step} {value} onValueChange={set} />
+	</div>
+{/snippet}
+
+<!--
+	The label is not a `<Label for>`: the dial's root is a `<div>`, and `for` binds only to a
+	labelable element. The control is the THUMB, which carries `role="slider"`, so the visible text
+	and the description are pointed AT it instead — the association runs the other way round from a
+	form field's.
+-->
+{#snippet dial(value: number, set: (next: number) => void, labelledBy: string, describedBy: string)}
+	<AngleSlider.Root
+		class="shrink-0 self-center sm:ms-auto"
+		min={0}
+		max={360}
+		step={1}
+		size={52}
+		value={[value]}
+		onValueChange={(next) => set(next[0] ?? 0)}
+		onkeydown={(event) => wrapAtZero(event, value, set)}
+	>
+		<AngleSlider.Track>
+			<AngleSlider.Range />
+		</AngleSlider.Track>
+		<AngleSlider.Thumb aria-labelledby={labelledBy} aria-describedby={describedBy} />
+		<AngleSlider.Value />
+	</AngleSlider.Root>
+{/snippet}

@@ -7,117 +7,75 @@
  * so every backdrop composes with every palette in either mode, and each one derives its colours
  * from the live tokens instead of restating them.
  *
- * IT WAS CALLED `flavor` UNTIL IT ONLY DID THIS, and the rename is the point rather than a tidy-up.
- * The axis held twelve looks spanning type, shape and light, and an umbrella name was right for
- * that spread. Eight were cut and one was promoted to the chrome axis, leaving three values that
- * are all the same kind of object — so the umbrella covered one thing, and the comment here had to
- * say "a flavor is now strictly a light behind the page", which is a name admitting it stopped
- * carrying the information.
+ * FOUR AXES, NOT ONE CHOICE, and that is the shape this file has been rebuilt around. A backdrop
+ * used to be a single id out of twenty-four, which made "grid" and "spotlight" alternatives when
+ * they are nothing of the kind — one is a lattice drawn over the page and the other is a light
+ * thrown across it, and wanting both is the obvious thing to want. They are now four independent
+ * selections that compose:
+ *
+ *   - GRADIENT — a light, from a bearing you choose. Twelve of them, or none.
+ *   - PATTERN — a drawn lattice, fading out toward a bearing, over a length you choose. Ten, or
+ *     none.
+ *   - GRAIN — a texture, at a density you choose. On or off.
+ *   - MARK — one SVG file, translated, scaled and turned. On or off.
+ *
+ * Each writes its own attribute on `<html>`, and `data-backdrop` is set whenever ANY of them is —
+ * a boolean the stylesheet's shared rules key on, so the layer carriers and the kill switches do
+ * not have to name four attributes apiece.
  *
  * `backdrop` AND NOT `background`, deliberately: `--background` is the page ground, which this
  * axis reads and relocates but never changes, and a `--background-*` variable prefix would stutter
- * against it at every use. The word is used elsewhere for the Sheet overlay, but only in prose and
- * in keyframes already prefixed `sheet-backdrop-*`; that overlay's token is `--scrim`.
+ * against it at every use.
  *
- * WHY IT EXISTS. Palettes over one token set change the hue and nothing else, so two applications
- * built on this kit are two pages of the same drawing in different inks. A backdrop is the axis that
- * answers "which application is this?" before a single label is read.
+ * ABSENCE IS THE OFF STATE. `none` writes no attribute, so the kit as it ships needs no CSS to be
+ * correct and the default costs nothing. Every other id is written verbatim, so THE IDS ARE THE
+ * ATTRIBUTE VALUES and a rename here is a rename in the stylesheet.
  *
- * THREE VALUES, ONE OF THEM ABSENT. `none` writes NO attribute — `src/backdrops.css` has no block
- * for it, so it is the kit exactly as it ships and needs no CSS to be correct. That absence is the
- * same third state the two chrome axes use, and it is why the default costs nothing. Every other
- * id is written verbatim as `data-backdrop` on `<html>`: THE IDS ARE THE ATTRIBUTE VALUES, so a
- * rename here is a rename in the stylesheet.
+ * THE ADJUSTMENTS ARE CUSTOM PROPERTIES, NOT ATTRIBUTES, because an attribute can carry a choice
+ * from a known set and these are continuous. They are stored as bare NUMBERS — the stylesheet
+ * multiplies by the unit it needs — which keeps one stored value able to drive a rotation in one
+ * place and a trigonometric position in another. An adjustment nobody reads is inert, so a
+ * gradient never looks at the density and no pattern looks at the mark's zoom.
  *
- * ABSOLUTE, NOT RELATIVE, unlike `sidebar-mode` and `header-mode`. Those two resolve a choice
- * against the page mode and re-resolve it whenever the mode moves; a backdrop has no such
- * arithmetic — its stylesheet answers `.dark` itself — so there is no `wear` here, and the
- * first-paint script in `index.html` echoes the stored id with no resolution to perform.
- *
- * @see src/backdrops.css — the blocks this attribute selects, and their specificity ladder
- * @see index.html — the first-paint copy of the same key, and why it has to exist
- * @see src/lib/hooks/sidebar-mode.svelte.ts — the axis this module is shaped after
+ * @see src/backdrops.css — the blocks these attributes select, and the three layer pairs
+ * @see index.html — the first-paint copy of the same keys, and why it has to exist
+ * @see public/backdrop-mark.svg — the file the mark axis draws, meant to be replaced per project
  */
 
-/** The `localStorage` key. Also read by the first-paint script in `index.html`. */
-export const BACKDROP_STORAGE_KEY = "backdrop";
+// ================================================================================================
+// The two lists of named looks.
+// ================================================================================================
 
-/** The attribute the stylesheets select on. Absent for `none`. */
-export const BACKDROP_ATTRIBUTE = "data-backdrop";
+export type BackdropCategory = "gradient" | "pattern" | "grain" | "mark";
 
-/**
- * THE TWO ADJUSTMENTS, and why they are custom properties rather than attributes.
- *
- * An attribute can carry a choice from a known set — which is what `data-backdrop` is. These are
- * continuous, so they are written as custom properties on `<html>` and read by the stylesheet with
- * `var()`. That also means a backdrop that ignores an adjustment costs nothing: an unread property
- * is inert, so `grain` never looks at the angle and no pattern looks at the density.
- *
- * Both are stored as bare NUMBERS, not as `45deg` or `120%`. The stylesheet multiplies by the unit
- * it needs (`calc(1deg * var(--backdrop-angle))`), which keeps the stored value arithmetic and lets
- * the same number drive a rotation in one place and a trigonometric position in another.
- */
-export const BACKDROP_ANGLE_STORAGE_KEY = "backdrop-angle";
-export const BACKDROP_DENSITY_STORAGE_KEY = "backdrop-density";
+/** A row in a picker. */
+export type BackdropChoice = {
+	id: string;
+	name: string;
+	blurb: string;
+};
 
-/** Bearing the light comes from, degrees clockwise from the top. Wraps, so 360 is 0. */
-export const DEFAULT_BACKDROP_ANGLE = 0;
-
-/** Grain tile scale, as a percentage of its natural size. Lower is finer. */
-export const DEFAULT_BACKDROP_DENSITY = 100;
-export const BACKDROP_DENSITY_MIN = 40;
-export const BACKDROP_DENSITY_MAX = 220;
-
-/**
- * How far a pattern's fade runs, in pixels — the distance at which the lattice reaches full
- * strength. Zero means no fade, and the pattern covers the page.
- *
- * THE ANGLE IS SHARED WITH THE GRADIENTS ON PURPOSE. A gradient's angle says where its light comes
- * from; a pattern's says which side its fade runs out toward. Both are one direction, only one
- * category is ever on screen at a time, and a second stored bearing would be a second thing to
- * keep in step for no gain the user can see.
- */
-export const BACKDROP_FADE_STORAGE_KEY = "backdrop-fade";
-export const DEFAULT_BACKDROP_FADE = 640;
-export const BACKDROP_FADE_MIN = 0;
-export const BACKDROP_FADE_MAX = 1400;
-
-/**
- * Every backdrop, in the order the picker lists them: the control first, then the lights.
- *
- * TWELVE WERE BUILT AND EIGHT WERE CUT, on the owner's verdict after seeing each on screen —
- * `masthead`, `overlap`, `glass`, `editorial` and `crest` first, then `devtool`, `pebble` and
- * `brutalist`. A ninth, `cascade`, was not cut but PROMOTED: it turned out to be describing a
- * chrome option rather than a decoration, so it is now the third value of the sidebar's and the
- * header's own axis (`src/vibrant.css`).
- *
- * WHAT SURVIVED IS ONE IDEA. Nothing here paints the rail or the bar — the axes that own those
- * surfaces do — and nothing here changes type or shape either. A backdrop is now strictly a light
- * behind the page, which is why `glow` and `aurora` share every mechanic in `src/backdrops.css`.
- */
-export const BACKDROP_IDS = [
-	"none",
-	// The lights, quietest first.
+export const GRADIENT_IDS = [
 	"spotlight",
 	"horizon",
 	"corner",
 	"glow",
 	"weave",
 	"aurora",
-	// The drawn ones: a texture, then geometry.
-	"grain",
-	"dots",
-	"grid",
-	"graph",
-	"hatch",
-	"isometric",
 	"rays",
 	"hiashi",
 	"sunrise",
 	"beams",
 	"ripple",
 	"eclipse",
-	// The wagara — traditional Japanese geometric patterns.
+] as const;
+
+export const PATTERN_IDS = [
+	"dots",
+	"grid",
+	"graph",
+	"hatch",
+	"isometric",
 	"seigaiha",
 	"shippo",
 	"asanoha",
@@ -125,238 +83,159 @@ export const BACKDROP_IDS = [
 	"kanoko",
 ] as const;
 
-export type BackdropId = (typeof BACKDROP_IDS)[number];
+export type GradientId = (typeof GRADIENT_IDS)[number] | "none";
+export type PatternId = (typeof PATTERN_IDS)[number] | "none";
 
-/** What a first visit gets, and what an unknown stored value falls back to. */
-export const DEFAULT_BACKDROP: BackdropId = "none";
-
-/**
- * A row in the picker. There is no `family` field any more: it existed to group twelve looks into
- * type, shape and light, and once only the lights were left the union had a single real member.
- * The picker still rules a line, but it draws it where the meaning actually is — between the row
- * that turns the axis OFF and the rows that turn it on — which it can read from the id.
- */
-/**
- * WHAT A BACKDROP IS MADE OF, which is also how it is adjusted.
- *
- * `gradient` — anchored light. One knob: the ANGLE the light comes from, as a bearing round the
- *              viewport, 0 at the top and running clockwise. A radial moves its source along that
- *              bearing; a linear turns to face it. Both are the same idea — where is the sun.
- * `grain`    — texture. One knob: DENSITY, which is the tile's scale. Finer grain is the same
- *              noise sampled smaller, not a different noise.
- * `pattern`  — drawn, tiled. One knob: the ANGLE the lattice is turned to.
- * `none`     — the axis off. No knobs, and no attribute either.
- *
- * The category is what the Settings page groups by, and what decides which control it shows. It is
- * derived from the backdrop rather than stored: a backdrop cannot change category at runtime.
- */
-export type BackdropCategory = "none" | "gradient" | "grain" | "pattern";
-
-export type Backdrop = {
-	id: BackdropId;
-	name: string;
-	/** One line, for the picker's row and the Settings card. */
-	blurb: string;
-	category: BackdropCategory;
-};
-
-/**
- * The list the picker renders. It is written here rather than in `src/lib/data/` because that
- * folder is the demo's CONTENT — workspaces, users, transcripts — and this is appearance
- * vocabulary, the counterpart of `THEMES` in `src/lib/themes/palettes.ts`.
- */
-export const BACKDROPS: Backdrop[] = [
-	{
-		id: "none",
-		name: "None",
-		blurb: "The kit exactly as it ships. Nothing is painted.",
-		category: "none",
-	},
-	{
-		id: "spotlight",
-		name: "Spotlight",
-		blurb: "One wide light from the top. The quietest of them.",
-		category: "gradient",
-	},
-	{
-		id: "horizon",
-		name: "Horizon",
-		blurb: "A sky: lighter at the head, weightier at the foot.",
-		category: "gradient",
-	},
-	{
-		id: "corner",
-		name: "Corner",
-		blurb: "A low light thrown from the far corner of the page.",
-		category: "gradient",
-	},
-	{
-		id: "glow",
-		name: "Glow",
-		blurb: "One soft brand spotlight, hanging above the page.",
-		category: "gradient",
-	},
-	{
-		id: "weave",
-		name: "Weave",
-		blurb: "Two fields blended into each other, quietly iridescent.",
-		category: "gradient",
-	},
+/** Quietest first, which is also roughly the order someone tries them in. */
+export const GRADIENTS: BackdropChoice[] = [
+	{ id: "spotlight", name: "Spotlight", blurb: "One wide light from the top. The quietest." },
+	{ id: "horizon", name: "Horizon", blurb: "A sky: lighter at the head, weightier at the foot." },
+	{ id: "corner", name: "Corner", blurb: "A low light thrown from the far corner of the page." },
+	{ id: "glow", name: "Glow", blurb: "One soft brand spotlight, hanging above the page." },
+	{ id: "weave", name: "Weave", blurb: "Two fields blended into each other, quietly iridescent." },
 	{
 		id: "aurora",
 		name: "Aurora",
 		blurb: "Three colour fields drifting slowly behind the content.",
-		category: "gradient",
 	},
-	{
-		id: "grain",
-		name: "Grain",
-		blurb: "Paper grain over a low wash. The one you feel more than see.",
-		category: "grain",
-	},
-	{
-		id: "dots",
-		name: "Dots",
-		blurb: "A fine dot lattice, fading in below the header.",
-		category: "pattern",
-	},
-	{
-		id: "grid",
-		name: "Grid",
-		blurb: "A one-pixel rule every 24px. Blueprint, not table.",
-		category: "pattern",
-	},
-	{
-		id: "graph",
-		name: "Graph",
-		blurb: "The grid with a heavier rule every fifth line.",
-		category: "pattern",
-	},
-	{
-		id: "hatch",
-		name: "Hatch",
-		blurb: "Diagonal hatching, drawn rather than printed.",
-		category: "pattern",
-	},
-	{
-		id: "isometric",
-		name: "Isometric",
-		blurb: "Three axes of rule work. Depth without perspective.",
-		category: "pattern",
-	},
-	{
-		id: "rays",
-		name: "Rays",
-		blurb: "Light fanning from off-corner, its apex off past the edge.",
-		category: "gradient",
-	},
+	{ id: "rays", name: "Rays", blurb: "Light fanning from off-corner, its apex off past the edge." },
 	{
 		id: "hiashi",
 		name: "Hiashi",
 		blurb: "A twelve-rayed sun low on the page, after the old crest.",
-		category: "gradient",
 	},
-	{
-		id: "sunrise",
-		name: "Sunrise",
-		blurb: "Wide bands rising from below the foot of the page.",
-		category: "gradient",
-	},
-	{
-		id: "beams",
-		name: "Beams",
-		blurb: "Parallel shafts of light falling across the page.",
-		category: "gradient",
-	},
-	{
-		id: "ripple",
-		name: "Ripple",
-		blurb: "Rings widening as they go, the way water does.",
-		category: "gradient",
-	},
+	{ id: "sunrise", name: "Sunrise", blurb: "Wide bands rising from below the foot of the page." },
+	{ id: "beams", name: "Beams", blurb: "Parallel shafts of light falling across the page." },
+	{ id: "ripple", name: "Ripple", blurb: "Rings widening as they go, the way water does." },
 	{
 		id: "eclipse",
 		name: "Eclipse",
 		blurb: "A rim of light around a dark disc, with streamers combing out of it.",
-		category: "gradient",
+	},
+];
+
+/** The drawn lattices, then the wagara — traditional Japanese geometric patterns. */
+export const PATTERNS: BackdropChoice[] = [
+	{ id: "dots", name: "Dots", blurb: "A fine dot lattice, fading in below the header." },
+	{ id: "grid", name: "Grid", blurb: "A one-pixel rule every 24px. Blueprint, not table." },
+	{ id: "graph", name: "Graph", blurb: "The grid with a heavier rule every fifth line." },
+	{ id: "hatch", name: "Hatch", blurb: "Diagonal hatching, drawn rather than printed." },
+	{
+		id: "isometric",
+		name: "Isometric",
+		blurb: "Three axes of rule work. Depth without perspective.",
 	},
 	{
 		id: "seigaiha",
 		name: "Seigaiha",
 		blurb: "Overlapping wave crests — calm seas, and luck without end.",
-		category: "pattern",
 	},
 	{
 		id: "shippo",
 		name: "Shippō",
 		blurb: "Interlocking circles: the seven treasures, endlessly linked.",
-		category: "pattern",
 	},
 	{
 		id: "asanoha",
 		name: "Asanoha",
 		blurb: "The hemp-leaf star lattice, a wish for straight growth.",
-		category: "pattern",
 	},
-	{
-		id: "uroko",
-		name: "Uroko",
-		blurb: "Scales, alternating. Worn as a charm against harm.",
-		category: "pattern",
-	},
-	{
-		id: "kanoko",
-		name: "Kanoko",
-		blurb: "Fawn spots — each ring one tied knot of shibori dye.",
-		category: "pattern",
-	},
+	{ id: "uroko", name: "Uroko", blurb: "Scales, alternating. Worn as a charm against harm." },
+	{ id: "kanoko", name: "Kanoko", blurb: "Fawn spots — each ring one tied knot of shibori dye." },
 ];
 
-/** Whether a string is a backdrop this application actually ships. */
-export function isBackdropId(value: string | null | undefined): value is BackdropId {
-	return typeof value === "string" && (BACKDROP_IDS as readonly string[]).includes(value);
+// ================================================================================================
+// Keys, attributes and ranges.
+// ================================================================================================
+
+export const BACKDROP_ATTRIBUTE = "data-backdrop";
+
+export const GRADIENT_STORAGE_KEY = "backdrop-gradient";
+export const PATTERN_STORAGE_KEY = "backdrop-pattern";
+export const GRAIN_STORAGE_KEY = "backdrop-grain";
+export const MARK_STORAGE_KEY = "backdrop-mark";
+
+export const BACKDROP_ANGLE_STORAGE_KEY = "backdrop-angle";
+export const BACKDROP_FADE_ANGLE_STORAGE_KEY = "backdrop-fade-angle";
+export const BACKDROP_FADE_STORAGE_KEY = "backdrop-fade";
+export const BACKDROP_DENSITY_STORAGE_KEY = "backdrop-density";
+export const MARK_X_STORAGE_KEY = "backdrop-mark-x";
+export const MARK_Y_STORAGE_KEY = "backdrop-mark-y";
+export const MARK_ZOOM_STORAGE_KEY = "backdrop-mark-zoom";
+export const MARK_ANGLE_STORAGE_KEY = "backdrop-mark-angle";
+
+/** The file the mark axis draws. Replace it, keeping the name, to brand a project. */
+export const MARK_SOURCE = `${import.meta.env.BASE_URL}backdrop-mark.svg`;
+
+export const DEFAULT_BACKDROP_ANGLE = 0;
+export const DEFAULT_BACKDROP_FADE_ANGLE = 0;
+
+export const DEFAULT_BACKDROP_FADE = 640;
+export const BACKDROP_FADE_MIN = 0;
+export const BACKDROP_FADE_MAX = 1400;
+
+export const DEFAULT_BACKDROP_DENSITY = 100;
+export const BACKDROP_DENSITY_MIN = 40;
+export const BACKDROP_DENSITY_MAX = 220;
+
+export const DEFAULT_MARK_X = 60;
+export const DEFAULT_MARK_Y = 120;
+export const MARK_OFFSET_MIN = -600;
+export const MARK_OFFSET_MAX = 2000;
+
+export const DEFAULT_MARK_ZOOM = 420;
+export const MARK_ZOOM_MIN = 60;
+export const MARK_ZOOM_MAX = 1600;
+
+export const DEFAULT_MARK_ANGLE = 0;
+
+// ================================================================================================
+// Reading and writing what is stored.
+// ================================================================================================
+
+export function isGradientId(value: string | null | undefined): value is GradientId {
+	return typeof value === "string" && (GRADIENT_IDS as readonly string[]).includes(value);
+}
+
+export function isPatternId(value: string | null | undefined): value is PatternId {
+	return typeof value === "string" && (PATTERN_IDS as readonly string[]).includes(value);
 }
 
 /**
- * The stored choice, narrowed. The narrowing is not paranoia: the value comes from
- * `localStorage`, so it survives a backdrop being renamed or dropped, and an unknown id would
- * otherwise leave `<html>` carrying an attribute no stylesheet answers — which renders as none
- * anyway, but with the picker showing nothing selected.
+ * A stored id is NARROWED, not trusted. It survives a look being renamed or dropped, and an
+ * unknown id would otherwise leave `<html>` carrying an attribute no stylesheet answers — which
+ * renders as nothing, but with the picker showing nothing selected either.
  */
-function read(): BackdropId {
+function readId<T extends string>(key: string, guard: (v: string | null) => v is T): T | "none" {
 	try {
-		// Guard for any non-browser evaluation (prerendering, tests, SSR added later) — INSIDE
-		// the try, because with storage fully blocked the `localStorage` getter itself throws.
-		if (typeof localStorage === "undefined") return DEFAULT_BACKDROP;
-
-		const stored = localStorage.getItem(BACKDROP_STORAGE_KEY);
-		return isBackdropId(stored) ? stored : DEFAULT_BACKDROP;
+		// Guarded INSIDE the try: with storage fully blocked the getter itself throws.
+		if (typeof localStorage === "undefined") return "none";
+		const stored = localStorage.getItem(key);
+		return guard(stored) ? stored : "none";
 	} catch {
-		// Storage blocked outright. The session still switches, it just does not persist.
-		return DEFAULT_BACKDROP;
+		return "none";
 	}
 }
 
-function persist(value: BackdropId): void {
+function readFlag(key: string): boolean {
 	try {
-		if (typeof localStorage === "undefined") return;
-		localStorage.setItem(BACKDROP_STORAGE_KEY, value);
+		if (typeof localStorage === "undefined") return false;
+		return localStorage.getItem(key) === "on";
 	} catch {
-		/* storage blocked — the attribute is still applied, it just will not survive a reload */
+		return false;
 	}
 }
 
 /**
- * The adjustments are read the same defensive way the id is: storage can be absent, blocked, or
- * hold anything at all. A number that does not parse, or lands outside its range, falls back
- * rather than reaching the stylesheet — `calc()` with a junk value invalidates the whole
- * declaration, which would take the backdrop out entirely rather than degrade it.
+ * Numbers are read the same defensive way. One that does not parse, or lands outside its range,
+ * falls back rather than reaching the stylesheet — `calc()` with a junk value invalidates the
+ * whole declaration, which would take the layer out entirely rather than degrade it.
  */
 function readNumber(key: string, fallback: number, min: number, max: number): number {
 	try {
 		if (typeof localStorage === "undefined") return fallback;
 		const raw = localStorage.getItem(key);
-		if (raw === null) return fallback;
+		if (raw === null || raw === "") return fallback;
 		const value = Number(raw);
 		if (!Number.isFinite(value)) return fallback;
 		return Math.min(max, Math.max(min, Math.round(value)));
@@ -365,24 +244,27 @@ function readNumber(key: string, fallback: number, min: number, max: number): nu
 	}
 }
 
-function persistNumber(key: string, value: number): void {
+function persist(key: string, value: string): void {
 	try {
 		if (typeof localStorage === "undefined") return;
-		localStorage.setItem(key, String(value));
+		localStorage.setItem(key, value);
 	} catch {
-		/* storage blocked — the property is still applied, it just will not survive a reload */
+		/* storage blocked — the session still switches, it just will not survive a reload */
 	}
 }
 
-let current = $state<BackdropId>(read());
+// ================================================================================================
+// The state.
+// ================================================================================================
+
+let gradient = $state<GradientId>(readId(GRADIENT_STORAGE_KEY, isGradientId));
+let pattern = $state<PatternId>(readId(PATTERN_STORAGE_KEY, isPatternId));
+let grain = $state<boolean>(readFlag(GRAIN_STORAGE_KEY));
+let mark = $state<boolean>(readFlag(MARK_STORAGE_KEY));
+
 let angle = $state<number>(readNumber(BACKDROP_ANGLE_STORAGE_KEY, DEFAULT_BACKDROP_ANGLE, 0, 360));
-let density = $state<number>(
-	readNumber(
-		BACKDROP_DENSITY_STORAGE_KEY,
-		DEFAULT_BACKDROP_DENSITY,
-		BACKDROP_DENSITY_MIN,
-		BACKDROP_DENSITY_MAX,
-	),
+let fadeAngle = $state<number>(
+	readNumber(BACKDROP_FADE_ANGLE_STORAGE_KEY, DEFAULT_BACKDROP_FADE_ANGLE, 0, 360),
 );
 let fade = $state<number>(
 	readNumber(
@@ -392,98 +274,329 @@ let fade = $state<number>(
 		BACKDROP_FADE_MAX,
 	),
 );
+let density = $state<number>(
+	readNumber(
+		BACKDROP_DENSITY_STORAGE_KEY,
+		DEFAULT_BACKDROP_DENSITY,
+		BACKDROP_DENSITY_MIN,
+		BACKDROP_DENSITY_MAX,
+	),
+);
+let markX = $state<number>(
+	readNumber(MARK_X_STORAGE_KEY, DEFAULT_MARK_X, MARK_OFFSET_MIN, MARK_OFFSET_MAX),
+);
+let markY = $state<number>(
+	readNumber(MARK_Y_STORAGE_KEY, DEFAULT_MARK_Y, MARK_OFFSET_MIN, MARK_OFFSET_MAX),
+);
+let markZoom = $state<number>(
+	readNumber(MARK_ZOOM_STORAGE_KEY, DEFAULT_MARK_ZOOM, MARK_ZOOM_MIN, MARK_ZOOM_MAX),
+);
+let markAngle = $state<number>(readNumber(MARK_ANGLE_STORAGE_KEY, DEFAULT_MARK_ANGLE, 0, 360));
 
-// Normalise storage once, so an unknown id is replaced by the one the app is actually showing —
-// which is also what stops the first-paint script writing it again on the next load.
-// `persist` carries its own guards; a bare `typeof localStorage` here would throw when blocked.
-// The initial value is exactly what this wants — Svelte 5.57 warns on any module-level read.
-// svelte-ignore state_referenced_locally
-persist(current);
+/** The mark file's own markup, fetched once. `null` until it arrives, `""` if it cannot. */
+let markSource = $state<string | null>(null);
 
-/*
- * Keep the attribute in step with the choice. The first-paint script in `index.html` has already
- * written the same value one frame before this module existed, so on the happy path the first run
- * changes nothing; it is every later run — the picker — that this exists for.
+// ================================================================================================
+// The mark: one file, turned.
+// ================================================================================================
+
+/**
+ * A BACKGROUND IMAGE CANNOT BE ROTATED, and that is the only reason this function exists. CSS has
+ * no `background-rotate`, and rotating the ELEMENT is not available either: the mark is painted
+ * twice, on the page and on the strip behind the header, and a transform would move each carrier's
+ * box away from the region it is supposed to cover.
  *
- * `none` REMOVES the attribute rather than writing `"none"`: the absence is the state, and a
- * value no stylesheet answers would be one more thing to strip later.
+ * So the rotation goes INSIDE the image. The file's markup is fetched once and re-emitted inside a
+ * wrapper that turns it, as a data URI both carriers can name — which also puts the two copies in
+ * register for free, since they are then literally the same image.
+ *
+ * THE VIEWBOX IS GROWN BY √2. A square turned 45 degrees inside its own box loses its corners; the
+ * wrapper's box is the diagonal of the original, centred on the same point, so nothing is ever
+ * clipped and the mark's apparent size does not change as it turns.
+ *
+ * THE COLOUR IS BAKED IN, because a data URI is an isolated document: it cannot read `var(--fg)`,
+ * and `currentColor` in it resolves against nothing. The live token is resolved here and the
+ * result written onto the wrapper, which is why this reruns when the mode or the palette moves.
  */
+function wrapMark(markup: string, turn: number, colour: string): string {
+	const box = markup.match(/viewBox="([^"]+)"/);
+	const [x, y, w, h] = box
+		? box[1]
+				.trim()
+				.split(/[\s,]+/)
+				.map(Number)
+		: [0, 0, 100, 100];
+	if (![x, y, w, h].every(Number.isFinite)) return "";
+
+	const cx = x + w / 2;
+	const cy = y + h / 2;
+	const side = Math.max(w, h) * Math.SQRT2;
+	const outer = `${cx - side / 2} ${cy - side / 2} ${side} ${side}`;
+
+	// Only the file's CONTENT is carried over; its own root element is replaced so the wrapper
+	// owns the viewBox, and a stray width/height on it cannot fight the one CSS asks for.
+	const inner = markup
+		.replace(/<\?xml[\s\S]*?\?>/g, "")
+		.replace(/<!DOCTYPE[\s\S]*?>/gi, "")
+		.replace(/^[\s\S]*?<svg[^>]*>/i, "")
+		.replace(/<\/svg>\s*$/i, "")
+		.trim();
+
+	const svg =
+		`<svg xmlns="http://www.w3.org/2000/svg" viewBox="${outer}" fill="${colour}" color="${colour}">` +
+		`<g transform="rotate(${turn} ${cx} ${cy})">${inner}</g>` +
+		`</svg>`;
+
+	// `encodeURIComponent` rather than base64: the markup stays legible in devtools, and a data
+	// URI is smaller as text for anything path-shaped.
+	return `url("data:image/svg+xml,${encodeURIComponent(svg)}")`;
+}
+
+/** The ink the mark is painted in — a soft neutral, resolved from the live tokens. */
+function markInk(): string {
+	if (typeof document === "undefined") return "rgba(0,0,0,0.05)";
+	const styles = getComputedStyle(document.documentElement);
+	const fg = styles.getPropertyValue("--foreground").trim();
+	if (!fg) return "rgba(0,0,0,0.05)";
+	// `color-mix` in a data URI is fine — it is resolved by the SVG's own renderer, which is the
+	// same engine. The alpha is the family's: a mark is a wash, not a logo lockup.
+	return `color-mix(in oklab, ${fg} 7%, transparent)`;
+}
+
+// ================================================================================================
+// The effects that write to the document.
+// ================================================================================================
+
 $effect.root(() => {
+	// The four attributes, plus the boolean the shared rules key on.
 	$effect(() => {
 		if (typeof document === "undefined") return;
-		if (current === DEFAULT_BACKDROP) {
-			document.documentElement.removeAttribute(BACKDROP_ATTRIBUTE);
-		} else {
-			document.documentElement.setAttribute(BACKDROP_ATTRIBUTE, current);
-		}
+		const root = document.documentElement;
+
+		const set = (name: string, value: string | null) => {
+			if (value === null) root.removeAttribute(name);
+			else root.setAttribute(name, value);
+		};
+
+		set("data-backdrop-gradient", gradient === "none" ? null : gradient);
+		set("data-backdrop-pattern", pattern === "none" ? null : pattern);
+		set("data-backdrop-grain", grain ? "" : null);
+		set("data-backdrop-mark", mark ? "" : null);
+
+		const any = gradient !== "none" || pattern !== "none" || grain || mark;
+		set(BACKDROP_ATTRIBUTE, any ? "" : null);
 	});
 
-	// The adjustments, in their own effect so moving a slider does not re-run the attribute write.
+	// The adjustments, in their own effect so moving a slider does not rewrite five attributes.
 	$effect(() => {
 		if (typeof document === "undefined") return;
-		document.documentElement.style.setProperty("--backdrop-angle", String(angle));
-		document.documentElement.style.setProperty("--backdrop-density", String(density));
-		document.documentElement.style.setProperty("--backdrop-fade", String(fade));
+		const style = document.documentElement.style;
+		style.setProperty("--backdrop-angle", String(angle));
+		style.setProperty("--backdrop-fade-angle", String(fadeAngle));
+		style.setProperty("--backdrop-fade", String(fade));
+		style.setProperty("--backdrop-density", String(density));
+		style.setProperty("--backdrop-mark-position", `${markX}px ${markY}px`);
+		style.setProperty("--backdrop-mark-size", `${markZoom}px ${markZoom}px`);
+	});
+
+	// The file, fetched the first time the mark is asked for and kept thereafter.
+	$effect(() => {
+		if (!mark || markSource !== null || typeof fetch === "undefined") return;
+		let cancelled = false;
+		fetch(MARK_SOURCE)
+			.then((r) => (r.ok ? r.text() : ""))
+			.then((text) => {
+				if (!cancelled) markSource = text;
+			})
+			.catch(() => {
+				// A missing or unreadable file is not an error worth shouting about: the axis simply
+				// paints nothing, and the rest of the backdrop is unaffected.
+				if (!cancelled) markSource = "";
+			});
+		return () => {
+			cancelled = true;
+		};
+	});
+
+	// The wrapped image. Reruns on the angle, and on anything that could move `--foreground`.
+	$effect(() => {
+		if (typeof document === "undefined") return;
+		const style = document.documentElement.style;
+		if (!mark || !markSource) {
+			style.removeProperty("--backdrop-mark-image");
+			return;
+		}
+		// Read inside the effect so the dependency is recorded; the value is not otherwise used.
+		void markAngle;
+		style.setProperty("--backdrop-mark-image", wrapMark(markSource, markAngle, markInk()));
+	});
+
+	/*
+	 * THE MARK'S COLOUR IS BAKED, SO IT HAS TO BE REBAKED. Everything else on this axis reads live
+	 * tokens through `var()` and follows a palette or mode change on its own; the mark cannot,
+	 * because its ink is inside a data URI. An observer on the two attributes that carry those
+	 * changes is the cheapest way to notice, and it is idle the rest of the time.
+	 */
+	$effect(() => {
+		if (typeof document === "undefined" || !mark || !markSource) return;
+		const root = document.documentElement;
+		const observer = new MutationObserver(() => {
+			root.style.setProperty("--backdrop-mark-image", wrapMark(markSource!, markAngle, markInk()));
+		});
+		observer.observe(root, { attributes: true, attributeFilter: ["class", "data-theme"] });
+		return () => observer.disconnect();
 	});
 });
 
-/** Bearing the light comes from, in degrees. Read-only; write through {@link setBackdropAngle}. */
+// ================================================================================================
+// The public API.
+// ================================================================================================
+
+export const activeGradient = {
+	get current(): GradientId {
+		return gradient;
+	},
+};
+export const activePattern = {
+	get current(): PatternId {
+		return pattern;
+	},
+};
+export const grainOn = {
+	get current(): boolean {
+		return grain;
+	},
+};
+export const markOn = {
+	get current(): boolean {
+		return mark;
+	},
+};
+
 export const backdropAngle = {
 	get current(): number {
 		return angle;
 	},
 };
-
-/** Grain scale as a percentage. Read-only; write through {@link setBackdropDensity}. */
-export const backdropDensity = {
+export const backdropFadeAngle = {
 	get current(): number {
-		return density;
+		return fadeAngle;
 	},
 };
-
-/** How far a pattern's fade runs. Read-only; write through {@link setBackdropFade}. */
 export const backdropFade = {
 	get current(): number {
 		return fade;
 	},
 };
+export const backdropDensity = {
+	get current(): number {
+		return density;
+	},
+};
+export const markOffsetX = {
+	get current(): number {
+		return markX;
+	},
+};
+export const markOffsetY = {
+	get current(): number {
+		return markY;
+	},
+};
+export const markScale = {
+	get current(): number {
+		return markZoom;
+	},
+};
+export const markTurn = {
+	get current(): number {
+		return markAngle;
+	},
+};
 
-/** Stretch the fade. Clamped; 0 is a legitimate value and means no fade at all. */
-export function setBackdropFade(value: number): void {
-	const next = Math.min(BACKDROP_FADE_MAX, Math.max(BACKDROP_FADE_MIN, Math.round(value)));
-	fade = next;
-	persistNumber(BACKDROP_FADE_STORAGE_KEY, next);
+export function setGradient(value: GradientId): void {
+	gradient = isGradientId(value) ? value : "none";
+	persist(GRADIENT_STORAGE_KEY, gradient);
 }
 
-/** Turn the light. Wraps at 360 so a slider can run round without a discontinuity. */
+export function setPattern(value: PatternId): void {
+	pattern = isPatternId(value) ? value : "none";
+	persist(PATTERN_STORAGE_KEY, pattern);
+}
+
+export function setGrain(value: boolean): void {
+	grain = value;
+	persist(GRAIN_STORAGE_KEY, value ? "on" : "off");
+}
+
+export function setMark(value: boolean): void {
+	mark = value;
+	persist(MARK_STORAGE_KEY, value ? "on" : "off");
+}
+
+/** Turn a bearing. Wraps at 360, so a dial can run round without a discontinuity. */
+function wrapDegrees(value: number): number {
+	return ((Math.round(value) % 360) + 360) % 360;
+}
+
 export function setBackdropAngle(value: number): void {
-	const next = ((Math.round(value) % 360) + 360) % 360;
-	angle = next;
-	persistNumber(BACKDROP_ANGLE_STORAGE_KEY, next);
+	angle = wrapDegrees(value);
+	persist(BACKDROP_ANGLE_STORAGE_KEY, String(angle));
+}
+
+export function setBackdropFadeAngle(value: number): void {
+	fadeAngle = wrapDegrees(value);
+	persist(BACKDROP_FADE_ANGLE_STORAGE_KEY, String(fadeAngle));
+}
+
+function clamp(value: number, min: number, max: number): number {
+	return Math.min(max, Math.max(min, Math.round(value)));
+}
+
+/** Stretch the fade. 0 is a legitimate value and means no fade at all. */
+export function setBackdropFade(value: number): void {
+	fade = clamp(value, BACKDROP_FADE_MIN, BACKDROP_FADE_MAX);
+	persist(BACKDROP_FADE_STORAGE_KEY, String(fade));
 }
 
 /** Scale the grain. Clamped, because an unclamped tile size is a blank page or a grey one. */
 export function setBackdropDensity(value: number): void {
-	const next = Math.min(BACKDROP_DENSITY_MAX, Math.max(BACKDROP_DENSITY_MIN, Math.round(value)));
-	density = next;
-	persistNumber(BACKDROP_DENSITY_STORAGE_KEY, next);
+	density = clamp(value, BACKDROP_DENSITY_MIN, BACKDROP_DENSITY_MAX);
+	persist(BACKDROP_DENSITY_STORAGE_KEY, String(density));
 }
 
-/** The active backdrop, always a known id. Read-only; write through {@link setBackdrop}. */
-export const activeBackdrop = {
-	get current(): BackdropId {
-		return current;
-	},
-};
-
-/** Switch backdrops. Persists, and takes effect on the next frame. */
-export function setBackdrop(value: BackdropId): void {
-	current = value;
-	persist(value);
+export function setMarkOffsetX(value: number): void {
+	markX = clamp(value, MARK_OFFSET_MIN, MARK_OFFSET_MAX);
+	persist(MARK_X_STORAGE_KEY, String(markX));
 }
 
-/** The record for a backdrop id, for the picker's trigger and the Settings page. */
-export function backdropById(id: BackdropId): Backdrop {
-	// Non-null: `id` is a `BackdropId`, and `BACKDROPS` is written from the same list.
-	return BACKDROPS.find((f) => f.id === id)!;
+export function setMarkOffsetY(value: number): void {
+	markY = clamp(value, MARK_OFFSET_MIN, MARK_OFFSET_MAX);
+	persist(MARK_Y_STORAGE_KEY, String(markY));
+}
+
+export function setMarkScale(value: number): void {
+	markZoom = clamp(value, MARK_ZOOM_MIN, MARK_ZOOM_MAX);
+	persist(MARK_ZOOM_STORAGE_KEY, String(markZoom));
+}
+
+export function setMarkTurn(value: number): void {
+	markAngle = wrapDegrees(value);
+	persist(MARK_ANGLE_STORAGE_KEY, String(markAngle));
+}
+
+/** Everything back to the kit as it ships — used by the Settings page's Reset. */
+export function resetBackdrop(): void {
+	setGradient("none");
+	setPattern("none");
+	setGrain(false);
+	setMark(false);
+	setBackdropAngle(DEFAULT_BACKDROP_ANGLE);
+	setBackdropFadeAngle(DEFAULT_BACKDROP_FADE_ANGLE);
+	setBackdropFade(DEFAULT_BACKDROP_FADE);
+	setBackdropDensity(DEFAULT_BACKDROP_DENSITY);
+	setMarkOffsetX(DEFAULT_MARK_X);
+	setMarkOffsetY(DEFAULT_MARK_Y);
+	setMarkScale(DEFAULT_MARK_ZOOM);
+	setMarkTurn(DEFAULT_MARK_ANGLE);
 }
