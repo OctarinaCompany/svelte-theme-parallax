@@ -758,10 +758,19 @@
 	);
 
 	/* Thin radiant geometry: rays, rules, ticks. The calibration `rays` was cut back to. */
-	/* A ring covers a hundredth of the area a wash does, so it carries about twice the alpha to
-	   read as the same weight. Same reasoning for the eclipse's rim, which is thinner still. */
-	--backdrop-ring: color-mix(in oklab, var(--primary) 11%, transparent);
-	--backdrop-rim: color-mix(in oklab, var(--primary) 22%, transparent);
+	/*
+	 * CALIBRATED AGAINST THE FAMILY, NOT AGAINST THE EYE. Measured as the difference from the same
+	 * page with no backdrop, in dark: rays and hiashi peak at 12 code values, sunrise at 8. The
+	 * first cut of these two doubled and tripled that — ripple peaked at 32 and the eclipse's rim
+	 * at 72 — and a hard-edged 72 does not read as light, it reads as a line drawn on the page.
+	 *
+	 * The mistake was fixing one thing twice. A 1px ring is invisible because of its WIDTH, not its
+	 * alpha; widening it was the whole fix, and the alpha that went with it was belt and braces
+	 * that turned out to be the loud part. The ring now sits at the family's own weight and the rim
+	 * just above it, which is a rim's job.
+	 */
+	--backdrop-ring: color-mix(in oklab, var(--primary) 5%, transparent);
+	--backdrop-rim: color-mix(in oklab, var(--primary) 6%, transparent);
 	--backdrop-radiant: color-mix(in oklab, var(--primary) 5%, transparent);
 
 	/* Radiant geometry that fills area: bands, beams, discs, haloes. */
@@ -770,8 +779,8 @@
 
 :root[data-backdrop].dark {
 	--backdrop-ink: color-mix(in oklab, var(--foreground) 10%, transparent);
-	--backdrop-ring: color-mix(in oklab, var(--primary) 15%, transparent);
-	--backdrop-rim: color-mix(in oklab, var(--primary) 28%, transparent);
+	--backdrop-ring: color-mix(in oklab, var(--primary) 7%, transparent);
+	--backdrop-rim: color-mix(in oklab, var(--primary) 8%, transparent);
 	--backdrop-radiant: color-mix(in oklab, var(--primary) 7%, transparent);
 	--backdrop-radiant-soft: color-mix(in oklab, var(--primary) 4%, transparent);
 }
@@ -779,16 +788,16 @@
 @supports (color: oklch(from red l c h)) {
 	:root[data-backdrop] {
 		--backdrop-ink: oklch(from var(--primary) 0.45 clamp(0.01, calc(c * 0.3), 0.05) h / 0.16);
-		--backdrop-ring: oklch(from var(--primary) 0.88 max(c, 0.06) h / 0.42);
-		--backdrop-rim: oklch(from var(--primary) 0.86 max(c, 0.07) h / 0.72);
+		--backdrop-ring: oklch(from var(--primary) 0.9 max(c, 0.05) h / 0.2);
+		--backdrop-rim: oklch(from var(--primary) 0.9 max(c, 0.05) h / 0.17);
 		--backdrop-radiant: oklch(from var(--primary) 0.9 max(c, 0.05) h / 0.22);
 		--backdrop-radiant-soft: oklch(from var(--primary) 0.92 max(c, 0.05) h / 0.12);
 	}
 
 	:root[data-backdrop].dark {
 		--backdrop-ink: oklch(from var(--primary) 0.82 clamp(0.01, calc(c * 0.25), 0.04) h / 0.14);
-		--backdrop-ring: oklch(from var(--primary) 0.46 max(calc(c * 0.7), 0.05) h / 0.34);
-		--backdrop-rim: oklch(from var(--primary) 0.52 max(calc(c * 0.7), 0.055) h / 0.6);
+		--backdrop-ring: oklch(from var(--primary) 0.42 max(calc(c * 0.7), 0.04) h / 0.15);
+		--backdrop-rim: oklch(from var(--primary) 0.42 max(calc(c * 0.7), 0.04) h / 0.125);
 		--backdrop-radiant: oklch(from var(--primary) 0.4 max(calc(c * 0.7), 0.04) h / 0.16);
 		--backdrop-radiant-soft: oklch(from var(--primary) 0.44 max(calc(c * 0.7), 0.04) h / 0.09);
 	}
