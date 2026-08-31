@@ -924,11 +924,13 @@
 	 *     A·k / (1 + A·(k − 1))
 	 *
 	 * which is A at k = 1, 0 at k = 0, and climbs toward 1 without ever reaching it. Plain
-	 * multiplication cannot do that: eighteen of these alphas already pass 1 before k reaches 2, so
-	 * the whole top of the range would look identical — and three of aurora's `color-mix`
-	 * percentages pass 100% at k = 3, which the browser resolves to FULLY OPAQUE rather than
-	 * rejecting. That was measured rather than assumed, and it is the worse of the two failures: an
-	 * opaque field does not intensify the page, it hides it.
+	 * multiplication cannot do that. Counted rather than estimated — and the first count here was
+	 * wrong, which is why it is now spelled out: of the thirty alphas on the gradient axis, plain
+	 * multiplication pushes 12 past 1 by k = 2 and 18 by k = 3, so the top of the range would
+	 * flatten out gradient by gradient rather than all at once. Three of aurora's `color-mix`
+	 * percentages also pass 100% at k = 3, which the browser resolves to FULLY OPAQUE rather than
+	 * rejecting — measured, not assumed, and the worse of the two failures: an opaque field does not
+	 * intensify the page, it hides it.
 	 *
 	 * The denominator is (1 − A) + A·k, positive for every A < 1 and every k ≥ 0, so nothing here
 	 * can divide by zero, and no value can leave [0, 1). Only multiplication and division, so no

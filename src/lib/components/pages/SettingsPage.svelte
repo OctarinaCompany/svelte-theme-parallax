@@ -1,6 +1,5 @@
 <script lang="ts">
 	import CheckIcon from "@lucide/svelte/icons/check";
-	import CircleOffIcon from "@lucide/svelte/icons/circle-off";
 	import Grid3x3Icon from "@lucide/svelte/icons/grid-3x3";
 	import GripIcon from "@lucide/svelte/icons/grip";
 	import StampIcon from "@lucide/svelte/icons/stamp";
@@ -837,12 +836,36 @@
 	value: number,
 	set: (next: number) => void,
 )}
+	<!--
+		A `<Label for>` NAMES NOTHING HERE, exactly as it names nothing on the dial, and for the same
+		reason twice over: `for` binds only to a labelable element, and the Slider's root is a
+		`<span>` — so the id lands on it and the association is dead. Worse, `role="slider"` lives on
+		the THUMB, which is a different element again, so even a working root label would leave the
+		control a screen reader stops on with an empty name (WCAG 4.1.2).
+
+		The wrapper documents this and forwards `aria-labelledby` to the thumb when no direct name is
+		given, so the visible text carries an id and the thumb points at it. One string rather than a
+		visible label and a separate `aria-label` that can drift apart.
+
+		This was caught by review after being missed by a check of my own that looked right: it
+		asserted every `for` resolved to an existing id, and every one did — the id is on the span.
+		Resolving is not binding.
+	-->
 	<div class="flex flex-col gap-1.5">
 		<div class="flex items-baseline justify-between gap-4">
-			<Label for={id}>{label}</Label>
+			<span id="{id}-label" class="text-sm leading-none font-medium">{label}</span>
 			<span class="font-mono text-xs text-muted-foreground tabular-nums">{readout}</span>
 		</div>
-		<Slider {id} type="single" {min} {max} {step} {value} onValueChange={set} />
+		<Slider
+			{id}
+			type="single"
+			aria-labelledby="{id}-label"
+			{min}
+			{max}
+			{step}
+			{value}
+			onValueChange={set}
+		/>
 		<p class="text-xs text-muted-foreground">{hint}</p>
 	</div>
 {/snippet}
