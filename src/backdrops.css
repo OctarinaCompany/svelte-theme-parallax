@@ -380,12 +380,14 @@
 :root[data-backdrop-gradient="glow"] {
 	--backdrop-glow-1: color-mix(
 		in oklab,
-		var(--primary) calc(16% * var(--backdrop-gradient-k)),
+		var(--primary)
+			calc(16% * var(--backdrop-gradient-k) / (1 + 0.16 * (var(--backdrop-gradient-k) - 1))),
 		transparent
 	);
 	--backdrop-glow-2: color-mix(
 		in oklab,
-		var(--sidebar-primary) calc(10% * var(--backdrop-gradient-k)),
+		var(--sidebar-primary)
+			calc(10% * var(--backdrop-gradient-k) / (1 + 0.1 * (var(--backdrop-gradient-k) - 1))),
 		transparent
 	);
 }
@@ -393,12 +395,14 @@
 :root[data-backdrop-gradient="glow"].dark {
 	--backdrop-glow-1: color-mix(
 		in oklab,
-		var(--primary) calc(22% * var(--backdrop-gradient-k)),
+		var(--primary)
+			calc(22% * var(--backdrop-gradient-k) / (1 + 0.22 * (var(--backdrop-gradient-k) - 1))),
 		transparent
 	);
 	--backdrop-glow-2: color-mix(
 		in oklab,
-		var(--sidebar-primary) calc(14% * var(--backdrop-gradient-k)),
+		var(--sidebar-primary)
+			calc(14% * var(--backdrop-gradient-k) / (1 + 0.14 * (var(--backdrop-gradient-k) - 1))),
 		transparent
 	);
 }
@@ -406,19 +410,23 @@
 @supports (color: oklch(from red l c h)) {
 	:root[data-backdrop-gradient="glow"] {
 		--backdrop-glow-1: oklch(
-			from var(--primary) 0.9 max(c, 0.07) h / calc(0.65 * var(--backdrop-gradient-k))
+			from var(--primary) 0.9 max(c, 0.07) h /
+				calc(0.65 * var(--backdrop-gradient-k) / (1 + 0.65 * (var(--backdrop-gradient-k) - 1)))
 		);
 		--backdrop-glow-2: oklch(
-			from var(--primary) 0.92 max(c, 0.05) calc(h - 40) / calc(0.45 * var(--backdrop-gradient-k))
+			from var(--primary) 0.92 max(c, 0.05) calc(h - 40) /
+				calc(0.45 * var(--backdrop-gradient-k) / (1 + 0.45 * (var(--backdrop-gradient-k) - 1)))
 		);
 	}
 
 	:root[data-backdrop-gradient="glow"].dark {
 		--backdrop-glow-1: oklch(
-			from var(--primary) 0.34 max(c, 0.07) h / calc(0.75 * var(--backdrop-gradient-k))
+			from var(--primary) 0.34 max(c, 0.07) h /
+				calc(0.75 * var(--backdrop-gradient-k) / (1 + 0.75 * (var(--backdrop-gradient-k) - 1)))
 		);
 		--backdrop-glow-2: oklch(
-			from var(--primary) 0.32 max(c, 0.05) calc(h - 40) / calc(0.55 * var(--backdrop-gradient-k))
+			from var(--primary) 0.32 max(c, 0.05) calc(h - 40) /
+				calc(0.55 * var(--backdrop-gradient-k) / (1 + 0.55 * (var(--backdrop-gradient-k) - 1)))
 		);
 	}
 }
@@ -487,19 +495,19 @@
 	--backdrop-aur-1: color-mix(
 		in oklab,
 		color-mix(in oklab, var(--primary) 26%, var(--background))
-			calc(34% * var(--backdrop-gradient-k)),
+			calc(34% * var(--backdrop-gradient-k) / (1 + 0.34 * (var(--backdrop-gradient-k) - 1))),
 		transparent
 	);
 	--backdrop-aur-2: color-mix(
 		in oklab,
 		color-mix(in oklab, var(--primary) 20%, var(--background))
-			calc(28% * var(--backdrop-gradient-k)),
+			calc(28% * var(--backdrop-gradient-k) / (1 + 0.28 * (var(--backdrop-gradient-k) - 1))),
 		transparent
 	);
 	--backdrop-aur-3: color-mix(
 		in oklab,
 		color-mix(in oklab, var(--primary) 14%, var(--background))
-			calc(24% * var(--backdrop-gradient-k)),
+			calc(24% * var(--backdrop-gradient-k) / (1 + 0.24 * (var(--backdrop-gradient-k) - 1))),
 		transparent
 	);
 }
@@ -522,19 +530,19 @@
 	--backdrop-aur-1: color-mix(
 		in oklab,
 		color-mix(in oklab, var(--primary) 22%, var(--background))
-			calc(40% * var(--backdrop-gradient-k)),
+			calc(40% * var(--backdrop-gradient-k) / (1 + 0.4 * (var(--backdrop-gradient-k) - 1))),
 		transparent
 	);
 	--backdrop-aur-2: color-mix(
 		in oklab,
 		color-mix(in oklab, var(--primary) 16%, var(--background))
-			calc(34% * var(--backdrop-gradient-k)),
+			calc(34% * var(--backdrop-gradient-k) / (1 + 0.34 * (var(--backdrop-gradient-k) - 1))),
 		transparent
 	);
 	--backdrop-aur-3: color-mix(
 		in oklab,
 		color-mix(in oklab, var(--primary) 11%, var(--background))
-			calc(28% * var(--backdrop-gradient-k)),
+			calc(28% * var(--backdrop-gradient-k) / (1 + 0.28 * (var(--backdrop-gradient-k) - 1))),
 		transparent
 	);
 }
@@ -548,15 +556,17 @@
 		 */
 		--backdrop-aur-1: oklch(
 			from var(--primary) 0.9 clamp(0.034, calc(c * 0.34), 0.055) h /
-				calc(0.5 * var(--backdrop-gradient-k))
+				calc(0.5 * var(--backdrop-gradient-k) / (1 + 0.5 * (var(--backdrop-gradient-k) - 1)))
 		);
 		--backdrop-aur-2: oklch(
 			from var(--primary) 0.918 clamp(0.026, calc(c * 0.25), 0.04)
-				calc(h + var(--backdrop-aur-fan)) / calc(0.42 * var(--backdrop-gradient-k))
+				calc(h + var(--backdrop-aur-fan)) /
+				calc(0.42 * var(--backdrop-gradient-k) / (1 + 0.42 * (var(--backdrop-gradient-k) - 1)))
 		);
 		--backdrop-aur-3: oklch(
 			from var(--primary) 0.934 clamp(0.019, calc(c * 0.18), 0.028)
-				calc(h - var(--backdrop-aur-fan)) / calc(0.34 * var(--backdrop-gradient-k))
+				calc(h - var(--backdrop-aur-fan)) /
+				calc(0.34 * var(--backdrop-gradient-k) / (1 + 0.34 * (var(--backdrop-gradient-k) - 1)))
 		);
 	}
 
@@ -566,15 +576,17 @@
 		   colour for the least disturbance of the card step above it. */
 		--backdrop-aur-1: oklch(
 			from var(--primary) 0.292 clamp(0.062, calc(c * 0.75), 0.115) h /
-				calc(0.6 * var(--backdrop-gradient-k))
+				calc(0.6 * var(--backdrop-gradient-k) / (1 + 0.6 * (var(--backdrop-gradient-k) - 1)))
 		);
 		--backdrop-aur-2: oklch(
 			from var(--primary) 0.288 clamp(0.048, calc(c * 0.55), 0.09)
-				calc(h + var(--backdrop-aur-fan)) / calc(0.5 * var(--backdrop-gradient-k))
+				calc(h + var(--backdrop-aur-fan)) /
+				calc(0.5 * var(--backdrop-gradient-k) / (1 + 0.5 * (var(--backdrop-gradient-k) - 1)))
 		);
 		--backdrop-aur-3: oklch(
 			from var(--primary) 0.284 clamp(0.034, calc(c * 0.38), 0.062)
-				calc(h - var(--backdrop-aur-fan)) / calc(0.42 * var(--backdrop-gradient-k))
+				calc(h - var(--backdrop-aur-fan)) /
+				calc(0.42 * var(--backdrop-gradient-k) / (1 + 0.42 * (var(--backdrop-gradient-k) - 1)))
 		);
 	}
 }
@@ -709,26 +721,30 @@
 	--backdrop-home-r: 56;
 	--backdrop-spot: color-mix(
 		in oklab,
-		var(--primary) calc(14% * var(--backdrop-gradient-k)),
+		var(--primary)
+			calc(14% * var(--backdrop-gradient-k) / (1 + 0.14 * (var(--backdrop-gradient-k) - 1))),
 		transparent
 	);
 }
 :root[data-backdrop-gradient="spotlight"].dark {
 	--backdrop-spot: color-mix(
 		in oklab,
-		var(--primary) calc(20% * var(--backdrop-gradient-k)),
+		var(--primary)
+			calc(20% * var(--backdrop-gradient-k) / (1 + 0.2 * (var(--backdrop-gradient-k) - 1))),
 		transparent
 	);
 }
 @supports (color: oklch(from red l c h)) {
 	:root[data-backdrop-gradient="spotlight"] {
 		--backdrop-spot: oklch(
-			from var(--primary) 0.91 max(c, 0.06) h / calc(0.6 * var(--backdrop-gradient-k))
+			from var(--primary) 0.91 max(c, 0.06) h /
+				calc(0.6 * var(--backdrop-gradient-k) / (1 + 0.6 * (var(--backdrop-gradient-k) - 1)))
 		);
 	}
 	:root[data-backdrop-gradient="spotlight"].dark {
 		--backdrop-spot: oklch(
-			from var(--primary) 0.35 max(calc(c * 0.7), 0.05) h / calc(0.7 * var(--backdrop-gradient-k))
+			from var(--primary) 0.35 max(calc(c * 0.7), 0.05) h /
+				calc(0.7 * var(--backdrop-gradient-k) / (1 + 0.7 * (var(--backdrop-gradient-k) - 1)))
 		);
 	}
 }
@@ -745,26 +761,30 @@
 :root[data-backdrop-gradient="horizon"] {
 	--backdrop-sky: color-mix(
 		in oklab,
-		var(--primary) calc(12% * var(--backdrop-gradient-k)),
+		var(--primary)
+			calc(12% * var(--backdrop-gradient-k) / (1 + 0.12 * (var(--backdrop-gradient-k) - 1))),
 		transparent
 	);
 }
 :root[data-backdrop-gradient="horizon"].dark {
 	--backdrop-sky: color-mix(
 		in oklab,
-		var(--primary) calc(18% * var(--backdrop-gradient-k)),
+		var(--primary)
+			calc(18% * var(--backdrop-gradient-k) / (1 + 0.18 * (var(--backdrop-gradient-k) - 1))),
 		transparent
 	);
 }
 @supports (color: oklch(from red l c h)) {
 	:root[data-backdrop-gradient="horizon"] {
 		--backdrop-sky: oklch(
-			from var(--primary) 0.93 max(c, 0.05) h / calc(0.55 * var(--backdrop-gradient-k))
+			from var(--primary) 0.93 max(c, 0.05) h /
+				calc(0.55 * var(--backdrop-gradient-k) / (1 + 0.55 * (var(--backdrop-gradient-k) - 1)))
 		);
 	}
 	:root[data-backdrop-gradient="horizon"].dark {
 		--backdrop-sky: oklch(
-			from var(--primary) 0.33 max(calc(c * 0.7), 0.045) h / calc(0.65 * var(--backdrop-gradient-k))
+			from var(--primary) 0.33 max(calc(c * 0.7), 0.045) h /
+				calc(0.65 * var(--backdrop-gradient-k) / (1 + 0.65 * (var(--backdrop-gradient-k) - 1)))
 		);
 	}
 }
@@ -784,26 +804,30 @@
 :root[data-backdrop-gradient="corner"] {
 	--backdrop-corner: color-mix(
 		in oklab,
-		var(--primary) calc(16% * var(--backdrop-gradient-k)),
+		var(--primary)
+			calc(16% * var(--backdrop-gradient-k) / (1 + 0.16 * (var(--backdrop-gradient-k) - 1))),
 		transparent
 	);
 }
 :root[data-backdrop-gradient="corner"].dark {
 	--backdrop-corner: color-mix(
 		in oklab,
-		var(--primary) calc(22% * var(--backdrop-gradient-k)),
+		var(--primary)
+			calc(22% * var(--backdrop-gradient-k) / (1 + 0.22 * (var(--backdrop-gradient-k) - 1))),
 		transparent
 	);
 }
 @supports (color: oklch(from red l c h)) {
 	:root[data-backdrop-gradient="corner"] {
 		--backdrop-corner: oklch(
-			from var(--primary) 0.9 max(c, 0.07) h / calc(0.62 * var(--backdrop-gradient-k))
+			from var(--primary) 0.9 max(c, 0.07) h /
+				calc(0.62 * var(--backdrop-gradient-k) / (1 + 0.62 * (var(--backdrop-gradient-k) - 1)))
 		);
 	}
 	:root[data-backdrop-gradient="corner"].dark {
 		--backdrop-corner: oklch(
-			from var(--primary) 0.34 max(calc(c * 0.7), 0.055) h / calc(0.72 * var(--backdrop-gradient-k))
+			from var(--primary) 0.34 max(calc(c * 0.7), 0.055) h /
+				calc(0.72 * var(--backdrop-gradient-k) / (1 + 0.72 * (var(--backdrop-gradient-k) - 1)))
 		);
 	}
 }
@@ -893,6 +917,22 @@
 	 *
 	 * 1 is the designed weight — every alpha in this file was calibrated at that — so the control
 	 * multiplies rather than replaces, and 0 is genuinely nothing.
+	 *
+	 * IT SATURATES RATHER THAN MULTIPLYING, and that is what lets the gradient control run to 3
+	 * without its top half going dead. Each ink reads
+	 *
+	 *     A·k / (1 + A·(k − 1))
+	 *
+	 * which is A at k = 1, 0 at k = 0, and climbs toward 1 without ever reaching it. Plain
+	 * multiplication cannot do that: eighteen of these alphas already pass 1 before k reaches 2, so
+	 * the whole top of the range would look identical — and three of aurora's `color-mix`
+	 * percentages pass 100% at k = 3, which the browser resolves to FULLY OPAQUE rather than
+	 * rejecting. That was measured rather than assumed, and it is the worse of the two failures: an
+	 * opaque field does not intensify the page, it hides it.
+	 *
+	 * The denominator is (1 − A) + A·k, positive for every A < 1 and every k ≥ 0, so nothing here
+	 * can divide by zero, and no value can leave [0, 1). Only multiplication and division, so no
+	 * `pow()` and no second `@supports` tier.
 	 */
 	--backdrop-gradient-k: 1;
 	--backdrop-pattern-k: 1;
@@ -936,7 +976,8 @@
 	/* Drawn lattices — hairlines over a mostly empty tile. */
 	--backdrop-ink: color-mix(
 		in oklab,
-		var(--foreground) calc(14% * var(--backdrop-pattern-k)),
+		var(--foreground)
+			calc(14% * var(--backdrop-pattern-k) / (1 + 0.14 * (var(--backdrop-pattern-k) - 1))),
 		transparent
 	);
 	/*
@@ -977,24 +1018,28 @@
 	 */
 	--backdrop-ring: color-mix(
 		in oklab,
-		var(--primary) calc(5% * var(--backdrop-gradient-k)),
+		var(--primary)
+			calc(5% * var(--backdrop-gradient-k) / (1 + 0.05 * (var(--backdrop-gradient-k) - 1))),
 		transparent
 	);
 	--backdrop-rim: color-mix(
 		in oklab,
-		var(--primary) calc(6% * var(--backdrop-gradient-k)),
+		var(--primary)
+			calc(6% * var(--backdrop-gradient-k) / (1 + 0.06 * (var(--backdrop-gradient-k) - 1))),
 		transparent
 	);
 	--backdrop-radiant: color-mix(
 		in oklab,
-		var(--primary) calc(5% * var(--backdrop-gradient-k)),
+		var(--primary)
+			calc(5% * var(--backdrop-gradient-k) / (1 + 0.05 * (var(--backdrop-gradient-k) - 1))),
 		transparent
 	);
 
 	/* Radiant geometry that fills area: bands, beams, discs, haloes. */
 	--backdrop-radiant-soft: color-mix(
 		in oklab,
-		var(--primary) calc(3% * var(--backdrop-gradient-k)),
+		var(--primary)
+			calc(3% * var(--backdrop-gradient-k) / (1 + 0.03 * (var(--backdrop-gradient-k) - 1))),
 		transparent
 	);
 }
@@ -1002,27 +1047,32 @@
 :root[data-backdrop].dark {
 	--backdrop-ink: color-mix(
 		in oklab,
-		var(--foreground) calc(10% * var(--backdrop-pattern-k)),
+		var(--foreground)
+			calc(10% * var(--backdrop-pattern-k) / (1 + 0.1 * (var(--backdrop-pattern-k) - 1))),
 		transparent
 	);
 	--backdrop-ring: color-mix(
 		in oklab,
-		var(--primary) calc(7% * var(--backdrop-gradient-k)),
+		var(--primary)
+			calc(7% * var(--backdrop-gradient-k) / (1 + 0.07 * (var(--backdrop-gradient-k) - 1))),
 		transparent
 	);
 	--backdrop-rim: color-mix(
 		in oklab,
-		var(--primary) calc(8% * var(--backdrop-gradient-k)),
+		var(--primary)
+			calc(8% * var(--backdrop-gradient-k) / (1 + 0.08 * (var(--backdrop-gradient-k) - 1))),
 		transparent
 	);
 	--backdrop-radiant: color-mix(
 		in oklab,
-		var(--primary) calc(7% * var(--backdrop-gradient-k)),
+		var(--primary)
+			calc(7% * var(--backdrop-gradient-k) / (1 + 0.07 * (var(--backdrop-gradient-k) - 1))),
 		transparent
 	);
 	--backdrop-radiant-soft: color-mix(
 		in oklab,
-		var(--primary) calc(4% * var(--backdrop-gradient-k)),
+		var(--primary)
+			calc(4% * var(--backdrop-gradient-k) / (1 + 0.04 * (var(--backdrop-gradient-k) - 1))),
 		transparent
 	);
 }
@@ -1031,38 +1081,46 @@
 	:root[data-backdrop] {
 		--backdrop-ink: oklch(
 			from var(--primary) 0.45 clamp(0.01, calc(c * 0.3), 0.05) h /
-				calc(0.16 * var(--backdrop-pattern-k))
+				calc(0.16 * var(--backdrop-pattern-k) / (1 + 0.16 * (var(--backdrop-pattern-k) - 1)))
 		);
 		--backdrop-ring: oklch(
-			from var(--primary) 0.9 max(c, 0.05) h / calc(0.2 * var(--backdrop-gradient-k))
+			from var(--primary) 0.9 max(c, 0.05) h /
+				calc(0.2 * var(--backdrop-gradient-k) / (1 + 0.2 * (var(--backdrop-gradient-k) - 1)))
 		);
 		--backdrop-rim: oklch(
-			from var(--primary) 0.9 max(c, 0.05) h / calc(0.17 * var(--backdrop-gradient-k))
+			from var(--primary) 0.9 max(c, 0.05) h /
+				calc(0.17 * var(--backdrop-gradient-k) / (1 + 0.17 * (var(--backdrop-gradient-k) - 1)))
 		);
 		--backdrop-radiant: oklch(
-			from var(--primary) 0.9 max(c, 0.05) h / calc(0.22 * var(--backdrop-gradient-k))
+			from var(--primary) 0.9 max(c, 0.05) h /
+				calc(0.22 * var(--backdrop-gradient-k) / (1 + 0.22 * (var(--backdrop-gradient-k) - 1)))
 		);
 		--backdrop-radiant-soft: oklch(
-			from var(--primary) 0.92 max(c, 0.05) h / calc(0.12 * var(--backdrop-gradient-k))
+			from var(--primary) 0.92 max(c, 0.05) h /
+				calc(0.12 * var(--backdrop-gradient-k) / (1 + 0.12 * (var(--backdrop-gradient-k) - 1)))
 		);
 	}
 
 	:root[data-backdrop].dark {
 		--backdrop-ink: oklch(
 			from var(--primary) 0.82 clamp(0.01, calc(c * 0.25), 0.04) h /
-				calc(0.14 * var(--backdrop-pattern-k))
+				calc(0.14 * var(--backdrop-pattern-k) / (1 + 0.14 * (var(--backdrop-pattern-k) - 1)))
 		);
 		--backdrop-ring: oklch(
-			from var(--primary) 0.42 max(calc(c * 0.7), 0.04) h / calc(0.15 * var(--backdrop-gradient-k))
+			from var(--primary) 0.42 max(calc(c * 0.7), 0.04) h /
+				calc(0.15 * var(--backdrop-gradient-k) / (1 + 0.15 * (var(--backdrop-gradient-k) - 1)))
 		);
 		--backdrop-rim: oklch(
-			from var(--primary) 0.42 max(calc(c * 0.7), 0.04) h / calc(0.125 * var(--backdrop-gradient-k))
+			from var(--primary) 0.42 max(calc(c * 0.7), 0.04) h /
+				calc(0.125 * var(--backdrop-gradient-k) / (1 + 0.125 * (var(--backdrop-gradient-k) - 1)))
 		);
 		--backdrop-radiant: oklch(
-			from var(--primary) 0.4 max(calc(c * 0.7), 0.04) h / calc(0.16 * var(--backdrop-gradient-k))
+			from var(--primary) 0.4 max(calc(c * 0.7), 0.04) h /
+				calc(0.16 * var(--backdrop-gradient-k) / (1 + 0.16 * (var(--backdrop-gradient-k) - 1)))
 		);
 		--backdrop-radiant-soft: oklch(
-			from var(--primary) 0.44 max(calc(c * 0.7), 0.04) h / calc(0.09 * var(--backdrop-gradient-k))
+			from var(--primary) 0.44 max(calc(c * 0.7), 0.04) h /
+				calc(0.09 * var(--backdrop-gradient-k) / (1 + 0.09 * (var(--backdrop-gradient-k) - 1)))
 		);
 	}
 }
@@ -1177,26 +1235,30 @@
 :root[data-backdrop-gradient="rays"] {
 	--backdrop-ray: color-mix(
 		in oklab,
-		var(--primary) calc(5% * var(--backdrop-gradient-k)),
+		var(--primary)
+			calc(5% * var(--backdrop-gradient-k) / (1 + 0.05 * (var(--backdrop-gradient-k) - 1))),
 		transparent
 	);
 }
 :root[data-backdrop-gradient="rays"].dark {
 	--backdrop-ray: color-mix(
 		in oklab,
-		var(--primary) calc(7% * var(--backdrop-gradient-k)),
+		var(--primary)
+			calc(7% * var(--backdrop-gradient-k) / (1 + 0.07 * (var(--backdrop-gradient-k) - 1))),
 		transparent
 	);
 }
 @supports (color: oklch(from red l c h)) {
 	:root[data-backdrop-gradient="rays"] {
 		--backdrop-ray: oklch(
-			from var(--primary) 0.9 max(c, 0.05) h / calc(0.22 * var(--backdrop-gradient-k))
+			from var(--primary) 0.9 max(c, 0.05) h /
+				calc(0.22 * var(--backdrop-gradient-k) / (1 + 0.22 * (var(--backdrop-gradient-k) - 1)))
 		);
 	}
 	:root[data-backdrop-gradient="rays"].dark {
 		--backdrop-ray: oklch(
-			from var(--primary) 0.4 max(calc(c * 0.7), 0.04) h / calc(0.16 * var(--backdrop-gradient-k))
+			from var(--primary) 0.4 max(calc(c * 0.7), 0.04) h /
+				calc(0.16 * var(--backdrop-gradient-k) / (1 + 0.16 * (var(--backdrop-gradient-k) - 1)))
 		);
 	}
 }
@@ -1241,44 +1303,50 @@
 :root[data-backdrop-gradient="weave"] {
 	--backdrop-warp: color-mix(
 		in oklab,
-		var(--primary) calc(7% * var(--backdrop-gradient-k)),
+		var(--primary)
+			calc(7% * var(--backdrop-gradient-k) / (1 + 0.07 * (var(--backdrop-gradient-k) - 1))),
 		transparent
 	);
 	--backdrop-weft: color-mix(
 		in oklab,
-		var(--primary) calc(5% * var(--backdrop-gradient-k)),
+		var(--primary)
+			calc(5% * var(--backdrop-gradient-k) / (1 + 0.05 * (var(--backdrop-gradient-k) - 1))),
 		transparent
 	);
 }
 :root[data-backdrop-gradient="weave"].dark {
 	--backdrop-warp: color-mix(
 		in oklab,
-		var(--primary) calc(20% * var(--backdrop-gradient-k)),
+		var(--primary)
+			calc(20% * var(--backdrop-gradient-k) / (1 + 0.2 * (var(--backdrop-gradient-k) - 1))),
 		transparent
 	);
 	--backdrop-weft: color-mix(
 		in oklab,
-		var(--primary) calc(14% * var(--backdrop-gradient-k)),
+		var(--primary)
+			calc(14% * var(--backdrop-gradient-k) / (1 + 0.14 * (var(--backdrop-gradient-k) - 1))),
 		transparent
 	);
 }
 @supports (color: oklch(from red l c h)) {
 	:root[data-backdrop-gradient="weave"] {
 		--backdrop-warp: oklch(
-			from var(--primary) 0.9 max(c, 0.06) calc(h + 26) / calc(0.11 * var(--backdrop-gradient-k))
+			from var(--primary) 0.9 max(c, 0.06) calc(h + 26) /
+				calc(0.11 * var(--backdrop-gradient-k) / (1 + 0.11 * (var(--backdrop-gradient-k) - 1)))
 		);
 		--backdrop-weft: oklch(
-			from var(--primary) 0.92 max(c, 0.05) calc(h - 30) / calc(0.09 * var(--backdrop-gradient-k))
+			from var(--primary) 0.92 max(c, 0.05) calc(h - 30) /
+				calc(0.09 * var(--backdrop-gradient-k) / (1 + 0.09 * (var(--backdrop-gradient-k) - 1)))
 		);
 	}
 	:root[data-backdrop-gradient="weave"].dark {
 		--backdrop-warp: oklch(
 			from var(--primary) 0.36 max(calc(c * 0.7), 0.05) calc(h + 26) /
-				calc(0.66 * var(--backdrop-gradient-k))
+				calc(0.66 * var(--backdrop-gradient-k) / (1 + 0.66 * (var(--backdrop-gradient-k) - 1)))
 		);
 		--backdrop-weft: oklch(
 			from var(--primary) 0.33 max(calc(c * 0.7), 0.045) calc(h - 30) /
-				calc(0.58 * var(--backdrop-gradient-k))
+				calc(0.58 * var(--backdrop-gradient-k) / (1 + 0.58 * (var(--backdrop-gradient-k) - 1)))
 		);
 	}
 }

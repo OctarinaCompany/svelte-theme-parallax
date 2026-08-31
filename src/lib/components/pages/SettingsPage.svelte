@@ -3,6 +3,7 @@
 	import CircleOffIcon from "@lucide/svelte/icons/circle-off";
 	import Grid3x3Icon from "@lucide/svelte/icons/grid-3x3";
 	import GripIcon from "@lucide/svelte/icons/grip";
+	import StampIcon from "@lucide/svelte/icons/stamp";
 	import ContrastIcon from "@lucide/svelte/icons/contrast";
 	import DropletIcon from "@lucide/svelte/icons/droplet";
 	import MonitorIcon from "@lucide/svelte/icons/monitor";
@@ -52,7 +53,8 @@
 		MARK_ANCHORS,
 		MARK_OPACITY_MAX,
 		MARK_OPACITY_MIN,
-		LAYER_OPACITY_MAX,
+		GRADIENT_OPACITY_MAX,
+		PATTERN_OPACITY_MAX,
 		LAYER_OPACITY_MIN,
 		BACKDROP_DENSITY_MAX,
 		BACKDROP_DENSITY_MIN,
@@ -86,6 +88,8 @@
 	} from "$lib/hooks/backdrop.svelte.js";
 	import { Slider } from "$lib/components/ui/slider/index.js";
 	import * as Select from "$lib/components/ui/select/index.js";
+	import { Badge } from "$lib/components/ui/badge/index.js";
+	import * as Accordion from "$lib/components/ui/accordion/index.js";
 	import * as AngleSlider from "$lib/components/ui/angle-slider/index.js";
 	import { headerMode, setHeaderMode, type HeaderMode } from "$lib/hooks/header-mode.svelte.js";
 	import { setSidebarMode, sidebarMode, type SidebarMode } from "$lib/hooks/sidebar-mode.svelte.js";
@@ -126,6 +130,25 @@
 	const anchorNames = Object.fromEntries(MARK_ANCHORS.map((a) => [a.id, a.name]));
 	const anchorLabels = $derived(
 		MARK_ANCHORS.find((a) => a.id === markCorner.current) ?? MARK_ANCHORS[0],
+	);
+
+	/*
+	 * ONE ROOT, `type="multiple"`, because these four are not alternatives — a single-select
+	 * accordion would shut one layer's controls every time another opened, and comparing a gradient
+	 * against the grain sitting over it is exactly what someone is doing here.
+	 *
+	 * A SECTION STARTS OPEN IF ITS LAYER IS ON. Arriving with a gradient and a mark already chosen,
+	 * those two are expanded and the other two out of the way; arriving with nothing on gives four
+	 * closed rows and a glance at what is available. The state is SEEDED once rather than derived,
+	 * so switching a layer afterwards does not yank a panel open or shut under the reader's hands.
+	 */
+	let openPanels = $state(
+		[
+			activeGradient.current !== "none" ? "gradient" : null,
+			activePattern.current !== "none" ? "pattern" : null,
+			markOn.current ? "mark" : null,
+			grainOn.current ? "grain" : null,
+		].filter((value) => value !== null),
 	);
 
 	function wrapAtZero(event: KeyboardEvent, value: number, set: (next: number) => void): void {
@@ -342,229 +365,281 @@
 				A fifth axis, layered over the palette and the mode rather than beside them: the palette
 				decides what the surfaces are painted with, and a backdrop decides what is painted behind
 				them. It does not change the page colour — that stays the palette's — it paints over it.
-				Four independent layers that COMPOSE: a light, a lattice, a texture and one mark. Every one
+				Four independent layers that COMPOSE: a light, a lattice, one mark and a texture. Every one
 				derives its colours from the live tokens, so they all work with all {THEMES.length}
 				palettes in both halves. The header's wand carries the same switches.
 			{/snippet}
 
 			<!--
-				ONE ROW PER CARD: what to paint on the left, how to paint it on the right. The choice and
-				its settings were stacked, which made a card as tall as the four of them used to be
-				together and pushed the dial — the control most worth finding — below the fold.
+				FOUR SECTIONS THAT FOLD, because four axes' worth of controls open at once is a page
+				rather than a section — the mark alone carries six. Each row still says what it is doing
+				while shut: the badge names the chosen look, or reads "On", so the state of all four is
+				one glance rather than four expansions.
 
-				`items-start` rather than `items-center`: the left column grows by a line when a blurb
-				wraps, and centring would then walk the dial up and down as the reader changes their
-				mind. `flex-col` until `sm`, because three cells side by side on a phone is three
-				unusable cells.
+				THE ORDER IS THE PAINTING ORDER, top to bottom: the light goes down first, the lattice
+				over it, then the mark, and the grain last because it is a texture over everything else.
 			-->
 			<Card.Root>
-				<Card.Header class="flex flex-col gap-1 space-y-0">
-					<Card.Title>Gradient</Card.Title>
-					<Card.Description>A light thrown across the page.</Card.Description>
-				</Card.Header>
 				<Card.Content>
-					<div class="flex flex-col gap-6 sm:flex-row sm:items-start sm:gap-8">
-						{@render lookPicker("Gradient", GRADIENTS, activeGradient.current, (id) =>
-							setGradient(id as GradientId),
-						)}
-						{#if activeGradient.current !== "none"}
-							<div class="flex min-w-0 flex-1 flex-col gap-2">
-								{@render slider(
-									"backdrop-gradient-opacity",
-									"Opacity",
-									gradientStrength.current + "%",
-									"As a share of the weight this light was designed at. 100% is the kit’s own calibration.",
-									LAYER_OPACITY_MIN,
-									LAYER_OPACITY_MAX,
-									5,
-									gradientStrength.current,
-									setGradientStrength,
-								)}
-							</div>
-							{@render dial(
-								"Angle",
-								"Where the light comes from. 0° is where this gradient sits by default.",
-								backdropAngle.current,
-								setBackdropAngle,
-								"backdrop-angle",
-							)}
-						{/if}
-					</div>
-				</Card.Content>
-			</Card.Root>
-
-			<Card.Root>
-				<Card.Header class="flex flex-col gap-1 space-y-0">
-					<Card.Title>Pattern</Card.Title>
-					<Card.Description>A drawn lattice, fading out toward a bearing.</Card.Description>
-				</Card.Header>
-				<Card.Content>
-					<div class="flex flex-col gap-6 sm:flex-row sm:items-start sm:gap-8">
-						{@render lookPicker("Pattern", PATTERNS, activePattern.current, (id) =>
-							setPattern(id as PatternId),
-						)}
-						{#if activePattern.current !== "none"}
-							<div class="flex min-w-0 flex-1 flex-col gap-5">
-								{@render slider(
-									"backdrop-pattern-opacity",
-									"Opacity",
-									patternStrength.current + "%",
-									"As a share of the weight this lattice was designed at.",
-									LAYER_OPACITY_MIN,
-									LAYER_OPACITY_MAX,
-									5,
-									patternStrength.current,
-									setPatternStrength,
-								)}
-								{@render slider(
-									"backdrop-fade",
-									"Fade length",
-									backdropFade.current + "px",
-									"How far the fade runs before the lattice is at full strength. At 0 it covers the page.",
-									BACKDROP_FADE_MIN,
-									BACKDROP_FADE_MAX,
-									20,
-									backdropFade.current,
-									setBackdropFade,
-								)}
-							</div>
-							{@render dial(
-								"Fade angle",
-								"Which side the lattice fades out toward. The lattice itself does not turn.",
-								backdropFadeAngle.current,
-								setBackdropFadeAngle,
-								"backdrop-fade-angle",
-							)}
-						{/if}
-					</div>
-				</Card.Content>
-			</Card.Root>
-
-			<Card.Root>
-				<Card.Header class="flex flex-col gap-1 space-y-0">
-					<Card.Title>Grain</Card.Title>
-					<Card.Description>Paper texture over everything else.</Card.Description>
-				</Card.Header>
-				<Card.Content>
-					<div class="flex flex-col gap-6 sm:flex-row sm:items-start sm:gap-8">
-						{@render toggle("backdrop-grain", "Grain", grainOn.current, setGrain)}
-						{#if grainOn.current}
-							<div class="flex min-w-0 flex-1 flex-col gap-2">
-								{@render slider(
-									"backdrop-density",
-									"Density",
-									backdropDensity.current + "%",
-									"How much grain. It is balanced light against dark, so it textures the page without lifting it.",
-									BACKDROP_DENSITY_MIN,
-									BACKDROP_DENSITY_MAX,
-									5,
-									backdropDensity.current,
-									setBackdropDensity,
-								)}
-							</div>
-						{/if}
-					</div>
-				</Card.Content>
-			</Card.Root>
-
-			<Card.Root>
-				<Card.Header class="flex flex-col gap-1 space-y-0">
-					<Card.Title>Mark</Card.Title>
-					<Card.Description>
-						One SVG, drawn behind the interface. It is a file rather than a setting —
-						<code class="font-mono text-xs">{MARK_SOURCE}</code> — so a project brands itself by replacing
-						that file, keeping the name.
-					</Card.Description>
-				</Card.Header>
-				<Card.Content>
-					<div class="flex flex-col gap-6 sm:flex-row sm:items-start sm:gap-8">
-						<div class="flex flex-col gap-3 sm:w-56 sm:shrink-0">
-							<div class="flex items-center gap-3">
-								<Switch id="backdrop-mark" checked={markOn.current} onCheckedChange={setMark} />
-								<Label for="backdrop-mark">Mark</Label>
-							</div>
-							{#if markOn.current}
-								<!--
+					<Accordion.Root type="multiple" bind:value={openPanels}>
+						<Accordion.Item value="gradient">
+							<Accordion.Trigger class="items-center font-semibold hover:no-underline">
+								<div class="flex min-w-0 items-center gap-3">
+									<div class="flex size-8 shrink-0 items-center justify-center rounded-lg bg-muted">
+										<SunIcon class="size-4 text-muted-foreground" />
+									</div>
+									<span>Gradient</span>
+									{#if GRADIENTS.find((g) => g.id === activeGradient.current)?.name}
+										<Badge variant="success-subtle" class="ms-1"
+											>{GRADIENTS.find((g) => g.id === activeGradient.current)?.name}</Badge
+										>
+									{/if}
+								</div>
+							</Accordion.Trigger>
+							<Accordion.Content>
+								<div class="flex flex-col gap-4 ps-11 pe-2">
+									<p class="text-sm text-muted-foreground">A light thrown across the page.</p>
+									<div class="flex flex-col gap-6 sm:flex-row sm:items-start sm:gap-8">
+										{@render lookPicker("Gradient", GRADIENTS, activeGradient.current, (id) =>
+											setGradient(id as GradientId),
+										)}
+										{#if activeGradient.current !== "none"}
+											<div class="flex min-w-0 flex-1 flex-col gap-2">
+												{@render slider(
+													"backdrop-gradient-opacity",
+													"Opacity",
+													gradientStrength.current + "%",
+													"As a share of the weight this light was designed at. It saturates rather than multiplying, so the whole range stays live.",
+													LAYER_OPACITY_MIN,
+													GRADIENT_OPACITY_MAX,
+													5,
+													gradientStrength.current,
+													setGradientStrength,
+												)}
+											</div>
+											{@render dial(
+												"Angle",
+												"Where the light comes from. 0° is where this gradient sits by default.",
+												backdropAngle.current,
+												setBackdropAngle,
+												"backdrop-angle",
+											)}
+										{/if}
+									</div>
+								</div>
+							</Accordion.Content>
+						</Accordion.Item>
+						<Accordion.Item value="pattern">
+							<Accordion.Trigger class="items-center font-semibold hover:no-underline">
+								<div class="flex min-w-0 items-center gap-3">
+									<div class="flex size-8 shrink-0 items-center justify-center rounded-lg bg-muted">
+										<Grid3x3Icon class="size-4 text-muted-foreground" />
+									</div>
+									<span>Pattern</span>
+									{#if PATTERNS.find((x) => x.id === activePattern.current)?.name}
+										<Badge variant="success-subtle" class="ms-1"
+											>{PATTERNS.find((x) => x.id === activePattern.current)?.name}</Badge
+										>
+									{/if}
+								</div>
+							</Accordion.Trigger>
+							<Accordion.Content>
+								<div class="flex flex-col gap-4 ps-11 pe-2">
+									<p class="text-sm text-muted-foreground">
+										A drawn lattice, fading out toward a bearing.
+									</p>
+									<div class="flex flex-col gap-6 sm:flex-row sm:items-start sm:gap-8">
+										{@render lookPicker("Pattern", PATTERNS, activePattern.current, (id) =>
+											setPattern(id as PatternId),
+										)}
+										{#if activePattern.current !== "none"}
+											<div class="flex min-w-0 flex-1 flex-col gap-5">
+												{@render slider(
+													"backdrop-pattern-opacity",
+													"Opacity",
+													patternStrength.current + "%",
+													"As a share of the weight this lattice was designed at.",
+													LAYER_OPACITY_MIN,
+													PATTERN_OPACITY_MAX,
+													5,
+													patternStrength.current,
+													setPatternStrength,
+												)}
+												{@render slider(
+													"backdrop-fade",
+													"Fade length",
+													backdropFade.current + "px",
+													"How far the fade runs before the lattice is at full strength. At 0 it covers the page.",
+													BACKDROP_FADE_MIN,
+													BACKDROP_FADE_MAX,
+													20,
+													backdropFade.current,
+													setBackdropFade,
+												)}
+											</div>
+											{@render dial(
+												"Fade angle",
+												"Which side the lattice fades out toward. The lattice itself does not turn.",
+												backdropFadeAngle.current,
+												setBackdropFadeAngle,
+												"backdrop-fade-angle",
+											)}
+										{/if}
+									</div>
+								</div>
+							</Accordion.Content>
+						</Accordion.Item>
+						<Accordion.Item value="mark">
+							<Accordion.Trigger class="items-center font-semibold hover:no-underline">
+								<div class="flex min-w-0 items-center gap-3">
+									<div class="flex size-8 shrink-0 items-center justify-center rounded-lg bg-muted">
+										<StampIcon class="size-4 text-muted-foreground" />
+									</div>
+									<span>Mark</span>
+									{#if markOn.current}
+										<Badge variant="success-subtle" class="ms-1">On</Badge>
+									{/if}
+								</div>
+							</Accordion.Trigger>
+							<Accordion.Content>
+								<div class="flex flex-col gap-4 ps-11 pe-2">
+									<p class="text-sm text-muted-foreground">
+										One SVG drawn behind the interface. It is a file rather than a setting — <code
+											class="font-mono text-xs">{MARK_SOURCE}</code
+										> — so a project brands itself by replacing that file, keeping the name.
+									</p>
+									<div class="flex flex-col gap-6 sm:flex-row sm:items-start sm:gap-8">
+										<div class="flex flex-col gap-3 sm:w-56 sm:shrink-0">
+											<div class="flex items-center gap-3">
+												<Switch
+													id="backdrop-mark"
+													checked={markOn.current}
+													onCheckedChange={setMark}
+												/>
+												<Label for="backdrop-mark">Mark</Label>
+											</div>
+											{#if markOn.current}
+												<!--
 									THE OFFSETS ARE NOT A POSITION UNTIL YOU SAY WHAT THEY COUNT FROM. They used
 									to mean the top-left corner, because that is what CSS defaults to, which left
 									a mark meant for the bottom-right to be placed by arithmetic against a
 									viewport size nobody knows in advance — and moved on every resize.
 								-->
-								<div class="flex flex-col gap-1.5">
-									<Label for="backdrop-mark-anchor">Measured from</Label>
-									<Select.Root
-										type="single"
-										value={markCorner.current}
-										onValueChange={(value) => setMarkAnchor(value as MarkAnchor)}
-									>
-										<Select.Trigger id="backdrop-mark-anchor" class="w-full">
-											{anchorNames[markCorner.current]}
-										</Select.Trigger>
-										<Select.Content>
-											{#each MARK_ANCHORS as anchor (anchor.id)}
-												<Select.Item value={anchor.id} label={anchor.name} />
-											{/each}
-										</Select.Content>
-									</Select.Root>
+												<div class="flex flex-col gap-1.5">
+													<Label for="backdrop-mark-anchor">Measured from</Label>
+													<Select.Root
+														type="single"
+														value={markCorner.current}
+														onValueChange={(value) => setMarkAnchor(value as MarkAnchor)}
+													>
+														<Select.Trigger id="backdrop-mark-anchor" class="w-full">
+															{anchorNames[markCorner.current]}
+														</Select.Trigger>
+														<Select.Content>
+															{#each MARK_ANCHORS as anchor (anchor.id)}
+																<Select.Item value={anchor.id} label={anchor.name} />
+															{/each}
+														</Select.Content>
+													</Select.Root>
+												</div>
+											{/if}
+										</div>
+										{#if markOn.current}
+											<div class="flex min-w-0 flex-1 flex-col gap-5">
+												{@render slider(
+													"backdrop-mark-opacity",
+													"Opacity",
+													markInkStrength.current + "%",
+													"How much of the page’s own ink the mark is mixed from.",
+													MARK_OPACITY_MIN,
+													MARK_OPACITY_MAX,
+													1,
+													markInkStrength.current,
+													setMarkInkStrength,
+												)}
+												{@render slider(
+													"backdrop-mark-x",
+													anchorLabels.x,
+													markOffsetX.current + "px",
+													`Counted from the ${anchorLabels.x.toLowerCase()} edge of the viewport.`,
+													MARK_OFFSET_MIN,
+													MARK_OFFSET_MAX,
+													10,
+													markOffsetX.current,
+													setMarkOffsetX,
+												)}
+												{@render slider(
+													"backdrop-mark-y",
+													anchorLabels.y,
+													markOffsetY.current + "px",
+													`Counted from the ${anchorLabels.y.toLowerCase()} edge of the viewport.`,
+													MARK_OFFSET_MIN,
+													MARK_OFFSET_MAX,
+													10,
+													markOffsetY.current,
+													setMarkOffsetY,
+												)}
+												{@render slider(
+													"backdrop-mark-zoom",
+													"Size",
+													markScale.current + "px",
+													"The file scales without loss, so this can go well past the page.",
+													MARK_ZOOM_MIN,
+													MARK_ZOOM_MAX,
+													10,
+													markScale.current,
+													setMarkScale,
+												)}
+											</div>
+											{@render dial(
+												"Rotation",
+												"Turned inside the image itself — a background cannot be rotated.",
+												markTurn.current,
+												setMarkTurn,
+												"backdrop-mark-angle",
+											)}
+										{/if}
+									</div>
 								</div>
-							{/if}
-						</div>
-						{#if markOn.current}
-							<div class="flex min-w-0 flex-1 flex-col gap-5">
-								{@render slider(
-									"backdrop-mark-opacity",
-									"Opacity",
-									markInkStrength.current + "%",
-									"How much of the page’s own ink the mark is mixed from.",
-									MARK_OPACITY_MIN,
-									MARK_OPACITY_MAX,
-									1,
-									markInkStrength.current,
-									setMarkInkStrength,
-								)}
-								{@render slider(
-									"backdrop-mark-x",
-									anchorLabels.x,
-									markOffsetX.current + "px",
-									`Counted from the ${anchorLabels.x.toLowerCase()} edge of the viewport.`,
-									MARK_OFFSET_MIN,
-									MARK_OFFSET_MAX,
-									10,
-									markOffsetX.current,
-									setMarkOffsetX,
-								)}
-								{@render slider(
-									"backdrop-mark-y",
-									anchorLabels.y,
-									markOffsetY.current + "px",
-									`Counted from the ${anchorLabels.y.toLowerCase()} edge of the viewport.`,
-									MARK_OFFSET_MIN,
-									MARK_OFFSET_MAX,
-									10,
-									markOffsetY.current,
-									setMarkOffsetY,
-								)}
-								{@render slider(
-									"backdrop-mark-zoom",
-									"Size",
-									markScale.current + "px",
-									"The file scales without loss, so this can go well past the page.",
-									MARK_ZOOM_MIN,
-									MARK_ZOOM_MAX,
-									10,
-									markScale.current,
-									setMarkScale,
-								)}
-							</div>
-							{@render dial(
-								"Rotation",
-								"Turned inside the image itself — a background cannot be rotated.",
-								markTurn.current,
-								setMarkTurn,
-								"backdrop-mark-angle",
-							)}
-						{/if}
-					</div>
+							</Accordion.Content>
+						</Accordion.Item>
+						<Accordion.Item value="grain">
+							<Accordion.Trigger class="items-center font-semibold hover:no-underline">
+								<div class="flex min-w-0 items-center gap-3">
+									<div class="flex size-8 shrink-0 items-center justify-center rounded-lg bg-muted">
+										<GripIcon class="size-4 text-muted-foreground" />
+									</div>
+									<span>Grain</span>
+									{#if grainOn.current}
+										<Badge variant="success-subtle" class="ms-1">On</Badge>
+									{/if}
+								</div>
+							</Accordion.Trigger>
+							<Accordion.Content>
+								<div class="flex flex-col gap-4 ps-11 pe-2">
+									<p class="text-sm text-muted-foreground">Paper texture over everything else.</p>
+									<div class="flex flex-col gap-6 sm:flex-row sm:items-start sm:gap-8">
+										{@render toggle("backdrop-grain", "Grain", grainOn.current, setGrain)}
+										{#if grainOn.current}
+											<div class="flex min-w-0 flex-1 flex-col gap-2">
+												{@render slider(
+													"backdrop-density",
+													"Density",
+													backdropDensity.current + "%",
+													"How much grain. It is balanced light against dark, so it textures the page without lifting it.",
+													BACKDROP_DENSITY_MIN,
+													BACKDROP_DENSITY_MAX,
+													5,
+													backdropDensity.current,
+													setBackdropDensity,
+												)}
+											</div>
+										{/if}
+									</div>
+								</div>
+							</Accordion.Content>
+						</Accordion.Item>
+					</Accordion.Root>
 				</Card.Content>
 			</Card.Root>
 		</DocSection>

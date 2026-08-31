@@ -178,7 +178,14 @@ export const MARK_SOURCE = `${import.meta.env.BASE_URL}backdrop-mark.svg`;
  */
 export const DEFAULT_LAYER_OPACITY = 100;
 export const LAYER_OPACITY_MIN = 0;
-export const LAYER_OPACITY_MAX = 200;
+/*
+ * THE TWO CEILINGS DIFFER BECAUSE THE TWO LAYERS DO. A gradient is a wash the eye reads as depth
+ * and it saturates gracefully, so it is worth being able to push well past the kit’s own taste. A
+ * pattern is drawn hairlines over text; past roughly twice its designed weight it stops being a
+ * texture and becomes a grid the reader has to look through.
+ */
+export const GRADIENT_OPACITY_MAX = 300;
+export const PATTERN_OPACITY_MAX = 200;
 
 export const DEFAULT_BACKDROP_ANGLE = 0;
 export const DEFAULT_BACKDROP_FADE_ANGLE = 0;
@@ -355,7 +362,7 @@ let gradientOpacity = $state<number>(
 		GRADIENT_OPACITY_STORAGE_KEY,
 		DEFAULT_LAYER_OPACITY,
 		LAYER_OPACITY_MIN,
-		LAYER_OPACITY_MAX,
+		GRADIENT_OPACITY_MAX,
 	),
 );
 let patternOpacity = $state<number>(
@@ -363,7 +370,7 @@ let patternOpacity = $state<number>(
 		PATTERN_OPACITY_STORAGE_KEY,
 		DEFAULT_LAYER_OPACITY,
 		LAYER_OPACITY_MIN,
-		LAYER_OPACITY_MAX,
+		PATTERN_OPACITY_MAX,
 	),
 );
 let markAnchor = $state<MarkAnchor>(readAnchor());
@@ -837,12 +844,12 @@ export function setMarkScale(value: number): void {
 }
 
 export function setGradientStrength(value: number): void {
-	gradientOpacity = clamp(value, LAYER_OPACITY_MIN, LAYER_OPACITY_MAX);
+	gradientOpacity = clamp(value, LAYER_OPACITY_MIN, GRADIENT_OPACITY_MAX);
 	persist(GRADIENT_OPACITY_STORAGE_KEY, String(gradientOpacity));
 }
 
 export function setPatternStrength(value: number): void {
-	patternOpacity = clamp(value, LAYER_OPACITY_MIN, LAYER_OPACITY_MAX);
+	patternOpacity = clamp(value, LAYER_OPACITY_MIN, PATTERN_OPACITY_MAX);
 	persist(PATTERN_OPACITY_STORAGE_KEY, String(patternOpacity));
 }
 
