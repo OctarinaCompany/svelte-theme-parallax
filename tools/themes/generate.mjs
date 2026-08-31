@@ -116,10 +116,11 @@ const CSS_HEADER = `/**
  *   --sidebar-outline         a new token, and the counterpart \`--sidebar-border\` cannot be.
  *                             That one is the anchor palette's \`navbar-*-border-color\`, which in DARK is
  *                             set flush with the panel on purpose — the rail has no visible
- *                             edge there. Anything drawn INSIDE the panel (the identity
- *                             buttons, the floating variant's ring) still needs a hairline that
- *                             reads, so it gets its own: n300 against a white panel, d700
- *                             against a d800 one. One step off the surface either way.
+ *                             edge there. Anything drawn INSIDE the panel — the identity
+ *                             buttons, the floating variant's ring, the nested menu's guide,
+ *                             the rail's drag strip — still needs a hairline that reads, so it
+ *                             gets its own: n300 against a white panel, d700 against a d800
+ *                             one. One step off the surface either way.
  *
  * HOW A COLLISION IS RESOLVED. The four status hues are fixed for every theme — Material 3
  * pins its error palette independently of the brand seed for the same reason — and only move
