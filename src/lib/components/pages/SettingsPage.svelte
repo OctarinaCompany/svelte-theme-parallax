@@ -329,38 +329,35 @@
 			{/snippet}
 
 			<!--
-				FOUR CARDS, NOT ONE, and the split is the model showing through. These used to be one
-				card with a category chooser at the top, because a backdrop was one choice out of
-				twenty-four and picking a gradient meant giving up a pattern. They compose now, so a
-				single card with one selection in it would be a lie about what the axis does.
+				ONE ROW PER CARD: what to paint on the left, how to paint it on the right. The choice and
+				its settings were stacked, which made a card as tall as the four of them used to be
+				together and pushed the dial — the control most worth finding — below the fold.
+
+				`items-start` rather than `items-center`: the left column grows by a line when a blurb
+				wraps, and centring would then walk the dial up and down as the reader changes their
+				mind. `flex-col` until `sm`, because three cells side by side on a phone is three
+				unusable cells.
 			-->
 			<Card.Root>
 				<Card.Header class="flex flex-col gap-1 space-y-0">
 					<Card.Title>Gradient</Card.Title>
 					<Card.Description>A light thrown across the page.</Card.Description>
 				</Card.Header>
-				<Card.Content class="flex flex-col gap-6">
-					{@render lookPicker("Gradient", GRADIENTS, activeGradient.current, (id) =>
-						setGradient(id as GradientId),
-					)}
-
-					{#if activeGradient.current !== "none"}
-						<div class="flex flex-col gap-4 border-t pt-6 sm:flex-row sm:items-center sm:gap-8">
-							<div class="flex flex-col gap-1">
-								<span id="backdrop-angle-label" class="text-sm font-medium">Angle</span>
-								<p id="backdrop-angle-hint" class="text-sm text-muted-foreground">
-									Where the light comes from, as a bearing. 0° leaves each gradient where it sits by
-									default, and the dial turns it from there.
-								</p>
-							</div>
+				<Card.Content>
+					<div class="flex flex-col gap-6 sm:flex-row sm:items-start sm:gap-8">
+						{@render lookPicker("Gradient", GRADIENTS, activeGradient.current, (id) =>
+							setGradient(id as GradientId),
+						)}
+						{#if activeGradient.current !== "none"}
 							{@render dial(
+								"Angle",
+								"Where the light comes from. 0° is where this gradient sits by default.",
 								backdropAngle.current,
 								setBackdropAngle,
-								"backdrop-angle-label",
-								"backdrop-angle-hint",
+								"backdrop-angle",
 							)}
-						</div>
-					{/if}
+						{/if}
+					</div>
 				</Card.Content>
 			</Card.Root>
 
@@ -369,40 +366,34 @@
 					<Card.Title>Pattern</Card.Title>
 					<Card.Description>A drawn lattice, fading out toward a bearing.</Card.Description>
 				</Card.Header>
-				<Card.Content class="flex flex-col gap-6">
-					{@render lookPicker("Pattern", PATTERNS, activePattern.current, (id) =>
-						setPattern(id as PatternId),
-					)}
-
-					{#if activePattern.current !== "none"}
-						<div class="flex flex-col gap-4 border-t pt-6 sm:flex-row sm:items-center sm:gap-8">
-							<div class="flex flex-col gap-1">
-								<span id="backdrop-fade-angle-label" class="text-sm font-medium">Fade angle</span>
-								<p id="backdrop-fade-angle-hint" class="text-sm text-muted-foreground">
-									Which side the lattice fades out toward: 0° at the top, running clockwise. The
-									lattice itself does not turn — the stylesheet says why.
-								</p>
+				<Card.Content>
+					<div class="flex flex-col gap-6 sm:flex-row sm:items-start sm:gap-8">
+						{@render lookPicker("Pattern", PATTERNS, activePattern.current, (id) =>
+							setPattern(id as PatternId),
+						)}
+						{#if activePattern.current !== "none"}
+							<div class="flex min-w-0 flex-1 flex-col gap-2">
+								{@render slider(
+									"backdrop-fade",
+									"Fade length",
+									backdropFade.current + "px",
+									"How far the fade runs before the lattice is at full strength. At 0 it covers the page.",
+									BACKDROP_FADE_MIN,
+									BACKDROP_FADE_MAX,
+									20,
+									backdropFade.current,
+									setBackdropFade,
+								)}
 							</div>
 							{@render dial(
+								"Fade angle",
+								"Which side the lattice fades out toward. The lattice itself does not turn.",
 								backdropFadeAngle.current,
 								setBackdropFadeAngle,
-								"backdrop-fade-angle-label",
-								"backdrop-fade-angle-hint",
+								"backdrop-fade-angle",
 							)}
-						</div>
-
-						{@render slider(
-							"backdrop-fade",
-							"Fade length",
-							backdropFade.current + "px",
-							"How far the fade runs before the lattice is at full strength. At 0 there is no fade and the pattern covers the page.",
-							BACKDROP_FADE_MIN,
-							BACKDROP_FADE_MAX,
-							20,
-							backdropFade.current,
-							setBackdropFade,
-						)}
-					{/if}
+						{/if}
+					</div>
 				</Card.Content>
 			</Card.Root>
 
@@ -411,24 +402,25 @@
 					<Card.Title>Grain</Card.Title>
 					<Card.Description>Paper texture over everything else.</Card.Description>
 				</Card.Header>
-				<Card.Content class="flex flex-col gap-6">
-					<div class="flex items-center justify-between gap-4">
-						<Label for="backdrop-grain">Grain</Label>
-						<Switch id="backdrop-grain" checked={grainOn.current} onCheckedChange={setGrain} />
+				<Card.Content>
+					<div class="flex flex-col gap-6 sm:flex-row sm:items-start sm:gap-8">
+						{@render toggle("backdrop-grain", "Grain", grainOn.current, setGrain)}
+						{#if grainOn.current}
+							<div class="flex min-w-0 flex-1 flex-col gap-2">
+								{@render slider(
+									"backdrop-density",
+									"Density",
+									backdropDensity.current + "%",
+									"The scale of the grain. Lower is finer — the same noise, sampled smaller.",
+									BACKDROP_DENSITY_MIN,
+									BACKDROP_DENSITY_MAX,
+									5,
+									backdropDensity.current,
+									setBackdropDensity,
+								)}
+							</div>
+						{/if}
 					</div>
-					{#if grainOn.current}
-						{@render slider(
-							"backdrop-density",
-							"Density",
-							backdropDensity.current + "%",
-							"The scale of the grain. Lower is finer — the same noise, sampled smaller.",
-							BACKDROP_DENSITY_MIN,
-							BACKDROP_DENSITY_MAX,
-							5,
-							backdropDensity.current,
-							setBackdropDensity,
-						)}
-					{/if}
 				</Card.Content>
 			</Card.Root>
 
@@ -441,61 +433,54 @@
 						that file, keeping the name.
 					</Card.Description>
 				</Card.Header>
-				<Card.Content class="flex flex-col gap-6">
-					<div class="flex items-center justify-between gap-4">
-						<Label for="backdrop-mark">Mark</Label>
-						<Switch id="backdrop-mark" checked={markOn.current} onCheckedChange={setMark} />
-					</div>
-					{#if markOn.current}
-						{@render slider(
-							"backdrop-mark-x",
-							"Left",
-							markOffsetX.current + "px",
-							"Where its left edge sits, measured from the left of the viewport.",
-							MARK_OFFSET_MIN,
-							MARK_OFFSET_MAX,
-							10,
-							markOffsetX.current,
-							setMarkOffsetX,
-						)}
-						{@render slider(
-							"backdrop-mark-y",
-							"Top",
-							markOffsetY.current + "px",
-							"Where its top edge sits, measured from the top of the viewport.",
-							MARK_OFFSET_MIN,
-							MARK_OFFSET_MAX,
-							10,
-							markOffsetY.current,
-							setMarkOffsetY,
-						)}
-						{@render slider(
-							"backdrop-mark-zoom",
-							"Size",
-							markScale.current + "px",
-							"How large it is drawn. The file scales without loss, so this can go well past the page.",
-							MARK_ZOOM_MIN,
-							MARK_ZOOM_MAX,
-							10,
-							markScale.current,
-							setMarkScale,
-						)}
-						<div class="flex flex-col gap-4 border-t pt-6 sm:flex-row sm:items-center sm:gap-8">
-							<div class="flex flex-col gap-1">
-								<span id="backdrop-mark-angle-label" class="text-sm font-medium">Rotation</span>
-								<p id="backdrop-mark-angle-hint" class="text-sm text-muted-foreground">
-									How far it is turned, clockwise. The rotation is applied inside the image itself —
-									a background cannot be rotated, and the mark is painted on two carriers at once.
-								</p>
+				<Card.Content>
+					<div class="flex flex-col gap-6 sm:flex-row sm:items-start sm:gap-8">
+						{@render toggle("backdrop-mark", "Mark", markOn.current, setMark)}
+						{#if markOn.current}
+							<div class="flex min-w-0 flex-1 flex-col gap-5">
+								{@render slider(
+									"backdrop-mark-x",
+									"Left",
+									markOffsetX.current + "px",
+									"Its left edge, from the left of the viewport.",
+									MARK_OFFSET_MIN,
+									MARK_OFFSET_MAX,
+									10,
+									markOffsetX.current,
+									setMarkOffsetX,
+								)}
+								{@render slider(
+									"backdrop-mark-y",
+									"Top",
+									markOffsetY.current + "px",
+									"Its top edge, from the top of the viewport.",
+									MARK_OFFSET_MIN,
+									MARK_OFFSET_MAX,
+									10,
+									markOffsetY.current,
+									setMarkOffsetY,
+								)}
+								{@render slider(
+									"backdrop-mark-zoom",
+									"Size",
+									markScale.current + "px",
+									"The file scales without loss, so this can go well past the page.",
+									MARK_ZOOM_MIN,
+									MARK_ZOOM_MAX,
+									10,
+									markScale.current,
+									setMarkScale,
+								)}
 							</div>
 							{@render dial(
+								"Rotation",
+								"Turned inside the image itself — a background cannot be rotated.",
 								markTurn.current,
 								setMarkTurn,
-								"backdrop-mark-angle-label",
-								"backdrop-mark-angle-hint",
+								"backdrop-mark-angle",
 							)}
-						</div>
-					{/if}
+						{/if}
+					</div>
 				</Card.Content>
 			</Card.Root>
 		</DocSection>
@@ -618,6 +603,12 @@
 	slider and the density slider drift apart.
 -->
 <!--
+	FOUR SNIPPETS RATHER THAN FOUR COPIES OF EACH. Every card needs the same shapes — a picker, a
+	toggle, a labelled slider, a dial — and written out per card they were the same twenty lines
+	five times over, which is how the fade slider and the density slider drift apart.
+-->
+
+<!--
 	A DROPDOWN, NOT A GRID OF CARDS. Twelve gradients and ten patterns as two-line cards ran to
 	about nine hundred pixels of Settings before the first adjustment, which buried the very
 	controls the cards were there to introduce. The blurb is not lost: the chosen look's own
@@ -634,18 +625,18 @@
 	choose: (id: string) => void,
 )}
 	{@const chosen = looks.find((look) => look.id === active)}
-	<div class="flex flex-col gap-2">
+	<div class="flex min-w-0 flex-col gap-2 sm:w-56 sm:shrink-0">
 		<Select.Root type="single" value={active} onValueChange={choose}>
-			<Select.Trigger class="w-full sm:w-64" aria-label={label}>
+			<Select.Trigger class="w-full" aria-label={label}>
 				{chosen ? chosen.name : "None"}
 			</Select.Trigger>
 			<!--
 				The height cap because two-line rows run past a laptop viewport once the list is this
-				long — the generated content scrolls but carries no height of its own.
+				long — the generated content scrolls but carries no height of its own. The panel is
+				wider than its trigger on purpose: the trigger only has to hold a name, the rows hold a
+				sentence, and `--bits-select-anchor-width` would wrap every one of them to three lines.
 			-->
-			<Select.Content
-				class="max-h-(--bits-floating-available-height) w-(--bits-select-anchor-width)"
-			>
+			<Select.Content class="max-h-(--bits-floating-available-height) w-72">
 				<Select.Item value="none" label="None">
 					<span class="flex min-w-0 flex-col">
 						<span class="font-medium">None</span>
@@ -662,9 +653,17 @@
 				{/each}
 			</Select.Content>
 		</Select.Root>
-		<p class="text-sm text-muted-foreground">
+		<p class="text-xs text-muted-foreground">
 			{chosen ? chosen.blurb : "This layer paints nothing."}
 		</p>
+	</div>
+{/snippet}
+
+<!-- The on/off axes have no list, so their first cell is the switch itself. -->
+{#snippet toggle(id: string, label: string, on: boolean, set: (next: boolean) => void)}
+	<div class="flex items-center gap-3 sm:w-56 sm:shrink-0">
+		<Switch {id} checked={on} onCheckedChange={set} />
+		<Label for={id}>{label}</Label>
 	</div>
 {/snippet}
 
@@ -679,37 +678,44 @@
 	value: number,
 	set: (next: number) => void,
 )}
-	<div class="flex flex-col gap-2 border-t pt-6">
+	<div class="flex flex-col gap-1.5">
 		<div class="flex items-baseline justify-between gap-4">
 			<Label for={id}>{label}</Label>
 			<span class="font-mono text-xs text-muted-foreground tabular-nums">{readout}</span>
 		</div>
-		<p class="text-sm text-muted-foreground">{hint}</p>
-		<Slider {id} type="single" class="mt-2" {min} {max} {step} {value} onValueChange={set} />
+		<Slider {id} type="single" {min} {max} {step} {value} onValueChange={set} />
+		<p class="text-xs text-muted-foreground">{hint}</p>
 	</div>
 {/snippet}
 
 <!--
-	The label is not a `<Label for>`: the dial's root is a `<div>`, and `for` binds only to a
-	labelable element. The control is the THUMB, which carries `role="slider"`, so the visible text
-	and the description are pointed AT it instead — the association runs the other way round from a
-	form field's.
+	The caption is not a `<Label for>`: the dial's root is a `<div>`, and `for` binds only to a
+	labelable element. The control is the THUMB, which carries `role="slider"`, so the caption and
+	the hint are pointed AT it instead — the association runs the other way round from a form
+	field's, which is also why both need ids of their own.
 -->
-{#snippet dial(value: number, set: (next: number) => void, labelledBy: string, describedBy: string)}
-	<AngleSlider.Root
-		class="shrink-0 self-center sm:ms-auto"
-		min={0}
-		max={360}
-		step={1}
-		size={52}
-		value={[value]}
-		onValueChange={(next) => set(next[0] ?? 0)}
-		onkeydown={(event) => wrapAtZero(event, value, set)}
-	>
-		<AngleSlider.Track>
-			<AngleSlider.Range />
-		</AngleSlider.Track>
-		<AngleSlider.Thumb aria-labelledby={labelledBy} aria-describedby={describedBy} />
-		<AngleSlider.Value />
-	</AngleSlider.Root>
+{#snippet dial(label: string, hint: string, value: number, set: (next: number) => void, id: string)}
+	<!-- `ms-auto` so the dial sits at the far edge whether or not the card has a middle cell:
+	     Gradient has none, and without it the dial hugged the select and left half the row empty. -->
+	<div class="flex shrink-0 flex-col items-center gap-1 self-center sm:ms-auto sm:self-start">
+		<span id="{id}-label" class="text-sm font-medium">{label}</span>
+		<AngleSlider.Root
+			min={0}
+			max={360}
+			step={1}
+			size={46}
+			value={[value]}
+			onValueChange={(next) => set(next[0] ?? 0)}
+			onkeydown={(event) => wrapAtZero(event, value, set)}
+		>
+			<AngleSlider.Track>
+				<AngleSlider.Range />
+			</AngleSlider.Track>
+			<AngleSlider.Thumb aria-labelledby="{id}-label" aria-describedby="{id}-hint" />
+			<AngleSlider.Value />
+		</AngleSlider.Root>
+		<span id="{id}-hint" class="max-w-44 text-center text-xs text-balance text-muted-foreground">
+			{hint}
+		</span>
+	</div>
 {/snippet}
