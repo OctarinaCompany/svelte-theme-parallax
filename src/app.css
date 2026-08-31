@@ -1022,11 +1022,15 @@
 	 * over-subscribed edge and multiplies EVERY corner of the box by it, landing at 5px. The free
 	 * edge therefore stays a perfect half-round CAP rather than degrading into a corner.
 	 *
-	 * It also stays MATCHED. Every surface that carries this mark is the same thickness asking
-	 * for the same `var(--radius)`, so they all scale by the same f and all end up capped
-	 * identically — the scaling is uniform, not per-surface drift. (An earlier note here claimed
-	 * the opposite; it was wrong about how the rule applies.) What WOULD break the match is
-	 * giving one surface a different thickness while the others kept theirs.
+	 * TWO WEIGHTS NOW, SPLIT BY AXIS, on the owner's eye rather than on an argument: a mark that
+	 * runs VERTICALLY — this bar, and the vertical tab row's — is 5px, and one that runs
+	 * HORIZONTALLY — the tab row's underline, and the two hand-rolled rows that copy it — is 6px.
+	 * The same stroke reads heavier lying down than standing up, and the split is the answer to
+	 * that rather than a drift.
+	 *
+	 * The caps differ with them, and that follows from the scaling above: the 6px marks fill the
+	 * radius exactly and cap at 6, these scale by f = 5/6 and cap at 5. Every mark on one axis
+	 * still caps identically to every other on that axis, which is the match that has to hold.
 	 *
 	 * The other axis has room to spare: 5 + 5 against the 24px the 0.25rem insets leave of a
 	 * 2rem row.
@@ -2995,12 +2999,13 @@ ol[data-sonner-toaster] [data-sonner-toast][data-styled="true"] [data-close-butt
  * trigger — an offset measured for its own 3px-padded bar. The house marker is the link's own
  * bottom border in `primary`, sitting exactly on the list's rule.
  *
- * FIVE PIXELS, NOT THE REFERENCE'S ONE. `nav-tabs-link-active-border-width` is 1px, and that is
- * what this rule shipped; 5px is an owner call, and it is not a free number — it is the width of
- * the sidebar's active bar, so the two marks that answer the same question ("which one am I on?")
- * carry the same weight whichever navigation is asking. `bottom: -1px` is unchanged and does the
+ * SIX PIXELS, NOT THE REFERENCE'S ONE. `nav-tabs-link-active-border-width` is 1px, and that is
+ * what this rule shipped; 6px is an owner call. It is deliberately ONE MORE than the 5px the
+ * vertical marks carry — the sidebar's bar and the vertical tab row's — because the same stroke
+ * reads heavier lying down than standing up, and the axis split is what makes the two families
+ * read as one weight rather than measure as one number. `bottom: -1px` is unchanged and does the
  * same job at any thickness: the bar's BOTTOM edge lands on the list's own 1px rule, so the extra
- * thickness grows UPWARD into the trigger — 4px of the 1rem `padding-block` set above, and 4 of
+ * thickness grows UPWARD into the trigger — 5px of the 1rem `padding-block` set above, and 5 of
  * the 1.1538461538rem the `sm` row scales it to — and the rule underneath stays where it was.
  *
  * Unreachable from the call site twice over: it is a pseudo-element, and the base classes carry it
@@ -3015,7 +3020,7 @@ ol[data-sonner-toaster] [data-sonner-toast][data-styled="true"] [data-close-butt
 	/* The link is pulled down by minus one border width
 	   so its bottom border lands ON the list's rule rather than above it. */
 	bottom: -1px;
-	height: 5px; /* owner override of nav-tabs-link-active-border-width (1px) */
+	height: 6px; /* owner override of nav-tabs-link-active-border-width (1px) */
 	background-color: var(--primary); /* nav-tabs-link-active-border-color */
 	/*
 	 * Rounded on the TWO TOP CORNERS ONLY, the same reasoning as the sidebar bar's two right
@@ -3025,11 +3030,12 @@ ol[data-sonner-toaster] [data-sonner-toast][data-styled="true"] [data-close-butt
 	 * its ends. The top is the edge that touches nothing, so that is the edge that is cut.
 	 *
 	 * `var(--radius)` for the same reason as there: 6px is what the surfaces around it carry, and
-	 * the value follows the token rather than restating it. At a 5px bar that radius is
-	 * over-subscribed, so the browser scales every corner by f = 5/6 and the top edge reads as a
-	 * half-round cap — the same scaling, from the same f, that the sidebar's mark takes, which is
-	 * what keeps the two identical. The other axis has room: 5 + 5 against the narrowest trigger
-	 * on the page, 36px on the `sm` row.
+	 * the value follows the token rather than restating it. At a 6px bar the radius fills the
+	 * thickness exactly, so the top edge reads as a half-round CAP rather than as two corners —
+	 * the same reading the 5px vertical marks get, which reach it by scaling instead (they are
+	 * narrower than the radius, so CSS takes f = 5/6 and caps them at 5). Same shape, two
+	 * weights, one per axis. The other axis here has room: 6 + 6 against the narrowest trigger on
+	 * the page, 36px on the `sm` row.
 	 */
 	border-top-left-radius: var(--radius);
 	border-top-right-radius: var(--radius);

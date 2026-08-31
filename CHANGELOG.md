@@ -88,9 +88,10 @@ ships today is listed here.
   `package.json` at build time, so a fork's remote is the only place it is written down.
 - **One mark for "which one am I on?".** The sidebar's active item, the horizontal `line` tab
   row, the vertical one turned a quarter, and the two hand-rolled tab rows on the Chart and Page
-  headers pages now all carry the same shape: 5px of `primary` with a `var(--radius)` curve on its
+  headers pages now all carry the same shape: `primary` with a `var(--radius)` curve on its
   free edge — the edge that touches nothing, so the anchored one stays square and the mark sits on
-  the rule it is measured onto. The vertical tab list gained that rule down its right edge, where
+  the rule it is measured onto. Two weights, split by axis: 6px for a mark that runs horizontally,
+  5px for one that runs vertically, because the same stroke reads heavier lying down. The vertical tab list gained that rule down its right edge, where
   it used to wear the horizontal reading's along its bottom. It replaces a ladder of 2px, 1px and
   2px that had no reading.
 - **A card header whose navigation meets the rule.** The Card page gains the shape the classic

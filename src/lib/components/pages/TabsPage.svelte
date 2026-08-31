@@ -39,9 +39,11 @@
 	 *
 	 * shadcn already ships that silhouette as `Tabs.List variant="line"`, so every list here
 	 * asks for it, and the classic theme's measurements are applied to that variant in `app.css` —
-	 * EXCEPT the active mark's weight and corner, which the owner re-cuts to the house shape: 5px
-	 * of `primary` with a `var(--radius)` curve on its two top corners, the same mark the sidebar's
-	 * active item carries turned on its side. `app.css` shouts that override where it is made. The
+	 * EXCEPT the active mark's weight and corner, which the owner re-cuts to the house shape: 6px
+	 * of `primary` with a `var(--radius)` curve on its two top corners. It is the sidebar's active
+	 * bar turned on its side and given one pixel more, because a stroke lying down reads heavier
+	 * than the same one standing up — the marks that RUN vertically are 5px, the ones that run
+	 * horizontally 6. `app.css` shouts that override where it is made. The
 	 * default pill variant is deliberately left alone: its classic counterpart is `.nav-pills`
 	 * (`nav-pills-link-active-bg: component-active-bg`, a solid `primary` pill), which is a
 	 * different component from `.nav-tabs`.
