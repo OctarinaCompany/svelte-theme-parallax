@@ -109,6 +109,11 @@
 			 * every other stored id here; an unknown one falls back to the top-left corner, which is
 			 * what CSS would have done anyway.
 			 */
+			function echoFactor(key, property) {
+				var v = num(key);
+				if (v === null) return;
+				document.documentElement.style.setProperty(property, String(v / 100));
+			}
 			function echoMarkPosition() {
 				var x = num("backdrop-mark-x");
 				var y = num("backdrop-mark-y");
@@ -177,6 +182,9 @@
 					echo("backdrop-fade-angle", "--backdrop-fade-angle");
 					echo("backdrop-fade", "--backdrop-fade");
 					echo("backdrop-density", "--backdrop-density");
+					/* Factors, not percentages — see the note beside the effect that writes them. */
+					echoFactor("backdrop-gradient-opacity", "--backdrop-gradient-k");
+					echoFactor("backdrop-pattern-opacity", "--backdrop-pattern-k");
 					echoMarkPosition();
 					echoSquare("backdrop-mark-zoom", "--backdrop-mark-size");
 				}

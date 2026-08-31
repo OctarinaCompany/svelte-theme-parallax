@@ -46,7 +46,14 @@
 		markScale,
 		markTurn,
 		markCorner,
+		markInkStrength,
+		gradientStrength,
+		patternStrength,
 		MARK_ANCHORS,
+		MARK_OPACITY_MAX,
+		MARK_OPACITY_MIN,
+		LAYER_OPACITY_MAX,
+		LAYER_OPACITY_MIN,
 		BACKDROP_DENSITY_MAX,
 		BACKDROP_DENSITY_MIN,
 		BACKDROP_FADE_MAX,
@@ -69,6 +76,9 @@
 		setMarkScale,
 		setMarkTurn,
 		setMarkAnchor,
+		setMarkInkStrength,
+		setGradientStrength,
+		setPatternStrength,
 		setPattern,
 		type GradientId,
 		type MarkAnchor,
@@ -358,6 +368,19 @@
 							setGradient(id as GradientId),
 						)}
 						{#if activeGradient.current !== "none"}
+							<div class="flex min-w-0 flex-1 flex-col gap-2">
+								{@render slider(
+									"backdrop-gradient-opacity",
+									"Opacity",
+									gradientStrength.current + "%",
+									"As a share of the weight this light was designed at. 100% is the kit’s own calibration.",
+									LAYER_OPACITY_MIN,
+									LAYER_OPACITY_MAX,
+									5,
+									gradientStrength.current,
+									setGradientStrength,
+								)}
+							</div>
 							{@render dial(
 								"Angle",
 								"Where the light comes from. 0° is where this gradient sits by default.",
@@ -381,7 +404,18 @@
 							setPattern(id as PatternId),
 						)}
 						{#if activePattern.current !== "none"}
-							<div class="flex min-w-0 flex-1 flex-col gap-2">
+							<div class="flex min-w-0 flex-1 flex-col gap-5">
+								{@render slider(
+									"backdrop-pattern-opacity",
+									"Opacity",
+									patternStrength.current + "%",
+									"As a share of the weight this lattice was designed at.",
+									LAYER_OPACITY_MIN,
+									LAYER_OPACITY_MAX,
+									5,
+									patternStrength.current,
+									setPatternStrength,
+								)}
 								{@render slider(
 									"backdrop-fade",
 									"Fade length",
@@ -420,7 +454,7 @@
 									"backdrop-density",
 									"Density",
 									backdropDensity.current + "%",
-									"The scale of the grain. Lower is finer — the same noise, sampled smaller.",
+									"How much grain. It is balanced light against dark, so it textures the page without lifting it.",
 									BACKDROP_DENSITY_MIN,
 									BACKDROP_DENSITY_MAX,
 									5,
@@ -477,6 +511,17 @@
 						</div>
 						{#if markOn.current}
 							<div class="flex min-w-0 flex-1 flex-col gap-5">
+								{@render slider(
+									"backdrop-mark-opacity",
+									"Opacity",
+									markInkStrength.current + "%",
+									"How much of the page’s own ink the mark is mixed from.",
+									MARK_OPACITY_MIN,
+									MARK_OPACITY_MAX,
+									1,
+									markInkStrength.current,
+									setMarkInkStrength,
+								)}
 								{@render slider(
 									"backdrop-mark-x",
 									anchorLabels.x,

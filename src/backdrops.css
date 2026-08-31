@@ -378,24 +378,48 @@
  * ========================================================================================== */
 
 :root[data-backdrop-gradient="glow"] {
-	--backdrop-glow-1: color-mix(in oklab, var(--primary) 16%, transparent);
-	--backdrop-glow-2: color-mix(in oklab, var(--sidebar-primary) 10%, transparent);
+	--backdrop-glow-1: color-mix(
+		in oklab,
+		var(--primary) calc(16% * var(--backdrop-gradient-k)),
+		transparent
+	);
+	--backdrop-glow-2: color-mix(
+		in oklab,
+		var(--sidebar-primary) calc(10% * var(--backdrop-gradient-k)),
+		transparent
+	);
 }
 
 :root[data-backdrop-gradient="glow"].dark {
-	--backdrop-glow-1: color-mix(in oklab, var(--primary) 22%, transparent);
-	--backdrop-glow-2: color-mix(in oklab, var(--sidebar-primary) 14%, transparent);
+	--backdrop-glow-1: color-mix(
+		in oklab,
+		var(--primary) calc(22% * var(--backdrop-gradient-k)),
+		transparent
+	);
+	--backdrop-glow-2: color-mix(
+		in oklab,
+		var(--sidebar-primary) calc(14% * var(--backdrop-gradient-k)),
+		transparent
+	);
 }
 
 @supports (color: oklch(from red l c h)) {
 	:root[data-backdrop-gradient="glow"] {
-		--backdrop-glow-1: oklch(from var(--primary) 0.9 max(c, 0.07) h / 0.65);
-		--backdrop-glow-2: oklch(from var(--primary) 0.92 max(c, 0.05) calc(h - 40) / 0.45);
+		--backdrop-glow-1: oklch(
+			from var(--primary) 0.9 max(c, 0.07) h / calc(0.65 * var(--backdrop-gradient-k))
+		);
+		--backdrop-glow-2: oklch(
+			from var(--primary) 0.92 max(c, 0.05) calc(h - 40) / calc(0.45 * var(--backdrop-gradient-k))
+		);
 	}
 
 	:root[data-backdrop-gradient="glow"].dark {
-		--backdrop-glow-1: oklch(from var(--primary) 0.34 max(c, 0.07) h / 0.75);
-		--backdrop-glow-2: oklch(from var(--primary) 0.32 max(c, 0.05) calc(h - 40) / 0.55);
+		--backdrop-glow-1: oklch(
+			from var(--primary) 0.34 max(c, 0.07) h / calc(0.75 * var(--backdrop-gradient-k))
+		);
+		--backdrop-glow-2: oklch(
+			from var(--primary) 0.32 max(c, 0.05) calc(h - 40) / calc(0.55 * var(--backdrop-gradient-k))
+		);
 	}
 }
 
@@ -462,17 +486,20 @@
 	 */
 	--backdrop-aur-1: color-mix(
 		in oklab,
-		color-mix(in oklab, var(--primary) 26%, var(--background)) 34%,
+		color-mix(in oklab, var(--primary) 26%, var(--background))
+			calc(34% * var(--backdrop-gradient-k)),
 		transparent
 	);
 	--backdrop-aur-2: color-mix(
 		in oklab,
-		color-mix(in oklab, var(--primary) 20%, var(--background)) 28%,
+		color-mix(in oklab, var(--primary) 20%, var(--background))
+			calc(28% * var(--backdrop-gradient-k)),
 		transparent
 	);
 	--backdrop-aur-3: color-mix(
 		in oklab,
-		color-mix(in oklab, var(--primary) 14%, var(--background)) 24%,
+		color-mix(in oklab, var(--primary) 14%, var(--background))
+			calc(24% * var(--backdrop-gradient-k)),
 		transparent
 	);
 }
@@ -494,17 +521,20 @@
 :root[data-backdrop-gradient="aurora"].dark {
 	--backdrop-aur-1: color-mix(
 		in oklab,
-		color-mix(in oklab, var(--primary) 22%, var(--background)) 40%,
+		color-mix(in oklab, var(--primary) 22%, var(--background))
+			calc(40% * var(--backdrop-gradient-k)),
 		transparent
 	);
 	--backdrop-aur-2: color-mix(
 		in oklab,
-		color-mix(in oklab, var(--primary) 16%, var(--background)) 34%,
+		color-mix(in oklab, var(--primary) 16%, var(--background))
+			calc(34% * var(--backdrop-gradient-k)),
 		transparent
 	);
 	--backdrop-aur-3: color-mix(
 		in oklab,
-		color-mix(in oklab, var(--primary) 11%, var(--background)) 28%,
+		color-mix(in oklab, var(--primary) 11%, var(--background))
+			calc(28% * var(--backdrop-gradient-k)),
 		transparent
 	);
 }
@@ -516,14 +546,17 @@
 		 * arrangement: the sRGB gamut widens as lightness falls, so the field carrying the brand
 		 * hue is put where there is room for chroma to exist at all.
 		 */
-		--backdrop-aur-1: oklch(from var(--primary) 0.9 clamp(0.034, calc(c * 0.34), 0.055) h / 0.5);
+		--backdrop-aur-1: oklch(
+			from var(--primary) 0.9 clamp(0.034, calc(c * 0.34), 0.055) h /
+				calc(0.5 * var(--backdrop-gradient-k))
+		);
 		--backdrop-aur-2: oklch(
 			from var(--primary) 0.918 clamp(0.026, calc(c * 0.25), 0.04)
-				calc(h + var(--backdrop-aur-fan)) / 0.42
+				calc(h + var(--backdrop-aur-fan)) / calc(0.42 * var(--backdrop-gradient-k))
 		);
 		--backdrop-aur-3: oklch(
 			from var(--primary) 0.934 clamp(0.019, calc(c * 0.18), 0.028)
-				calc(h - var(--backdrop-aur-fan)) / 0.34
+				calc(h - var(--backdrop-aur-fan)) / calc(0.34 * var(--backdrop-gradient-k))
 		);
 	}
 
@@ -531,14 +564,17 @@
 		/* Pressed to the ground's own lightness band and paid for in chroma instead: alpha scales
 		   the lift and the tint by the same factor, so sitting near the ground buys the most
 		   colour for the least disturbance of the card step above it. */
-		--backdrop-aur-1: oklch(from var(--primary) 0.292 clamp(0.062, calc(c * 0.75), 0.115) h / 0.6);
+		--backdrop-aur-1: oklch(
+			from var(--primary) 0.292 clamp(0.062, calc(c * 0.75), 0.115) h /
+				calc(0.6 * var(--backdrop-gradient-k))
+		);
 		--backdrop-aur-2: oklch(
 			from var(--primary) 0.288 clamp(0.048, calc(c * 0.55), 0.09)
-				calc(h + var(--backdrop-aur-fan)) / 0.5
+				calc(h + var(--backdrop-aur-fan)) / calc(0.5 * var(--backdrop-gradient-k))
 		);
 		--backdrop-aur-3: oklch(
 			from var(--primary) 0.284 clamp(0.034, calc(c * 0.38), 0.062)
-				calc(h - var(--backdrop-aur-fan)) / 0.42
+				calc(h - var(--backdrop-aur-fan)) / calc(0.42 * var(--backdrop-gradient-k))
 		);
 	}
 }
@@ -671,17 +707,29 @@
 :root[data-backdrop-gradient="spotlight"] {
 	--backdrop-home-a: 0;
 	--backdrop-home-r: 56;
-	--backdrop-spot: color-mix(in oklab, var(--primary) 14%, transparent);
+	--backdrop-spot: color-mix(
+		in oklab,
+		var(--primary) calc(14% * var(--backdrop-gradient-k)),
+		transparent
+	);
 }
 :root[data-backdrop-gradient="spotlight"].dark {
-	--backdrop-spot: color-mix(in oklab, var(--primary) 20%, transparent);
+	--backdrop-spot: color-mix(
+		in oklab,
+		var(--primary) calc(20% * var(--backdrop-gradient-k)),
+		transparent
+	);
 }
 @supports (color: oklch(from red l c h)) {
 	:root[data-backdrop-gradient="spotlight"] {
-		--backdrop-spot: oklch(from var(--primary) 0.91 max(c, 0.06) h / 0.6);
+		--backdrop-spot: oklch(
+			from var(--primary) 0.91 max(c, 0.06) h / calc(0.6 * var(--backdrop-gradient-k))
+		);
 	}
 	:root[data-backdrop-gradient="spotlight"].dark {
-		--backdrop-spot: oklch(from var(--primary) 0.35 max(calc(c * 0.7), 0.05) h / 0.7);
+		--backdrop-spot: oklch(
+			from var(--primary) 0.35 max(calc(c * 0.7), 0.05) h / calc(0.7 * var(--backdrop-gradient-k))
+		);
 	}
 }
 :root[data-backdrop-gradient="spotlight"] {
@@ -695,17 +743,29 @@
 /* HORIZON — the only one that is not a spot. A vertical ramp reads as a sky, so the light belongs
    at the head and the weight at the foot; `in oklab` is what stops the middle going muddy. */
 :root[data-backdrop-gradient="horizon"] {
-	--backdrop-sky: color-mix(in oklab, var(--primary) 12%, transparent);
+	--backdrop-sky: color-mix(
+		in oklab,
+		var(--primary) calc(12% * var(--backdrop-gradient-k)),
+		transparent
+	);
 }
 :root[data-backdrop-gradient="horizon"].dark {
-	--backdrop-sky: color-mix(in oklab, var(--primary) 18%, transparent);
+	--backdrop-sky: color-mix(
+		in oklab,
+		var(--primary) calc(18% * var(--backdrop-gradient-k)),
+		transparent
+	);
 }
 @supports (color: oklch(from red l c h)) {
 	:root[data-backdrop-gradient="horizon"] {
-		--backdrop-sky: oklch(from var(--primary) 0.93 max(c, 0.05) h / 0.55);
+		--backdrop-sky: oklch(
+			from var(--primary) 0.93 max(c, 0.05) h / calc(0.55 * var(--backdrop-gradient-k))
+		);
 	}
 	:root[data-backdrop-gradient="horizon"].dark {
-		--backdrop-sky: oklch(from var(--primary) 0.33 max(calc(c * 0.7), 0.045) h / 0.65);
+		--backdrop-sky: oklch(
+			from var(--primary) 0.33 max(calc(c * 0.7), 0.045) h / calc(0.65 * var(--backdrop-gradient-k))
+		);
 	}
 }
 :root[data-backdrop-gradient="horizon"] {
@@ -722,17 +782,29 @@
    light gathers where the page runs out. The band replays almost none of it, by construction —
    the source is two viewport-lengths away from the header. */
 :root[data-backdrop-gradient="corner"] {
-	--backdrop-corner: color-mix(in oklab, var(--primary) 16%, transparent);
+	--backdrop-corner: color-mix(
+		in oklab,
+		var(--primary) calc(16% * var(--backdrop-gradient-k)),
+		transparent
+	);
 }
 :root[data-backdrop-gradient="corner"].dark {
-	--backdrop-corner: color-mix(in oklab, var(--primary) 22%, transparent);
+	--backdrop-corner: color-mix(
+		in oklab,
+		var(--primary) calc(22% * var(--backdrop-gradient-k)),
+		transparent
+	);
 }
 @supports (color: oklch(from red l c h)) {
 	:root[data-backdrop-gradient="corner"] {
-		--backdrop-corner: oklch(from var(--primary) 0.9 max(c, 0.07) h / 0.62);
+		--backdrop-corner: oklch(
+			from var(--primary) 0.9 max(c, 0.07) h / calc(0.62 * var(--backdrop-gradient-k))
+		);
 	}
 	:root[data-backdrop-gradient="corner"].dark {
-		--backdrop-corner: oklch(from var(--primary) 0.34 max(calc(c * 0.7), 0.055) h / 0.72);
+		--backdrop-corner: oklch(
+			from var(--primary) 0.34 max(calc(c * 0.7), 0.055) h / calc(0.72 * var(--backdrop-gradient-k))
+		);
 	}
 }
 :root[data-backdrop-gradient="corner"] {
@@ -811,6 +883,20 @@
  * direction — see the note on `--backdrop-tile-mask` below.
  */
 :root[data-backdrop] {
+	/*
+	 * INTENSITY IS APPLIED TO THE INK, NOT TO THE LAYER, and that is forced rather than chosen. The
+	 * obvious way to fade a whole layer is `opacity` or a flat mask on the element carrying it —
+	 * fine for the page's field, which owns a pseudo-element, but the band replays that same field
+	 * on the HEADER ELEMENT itself, so fading it would fade the bar and its text with it. Every ink
+	 * therefore carries the factor in its own alpha, which also means the two carriers cannot
+	 * disagree: they read the same variables.
+	 *
+	 * 1 is the designed weight — every alpha in this file was calibrated at that — so the control
+	 * multiplies rather than replaces, and 0 is genuinely nothing.
+	 */
+	--backdrop-gradient-k: 1;
+	--backdrop-pattern-k: 1;
+
 	--backdrop-bearing: calc(1deg * var(--backdrop-angle, 0));
 	/* The pattern's fade needs a bearing OF ITS OWN. The two shared one while a backdrop was a
 	   single choice and only one category could be on screen; they can now be on together, and one
@@ -848,7 +934,11 @@
 	--backdrop-toward: calc(180deg + var(--backdrop-aim));
 
 	/* Drawn lattices — hairlines over a mostly empty tile. */
-	--backdrop-ink: color-mix(in oklab, var(--foreground) 14%, transparent);
+	--backdrop-ink: color-mix(
+		in oklab,
+		var(--foreground) calc(14% * var(--backdrop-pattern-k)),
+		transparent
+	);
 	/*
 	 * THE FADE IS THE PATTERN'S ADJUSTMENT, not the lattice. Turning a tile means rotating the
 	 * LAYER, and the layer carries this mask — the fade went diagonal and the pattern came back
@@ -885,37 +975,95 @@
 	 * that turned out to be the loud part. The ring now sits at the family's own weight and the rim
 	 * just above it, which is a rim's job.
 	 */
-	--backdrop-ring: color-mix(in oklab, var(--primary) 5%, transparent);
-	--backdrop-rim: color-mix(in oklab, var(--primary) 6%, transparent);
-	--backdrop-radiant: color-mix(in oklab, var(--primary) 5%, transparent);
+	--backdrop-ring: color-mix(
+		in oklab,
+		var(--primary) calc(5% * var(--backdrop-gradient-k)),
+		transparent
+	);
+	--backdrop-rim: color-mix(
+		in oklab,
+		var(--primary) calc(6% * var(--backdrop-gradient-k)),
+		transparent
+	);
+	--backdrop-radiant: color-mix(
+		in oklab,
+		var(--primary) calc(5% * var(--backdrop-gradient-k)),
+		transparent
+	);
 
 	/* Radiant geometry that fills area: bands, beams, discs, haloes. */
-	--backdrop-radiant-soft: color-mix(in oklab, var(--primary) 3%, transparent);
+	--backdrop-radiant-soft: color-mix(
+		in oklab,
+		var(--primary) calc(3% * var(--backdrop-gradient-k)),
+		transparent
+	);
 }
 
 :root[data-backdrop].dark {
-	--backdrop-ink: color-mix(in oklab, var(--foreground) 10%, transparent);
-	--backdrop-ring: color-mix(in oklab, var(--primary) 7%, transparent);
-	--backdrop-rim: color-mix(in oklab, var(--primary) 8%, transparent);
-	--backdrop-radiant: color-mix(in oklab, var(--primary) 7%, transparent);
-	--backdrop-radiant-soft: color-mix(in oklab, var(--primary) 4%, transparent);
+	--backdrop-ink: color-mix(
+		in oklab,
+		var(--foreground) calc(10% * var(--backdrop-pattern-k)),
+		transparent
+	);
+	--backdrop-ring: color-mix(
+		in oklab,
+		var(--primary) calc(7% * var(--backdrop-gradient-k)),
+		transparent
+	);
+	--backdrop-rim: color-mix(
+		in oklab,
+		var(--primary) calc(8% * var(--backdrop-gradient-k)),
+		transparent
+	);
+	--backdrop-radiant: color-mix(
+		in oklab,
+		var(--primary) calc(7% * var(--backdrop-gradient-k)),
+		transparent
+	);
+	--backdrop-radiant-soft: color-mix(
+		in oklab,
+		var(--primary) calc(4% * var(--backdrop-gradient-k)),
+		transparent
+	);
 }
 
 @supports (color: oklch(from red l c h)) {
 	:root[data-backdrop] {
-		--backdrop-ink: oklch(from var(--primary) 0.45 clamp(0.01, calc(c * 0.3), 0.05) h / 0.16);
-		--backdrop-ring: oklch(from var(--primary) 0.9 max(c, 0.05) h / 0.2);
-		--backdrop-rim: oklch(from var(--primary) 0.9 max(c, 0.05) h / 0.17);
-		--backdrop-radiant: oklch(from var(--primary) 0.9 max(c, 0.05) h / 0.22);
-		--backdrop-radiant-soft: oklch(from var(--primary) 0.92 max(c, 0.05) h / 0.12);
+		--backdrop-ink: oklch(
+			from var(--primary) 0.45 clamp(0.01, calc(c * 0.3), 0.05) h /
+				calc(0.16 * var(--backdrop-pattern-k))
+		);
+		--backdrop-ring: oklch(
+			from var(--primary) 0.9 max(c, 0.05) h / calc(0.2 * var(--backdrop-gradient-k))
+		);
+		--backdrop-rim: oklch(
+			from var(--primary) 0.9 max(c, 0.05) h / calc(0.17 * var(--backdrop-gradient-k))
+		);
+		--backdrop-radiant: oklch(
+			from var(--primary) 0.9 max(c, 0.05) h / calc(0.22 * var(--backdrop-gradient-k))
+		);
+		--backdrop-radiant-soft: oklch(
+			from var(--primary) 0.92 max(c, 0.05) h / calc(0.12 * var(--backdrop-gradient-k))
+		);
 	}
 
 	:root[data-backdrop].dark {
-		--backdrop-ink: oklch(from var(--primary) 0.82 clamp(0.01, calc(c * 0.25), 0.04) h / 0.14);
-		--backdrop-ring: oklch(from var(--primary) 0.42 max(calc(c * 0.7), 0.04) h / 0.15);
-		--backdrop-rim: oklch(from var(--primary) 0.42 max(calc(c * 0.7), 0.04) h / 0.125);
-		--backdrop-radiant: oklch(from var(--primary) 0.4 max(calc(c * 0.7), 0.04) h / 0.16);
-		--backdrop-radiant-soft: oklch(from var(--primary) 0.44 max(calc(c * 0.7), 0.04) h / 0.09);
+		--backdrop-ink: oklch(
+			from var(--primary) 0.82 clamp(0.01, calc(c * 0.25), 0.04) h /
+				calc(0.14 * var(--backdrop-pattern-k))
+		);
+		--backdrop-ring: oklch(
+			from var(--primary) 0.42 max(calc(c * 0.7), 0.04) h / calc(0.15 * var(--backdrop-gradient-k))
+		);
+		--backdrop-rim: oklch(
+			from var(--primary) 0.42 max(calc(c * 0.7), 0.04) h / calc(0.125 * var(--backdrop-gradient-k))
+		);
+		--backdrop-radiant: oklch(
+			from var(--primary) 0.4 max(calc(c * 0.7), 0.04) h / calc(0.16 * var(--backdrop-gradient-k))
+		);
+		--backdrop-radiant-soft: oklch(
+			from var(--primary) 0.44 max(calc(c * 0.7), 0.04) h / calc(0.09 * var(--backdrop-gradient-k))
+		);
 	}
 }
 
@@ -949,12 +1097,17 @@
  * job, and leaving it here would have meant two fields fighting whenever both were on.
  */
 :root[data-backdrop-grain] {
-	--backdrop-grain-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='256' height='256'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.62' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)' opacity='.13'/%3E%3C/svg%3E");
-	/* Density is the tile's scale: the same noise sampled larger or smaller, which is what reads
-	   as coarser or finer grain. Scaling a noise tile is the one case where resampling is not a
-	   defect — there is no structure to distort. */
-	--backdrop-grain-size: calc(2.56px * var(--backdrop-density, 100))
-		calc(2.56px * var(--backdrop-density, 100));
+	/*
+	 * THE IMAGE ITSELF IS BUILT IN THE HOOK, and this block exists only to say the axis is on and
+	 * to fix the tile's scale. A grain that balances against the page ground cannot be a static
+	 * data URI: a data URI is an isolated document, so it cannot read `--background`, and the
+	 * balance is exactly what stops it lifting the page. See `buildGrain` for the arithmetic.
+	 *
+	 * The scale is FIXED at the tile's natural size. Density used to scale it, which is why the
+	 * control could not make the grain quieter — three densities lifted the page by the same +7.
+	 * Resampling a noise tile also stops it dithering and starts it reading as dirt.
+	 */
+	--backdrop-grain-size: 256px 256px;
 }
 
 /* DOTS — the safest pattern to put behind text, and the reason is geometry: a lattice of 1px dots
@@ -1022,17 +1175,29 @@
  * skeleton, so a conic put there is in register by construction. Measured after the move: 0.
  */
 :root[data-backdrop-gradient="rays"] {
-	--backdrop-ray: color-mix(in oklab, var(--primary) 5%, transparent);
+	--backdrop-ray: color-mix(
+		in oklab,
+		var(--primary) calc(5% * var(--backdrop-gradient-k)),
+		transparent
+	);
 }
 :root[data-backdrop-gradient="rays"].dark {
-	--backdrop-ray: color-mix(in oklab, var(--primary) 7%, transparent);
+	--backdrop-ray: color-mix(
+		in oklab,
+		var(--primary) calc(7% * var(--backdrop-gradient-k)),
+		transparent
+	);
 }
 @supports (color: oklch(from red l c h)) {
 	:root[data-backdrop-gradient="rays"] {
-		--backdrop-ray: oklch(from var(--primary) 0.9 max(c, 0.05) h / 0.22);
+		--backdrop-ray: oklch(
+			from var(--primary) 0.9 max(c, 0.05) h / calc(0.22 * var(--backdrop-gradient-k))
+		);
 	}
 	:root[data-backdrop-gradient="rays"].dark {
-		--backdrop-ray: oklch(from var(--primary) 0.4 max(calc(c * 0.7), 0.04) h / 0.16);
+		--backdrop-ray: oklch(
+			from var(--primary) 0.4 max(calc(c * 0.7), 0.04) h / calc(0.16 * var(--backdrop-gradient-k))
+		);
 	}
 }
 :root[data-backdrop-gradient="rays"] {
@@ -1065,21 +1230,47 @@
  * menu and dialog in the kit.
  */
 :root[data-backdrop-gradient="weave"] {
-	--backdrop-warp: color-mix(in oklab, var(--primary) 14%, transparent);
-	--backdrop-weft: color-mix(in oklab, var(--primary) 10%, transparent);
+	--backdrop-warp: color-mix(
+		in oklab,
+		var(--primary) calc(14% * var(--backdrop-gradient-k)),
+		transparent
+	);
+	--backdrop-weft: color-mix(
+		in oklab,
+		var(--primary) calc(10% * var(--backdrop-gradient-k)),
+		transparent
+	);
 }
 :root[data-backdrop-gradient="weave"].dark {
-	--backdrop-warp: color-mix(in oklab, var(--primary) 20%, transparent);
-	--backdrop-weft: color-mix(in oklab, var(--primary) 14%, transparent);
+	--backdrop-warp: color-mix(
+		in oklab,
+		var(--primary) calc(20% * var(--backdrop-gradient-k)),
+		transparent
+	);
+	--backdrop-weft: color-mix(
+		in oklab,
+		var(--primary) calc(14% * var(--backdrop-gradient-k)),
+		transparent
+	);
 }
 @supports (color: oklch(from red l c h)) {
 	:root[data-backdrop-gradient="weave"] {
-		--backdrop-warp: oklch(from var(--primary) 0.9 max(c, 0.06) calc(h + 26) / 0.58);
-		--backdrop-weft: oklch(from var(--primary) 0.88 max(c, 0.05) calc(h - 30) / 0.5);
+		--backdrop-warp: oklch(
+			from var(--primary) 0.9 max(c, 0.06) calc(h + 26) / calc(0.58 * var(--backdrop-gradient-k))
+		);
+		--backdrop-weft: oklch(
+			from var(--primary) 0.88 max(c, 0.05) calc(h - 30) / calc(0.5 * var(--backdrop-gradient-k))
+		);
 	}
 	:root[data-backdrop-gradient="weave"].dark {
-		--backdrop-warp: oklch(from var(--primary) 0.36 max(calc(c * 0.7), 0.05) calc(h + 26) / 0.66);
-		--backdrop-weft: oklch(from var(--primary) 0.33 max(calc(c * 0.7), 0.045) calc(h - 30) / 0.58);
+		--backdrop-warp: oklch(
+			from var(--primary) 0.36 max(calc(c * 0.7), 0.05) calc(h + 26) /
+				calc(0.66 * var(--backdrop-gradient-k))
+		);
+		--backdrop-weft: oklch(
+			from var(--primary) 0.33 max(calc(c * 0.7), 0.045) calc(h - 30) /
+				calc(0.58 * var(--backdrop-gradient-k))
+		);
 	}
 }
 :root[data-backdrop-gradient="weave"] {
