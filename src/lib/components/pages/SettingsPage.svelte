@@ -48,6 +48,7 @@
 		type BackdropId,
 	} from "$lib/hooks/backdrop.svelte.js";
 	import { Slider } from "$lib/components/ui/slider/index.js";
+	import * as AngleSlider from "$lib/components/ui/angle-slider/index.js";
 	import { headerMode, setHeaderMode, type HeaderMode } from "$lib/hooks/header-mode.svelte.js";
 	import { setSidebarMode, sidebarMode, type SidebarMode } from "$lib/hooks/sidebar-mode.svelte.js";
 	import { href } from "$lib/hooks/route.svelte.js";
@@ -80,6 +81,26 @@
 
 	const activeCategory = $derived(backdropById(activeBackdrop.current).category);
 	const backdropsInCategory = $derived(BACKDROPS.filter((b) => b.category === activeCategory));
+
+	/**
+	 * A BEARING HAS NO ENDS, AND THE DIAL DOES. `AngleSlider` clamps to `[min, max]` on every key,
+	 * which is right for what it is — a general arc control, where a 0–100 dial over a 270° sweep
+	 * must stop at both ends. On a full circle the two ends are the same place, so clamping shows up
+	 * as an asymmetry you can feel: turning clockwise past 360 wraps (the setter's own modulo takes
+	 * 360 to 0 and the walk continues), while turning anticlockwise from 0 goes nowhere, because the
+	 * component clamps −1 away before `onValueChange` is ever called.
+	 *
+	 * The root runs the caller's `onkeydown` BEFORE its own and stands down if the event was
+	 * consumed, which is the seam to use: at 0, a decrementing key is answered here with 359 and the
+	 * component never sees it. Dragging needs no such help — a pointer crosses the top by moving,
+	 * not by counting.
+	 */
+	function wrapAngleAtZero(event: KeyboardEvent): void {
+		if (backdropAngle.current !== 0) return;
+		if (event.key !== "ArrowDown" && event.key !== "ArrowLeft" && event.key !== "PageDown") return;
+		event.preventDefault();
+		setBackdropAngle(event.key === "PageDown" ? 350 : 359);
+	}
 
 	function chooseCategory(value: string): void {
 		const first = BACKDROPS.find((b) => b.category === (value as BackdropCategory));
@@ -370,30 +391,53 @@
 									onValueChange={setBackdropDensity}
 								/>
 							{:else}
-								<div class="flex items-baseline justify-between gap-4">
-									<Label for="backdrop-angle">Angle</Label>
-									<span class="font-mono text-xs text-muted-foreground tabular-nums">
-										{backdropAngle.current}°
-									</span>
+								<!--
+									THE DIAL, NOT A LINE. The kit ships an angle slider, and a bearing is exactly
+									what it is for: its default `startAngle` of -90 puts 0 at twelve o'clock and
+									sweeps clockwise, which is the mapping this axis already uses, so no angles are
+									passed. It also has no ends — the value that a linear track splits between 359
+									and 0 is one position on a circle — and the thumb SHOWS the direction instead of
+									naming it, which is the whole reason a bearing is easier to point at than to type.
+								-->
+								<div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-8">
+									<!--
+										A `<Label for>` would name nothing here: the root is a `<div>`, and `for`
+										only binds to a labelable element. The control is the THUMB, which already
+										carries `role="slider"` and a default name, so the visible text and the
+										description are pointed AT it instead — the association runs the other way
+										round from a form field's.
+									-->
+									<div class="flex flex-col gap-1">
+										<span id="backdrop-angle-label" class="text-sm font-medium">Angle</span>
+										<p id="backdrop-angle-hint" class="text-sm text-muted-foreground">
+											{#if activeCategory === "pattern"}
+												Turns the lattice. The ring-based motifs — Dots, Kanoko, Shippō, Seigaiha,
+												Asanoha — are radially symmetric, so there is nothing in them to turn.
+											{:else}
+												Where the light comes from, as a bearing: 0° at the top, running clockwise.
+											{/if}
+										</p>
+									</div>
+									<AngleSlider.Root
+										class="shrink-0 self-center sm:ms-auto"
+										min={0}
+										max={360}
+										step={1}
+										size={52}
+										value={[backdropAngle.current]}
+										onValueChange={(next) => setBackdropAngle(next[0] ?? 0)}
+										onkeydown={wrapAngleAtZero}
+									>
+										<AngleSlider.Track>
+											<AngleSlider.Range />
+										</AngleSlider.Track>
+										<AngleSlider.Thumb
+											aria-labelledby="backdrop-angle-label"
+											aria-describedby="backdrop-angle-hint"
+										/>
+										<AngleSlider.Value />
+									</AngleSlider.Root>
 								</div>
-								<p class="text-sm text-muted-foreground">
-									{#if activeCategory === "pattern"}
-										Turns the lattice. The ring-based motifs — Dots, Kanoko, Shippō, Seigaiha,
-										Asanoha — are radially symmetric, so there is nothing in them to turn.
-									{:else}
-										Where the light comes from, as a bearing: 0° at the top, running clockwise.
-									{/if}
-								</p>
-								<Slider
-									id="backdrop-angle"
-									type="single"
-									class="mt-2"
-									min={0}
-									max={359}
-									step={1}
-									value={backdropAngle.current}
-									onValueChange={setBackdropAngle}
-								/>
 							{/if}
 						</div>
 					{/if}
