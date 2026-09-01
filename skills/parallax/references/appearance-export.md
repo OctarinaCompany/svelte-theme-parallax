@@ -53,7 +53,7 @@ will be missing. Check what is installed before promising the result:
 | `sidebar-floating`, `header-floating`, `header-auto-hide`    | `parallax-appearance`                                                                 | `setSidebarFloating(b)`, `setHeaderFloating(b)`, `setHeaderAutoHide(b)` |
 | cookie `sidebar_state`                                       | `parallax-shell` (`hooks/sidebar-state.ts` reads it for `Sidebar.Provider`)           | `useSidebar().setOpen(b)`                                          |
 | `backdrop-*` (sixteen keys)                                  | **the Backdrop axis — not in the registry yet.** Skip them; say so.                    | —                                                                  |
-| the value `"vibrant"` on either mode key                     | **`src/vibrant.css` — not in the registry yet.** Fall back to `"default"` and say so. | —                                                                  |
+| the value `"vibrant"` on either mode key                     | `parallax-appearance`, **and its `@import "./vibrant.css";`** — the item writes the file, only the project can import it | the same `setSidebarMode(v)` / `setHeaderMode(v)`                   |
 
 If `appearance.backdrop.mark.on` is true the export also names a file
 (`public/backdrop-mark.svg`); it travels only if the Backdrop axis does.

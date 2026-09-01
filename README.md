@@ -183,7 +183,7 @@ One hundred and thirty-one items ship today — the palette, the axes, the shell
 | Item | What it installs |
 |------|------------------|
 | `parallax-theme` | The palette: the base light and dark tokens, `src/themes.css` with the seventeen alternates, and the Tailwind mappings for the families shadcn does not ship — `success`, `warning`, `info`, the subtle family, `--sidebar-outline` |
-| `parallax-appearance` | The four appearance axes as persisted state — inverted sidebar, inverted header, floating header, hide-on-scroll — plus the CSS their attributes key on |
+| `parallax-appearance` | The four appearance axes as persisted state — the sidebar's and the header's own chrome, each `default`, `inverted` or `vibrant`, plus a floating header and hide-on-scroll — with the CSS their attributes key on, `src/vibrant.css` included |
 | `parallax-appearance-controls` | The two dropdown menus that drive those axes |
 | `parallax-swap` | The two-state icon crossfade behind the light/dark toggle — a house primitive absent from the official registry |
 | `parallax-shell` | The application shell: sidebar (workspace switcher, navigation, user menu, icon rail, mobile drawer) and page header bar (breadcrumb, search slot, light/dark toggle), taking content as typed props and active-state as a predicate — never a router |

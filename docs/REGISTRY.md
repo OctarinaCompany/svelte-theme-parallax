@@ -19,29 +19,37 @@ Two manual steps, because a registry item writes files and cannot patch the ones
 
 A third applies only if your stylesheet was NOT created by `shadcn-svelte init` — check it for the `@layer base` block with `* { @apply border-border outline-ring/50; }` and for `@import "tw-animate-css";`, and add whichever is absent. Tailwind v4's preflight gives borders a width and a style but no colour, so without that rule every `border-*` utility falls back to `currentColor` and the hairlines wear the text colour instead. Nothing errors, the page renders, and only the borders are wrong.
 
-`parallax` is the base — it IS the `:root` and `.dark` this item just wrote, so it has no `[data-theme]` block of its own. The other eleven answer to `data-theme` on `<html>`; `mode-watcher` owns that attribute and persists it under `mode-watcher-theme`.
+`parallax` is the base — it IS the `:root` and `.dark` this item just wrote, so it has no `[data-theme]` block of its own. The other seventeen answer to `data-theme` on `<html>`; `mode-watcher` owns that attribute and persists it under `mode-watcher-theme`.
 
 ## parallax-appearance
 
-The four appearance axes as persisted state: an inverted sidebar, an inverted header, a floating header and a header that hides on scroll down. Module-level runes that write attributes on `<html>`, plus the CSS those attributes key on.
+The four appearance axes as persisted state: the sidebar's chrome and the header's chrome — each of them `default`, `inverted` or `vibrant` — a floating header, and a header that hides on scroll down. Module-level runes that write attributes on `<html>`, plus the CSS those attributes key on, `src/vibrant.css` included.
 
 ```sh
 npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-appearance.json
 ```
 
+### One manual step
+
+Import the third value's stylesheet from your global stylesheet, after the Tailwind import and after `./themes.css`: `@import "./vibrant.css";`. The `./` holds only when that stylesheet is a SIBLING of the `src/vibrant.css` this item just wrote — resolve the path against the directory of the stylesheet itself, which `components.json`'s `tailwind.css` entry names. The order is part of it: `vibrant.css` states the nine chrome tokens ON the two painted surfaces, and it is imported after the palettes so that a per-theme chrome block cannot take them back.
+
+Skip the step and `default` and `inverted` still work perfectly — but the Vibrant row in either menu writes an attribute nothing selects, and the chrome does not move.
+
 ### The contract
 
 The CSS this installed keys on attributes your own header has to write. Nothing paints until it does:
 
-- `data-slot="page-header"` on the outer sticky element — the one the floating fade hangs off and the auto-hide translates.
-- `data-slot="page-header-bar"` on the bar inside it — this is what the inverted palette selects, and what re-scopes the nine chrome tokens onto the controls.
+- `data-slot="page-header"` on the outer sticky element — the one the floating fade hangs off, the auto-hide translates, and the vibrant paint reads to place its corner light.
+- `data-slot="page-header-bar"` on the bar inside it — this is what the inverted palette and the vibrant paint both select, and what re-scopes the nine chrome tokens onto the controls.
 - `data-floating` and `data-hidden` on the outer element, present or absent, from `headerFloating.current` and the auto-hide state.
+
+A vibrant RAIL asks one thing more, and it comes from shadcn's own sidebar rather than from you: `data-sidebar="sidebar"` on the panel, which is the element the paint block states its tokens on.
 
 The two mode axes need nothing from you: `header-mode` and `sidebar-mode` write `data-header-mode` and `data-sidebar-mode` on `<html>` themselves. The sidebar's floating axis needs nothing either — pass shadcn's own `variant="floating"` when `sidebarFloating.current` is set.
 
 ### The first-paint script
 
-Add this to the `<head>` of your `index.html` (or `src/app.html` under SvelteKit), before anything else runs. Without it the page paints in the page's own mode for one frame and then snaps to the inverted one — a visible flash on every load, which no client code can prevent because it happens before hydration.
+Add this to the `<head>` of your `index.html` (or `src/app.html` under SvelteKit), before anything else runs. Without it the page paints in the page's own mode for one frame and then snaps to the chosen one — a visible flash on every load, which no client code can prevent because it happens before hydration.
 
 ```html
 <script>
@@ -50,20 +58,27 @@ Add this to the `<head>` of your `index.html` (or `src/app.html` under SvelteKit
     var mode = localStorage.getItem("mode-watcher-mode") || "system";
     var dark = mode === "dark" || (mode === "system" && matchMedia("(prefers-color-scheme: dark)").matches);
     var rail = localStorage.getItem("sidebar-mode");
-    var railWear = rail === "inverted" ? (dark ? "light" : "dark") : dark ? "dark" : "light";
-    if (rail === "inverted") root.setAttribute("data-sidebar-mode", railWear);
+    var railVibrant = rail === "vibrant";
+    var railWear = railVibrant ? "dark" : rail === "inverted" ? (dark ? "light" : "dark") : dark ? "dark" : "light";
+    if (railVibrant) root.setAttribute("data-sidebar-mode", "vibrant");
+    else if (rail === "inverted") root.setAttribute("data-sidebar-mode", railWear);
     var bar = localStorage.getItem("header-mode");
-    var barWear = bar === "inverted" ? (dark ? "light" : "dark") : dark ? "dark" : "light";
-    if (barWear !== railWear) root.setAttribute("data-header-mode", barWear);
+    if (bar === "vibrant") root.setAttribute("data-header-mode", "vibrant");
+    else {
+      var barWear = bar === "inverted" ? (dark ? "light" : "dark") : dark ? "dark" : "light";
+      if (railVibrant || barWear !== railWear) root.setAttribute("data-header-mode", barWear);
+    }
   } catch (e) {}
 </script>
 ```
 
 Keep it in step with the hooks: it repeats their resolution, and every `localStorage` key it reads is exported from one of them as a constant.
 
+`vibrant` is the exception on both counts, which is what the two extra branches buy. It is ABSOLUTE, so it is written verbatim rather than resolved against the page; and it states its nine tokens on the painted surface rather than on `<html>`, so beside a vibrant rail there is nothing for the bar to inherit and the bar writes its own value even when the two wears agree.
+
 ## parallax-appearance-controls
 
-The two dropdown menus that drive the axes: one for the sidebar (inverted, floating) and one for the header (inverted, floating, hide on scroll). Put them on a settings page — or back in the header bar through `PageHeader`'s `controls` snippet — and the axes become user-facing.
+The two dropdown menus that drive the axes: one for the sidebar (default, inverted or vibrant, plus floating) and one for the header (the same three, plus floating and hide on scroll). Put them on a settings page — or back in the header bar through `PageHeader`'s `controls` snippet — and the axes become user-facing.
 
 ```sh
 npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-appearance-controls.json

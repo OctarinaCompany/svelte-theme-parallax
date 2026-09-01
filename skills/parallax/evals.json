@@ -53,6 +53,7 @@
 			"expectations": [
 				"Imports headerFloating/setHeaderFloating and sidebarMode/setSidebarMode from $lib/hooks — no local $state duplicating the axes",
 				"Maps the sidebar switch to setSidebarMode('inverted'|'default'), understanding the axis is relative to the page mode",
+				"Knows the axis has a third value, 'vibrant', and that it is absolute rather than relative — does not describe the axis as a two-state toggle",
 				"Does not write data-* attributes, classes, or localStorage keys directly",
 				"Mentions (or verifies) the first-paint script when the inverted axis is involved"
 			]

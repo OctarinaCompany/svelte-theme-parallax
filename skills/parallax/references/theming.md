@@ -110,9 +110,12 @@ be inherited). The behaviour flags write no attribute — components read them d
 Drive everything through the setters; the ready-made UI is `HeaderToggle` /
 `SidebarModeToggle` / the Settings-page pattern.
 
-¹ Both hooks accept `"vibrant"` — the brand-painted chrome — but it is drawn by `src/vibrant.css`,
-which the registry does not ship yet. In a consumer project the value sets the attribute and paints
-nothing; use `"default"` or `"inverted"` until the stylesheet is published.
+¹ `"vibrant"` is the odd value out and behaves differently from the pair: it is ABSOLUTE rather than
+relative to the page, and it paints the surface with the palette's brand as a corner light instead of
+choosing a half. It is drawn by `src/vibrant.css`, which `parallax-appearance` ships — but a stylesheet
+is a file the item writes, not an import it can add, so the value paints nothing until
+`@import "./vibrant.css";` sits in the global stylesheet after `./themes.css`. If the chrome does not
+move when you set it, that import is what is missing.
 
 ## The first-paint script
 
@@ -128,14 +131,24 @@ step with the hooks' exported storage keys):
 		var mode = localStorage.getItem("mode-watcher-mode") || "system";
 		var dark = mode === "dark" || (mode === "system" && matchMedia("(prefers-color-scheme: dark)").matches);
 		var rail = localStorage.getItem("sidebar-mode");
-		var railWear = rail === "inverted" ? (dark ? "light" : "dark") : dark ? "dark" : "light";
-		if (rail === "inverted") root.setAttribute("data-sidebar-mode", railWear);
+		var railVibrant = rail === "vibrant";
+		var railWear = railVibrant ? "dark" : rail === "inverted" ? (dark ? "light" : "dark") : dark ? "dark" : "light";
+		if (railVibrant) root.setAttribute("data-sidebar-mode", "vibrant");
+		else if (rail === "inverted") root.setAttribute("data-sidebar-mode", railWear);
 		var bar = localStorage.getItem("header-mode");
-		var barWear = bar === "inverted" ? (dark ? "light" : "dark") : dark ? "dark" : "light";
-		if (barWear !== railWear) root.setAttribute("data-header-mode", barWear);
+		if (bar === "vibrant") root.setAttribute("data-header-mode", "vibrant");
+		else {
+			var barWear = bar === "inverted" ? (dark ? "light" : "dark") : dark ? "dark" : "light";
+			if (railVibrant || barWear !== railWear) root.setAttribute("data-header-mode", barWear);
+		}
 	} catch (e) {}
 </script>
 ```
+
+`vibrant` costs the two extra branches for one reason each. It is absolute, so it is written verbatim
+rather than resolved against the page mode; and it states its nine chrome tokens ON the painted
+surface rather than on `<html>`, so beside a vibrant rail the bar has nothing to inherit and must
+write its own value even when the two wears agree.
 
 **A Vite SPA needs three more lines.** `ModeWatcher` ships its own flash guard for
 light/dark and the palette, but delivers it through `<svelte:head>` — which only reaches

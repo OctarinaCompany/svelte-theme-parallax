@@ -14,8 +14,8 @@ complete generated list, with each item's post-install notes, is in the reposito
 
 | Item                           | What it installs                                                        |
 | ------------------------------ | ----------------------------------------------------------------------- |
-| `parallax-theme`               | The palette: base light/dark tokens, `src/themes.css` (11 alternates), the Tailwind mappings for success/warning/info, the subtle family, `--sidebar-outline` |
-| `parallax-appearance`          | The four axes as hooks + `reduced-motion` + the page-header CSS         |
+| `parallax-theme`               | The palette: base light/dark tokens, `src/themes.css` (17 alternates), the Tailwind mappings for success/warning/info, the subtle family, `--sidebar-outline` |
+| `parallax-appearance`          | The four axes as hooks + `reduced-motion` + the page-header CSS + `src/vibrant.css`, the brand-painted third value of both chrome axes (needs its own `@import`) |
 | `parallax-appearance-controls` | `HeaderToggle` + `SidebarModeToggle`                                    |
 | `parallax-shell`               | The whole shell: AppShell/AppSidebar/PageHeader + nav trio + breadcrumb + `ModeToggle` and `ThemeSelector` + `shared/nav.ts` + the sidebar/drawer CSS |
 | `parallax-restyle`             | CSS-only: the Parallax shape for the components whose look is application-global (switch, checkbox, tooltip, inputs, select, sliders, sonner, tabs' line variant) plus the global menu-shadow and dialog-scrim opinions. It selects on `data-slot`, so it reaches a Parallax fork and a bare official port alike |
@@ -95,6 +95,7 @@ via the shell), do both and tell the user you did:
 
    ```css
    @import "./themes.css";
+   @import "./vibrant.css";
    @import "@fontsource-variable/hanken-grotesk";
    ```
 
@@ -102,6 +103,12 @@ via the shell), do both and tell the user you did:
    `src/themes.css` the item just wrote. Resolve the path against the stylesheet's own
    directory: a SvelteKit scaffold puts it at `src/routes/layout.css`, which needs
    `../themes.css`. Read `components.json`'s `tailwind.css` for the real location.
+
+   `vibrant.css` arrives with `parallax-appearance` rather than with the palette, and it goes
+   AFTER `themes.css`: it states the nine chrome tokens on the painted surfaces, and a
+   per-theme chrome block that ties it on specificity would otherwise win on source order.
+   Omit it and the two Vibrant menu rows write an attribute nothing selects — the chrome
+   simply does not move, with no error anywhere.
 
 2. The **first-paint script** in `index.html` / `src/app.html` — exact copy in
    [theming.md](theming.md#the-first-paint-script).

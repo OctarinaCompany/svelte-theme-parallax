@@ -21,6 +21,14 @@ ships today is listed here.
   brand's own hue in both modes so nothing reads as grey, and `kiln` pairs the only warm
   near-achromatic neutrals with a deep bronze. Each is eight numbers in `tools/themes/themes.mjs`;
   every token is solved from them by the generator and cleared by the audit.
+- A third value on both chrome axes, `vibrant`: the palette's own brand painted onto the rail
+  and the bar as one corner light, rather than a light or dark half. It is authored as ONE field
+  sized to the viewport and sampled by both surfaces, so the rail gets a full fall down its
+  height and the bar a full sweep across the window, and the two meet at the elbow with no seam
+  — the join survives the icon rail, off-canvas, the mobile Sheet and every breakpoint with no
+  media query. Every colour derives from the live tokens, so it composes with all eighteen
+  palettes in both modes. It ships from `parallax-appearance` as `src/vibrant.css`, beside the
+  hooks that write the attribute, and needs the one `@import` a registry item cannot add for you.
 - The AI chat family: twelve house components under a new `AI chat` catalog group —
   conversation, message (Markdown through `svelte-streamdown`), prompt input, suggestion,
   reasoning, tool, chain of thought, task, confirmation, question, context usage and model

@@ -501,5 +501,7 @@ any of them back is the `controls` snippet, never an edit to the header:
 ```
 
 `parallax-shell` still installs all four for exactly that override; `HeaderToggle` and
-`SidebarModeToggle` arrive through `parallax-appearance-controls`. Budget it: those four
+`SidebarModeToggle` arrive through `parallax-appearance-controls`, and each offers three
+values — `Default`, `Inverted` and `Vibrant`, the brand painted onto the surface. Vibrant
+is drawn by `src/vibrant.css`, which `parallax-appearance` writes and the project imports. Budget it: those four
 cost 377px of bar against the default's 72px, and the search field is what pays.

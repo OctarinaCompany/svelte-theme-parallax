@@ -1,8 +1,9 @@
 # Parallax
 
 > Parallax is a dashboard theme kit for shadcn-svelte (Svelte 5, Tailwind v4): a palette of
-> 12 themes over one token set, four persisted appearance axes (inverted sidebar/header,
-> floating header, auto-hide), an installable application shell, and a gallery of patterns.
+> 18 themes over one token set, four persisted appearance axes (the sidebar's and the
+> header's chrome, each default/inverted/vibrant, a floating header and auto-hide), an
+> installable application shell, and a gallery of patterns.
 > Distribution is a shadcn-svelte registry: source is copied into the consumer project.
 
 ## Registry items
@@ -10,8 +11,8 @@
 Install with `npx shadcn-svelte@latest add <url>`. Post-install notes: https://raw.githubusercontent.com/OctarinaCompany/svelte-theme-parallax/main/docs/REGISTRY.md
 
 - [parallax-theme](https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-theme.json): The Parallax palette: the base light and dark tokens, the seventeen alternate palettes behind `data-theme`, and the Tailwind mappings for the token families shadcn does not ship — success, warning, info, the subtle family, and `--sidebar-outline`.
-- [parallax-appearance](https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-appearance.json): The four appearance axes as persisted state: an inverted sidebar, an inverted header, a floating header and a header that hides on scroll down. Module-level runes that write attributes on `<html>`, plus the CSS those attributes key on.
-- [parallax-appearance-controls](https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-appearance-controls.json): The two dropdown menus that drive the axes: one for the sidebar (inverted, floating) and one for the header (inverted, floating, hide on scroll). Put them on a settings page — or back in the header bar through `PageHeader`'s `controls` snippet — and the axes become user-facing.
+- [parallax-appearance](https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-appearance.json): The four appearance axes as persisted state: the sidebar's chrome and the header's chrome — each of them `default`, `inverted` or `vibrant` — a floating header, and a header that hides on scroll down. Module-level runes that write attributes on `<html>`, plus the CSS those attributes key on, `src/vibrant.css` included.
+- [parallax-appearance-controls](https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-appearance-controls.json): The two dropdown menus that drive the axes: one for the sidebar (default, inverted or vibrant, plus floating) and one for the header (the same three, plus floating and hide on scroll). Put them on a settings page — or back in the header bar through `PageHeader`'s `controls` snippet — and the axes become user-facing.
 - [parallax-swap](https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-swap.json): A two-state icon crossfade — the house primitive behind the light/dark toggle. Not in the official registry, which is why it ships from here.
 - [parallax-shell](https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-shell.json): The application shell: the sidebar (workspace switcher, two-shape navigation, user menu, icon rail, mobile drawer) and the page header bar (breadcrumb, search slot, light/dark toggle) — wired to the published appearance axes, taking their content as typed props.
 - [parallax-skill](https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-skill.json): The Agent Skill that teaches an AI assistant to use Parallax correctly: registry installation, shell composition, the token families, the palettes and the appearance axes, with the pitfalls spelled out. Installs into the project's `.claude/skills/parallax/`.

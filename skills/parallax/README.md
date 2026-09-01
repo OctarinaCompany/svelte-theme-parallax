@@ -84,7 +84,8 @@ skills/parallax/
 │   ├── install.md            # the foundation items, manual steps, troubleshooting
 │   ├── bootstrap.md          # empty directory → running dashboard, and its version traps
 │   ├── patterns.md           # distilled recipes of the flagship gallery patterns
-│   └── components.md         # generated map of every gallery page and ui/ folder
+│   ├── components.md         # generated map of every gallery page and ui/ folder
+│   └── appearance-export.md   # applying a look exported as parallax-appearance.json
 ├── evals.json                # behavioural checks — re-run when skill or registry changes
 └── README.md                 # this notice (not loaded by the model)
 ```
