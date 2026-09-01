@@ -52,11 +52,14 @@ will be missing. Check what is installed before promising the result:
 | `sidebar-mode`, `header-mode`                                | `parallax-appearance`                                                                 | `setSidebarMode(v)`, `setHeaderMode(v)`                            |
 | `sidebar-floating`, `header-floating`, `header-auto-hide`    | `parallax-appearance`                                                                 | `setSidebarFloating(b)`, `setHeaderFloating(b)`, `setHeaderAutoHide(b)` |
 | cookie `sidebar_state`                                       | `parallax-shell` (`hooks/sidebar-state.ts` reads it for `Sidebar.Provider`)           | `useSidebar().setOpen(b)`                                          |
-| `backdrop-*` (sixteen keys)                                  | **the Backdrop axis — not in the registry yet.** Skip them; say so.                    | —                                                                  |
+| `backdrop-*` (sixteen keys)                                  | `parallax-backdrop`, **and its `@import "./backdrops.css";`** — plus the mark's SVG for the mark layer | `setGradient(id)`, `setPattern(id)`, `setMark(b)`, `setGrain(b)` and the twelve adjustment setters |
 | the value `"vibrant"` on either mode key                     | `parallax-appearance`, **and its `@import "./vibrant.css";`** — the item writes the file, only the project can import it | the same `setSidebarMode(v)` / `setHeaderMode(v)`                   |
 
 If `appearance.backdrop.mark.on` is true the export also names a file
-(`public/backdrop-mark.svg`); it travels only if the Backdrop axis does.
+(`public/backdrop-mark.svg`). `parallax-backdrop` ships the kit's own mark under that name,
+so the key resolves — but it resolves to the KIT's drawing, not to whatever the exporting
+project replaced it with. If the look depends on that artwork, the file has to travel
+separately; say so rather than promising the mark.
 
 ## Procedure
 

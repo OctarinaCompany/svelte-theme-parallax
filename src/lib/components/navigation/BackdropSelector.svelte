@@ -21,11 +21,13 @@
 	/**
 	 * The backdrop picker: one trigger, and a menu of four independent axes.
 	 *
-	 * IT LIVES IN `navigation/` AND IS NOT PUBLISHED, the same arrangement `RepositoryLink` and
-	 * `CommandPalette` use. The page header ships in `parallax-shell`, and a picker baked into it
-	 * would hand every consumer an axis their application does not define; this rides in through
-	 * the bar's `controls` snippet instead, and the published component stays ignorant of it.
-	 * It must NOT be moved under `ui/` — that tree is swept and published wholesale.
+	 * IT LIVES IN `navigation/` AND SHIPS AS ITS OWN ITEM, `parallax-backdrop-controls` — the
+	 * arrangement `SidebarModeToggle` and `HeaderToggle` use, not the unpublished one
+	 * `RepositoryLink` and `CommandPalette` use. The page header ships in `parallax-shell`, and a
+	 * picker baked into it would hand every consumer an axis their application does not define;
+	 * this rides in through the bar's `controls` snippet instead, and the shell's own header
+	 * stays ignorant of it. It must NOT be moved under `ui/` — that tree is swept and published
+	 * wholesale, and this is hand-declared beside the other two navigation controls.
 	 *
 	 * TWO RADIO GROUPS AND TWO CHECKBOXES, which is the menu telling the truth about the model: a
 	 * gradient and a pattern are separate exclusive choices — each with its own "None" — and the

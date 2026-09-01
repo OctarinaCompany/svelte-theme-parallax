@@ -59,9 +59,11 @@ Add this to the `<head>` of your `index.html` (or `src/app.html` under SvelteKit
     var dark = mode === "dark" || (mode === "system" && matchMedia("(prefers-color-scheme: dark)").matches);
     var rail = localStorage.getItem("sidebar-mode");
     var railVibrant = rail === "vibrant";
-    var railWear = railVibrant ? "dark" : rail === "inverted" ? (dark ? "light" : "dark") : dark ? "dark" : "light";
+    // "dark" is the retired absolute spelling of inverted, which the hook still migrates.
+    var railInverted = rail === "inverted" || rail === "dark";
+    var railWear = railVibrant ? "dark" : railInverted ? (dark ? "light" : "dark") : dark ? "dark" : "light";
     if (railVibrant) root.setAttribute("data-sidebar-mode", "vibrant");
-    else if (rail === "inverted") root.setAttribute("data-sidebar-mode", railWear);
+    else if (railInverted) root.setAttribute("data-sidebar-mode", railWear);
     var bar = localStorage.getItem("header-mode");
     if (bar === "vibrant") root.setAttribute("data-header-mode", "vibrant");
     else {
@@ -85,6 +87,102 @@ npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-para
 ```
 
 Both are icon-sized `DropdownMenu` triggers, for a settings page or a header's right-hand cluster. `parallax-shell`'s own header does not render them — its `controls` snippet is the light/dark toggle alone — so mount them where they belong in your app. They read and write the hooks directly, so they take no props and hold no state of their own.
+
+## parallax-backdrop
+
+The backdrop axis: four layers painted BEHIND the page, each independent — a gradient lit from a bearing you choose (twelve), a drawn lattice that fades out over a length you choose (ten), one SVG mark placed from a corner or the centre, and a grain over all of it. Persisted state plus the stylesheet its attributes key on. Every layer derives its colours from the live tokens, so one block serves all eighteen palettes in both modes.
+
+```sh
+npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-backdrop.json
+```
+
+### Two manual steps
+
+1. Import the stylesheet from your global stylesheet, after the Tailwind import and after `./themes.css`: `@import "./backdrops.css";`. The `./` holds only when that stylesheet is a SIBLING of the `src/backdrops.css` this item just wrote — resolve the path against the directory of the stylesheet itself, which `components.json`'s `tailwind.css` entry names. If you also import `./vibrant.css` (it ships with `parallax-appearance`), the backdrop goes FIRST: an explicit chrome choice has to outrank a backdrop decorating the same two surfaces, and source order is what settles the tie.
+2. The first-paint script below, in the `<head>` before anything else runs. Without it a page with a backdrop stored paints one frame with none.
+
+**And one file to move, under SvelteKit.** The mark layer draws `backdrop-mark.svg`, which this item wrote to `public/` — where Vite serves static files from. SvelteKit serves `static/`: move it there, keeping the name. The hook builds the URL from `import.meta.env.BASE_URL` and fails silently when it 404s, so a mark that never appears is this. Replace the file with your own whenever you like — same name, same place. It is fetched, inlined and re-inked from the live tokens, so it must be a single-colour SVG drawn with `fill="currentColor"`.
+
+### The contract
+
+Every PAINTING rule in `backdrops.css` hangs off the shell's own slots (the root token blocks and the accessibility neutralisers aside). Installed beside a layout that writes none of them, the axis stores its choice, writes its attributes on `<html>`, builds its images — and paints NOTHING, with no error anywhere:
+
+- `data-slot="sidebar-wrapper"` and `data-slot="sidebar-inset"` — shadcn's own sidebar provider and inset. The light and the lattice hang off the wrapper; the mark and the grain ride a pair of their own, `sidebar-inset::before` and `page-header::after`.
+- `data-slot="page-header"` and `data-slot="page-header-bar"` — the same header contract `parallax-appearance` states; `PageHeader` from `parallax-shell` writes both.
+- `data-sidebar="sidebar"` on the rail panel, which the official sidebar writes. This one and `page-header-bar` are needed only so the contrast, forced-colours and print blocks can take a backdrop back off those two surfaces.
+
+`parallax-shell` satisfies all of it, and is the intended host. A hand-rolled shell has to write them itself.
+
+### The first-paint script
+
+Ten of the axis's sixteen `localStorage` keys — the six mark details are deliberately not among them, for the reason below — and the four layer attributes are ECHOED rather than validated — a stale id selects no block for one frame and the hook repairs the attribute at module evaluation. The six numeric adjustments this script echoes are CLAMPED rather than merely parsed: the stylesheet divides by `(1 - A) + A*k` to make an intensity saturate, and that denominator only stays positive while `k >= 0`, so one negative value out of storage would take a whole declaration out. `Number(null)` is `0`, so absent has to be told apart from zero before coercing — that is what `num()` is for. Drop it and a first visit writes `--backdrop-gradient-k: 0`, which takes every alpha the gradient mixes down to nothing: the layer is on, the attribute is set, and the page looks exactly as if it were off.
+
+```html
+<script>
+  function num(key) {
+    var raw = localStorage.getItem(key);
+    if (raw === null || raw === "") return null;
+    var value = Number(raw);
+    return isFinite(value) ? value : null;
+  }
+  // min, max, divisor — the divisor turns a stored percentage into the factor the CSS multiplies by.
+  var RANGES = {
+    "backdrop-angle": [0, 360, 1],
+    "backdrop-fade-angle": [0, 360, 1],
+    "backdrop-fade": [0, 1400, 1],
+    "backdrop-density": [0, 100, 1],
+    "backdrop-gradient-opacity": [10, 300, 100],
+    "backdrop-pattern-opacity": [10, 200, 100],
+  };
+  function echo(key, property) {
+    var value = num(key);
+    if (value === null) return;
+    var range = RANGES[key];
+    value = Math.min(range[1], Math.max(range[0], value));
+    document.documentElement.style.setProperty(property, String(value / range[2]));
+  }
+  try {
+    var root = document.documentElement;
+    var gradient = localStorage.getItem("backdrop-gradient");
+    var pattern = localStorage.getItem("backdrop-pattern");
+    var markOn = localStorage.getItem("backdrop-mark") === "on";
+    var grainOn = localStorage.getItem("backdrop-grain") === "on";
+    var hasGradient = !!gradient && gradient !== "none";
+    var hasPattern = !!pattern && pattern !== "none";
+    if (hasGradient) root.setAttribute("data-backdrop-gradient", gradient);
+    if (hasPattern) root.setAttribute("data-backdrop-pattern", pattern);
+    if (markOn) root.setAttribute("data-backdrop-mark", "");
+    if (grainOn) root.setAttribute("data-backdrop-grain", "");
+    if (hasGradient || hasPattern || markOn || grainOn) {
+      root.setAttribute("data-backdrop", "");
+      echo("backdrop-angle", "--backdrop-angle");
+      echo("backdrop-fade-angle", "--backdrop-fade-angle");
+      echo("backdrop-fade", "--backdrop-fade");
+      echo("backdrop-density", "--backdrop-density");
+      echo("backdrop-gradient-opacity", "--backdrop-gradient-k");
+      echo("backdrop-pattern-opacity", "--backdrop-pattern-k");
+    }
+  } catch (e) {}
+</script>
+```
+
+`data-backdrop` is the boolean the shared rules key on — the layer carriers and the four media blocks that neutralise a backdrop — reduced motion, more contrast, forced colours and print — ask *is anything on*, not *which one*. Nothing of the MARK is echoed beyond its on/off: its image is built from a file this script cannot wait for, so the hook writes the image, the size and the position together one frame later.
+
+A second `add` on a project that already carries Parallax is the trap `install.md` names: the CLI asks whether to overwrite, `--yes` does not answer that question, and an unanswered prompt CANCELS while exiting 0. Silence is not success — check that the files changed.
+
+### What it does not include
+
+The twelve adjustments have no UI here — the two bearings, the fade length, the grain density and the two intensities, plus the mark's anchor, its two offsets, its zoom, its turn and its opacity. Eleven are numeric and clamped; the anchor is one of five positions — the four corners and the centre. They are setters (`setBackdropAngle(v)` and its siblings), and the gallery's Settings page is the worked example of a panel over them. `parallax-backdrop-controls` installs the picker for the four LAYERS only.
+
+## parallax-backdrop-controls
+
+`BackdropSelector`: the wand dropdown that drives the four backdrop layers — two radio groups for the gradient and the pattern, two checkboxes for the mark and the grain. Put it in the header bar through `PageHeader`'s `controls` snippet, or on a settings page.
+
+```sh
+npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-backdrop-controls.json
+```
+
+An icon-sized `DropdownMenu` trigger, prop-free: it reads and writes the backdrop hook directly and holds no state of its own. Two radio groups and two checkboxes, which is the model telling the truth — the layers compose, so the mark is not a third gradient and the grain is not a fourth. It drives the four LAYER choices only; the twelve adjustments behind them are setters without a control here (see `parallax-backdrop`). `parallax-shell`'s header does not render it, and should not: an axis a consumer's application has not defined does not belong in chrome they installed for a breadcrumb.
 
 ## parallax-swap
 

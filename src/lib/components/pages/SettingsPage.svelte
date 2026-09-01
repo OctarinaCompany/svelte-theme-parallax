@@ -306,7 +306,7 @@
 			},
 			cookie: { [SIDEBAR_COOKIE_NAME]: String(sidebar.open) },
 			apply:
-				"On the target Parallax application's origin: write every entry of `storage` into localStorage as-is (all values are strings), set the `cookie` entry as a cookie, then reload — or call the appearance hooks' setters with the `appearance` values. The first-paint script and the hooks read exactly these keys. A key the target does not know is read by nothing and harmless, but the look it describes will be missing: a `vibrant` chrome needs `parallax-appearance`'s `src/vibrant.css` AND the `@import` only that project can add, and `backdrop-*` needs the Backdrop axis, which the registry does not ship yet. If `appearance.backdrop.mark.on` is true, the SVG at `appearance.backdrop.mark.file` must exist in that project too.",
+				"On the target Parallax application's origin: write every entry of `storage` into localStorage as-is (all values are strings), set the `cookie` entry as a cookie, then reload — or call the appearance hooks' setters with the `appearance` values. The first-paint script and the hooks read exactly these keys. A key the target does not know is read by nothing and harmless, but the look it describes will be missing: a `vibrant` chrome needs `parallax-appearance`'s `src/vibrant.css`, and `backdrop-*` needs `parallax-backdrop` — each with the one `@import` only that project can add. If `appearance.backdrop.mark.on` is true, the SVG at `appearance.backdrop.mark.file` must exist in that project too — `parallax-backdrop` ships the kit's own drawing under that name, so a replaced mark still has to travel on its own.",
 		};
 		return JSON.stringify(payload, null, 2);
 	});

@@ -29,6 +29,17 @@ ships today is listed here.
   media query. Every colour derives from the live tokens, so it composes with all eighteen
   palettes in both modes. It ships from `parallax-appearance` as `src/vibrant.css`, beside the
   hooks that write the attribute, and needs the one `@import` a registry item cannot add for you.
+- The backdrop axis, a fifth appearance control and the only one that paints nothing the other
+  four own: the palette and the mode decide what the surfaces are painted WITH, a backdrop
+  decides what is painted BEHIND them. Four independent layers compose — a gradient lit from a
+  bearing you choose (twelve looks), a drawn lattice that fades out over a length you choose
+  (ten), one SVG mark placed from a corner or the centre, scaled and turned, and a grain over all of it — with
+  twelve adjustments over sixteen `localStorage` keys — eleven numeric and clamped, plus the
+  mark's corner. Every colour derives from the live
+  tokens, so one stylesheet serves all eighteen palettes in both modes rather than eighteen
+  hand-written blocks per look, and `none` writes no attribute, so the kit as it ships costs
+  nothing. It publishes as `parallax-backdrop` (the hook, `src/backdrops.css` and the mark's SVG)
+  and `parallax-backdrop-controls` (the wand dropdown over the four layers).
 - The AI chat family: twelve house components under a new `AI chat` catalog group —
   conversation, message (Markdown through `svelte-streamdown`), prompt input, suggestion,
   reasoning, tool, chain of thought, task, confirmation, question, context usage and model
@@ -182,6 +193,13 @@ ships today is listed here.
 
 ### Fixed
 
+- The backdrop's three kill switches reached the wrapper's layers and the header's band but not
+  the pair carrying the mark and the grain — `[data-slot="sidebar-inset"]::before` and
+  `[data-slot="page-header"]::after`. Under `prefers-contrast: more`, `forced-colors: active` and
+  in print, both kept painting: the `background-image: none` rules beside them name the HOSTS,
+  which never reaches a pseudo-element. All three lists now drop them by name, which in print is
+  the one that cost paper — the grain tiles at 256px over every sheet and the mark is
+  `position: fixed`, so it prints once per page.
 - **The sidebar rail no longer leaves a strip of background at its foot on iPadOS Safari.**
   `sidebar-container` is `fixed inset-y-0 … h-svh` upstream — over-constrained, and `bottom` is
   the declaration the browser drops, so the rail was cut to the SMALL viewport (the one with the

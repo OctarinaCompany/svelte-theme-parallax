@@ -6,9 +6,11 @@
  * colours from the live tokens, so one block serves all eighteen palettes in both modes rather
  * than eighteen hand-written blocks per backdrop.
  *
- * TWO OF THEM, `glow` and `aurora`, and they are the same idea at two intensities — which is why
- * everything below is written once and shared. Adding a third is a token block and a list entry;
- * nothing here has to be re-derived for it.
+ * TWENTY-TWO LOOKS ACROSS TWO LAYERS — twelve gradients and ten patterns — plus the mark and the
+ * grain, which are files and textures rather than looks. Several are the same idea at two
+ * intensities (`glow` and `aurora` began as exactly that pair), which is why everything below is
+ * written once and shared: adding one more is a token block and a list entry, and nothing here
+ * has to be re-derived for it.
  *
  * THE AXIS WAS CALLED `flavor` UNTIL IT ONLY DID THIS. It held twelve looks spanning type, shape
  * and light, and an umbrella name was right for that. Eight were cut and one was promoted to the
@@ -1851,9 +1853,14 @@
  * taking the ground away would leave that ink on the page's own.
  */
 @media (prefers-contrast: more) {
+	/* The extras pair carries the mark and the grain, and it is two PSEUDO-elements — the
+	   `background-image: none` rules below name their hosts and never reach them, so they are
+	   dropped here with the other layers rather than surviving the whole block. */
 	:root[data-backdrop] [data-slot="sidebar-wrapper"]::before,
 	:root[data-backdrop] [data-slot="sidebar-wrapper"]::after,
-	:root[data-backdrop] [data-slot="page-header"]::before {
+	:root[data-backdrop] [data-slot="page-header"]::before,
+	:root[data-backdrop] [data-slot="sidebar-inset"]::before,
+	:root[data-backdrop] [data-slot="page-header"]::after {
 		content: none;
 	}
 
@@ -1881,8 +1888,12 @@
  * declare one.
  */
 @media (forced-colors: active) {
+	/* The extras pair goes with them: forced colours repaint inks and grounds, not a grain tile or
+	   an inlined mark, so both would survive as the only decoration left on the page. */
 	:root[data-backdrop] [data-slot="sidebar-wrapper"]::before,
-	:root[data-backdrop] [data-slot="sidebar-wrapper"]::after {
+	:root[data-backdrop] [data-slot="sidebar-wrapper"]::after,
+	:root[data-backdrop] [data-slot="sidebar-inset"]::before,
+	:root[data-backdrop] [data-slot="page-header"]::after {
 		content: none;
 	}
 
@@ -1893,8 +1904,8 @@
 
 	/* The header band replays the light as a real background-image, so `content: none` on the
 	   wrapper's layer does not reach it — it has to be dropped by name or the band keeps a
-	   gradient the rest of the shell no longer has. Its grain layer is a pseudo and goes the same
-	   way the wrapper's do. */
+	   gradient the rest of the shell no longer has. Its PATTERN layer is a pseudo and goes the
+	   same way the wrapper's do; the mark and the grain ride the extras pair named above. */
 	:root[data-backdrop] [data-slot="page-header"] {
 		background-image: none;
 	}
@@ -1909,9 +1920,13 @@
  * be a rectangle at the top of page one and the bands and grids would be ink on every sheet.
  */
 @media print {
+	/* And the extras pair, which is the one that would have cost paper: the grain tiles at 256px
+	   over every sheet, and the mark is `position: fixed`, which prints once per page. */
 	:root[data-backdrop] [data-slot="sidebar-wrapper"]::before,
 	:root[data-backdrop] [data-slot="sidebar-wrapper"]::after,
-	:root[data-backdrop] [data-slot="page-header"]::before {
+	:root[data-backdrop] [data-slot="page-header"]::before,
+	:root[data-backdrop] [data-slot="sidebar-inset"]::before,
+	:root[data-backdrop] [data-slot="page-header"]::after {
 		content: none;
 	}
 

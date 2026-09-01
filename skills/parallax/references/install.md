@@ -17,6 +17,8 @@ complete generated list, with each item's post-install notes, is in the reposito
 | `parallax-theme`               | The palette: base light/dark tokens, `src/themes.css` (17 alternates), the Tailwind mappings for success/warning/info, the subtle family, `--sidebar-outline` |
 | `parallax-appearance`          | The four axes as hooks + `reduced-motion` + the page-header CSS + `src/vibrant.css`, the brand-painted third value of both chrome axes (needs its own `@import`) |
 | `parallax-appearance-controls` | `HeaderToggle` + `SidebarModeToggle`                                    |
+| `parallax-backdrop`            | The fifth axis: four layers painted BEHIND the page (gradient, pattern, mark, grain) as hooks + `src/backdrops.css` + `public/backdrop-mark.svg` (needs its own `@import`, and the asset moves to `static/` under SvelteKit) |
+| `parallax-backdrop-controls`   | `BackdropSelector`, the wand dropdown over the four layers               |
 | `parallax-shell`               | The whole shell: AppShell/AppSidebar/PageHeader + nav trio + breadcrumb + `ModeToggle` and `ThemeSelector` + `shared/nav.ts` + the sidebar/drawer CSS |
 | `parallax-restyle`             | CSS-only: the Parallax shape for the components whose look is application-global (switch, checkbox, tooltip, inputs, select, sliders, sonner, tabs' line variant) plus the global menu-shadow and dialog-scrim opinions. It selects on `data-slot`, so it reaches a Parallax fork and a bare official port alike |
 | `parallax-skill`               | This skill, into `.claude/skills/parallax/`                             |
@@ -95,7 +97,8 @@ via the shell), do both and tell the user you did:
 
    ```css
    @import "./themes.css";
-   @import "./vibrant.css";
+   @import "./backdrops.css"; /* only with parallax-backdrop */
+   @import "./vibrant.css"; /* only with parallax-appearance */
    @import "@fontsource-variable/hanken-grotesk";
    ```
 
@@ -109,6 +112,12 @@ via the shell), do both and tell the user you did:
    per-theme chrome block that ties it on specificity would otherwise win on source order.
    Omit it and the two Vibrant menu rows write an attribute nothing selects — the chrome
    simply does not move, with no error anywhere.
+
+   `backdrops.css` arrives with `parallax-backdrop` and sits BETWEEN the two, for the same
+   kind of reason: after the palettes so a backdrop can move a page token, before
+   `vibrant.css` so an explicit chrome choice outranks a backdrop that decorates the same
+   two surfaces. That item also writes `public/backdrop-mark.svg` — **move it to `static/`
+   under SvelteKit**, keeping the name, or the mark layer 404s and paints nothing.
 
 2. The **first-paint script** in `index.html` / `src/app.html` — exact copy in
    [theming.md](theming.md#the-first-paint-script).
@@ -199,10 +208,15 @@ installing the item named, never by hand-porting gallery code:
 ## Troubleshooting
 
 - **404 on the item URL** — the registry answers only once the demo site is deployed to
-  GitHub Pages. Until then, build it locally in the Parallax repo
-  (`npm run registry:build`), serve `public/r` over HTTP, and rebuild with
-  `PARALLAX_REGISTRY_HOMEPAGE=http://localhost:<port>` so the cross-item URLs resolve
-  locally too (bare names mean the official registry; self-references are absolute URLs).
+  GitHub Pages. Until then, in the Parallax repo:
+  `PARALLAX_REGISTRY_HOMEPAGE=http://localhost:<port> npm run registry:build`, then serve
+  **`public/`** over HTTP on that port — the PARENT of `public/r`, not `public/r` itself.
+  Item URLs are `<homepage>/r/<name>.json`, so serving `r/` as the docroot answers the item
+  you asked for and 404s on every cross-item dependency: the install dies mid-chain with
+  `Failed to fetch registry from .../r/parallax-sidebar.json: 404` and writes nothing.
+  (Bare names still mean the official registry; self-references are absolute URLs.) That
+  build rewrites `registry.json` with the local URLs on purpose and leaves the committed
+  docs alone — re-run `npm run registry:generate` with the variable unset before committing.
 - **`"$lib/components" does not use an existing path alias`** — the consumer's
   `tsconfig.json` lacks the `$lib` paths; add
   `"paths": { "$lib": ["./src/lib"], "$lib/*": ["./src/lib/*"] }`.

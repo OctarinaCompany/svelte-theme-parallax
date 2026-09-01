@@ -178,13 +178,15 @@ this repository.
 npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-theme.json
 ```
 
-One hundred and thirty-one items ship today — the palette, the axes, the shell, the skill, and every Parallax-authored or Parallax-forked ui/ component (verbatim ports of official components are deliberately never published). Their post-install notes live in [`docs/REGISTRY.md`](./docs/REGISTRY.md) — generated beside the manifest, because the registry build strips each item's `docs` field from the published JSON. The flagship items:
+One hundred and thirty-three items ship today — the palette, the axes, the shell, the skill, and every Parallax-authored or Parallax-forked ui/ component (verbatim ports of official components are deliberately never published). Their post-install notes live in [`docs/REGISTRY.md`](./docs/REGISTRY.md) — generated beside the manifest, because the registry build strips each item's `docs` field from the published JSON. The flagship items:
 
 | Item | What it installs |
 |------|------------------|
 | `parallax-theme` | The palette: the base light and dark tokens, `src/themes.css` with the seventeen alternates, and the Tailwind mappings for the families shadcn does not ship — `success`, `warning`, `info`, the subtle family, `--sidebar-outline` |
 | `parallax-appearance` | The four appearance axes as persisted state — the sidebar's and the header's own chrome, each `default`, `inverted` or `vibrant`, plus a floating header and hide-on-scroll — with the CSS their attributes key on, `src/vibrant.css` included |
 | `parallax-appearance-controls` | The two dropdown menus that drive those axes |
+| `parallax-backdrop` | The fifth axis: four layers painted behind the page — a gradient lit from a bearing, a lattice that fades out, one SVG mark placed from a corner or the centre, and a grain over all of it — with every colour derived from the live tokens, so one stylesheet serves all eighteen palettes in both modes |
+| `parallax-backdrop-controls` | `BackdropSelector`, the wand dropdown over those four layers |
 | `parallax-swap` | The two-state icon crossfade behind the light/dark toggle — a house primitive absent from the official registry |
 | `parallax-shell` | The application shell: sidebar (workspace switcher, navigation, user menu, icon rail, mobile drawer) and page header bar (breadcrumb, search slot, light/dark toggle), taking content as typed props and active-state as a predicate — never a router |
 | `parallax-skill` | The [Agent Skill](./skills/parallax/README.md) that teaches an AI assistant to use all of the above correctly — installs into the consumer's `.claude/skills/` |

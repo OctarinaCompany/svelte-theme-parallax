@@ -503,5 +503,11 @@ any of them back is the `controls` snippet, never an edit to the header:
 `parallax-shell` still installs all four for exactly that override; `HeaderToggle` and
 `SidebarModeToggle` arrive through `parallax-appearance-controls`, and each offers three
 values — `Default`, `Inverted` and `Vibrant`, the brand painted onto the surface. Vibrant
-is drawn by `src/vibrant.css`, which `parallax-appearance` writes and the project imports. Budget it: those four
-cost 377px of bar against the default's 72px, and the search field is what pays.
+is drawn by `src/vibrant.css`, which `parallax-appearance` writes and the project imports.
+Budget it: those four cost 377px of bar against the default's 72px, and the search field is
+what pays.
+
+`BackdropSelector` (`parallax-backdrop-controls`) rides in the same way and costs a fifth
+trigger on top of that budget. The shell's header stays ignorant of it, because an axis a
+consumer's application has not defined does not belong in chrome they installed for a
+breadcrumb.

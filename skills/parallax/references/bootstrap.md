@@ -196,12 +196,24 @@ first has a from-scratch wrinkle.
 
 ```css
 @import "../themes.css";
+@import "../backdrops.css"; /* only with parallax-backdrop */
+@import "../vibrant.css"; /* only with parallax-appearance, which parallax-shell pulls in */
 @import "@fontsource-variable/hanken-grotesk";
 ```
 
 `../themes.css` — **not** `./themes.css`. The path is relative to the stylesheet's own
 directory: `src/routes/layout.css` reaching `src/themes.css` climbs one level. Only a
-stylesheet at `src/app.css` gets `./themes.css`.
+stylesheet at `src/app.css` gets `./themes.css`. The same wrinkle applies to the other two,
+which are siblings of it.
+
+Import only what you installed, and keep the ORDER: palettes, then backdrops, then vibrant.
+`vibrant.css` arrives with `parallax-appearance` (so with the shell), `backdrops.css` with
+`parallax-backdrop`. Miss one and nothing errors — the matching control writes an attribute
+no stylesheet answers and the surface simply does not move.
+
+**And `parallax-backdrop` writes an asset to the wrong place under SvelteKit.** It lands at
+`public/backdrop-mark.svg`, which is Vite's static directory; SvelteKit serves `static/`.
+Move it there, keeping the name, or the mark layer fetches a 404 and paints nothing, silently.
 
 **The first-paint script** goes in the `<head>` of `src/app.html`, before
 `%sveltekit.head%`. Exact copy in [theming.md](theming.md#the-first-paint-script).

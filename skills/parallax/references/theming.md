@@ -92,16 +92,17 @@ Never write `data-theme`, `class="dark"` or their `localStorage` keys directly �
 
 ## The appearance axes
 
-Four module-level hooks (`$lib/hooks/`), importable anywhere, no provider. All persist to
+Five module-level hooks (`$lib/hooks/`), importable anywhere, no provider. All persist to
 `localStorage` and re-resolve reactively:
 
 | Axis              | Hook module                  | Read                       | Write                      | Values / default            |
 | ----------------- | ---------------------------- | -------------------------- | -------------------------- | --------------------------- |
 | Header inverted   | `header-mode.svelte.ts`      | `headerMode`, `headerWear` | `setHeaderMode(v)`         | `"default" \| "inverted" \| "vibrant"`¹   |
 | Sidebar inverted  | `sidebar-mode.svelte.ts`     | `sidebarMode`, `sidebarWear` | `setSidebarMode(v)`      | `"default" \| "inverted" \| "vibrant"`¹   |
-| Header floating   | `header-behaviour.svelte.ts` | `headerFloating.current`   | `setHeaderFloating(v)`     | boolean, default `false`    |
+| Header floating   | `header-behaviour.svelte.ts` | `headerFloating.current`   | `setHeaderFloating(v)`     | boolean, **default `true`** |
 | Header auto-hide  | `header-behaviour.svelte.ts` | `headerAutoHide.current`   | `setHeaderAutoHide(v)`     | boolean, default `false`    |
 | Sidebar floating  | `sidebar-behaviour.svelte.ts`| `sidebarFloating.current`  | `setSidebarFloating(v)`    | boolean, **default `true`** |
+| Backdrop          | `backdrop.svelte.ts`         | `activeGradient`, `activePattern`, `markOn`, `grainOn`, + twelve adjustments | `setGradient(id)`, `setPattern(id)`, `setMark(b)`, `setGrain(b)`, + one setter each | four independent layers, all off by default² |
 
 The two mode axes are **relative** — `"inverted"` means "the opposite of the page mode,
 and stays opposite when the page flips". They resolve to absolute `data-sidebar-mode` /
@@ -132,9 +133,11 @@ step with the hooks' exported storage keys):
 		var dark = mode === "dark" || (mode === "system" && matchMedia("(prefers-color-scheme: dark)").matches);
 		var rail = localStorage.getItem("sidebar-mode");
 		var railVibrant = rail === "vibrant";
-		var railWear = railVibrant ? "dark" : rail === "inverted" ? (dark ? "light" : "dark") : dark ? "dark" : "light";
+		// "dark" is the retired absolute spelling of inverted, which the hook still migrates.
+		var railInverted = rail === "inverted" || rail === "dark";
+		var railWear = railVibrant ? "dark" : railInverted ? (dark ? "light" : "dark") : dark ? "dark" : "light";
 		if (railVibrant) root.setAttribute("data-sidebar-mode", "vibrant");
-		else if (rail === "inverted") root.setAttribute("data-sidebar-mode", railWear);
+		else if (railInverted) root.setAttribute("data-sidebar-mode", railWear);
 		var bar = localStorage.getItem("header-mode");
 		if (bar === "vibrant") root.setAttribute("data-header-mode", "vibrant");
 		else {
@@ -145,10 +148,26 @@ step with the hooks' exported storage keys):
 </script>
 ```
 
+² The backdrop is the FIFTH axis and the only one that paints nothing the others own: the
+palette and the mode decide what the surfaces are painted WITH, a backdrop decides what is
+painted BEHIND them. Four layers compose — a gradient (twelve looks), a pattern (ten), one
+SVG mark and a grain — over sixteen `localStorage` keys, and every colour derives from the
+live tokens, so one block serves all eighteen palettes in both modes. `none`/off writes no
+attribute, so the kit as it ships needs no backdrop CSS to be correct. It arrives as
+`parallax-backdrop`, needs `@import "./backdrops.css";` after the palettes and before
+`vibrant.css`, and paints only where the shell's slots exist — `sidebar-wrapper`,
+`sidebar-inset`, `page-header`, `page-header-bar`.
+
 `vibrant` costs the two extra branches for one reason each. It is absolute, so it is written verbatim
 rather than resolved against the page mode; and it states its nine chrome tokens ON the painted
 surface rather than on `<html>`, so beside a vibrant rail the bar has nothing to inherit and must
 write its own value even when the two wears agree.
+
+The backdrop half of the script is sixteen more keys and a clamp, published verbatim with
+the item — copy it from that item's notes in
+[docs/REGISTRY.md](https://github.com/OctarinaCompany/svelte-theme-parallax/blob/main/docs/REGISTRY.md)
+rather than from here, and only when `parallax-backdrop` is installed. Absent is not zero
+there: `Number(null)` is `0`, and a `0` density paints no grain at all.
 
 **A Vite SPA needs three more lines.** `ModeWatcher` ships its own flash guard for
 light/dark and the palette, but delivers it through `<svelte:head>` — which only reaches
