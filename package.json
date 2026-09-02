@@ -70,7 +70,7 @@
 		"prettier-plugin-tailwindcss": "^0.8.1",
 		"qrcode": "^1.5.4",
 		"shadcn-svelte": "^1.5.1",
-		"shiki": "^3.23.0",
+		"shiki": "^4.4.3",
 		"svelte": "^5.57.0",
 		"svelte-check": "^4.7.6",
 		"svelte-sonner": "^1.2.1",
