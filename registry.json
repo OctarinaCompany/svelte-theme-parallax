@@ -355,7 +355,7 @@
 				"https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-appearance.json"
 			],
 			"dependencies": [
-				"@lucide/svelte@^1.34.0"
+				"@lucide/svelte@^1.37.0"
 			],
 			"devDependencies": [],
 			"files": [
@@ -407,7 +407,7 @@
 			"title": "Parallax backdrop control",
 			"description": "`BackdropSelector`: the wand dropdown that drives the four backdrop layers — two radio groups for the gradient and the pattern, two checkboxes for the mark and the grain. Put it in the header bar through `PageHeader`'s `controls` snippet, or on a settings page.",
 			"dependencies": [
-				"@lucide/svelte@^1.34.0"
+				"@lucide/svelte@^1.37.0"
 			],
 			"devDependencies": [],
 			"registryDependencies": [
@@ -468,7 +468,7 @@
 			"title": "Parallax shell",
 			"description": "The application shell: the sidebar (workspace switcher, two-shape navigation, user menu, icon rail, mobile drawer) and the page header bar (breadcrumb, search slot, light/dark toggle) — wired to the published appearance axes, taking their content as typed props.",
 			"dependencies": [
-				"@lucide/svelte@^1.34.0",
+				"@lucide/svelte@^1.37.0",
 				"mode-watcher@^1.1.0"
 			],
 			"devDependencies": [],
@@ -1114,7 +1114,7 @@
 			"title": "Accordion",
 			"description": "The house accordion: shadcn's API with a chevron pair that swaps on open, hairline seams between items, and link and paragraph spacing inside a panel.",
 			"dependencies": [
-				"@lucide/svelte@^1.34.0",
+				"@lucide/svelte@^1.37.0",
 				"bits-ui@^2.19.0"
 			],
 			"devDependencies": [],
@@ -1398,7 +1398,7 @@
 			"title": "Autocomplete",
 			"description": "A text field that suggests as you type and still accepts what the list never offered — the free-text half of type-to-pick. Reach for Combobox instead when the answer must be one of the items.",
 			"dependencies": [
-				"@lucide/svelte@^1.34.0",
+				"@lucide/svelte@^1.37.0",
 				"bits-ui@^2.19.0",
 				"tailwind-variants@^3.3.1"
 			],
@@ -1590,7 +1590,7 @@
 			"title": "Banner",
 			"description": "A full-width notification strip pinned to the top or bottom of the viewport, with a queue that shows one at a time in priority order. Reach for it when the message outranks the page — an Alert stays in the flow it was written into, and a toast clears itself.",
 			"dependencies": [
-				"@lucide/svelte@^1.34.0",
+				"@lucide/svelte@^1.37.0",
 				"bits-ui@^2.19.0",
 				"tailwind-variants@^3.3.1"
 			],
@@ -1662,7 +1662,7 @@
 			"title": "Breadcrumb",
 			"description": "The house breadcrumb: shadcn's API with the theme's separator rhythm and muted trail, sized for the header bar the shell renders it in.",
 			"dependencies": [
-				"@lucide/svelte@^1.34.0"
+				"@lucide/svelte@^1.37.0"
 			],
 			"devDependencies": [],
 			"registryDependencies": [],
@@ -1779,7 +1779,7 @@
 			"description": "The house calendar: shadcn's API rebuilt on `--cell-size` and `--cell-radius`, so one month grid retunes for a card, a popover or a full page without forking the parts.",
 			"dependencies": [
 				"@internationalized/date@^3.12.3",
-				"@lucide/svelte@^1.34.0",
+				"@lucide/svelte@^1.37.0",
 				"bits-ui@^2.19.0"
 			],
 			"devDependencies": [],
@@ -1964,7 +1964,7 @@
 			"title": "Carousel",
 			"description": "The house carousel: shadcn's Embla wrapper with the previous and next controls rebuilt as round icon-sm Buttons on the house ramp.",
 			"dependencies": [
-				"@lucide/svelte@^1.34.0",
+				"@lucide/svelte@^1.37.0",
 				"bits-ui@^2.19.0",
 				"embla-carousel-svelte@^8.6.0"
 			],
@@ -2016,7 +2016,7 @@
 			"title": "Chain of thought",
 			"description": "The steps a model took to an answer, as a collapsible trace: labelled steps with a status each, search-result chips and an optional image. Reach for it to show the WORK; Timeline is for events that happened to a system.",
 			"dependencies": [
-				"@lucide/svelte@^1.34.0",
+				"@lucide/svelte@^1.37.0",
 				"bits-ui@^2.19.0",
 				"tailwind-variants@^3.3.1"
 			],
@@ -2079,7 +2079,7 @@
 			"title": "Chart",
 			"description": "The house chart frame: shadcn's LayerChart container, tooltip and legend on the theme's grid, axis and tooltip treatment, driven by a per-series colour config.",
 			"dependencies": [
-				"layerchart@^2.3.0"
+				"layerchart@^2.3.1"
 			],
 			"devDependencies": [],
 			"registryDependencies": [],
@@ -2117,7 +2117,7 @@
 			"title": "Checkbox",
 			"description": "The house checkbox: shadcn's API on a 4px-radius box with the theme's border, focus ring and indeterminate mark.",
 			"dependencies": [
-				"@lucide/svelte@^1.34.0",
+				"@lucide/svelte@^1.37.0",
 				"bits-ui@^2.19.0"
 			],
 			"devDependencies": [],
@@ -2141,7 +2141,7 @@
 			"title": "Checkbox group",
 			"description": "Several checkboxes as one value: a shared label, description and validation message, horizontal or vertical. Reach for it when the boxes answer one question rather than several.",
 			"dependencies": [
-				"@lucide/svelte@^1.34.0",
+				"@lucide/svelte@^1.37.0",
 				"bits-ui@^2.19.0"
 			],
 			"devDependencies": [],
@@ -2254,7 +2254,7 @@
 			"title": "Code block",
 			"description": "A copyable — and, given a filename, downloadable — code sample with a line-number gutter, a language selector and lightweight language-aware highlighting. Reach for it for an opaque string to read and copy; JSON viewer parses a live value instead.",
 			"dependencies": [
-				"@lucide/svelte@^1.34.0",
+				"@lucide/svelte@^1.37.0",
 				"tailwind-variants@^3.3.1"
 			],
 			"devDependencies": [],
@@ -2350,7 +2350,7 @@
 			"title": "Color picker",
 			"description": "A full colour picker: a saturation and brightness area, hue and alpha sliders, the native eyedropper, and per-channel fields in hex, rgb, hsl or hsb.",
 			"dependencies": [
-				"@lucide/svelte@^1.34.0",
+				"@lucide/svelte@^1.37.0",
 				"bits-ui@^2.19.0",
 				"tailwind-variants@^3.3.1"
 			],
@@ -2471,7 +2471,7 @@
 			"title": "Combobox",
 			"description": "A searchable select: a Command list inside a Popover, single, multiple, or multiple as chips. What it commits is always one of the items — reach for Autocomplete when the answer may be one the list never offered.",
 			"dependencies": [
-				"@lucide/svelte@^1.34.0",
+				"@lucide/svelte@^1.37.0",
 				"bits-ui@^2.19.0"
 			],
 			"devDependencies": [],
@@ -2578,7 +2578,7 @@
 			"title": "Command",
 			"description": "The house command menu: shadcn's cmdk wrapper with the input rebuilt on Input group, a rounded popover ground and the selected-row treatment the palette uses.",
 			"dependencies": [
-				"@lucide/svelte@^1.34.0",
+				"@lucide/svelte@^1.37.0",
 				"bits-ui@^2.19.0"
 			],
 			"devDependencies": [],
@@ -2655,7 +2655,7 @@
 			"title": "Compare slider",
 			"description": "Two versions of one image and a divider that wipes between them, by pointer, by touch or from the keyboard.",
 			"dependencies": [
-				"@lucide/svelte@^1.34.0"
+				"@lucide/svelte@^1.37.0"
 			],
 			"devDependencies": [],
 			"registryDependencies": [],
@@ -2763,7 +2763,7 @@
 			"title": "Context menu",
 			"description": "The house context menu: shadcn's API with the flat row treatment, ring-drawn popovers and an RTL-aware submenu chevron.",
 			"dependencies": [
-				"@lucide/svelte@^1.34.0",
+				"@lucide/svelte@^1.37.0",
 				"bits-ui@^2.19.0"
 			],
 			"devDependencies": [],
@@ -2945,7 +2945,7 @@
 			"title": "Conversation",
 			"description": "The transcript viewport: sticks to the bottom while a reply streams, offers a scroll-to-bottom button once the reader has scrolled away, an empty state, and a Markdown download of the whole exchange.",
 			"dependencies": [
-				"@lucide/svelte@^1.34.0"
+				"@lucide/svelte@^1.37.0"
 			],
 			"devDependencies": [],
 			"registryDependencies": [
@@ -2998,7 +2998,7 @@
 			"title": "Copy button",
 			"description": "A button that writes text to the clipboard and swaps its icon for a tick — once the write has actually resolved. The swap is a Svelte transition, with no animation library.",
 			"dependencies": [
-				"@lucide/svelte@^1.34.0"
+				"@lucide/svelte@^1.37.0"
 			],
 			"devDependencies": [],
 			"registryDependencies": [
@@ -3084,7 +3084,7 @@
 			"description": "The spreadsheet: virtualized rows, cell-addressed keyboard navigation, in-place editors per cell variant, its own ARIA grid markup.",
 			"dependencies": [
 				"@internationalized/date@^3.12.3",
-				"@lucide/svelte@^1.34.0",
+				"@lucide/svelte@^1.37.0",
 				"@tanstack/table-core@^8.21.3",
 				"bits-ui@^2.19.0",
 				"svelte-sonner@^1.2.1"
@@ -3288,7 +3288,7 @@
 			"description": "The TanStack-driven table engine: createDataTable state in runes, Toolbar with meta-driven filters, ColumnHeader, FlexRender, Pagination. The motor behind every list page in the gallery.",
 			"dependencies": [
 				"@internationalized/date@^3.12.3",
-				"@lucide/svelte@^1.34.0",
+				"@lucide/svelte@^1.37.0",
 				"@tanstack/table-core@^8.21.3",
 				"bits-ui@^2.19.0"
 			],
@@ -3400,7 +3400,7 @@
 			"description": "One control for a day, a month, a quarter, a half-year or a year, behind an is/before/after/between operator, with a free-text input that parses all of them.",
 			"dependencies": [
 				"@internationalized/date@^3.12.3",
-				"@lucide/svelte@^1.34.0",
+				"@lucide/svelte@^1.37.0",
 				"bits-ui@^2.19.0",
 				"date-fns@^4.4.0"
 			],
@@ -3463,7 +3463,7 @@
 			"title": "Dialog",
 			"description": "The house dialog: shadcn's API with the close control rebuilt as a ghost icon Button, on the popover ground the theme's overlays share.",
 			"dependencies": [
-				"@lucide/svelte@^1.34.0",
+				"@lucide/svelte@^1.37.0",
 				"bits-ui@^2.19.0"
 			],
 			"devDependencies": [],
@@ -3633,7 +3633,7 @@
 			"title": "Dropdown menu",
 			"description": "The house dropdown menu: shadcn's API with the flat row treatment, ring-drawn popovers and check and radio indicators on the trailing edge.",
 			"dependencies": [
-				"@lucide/svelte@^1.34.0",
+				"@lucide/svelte@^1.37.0",
 				"bits-ui@^2.19.0"
 			],
 			"devDependencies": [],
@@ -3856,7 +3856,7 @@
 			"dependencies": [
 				"@date-fns/tz@^1.5.0",
 				"@internationalized/date@^3.12.3",
-				"@lucide/svelte@^1.34.0",
+				"@lucide/svelte@^1.37.0",
 				"bits-ui@^2.19.0",
 				"date-fns@^4.4.0"
 			],
@@ -4090,7 +4090,7 @@
 			"title": "Filters",
 			"description": "The filter row as state: a filter is a chip of field, operator and value, and the row of them is a value the page owns. Reach for it when a list needs more than a search box.",
 			"dependencies": [
-				"@lucide/svelte@^1.34.0",
+				"@lucide/svelte@^1.37.0",
 				"tailwind-variants@^3.3.1"
 			],
 			"devDependencies": [],
@@ -4484,7 +4484,7 @@
 			"title": "Input otp",
 			"description": "A segmented one-time-code field, rebuilt on its own state module and provider: a slot per character, groups split by separators, and one hidden input so paste and autofill keep working.",
 			"dependencies": [
-				"@lucide/svelte@^1.34.0",
+				"@lucide/svelte@^1.37.0",
 				"bits-ui@^2.19.0"
 			],
 			"devDependencies": [],
@@ -4603,7 +4603,7 @@
 			"title": "Json viewer",
 			"description": "A collapsible JSON tree coloured by runtime type, with expand and collapse, copy, and array truncation. Reach for Code block when the payload is an opaque sample rather than a tree to navigate.",
 			"dependencies": [
-				"@lucide/svelte@^1.34.0",
+				"@lucide/svelte@^1.37.0",
 				"tailwind-variants@^3.3.1"
 			],
 			"devDependencies": [],
@@ -4764,7 +4764,7 @@
 			"title": "Key value",
 			"description": "A dynamic list of key/value pairs with paste support and per-row validation — headers, environment variables, metadata a user types.",
 			"dependencies": [
-				"@lucide/svelte@^1.34.0"
+				"@lucide/svelte@^1.37.0"
 			],
 			"devDependencies": [],
 			"registryDependencies": [
@@ -4837,7 +4837,7 @@
 			"title": "Language selector",
 			"description": "A dialog that switches the active locale. The catalog is data the caller supplies and the component moves a code: it translates nothing.",
 			"dependencies": [
-				"@lucide/svelte@^1.34.0"
+				"@lucide/svelte@^1.37.0"
 			],
 			"devDependencies": [],
 			"registryDependencies": [
@@ -4887,7 +4887,7 @@
 			"title": "Listbox",
 			"description": "An always-visible option list with the WAI-ARIA keyboard model and typeahead, single or multiple, as a column or a grid. Reach for it when the options should not be hidden behind a trigger.",
 			"dependencies": [
-				"@lucide/svelte@^1.34.0"
+				"@lucide/svelte@^1.37.0"
 			],
 			"devDependencies": [],
 			"registryDependencies": [
@@ -5815,7 +5815,7 @@
 			"title": "Media player",
 			"description": "A full video and audio player: custom controls, chapters, captions, playback rate and the complete keyboard shortcut set.",
 			"dependencies": [
-				"@lucide/svelte@^1.34.0",
+				"@lucide/svelte@^1.37.0",
 				"bits-ui@^2.19.0"
 			],
 			"devDependencies": [],
@@ -6037,7 +6037,7 @@
 			"title": "Menubar",
 			"description": "The house menubar: shadcn's API with the flat row treatment, ring-drawn popovers and indicators on the leading edge.",
 			"dependencies": [
-				"@lucide/svelte@^1.34.0",
+				"@lucide/svelte@^1.37.0",
 				"bits-ui@^2.19.0"
 			],
 			"devDependencies": [],
@@ -6142,7 +6142,7 @@
 			"description": "One turn of a chat — a user bubble or an assistant answer — with a Markdown response rendered through svelte-streamdown, actions, a toolbar, and a pager for walking the alternatives a regenerate leaves behind. Installing it brings svelte-streamdown and needs one `@source` line in the stylesheet.",
 			"docs": "Markdown renders through svelte-streamdown, whose classes live in node_modules: add `@source \"../node_modules/svelte-streamdown/**/*\";` next to the imports of your global stylesheet (`../../node_modules/…` from src/routes/layout.css). Without it answers render unstyled and nothing errors.",
 			"dependencies": [
-				"@lucide/svelte@^1.34.0",
+				"@lucide/svelte@^1.37.0",
 				"bits-ui@^2.19.0",
 				"svelte-streamdown@^3.1.2",
 				"tailwind-variants@^3.3.1"
@@ -6306,7 +6306,7 @@
 			"title": "Native select",
 			"description": "The house native select: the browser's own dropdown at the theme's field height, with a `sm` or `default` size stamped as `data-size`.",
 			"dependencies": [
-				"@lucide/svelte@^1.34.0"
+				"@lucide/svelte@^1.37.0"
 			],
 			"devDependencies": [],
 			"registryDependencies": [],
@@ -6339,7 +6339,7 @@
 			"title": "Navigation menu",
 			"description": "The house navigation menu: shadcn's API with the theme's trigger, link and viewport treatment, and `navigationMenuTriggerStyle` exported for the links that are not triggers.",
 			"dependencies": [
-				"@lucide/svelte@^1.34.0",
+				"@lucide/svelte@^1.37.0",
 				"bits-ui@^2.19.0",
 				"tailwind-variants@^3.3.1"
 			],
@@ -6399,7 +6399,7 @@
 			"title": "Number field",
 			"description": "A numeric input with spinner buttons, press-and-hold repeat, keyboard stepping and a drag-to-scrub label.",
 			"dependencies": [
-				"@lucide/svelte@^1.34.0",
+				"@lucide/svelte@^1.37.0",
 				"tailwind-variants@^3.3.1"
 			],
 			"devDependencies": [],
@@ -6456,7 +6456,7 @@
 			"title": "Pagination",
 			"description": "The house pagination: shadcn's API with the page links drawn by `buttonVariants` at any Button size, so a pager matches the controls beside it.",
 			"dependencies": [
-				"@lucide/svelte@^1.34.0",
+				"@lucide/svelte@^1.37.0",
 				"bits-ui@^2.19.0"
 			],
 			"devDependencies": [],
@@ -6581,7 +6581,7 @@
 			"title": "Phone input",
 			"description": "A phone field with country detection and international formatting, built on the mask input.",
 			"dependencies": [
-				"@lucide/svelte@^1.34.0",
+				"@lucide/svelte@^1.37.0",
 				"bits-ui@^2.19.0"
 			],
 			"devDependencies": [],
@@ -6712,7 +6712,7 @@
 			"title": "Prompt input",
 			"description": "The composer: an auto-growing textarea that submits on Enter, a header and footer for tools, borderless selects, and a submit button that becomes a stop button while a reply is in flight. Files attach from its action menu, a drop or a paste, validated against `accept`, `maxFiles` and `maxFileSize`.",
 			"dependencies": [
-				"@lucide/svelte@^1.34.0",
+				"@lucide/svelte@^1.37.0",
 				"bits-ui@^2.19.0"
 			],
 			"devDependencies": [],
@@ -6966,7 +6966,7 @@
 			"title": "Radio group",
 			"description": "The house radio group: shadcn's API with the theme's ring, dot indicator and row rhythm.",
 			"dependencies": [
-				"@lucide/svelte@^1.34.0",
+				"@lucide/svelte@^1.37.0",
 				"bits-ui@^2.19.0"
 			],
 			"devDependencies": [],
@@ -6996,7 +6996,7 @@
 			"description": "The house range calendar: shadcn's API plus the `rangeCalendar`, `rangeCalendarFlush` and `rangeDay` class recipes, so a range picker reads the same in a card, in a popover, or flush to a panel edge.",
 			"dependencies": [
 				"@internationalized/date@^3.12.3",
-				"@lucide/svelte@^1.34.0",
+				"@lucide/svelte@^1.37.0",
 				"bits-ui@^2.19.0"
 			],
 			"devDependencies": [],
@@ -7112,7 +7112,7 @@
 			"title": "Rating",
 			"description": "A star rating that displays whole, half and fractional scores, and — when editable — collects one by mouse or keyboard.",
 			"dependencies": [
-				"@lucide/svelte@^1.34.0",
+				"@lucide/svelte@^1.37.0",
 				"bits-ui@^2.19.0",
 				"tailwind-variants@^3.3.1"
 			],
@@ -7142,7 +7142,7 @@
 			"title": "Reasoning",
 			"description": "The model's reasoning summary in a collapsible panel that opens while it streams, reports how long the thinking took, and closes itself once the answer starts. Reach for it over Collapsible when the content is a thought, not a section.",
 			"dependencies": [
-				"@lucide/svelte@^1.34.0",
+				"@lucide/svelte@^1.37.0",
 				"bits-ui@^2.19.0"
 			],
 			"devDependencies": [],
@@ -7416,7 +7416,7 @@
 			"title": "Scroller",
 			"description": "A scroll container that keeps the browser's own scrollbar and fades the edges where content continues, with optional buttons that scroll on press, hover or click. Where Scroll area replaces the scrollbar, this only layers affordances on top of it.",
 			"dependencies": [
-				"@lucide/svelte@^1.34.0",
+				"@lucide/svelte@^1.37.0",
 				"tailwind-variants@^3.3.1"
 			],
 			"devDependencies": [],
@@ -7495,7 +7495,7 @@
 			"title": "Select",
 			"description": "The house select: shadcn's API at the theme's field height, with the boxed trigger, ring-drawn content and scroll buttons on the popover ground.",
 			"dependencies": [
-				"@lucide/svelte@^1.34.0",
+				"@lucide/svelte@^1.37.0",
 				"bits-ui@^2.19.0"
 			],
 			"devDependencies": [],
@@ -7668,7 +7668,7 @@
 			"title": "Sheet",
 			"description": "The house sheet: shadcn's edge panel with the close control rebuilt as a ghost icon Button, and a `showCloseButton` for the panels that own their own.",
 			"dependencies": [
-				"@lucide/svelte@^1.34.0",
+				"@lucide/svelte@^1.37.0",
 				"bits-ui@^2.19.0"
 			],
 			"devDependencies": [],
@@ -7739,7 +7739,7 @@
 			"title": "Sidebar",
 			"description": "The sidebar primitive the application shell is built on — provider, rail, menu, sub-menu and mobile drawer — retuned to the theme's rhythm and its sidebar tokens. `parallax-shell` installs it already wired.",
 			"dependencies": [
-				"@lucide/svelte@^1.34.0",
+				"@lucide/svelte@^1.37.0",
 				"bits-ui@^2.19.0",
 				"tailwind-variants@^3.3.1"
 			],
@@ -8052,7 +8052,7 @@
 			"title": "Spinner",
 			"description": "The house spinner: shadcn's loading mark with `role` and `aria-label` overridable, and the foreign icon-library props (`name`, `color`, `stroke`) normalised so another icon set can stand in.",
 			"dependencies": [
-				"@lucide/svelte@^1.34.0"
+				"@lucide/svelte@^1.37.0"
 			],
 			"devDependencies": [],
 			"registryDependencies": [],
@@ -8166,7 +8166,7 @@
 			"title": "Stepper",
 			"description": "A multi-step flow with visible progress: a list of steps with indicator, title, description and separator, horizontal or vertical, each carrying its own state.",
 			"dependencies": [
-				"@lucide/svelte@^1.34.0",
+				"@lucide/svelte@^1.37.0",
 				"tailwind-variants@^3.3.1"
 			],
 			"devDependencies": [],
@@ -8434,7 +8434,7 @@
 			"title": "Tags input",
 			"description": "Free-text values entered as removable chips, with paste, split-on-delimiter, edit in place and per-tag validation.",
 			"dependencies": [
-				"@lucide/svelte@^1.34.0"
+				"@lucide/svelte@^1.37.0"
 			],
 			"devDependencies": [],
 			"registryDependencies": [
@@ -8501,7 +8501,7 @@
 			"title": "Task",
 			"description": "A model's todo item as a collapsible: a title, sub-items and file chips, open by default so progress reads at a glance.",
 			"dependencies": [
-				"@lucide/svelte@^1.34.0",
+				"@lucide/svelte@^1.37.0",
 				"bits-ui@^2.19.0"
 			],
 			"devDependencies": [],
@@ -8720,7 +8720,7 @@
 			"title": "Tool",
 			"description": "One tool call as a card: name, a status badge from the seven AI SDK states, the parameters it was called with and the result it returned — structured payloads through JSON viewer, text through code block.",
 			"dependencies": [
-				"@lucide/svelte@^1.34.0",
+				"@lucide/svelte@^1.37.0",
 				"bits-ui@^2.19.0"
 			],
 			"devDependencies": [],
@@ -8819,7 +8819,7 @@
 			"title": "Tour",
 			"description": "A guided tour: highlight an element, step through the instructions, and teach a screen the first time somebody sees it.",
 			"dependencies": [
-				"@lucide/svelte@^1.34.0",
+				"@lucide/svelte@^1.37.0",
 				"bits-ui@^2.19.0"
 			],
 			"devDependencies": [],
@@ -8927,7 +8927,7 @@
 			"title": "Tree",
 			"description": "A multi-level tree view with expand and collapse, selection, and the WAI-ARIA keyboard model.",
 			"dependencies": [
-				"@lucide/svelte@^1.34.0"
+				"@lucide/svelte@^1.37.0"
 			],
 			"devDependencies": [],
 			"registryDependencies": [
