@@ -823,9 +823,9 @@
 				The page's own scrollbar, and the only axis here that is one switch: dressed in the palette
 				— the same <code class="text-[87.5%] text-primary">--border</code> the
 				<code class="text-[87.5%] text-primary">ScrollArea</code> component paints its thumb with — or
-				handed back to the operating system. The width it reserves is not part of the switch: the canvas
-				keeps a stable gutter either way, so the page never resizes between a document that overflows
-				and one that does not.
+				left as the operating system draws it, which is what the kit ships. The width it reserves is not
+				part of the switch: the canvas keeps a stable gutter either way, so the page never resizes
+				between a document that overflows and one that does not.
 			{/snippet}
 			<Card.Root>
 				<Card.Content>
@@ -837,7 +837,7 @@
 						{@render switchRow(
 							"settings-page-scrollbar",
 							"Themed scrollbar",
-							"The page's bar wears the palette, thin, on a transparent track — the kit's default. Off hands it back to the platform, arrow buttons and all.",
+							"The page's bar wears the palette, thin, on a transparent track. Off — the kit's default — leaves it as the platform draws it, arrow buttons and all.",
 							pageScrollbar.current,
 							setPageScrollbar,
 						)}

@@ -1537,11 +1537,12 @@
 
 /*
  * THE PAGE'S SCROLLBAR, DRESSED IN THE PALETTE — the one appearance axis that is a single pair of
- * declarations, and the only surface in the kit still speaking the platform's dialect until it
- * landed. `page-scrollbar.svelte.ts` writes the attribute; absent, this block does not match and
- * the canvas hands its bar back to the operating system untouched. The gutter above is deliberately
- * NOT in here: reserving the width is a fix, dressing the bar is a taste, and only the taste
- * switches.
+ * declarations, and an OPT-IN: `page-scrollbar.svelte.ts` writes the attribute only when a reader
+ * has asked for it, so by default this block matches nothing and the canvas keeps the bar the
+ * operating system draws. A scrollbar is a platform control before it is a design, and the kit
+ * offers to dress it rather than assuming. The gutter above is deliberately NOT in here either,
+ * for the opposite reason: reserving the width is a fix rather than a taste, so it is
+ * unconditional.
  *
  * THE THUMB IS `--border`, THE SAME TOKEN `ScrollArea` PAINTS ITS OWN WITH — an owner decision
  * (2026-09-02), taken against the measurement below and recorded so it is not "corrected" later by

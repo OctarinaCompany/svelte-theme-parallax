@@ -12,11 +12,15 @@
  * between a page that overflows and one that does not stops resizing the canvas. A fix and a taste
  * are two different things and only the taste gets a switch.
  *
- * ON BY DEFAULT, like the floating rail and unlike the backdrop. The kit restyles what it ships —
- * cards, tables, inputs, the menus — and the page's own bar is the last surface still speaking the
- * platform's dialect; an axis that shipped off would be a look nobody sees. The switch exists
- * because the opposite is a legitimate preference, not because the default is in doubt. The key is
- * read only when ABSENT: a reader who turns it off finds it off on the next load.
+ * OFF BY DEFAULT, like the backdrop and unlike the floating rail — an owner decision (2026-09-02),
+ * taken after living with the opposite for an afternoon. A scrollbar is the operating system's own
+ * control before it is anyone's design: it carries the platform's drag target, its arrow buttons
+ * where the platform has them, and the habits of the reader using it. A theme kit may offer to
+ * dress it and should not assume the offer is accepted, so the kit ships the bar the machine
+ * already draws and this axis is the opt-in. The switch is the same either way; only what a first
+ * visit sees changed.
+ *
+ * The key is read only when ABSENT: a reader who turns it on finds it on at the next load.
  *
  * IT WRITES AN ATTRIBUTE, unlike its two behaviour siblings, and the asymmetry is the same one
  * `header-behaviour.svelte.ts` records: those flags only ever change classes on an element Svelte
@@ -44,13 +48,13 @@ function read(): boolean {
 	try {
 		// Guard for any non-browser evaluation (prerendering, tests, SSR added later) — INSIDE
 		// the try, because with storage fully blocked the `localStorage` getter itself throws.
-		if (typeof localStorage === "undefined") return true;
+		if (typeof localStorage === "undefined") return false;
 
-		// Only the literal "false" turns it off — absent means the themed bar the kit ships.
-		return localStorage.getItem(PAGE_SCROLLBAR_STORAGE_KEY) !== "false";
+		// Only the literal "true" turns it on — absent means the platform's own bar.
+		return localStorage.getItem(PAGE_SCROLLBAR_STORAGE_KEY) === "true";
 	} catch {
 		// Storage blocked outright. The session still switches, it just does not persist.
-		return true;
+		return false;
 	}
 }
 

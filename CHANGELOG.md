@@ -22,11 +22,12 @@ ships today is listed here.
   including a PNG `apple-touch-icon`, without which a home screen shows a screenshot of the page.
   The trap is written up in the skill's `bootstrap.md`, since it belongs to any shell whose routes
   are paths rather than to this gallery.
-- **A fifth appearance axis, the page's own scrollbar** — one switch, on by default, and the last
-  surface in the kit still speaking the platform's dialect. On, the canvas takes
+- **A fifth appearance axis, the page's own scrollbar** — one switch, off by default, over the last
+  surface in the kit still speaking the platform's dialect. Turned on, the canvas takes
   `scrollbar-width: thin` and a `scrollbar-color` pair from the palette, the thumb being the same
   `--border` the `ScrollArea` component paints its own with, on a transparent track so a backdrop
-  shows through the channel; off, the bar goes back to the operating system untouched.
+  shows through the channel; left off — which is what the kit ships — the bar stays exactly as the
+  operating system draws it, since a scrollbar is a platform control before it is a design.
   `page-scrollbar.svelte.ts` writes `data-scrollbar="themed"` on `<html>` and ships with
   `parallax-appearance` beside the one CSS block that reads it, the Settings page carries the
   switch, and the first-paint script echoes the key — which is not cosmetic here, since `thin`

@@ -160,11 +160,11 @@ a hook plus one block:
 }
 ```
 
-`setPageScrollbar(false)` removes the attribute and the canvas hands its bar back to the
-operating system, keeping the stable width. It is ON by default — the exception among these axes
-— and the first-paint script writes the attribute, which is not cosmetic: `thin` narrows the
+It is OFF by default, like the backdrop: an install keeps the bar the platform draws, and
+`setPageScrollbar(true)` writes the attribute — `setPageScrollbar(false)` removes it
+again. The first-paint script echoes the key, which is not cosmetic: `thin` narrows the
 reserved gutter (15px to 10px at 1440px), so an attribute arriving after hydration would move the
-page's width under the reader.
+page's width under the reader. The stable width itself is kept either way.
 
 The thumb is `--border`, the token `ScrollArea` paints its own with, so the page's bar and the
 component's read as one object. That is faint by measurement — 1.03:1 against the light page
