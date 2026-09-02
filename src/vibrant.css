@@ -284,7 +284,25 @@
 :root[data-header-mode="vibrant"][data-header-mode][data-header-mode]
 	[data-slot="page-header-bar"] {
 	--sidebar: var(--vibrant-b);
-	--sidebar-foreground: var(--vibrant-ink);
+	/*
+	 * THE RESTING INK IS THE SOFT ONE, AND THAT IS THE WHOLE HIERARCHY OF A NAV RAIL. Every palette
+	 * in this kit spends two inks on the panel: `--sidebar-foreground` for an item at rest and
+	 * `--sidebar-accent-foreground` for the one you are on. Measured on the default palette, that
+	 * gap is #6c86a3 against #0f263f — a muted grey-blue beside a near-black, so the current page
+	 * announces itself from across the rail.
+	 *
+	 * This block used to hand BOTH steps the same near-white: `--vibrant-ink` at L 0.97 resting
+	 * against #fff active. Three percent of lightness where the palette spends the distance between
+	 * grey and black, so on a painted rail every item read as current and none of them did — which
+	 * is exactly the report that produced this comment: "the item colours are not the same as in the
+	 * default sidebar".
+	 *
+	 * `--vibrant-ink-soft` is L 0.85 and already existed for exactly this register: it is what the
+	 * group label and the solved `--input` are drawn with. Resting at 0.85 against #fff active
+	 * restores the two steps, and the ratio against the panel stays far above anything the muted
+	 * grey clears on white.
+	 */
+	--sidebar-foreground: var(--vibrant-ink-soft);
 	--sidebar-primary: #fff;
 	--sidebar-primary-foreground: var(--vibrant-b);
 	/* Hover and active are an alpha wash, never a solid: a fill would flatten the field. */
@@ -313,9 +331,17 @@
 	   `app.css` would otherwise hand it. */
 	--input: var(--vibrant-ink-soft);
 
-	/* `color` and not only the token: both surfaces' OUTER elements resolved their ink from the
-	   ROOT before this block was reached. `color-scheme` so native controls and scrollbars inside
-	   them match the panel they now sit on. */
+	/*
+	 * `color` and not only the token: both surfaces' OUTER elements resolved their ink from the
+	 * ROOT before this block was reached. `color-scheme` so native controls and scrollbars inside
+	 * them match the panel they now sit on.
+	 *
+	 * THE VALUE HERE IS THE RAIL'S, and the bar takes its own back in the rule below. The two
+	 * surfaces rest at different weights and always have: measured with no axis set, the rail is
+	 * `--sidebar-foreground` (#6c86a3, muted — an item at rest) and the bar is `--foreground`
+	 * (#0f263f, strong — its controls are the page's primary actions). One shared declaration
+	 * flattens that, which is what it did while both inks were near-white.
+	 */
 	color: var(--sidebar-foreground);
 	color-scheme: dark;
 
@@ -327,6 +353,17 @@
 		100vw 100lvh;
 	background-repeat: repeat, no-repeat;
 	background-blend-mode: soft-light, normal;
+}
+
+/*
+ * The bar's own ink, restoring the weight it has with no axis set. `PageHeader` writes
+ * `text-foreground` on this element, which the shared `color` above outranks — it is unlayered and
+ * the class is not — so the bar has to be told the strong ink explicitly rather than left to a
+ * utility it cannot win against.
+ */
+:root[data-header-mode="vibrant"][data-header-mode][data-header-mode]
+	[data-slot="page-header-bar"] {
+	color: var(--sidebar-accent-foreground);
 }
 
 /* Each surface anchors to an edge it SHARES WITH THE VIEWPORT, so neither has to know the
@@ -388,9 +425,19 @@
 		left 0 top 0;
 }
 
-/* The component's `/70` ink is an alpha over a field; a solved value is steadier. */
+/*
+ * The group label, one step BELOW the resting ink — which is what it is everywhere else: the
+ * component draws it as `text-sidebar-foreground/70`, an alpha over whatever the panel is.
+ *
+ * It cannot simply be `--vibrant-ink-soft` any more. That WAS a step down while items rested at
+ * `--vibrant-ink`; now that they rest at the soft ink themselves, the same value would put the
+ * heading at exactly the weight of the items it heads. So the /70 is solved rather than dropped:
+ * mixing the soft ink toward the panel's own foot reproduces what the alpha does to it, and a
+ * fixed colour holds steady across a field the alpha would sample differently at every point —
+ * the reason this rule existed in the first place.
+ */
 :root[data-sidebar-mode="vibrant"] [data-sidebar="sidebar"] [data-slot="sidebar-group-label"] {
-	color: var(--vibrant-ink-soft);
+	color: color-mix(in oklab, var(--vibrant-ink-soft) 70%, var(--vibrant-b));
 }
 
 /*
