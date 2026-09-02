@@ -42,6 +42,16 @@
 	 * would scroll visibly through the gap above and beside it. The wrapper's own ground covers
 	 * that band.
 	 *
+	 * A FOOTER ON A PHONE, and none of that is in this file. Below 640px the block `src/app.css`
+	 * ships as `@media (width < 40rem)` — `parallax-shell`'s, scoped to `Sidebar.Inset` — moves the
+	 * wrapper to the foot of the canvas's column and holds it at the bottom edge, turns the floating
+	 * inset, the fade, the flat hairline and the scroll reserve over with it, and points the
+	 * auto-hide slide downwards through `--page-header-slide`. It is stated there rather than as
+	 * `max-sm:` utilities here because half of it has to beat CSS that is not a utility, and a
+	 * behaviour split between a class list and a stylesheet is learned from neither. Rendered
+	 * outside the shell this bar stays at the top at every width, and the DOM never moves: the
+	 * tab sequence is the same on a phone as on a desktop, only the paint is at the foot.
+	 *
 	 * THE CANVAS SCROLLS, NOT THE DOCUMENT. In the Parallax shell `Sidebar.Provider`'s wrapper is
 	 * pinned to the viewport and clipped, and `Sidebar.Inset` — the `<main>` this bar renders
 	 * into — is the one scroll container; `src/app.css` states those rules and why (a document

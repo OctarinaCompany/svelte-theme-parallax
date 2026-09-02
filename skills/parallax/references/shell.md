@@ -109,6 +109,42 @@ the `<main>`, which `AppShell` gives `id="main-content"` — is the one scroll c
 		overflow: visible;
 	}
 }
+
+@media (width < 40rem) {
+	:where([data-slot="sidebar-inset"] [data-slot="page-header"]) {
+		order: 9999;
+		top: auto;
+		bottom: 0;
+		margin-top: auto;
+		--page-header-slide: 100%;
+	}
+	:where([data-slot="sidebar-inset"] [data-slot="page-header"][data-floating]) {
+		padding-top: 0;
+		padding-bottom: --spacing(2);
+	}
+	[data-slot="sidebar-inset"] [data-slot="page-header"][data-floating]::after {
+		top: auto;
+		bottom: 100%;
+		background: linear-gradient(to top, var(--background), transparent);
+	}
+	:where(
+		[data-slot="sidebar-inset"] [data-slot="page-header"]:not([data-floating]) [data-slot="page-header-bar"]
+	) {
+		border-bottom-width: 0;
+		border-top: 1px solid var(--sidebar-outline);
+	}
+	:where([data-slot="sidebar-inset"]) {
+		scroll-padding-top: 0;
+		scroll-padding-bottom: calc(var(--page-header-height) + 0.5rem);
+	}
+	:where(
+		[data-slot="sidebar-inset"] [data-slot="page-header"],
+		[data-slot="sidebar-inset"] [data-slot="page-header"] *
+	) {
+		scroll-margin-top: 0;
+		scroll-margin-bottom: calc((var(--page-header-height) + 0.5rem) * -2);
+	}
+}
 ```
 
 Why. iOS and iPadOS Safari collapse their toolbars when the DOCUMENT scrolls — a browser
@@ -165,6 +201,44 @@ has it, since no registry item can write `index.html`. Scoped like the bounce ru
 sign-in page outside the shell keeps its zoom unless you restate the declaration on a bare
 `:root`, which is one line and your call.
 
+### The bar is a footer on a phone
+
+**Below 640px `PageHeader` is the canvas's footer** — the last block above, and the only one
+with a width in it. Tailwind's `sm` is the line the bar's own layout already treats as the
+phone case (the trail gives up there, the trigger keeps its floor), and it is the line a
+tablet is on the far side of: an iPad in portrait is 768 or 820 and keeps the bar at the top,
+where a hand holding it can reach. A phone is held at its foot, and the three controls the
+bar still shows at that width — the rail trigger, the search, the light/dark swap — are the
+ones a thumb reaches for.
+
+What the block does, and why each half is where it is:
+
+- **Geometry.** `order: 9999` puts the wrapper last in the canvas's column — sticky only
+  offsets an element that would otherwise leave the scrollport, and a bar first in the flow is
+  in view at the top from the start, so `bottom: 0` never engages there. Last in the flow it is
+  held at the bottom edge until the page's end scrolls up to meet it; `margin-top: auto` covers
+  a page shorter than the viewport. **The DOM does not move**: the bar is still the first
+  thing after the skip link in the tab sequence, as on every other width. Only the paint moves.
+- **Dress.** The floating inset's opaque band moves below the panel and the fade dissolves
+  upwards off the wrapper's top; the flat variant's hairline moves to the top edge. The
+  auto-hide slide is not restated: the appearance rule reads its direction from
+  `--page-header-slide` (`-100%` by default, `100%` here), because a competing `translate`
+  would tie with the two vetoes beside it — focus in the bar, an open menu — and win on
+  source order.
+- **The reserve turns over.** `scroll-padding-bottom` on the canvas where `-top` was, so focus
+  landing near the foot is scrolled clear of the bar, and `-top` at zero so a fragment lands
+  flush with the top edge; the bar's own cancellation moves to `scroll-margin-bottom`, or [the
+  jump](#the-scroll-model) happens at the foot instead, downwards.
+
+Scoped to `Sidebar.Inset`, so a header rendered outside the shell keeps its top at every width
+— and so does one whose parent is not the canvas's flex column, which `order` and `margin-top:
+auto` both need. `:where()` on everything but the fade, so plain CSS of yours takes it back
+unaided; the fade has to outrank the appearance rule whichever order the two items' CSS lands
+in your stylesheet. Two things this asks of your code: sticky chrome you park at the
+reserve's depth adds `max-sm:top-0`, since on a phone the reserve is at the foot and nothing
+sits above it (the recipe under [the scroll model](#the-scroll-model) has it); and a hand-rolled header that
+wants the same footer sets `--page-header-slide` rather than restating `translate`.
+
 ### The canvas's scrollbar
 
 Two separate things, and only one of them is a look.
@@ -212,7 +286,8 @@ reachable by no script at all. Two bars' worth rather than one, because the auto
 translates the bar a further full height off the top; over-cancelling is inert, since focus
 scrolls into view only if needed. Everything outside the bar keeps the reserve. If you set a
 different `scroll-padding-top` — on the canvas, or on `:root` once the document scrolls again
-— mirror it here.
+— mirror it here. On a phone the whole pair is at the foot instead — `scroll-padding-bottom`
+on the canvas, `scroll-margin-bottom` on the bar — because [the bar is](#the-bar-is-a-footer-on-a-phone).
 
 What it means for your code, as six pairs.
 
@@ -336,10 +411,14 @@ obscured, so nothing scrolls; and it is where the chrome belongs anyway, since a
 sits under the bar's `z-40` — the same bug wearing its visible half:
 
 ```svelte
-<div class="sticky top-[calc(var(--page-header-height)+0.5rem)] z-30 flex items-center gap-2 bg-background py-3">
+<div class="sticky top-[calc(var(--page-header-height)+0.5rem)] max-sm:top-0 z-30 flex items-center gap-2 bg-background py-3">
 	…
 </div>
 ```
+
+`max-sm:top-0` because below 640px [the bar is the canvas's footer](#the-bar-is-a-footer-on-a-phone):
+the reserve is at the foot there and `scroll-padding-top` is zero, so a toolbar still parked
+72px down would float under nothing, with a band of page showing above it.
 
 If it truly has to sit at zero — a page you render without `PageHeader` still gets the
 reserve, because the canvas rule is unconditional — cancel it the way `parallax-shell`
@@ -397,7 +476,8 @@ scroll parent keeps working — the answer becomes the document.
 
 ## PageHeader
 
-`$lib/components/layout/PageHeader.svelte` — the sticky top bar. No prop is required;
+`$lib/components/layout/PageHeader.svelte` — the sticky bar: the top of the canvas from 640px
+up, its foot below ([the phone footer](#the-bar-is-a-footer-on-a-phone)). No prop is required;
 `<PageHeader />` renders a correct bar. `Crumb` is re-exported from its module script.
 
 | Prop / snippet  | Type                | Default                                            |

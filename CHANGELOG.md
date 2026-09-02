@@ -12,6 +12,20 @@ ships today is listed here.
 
 ### Added
 
+- **The page header is the canvas's footer on a phone.** Below 640px — Tailwind's `sm`, the line
+  the bar's own layout already treats as the phone case; tablets keep the top bar — one
+  `@media (width < 40rem)` block shipped by `parallax-shell` and scoped to `Sidebar.Inset` moves
+  `PageHeader` to the foot of the canvas: last in the column (`order: 9999`) and held at the
+  bottom edge (`sticky` with `bottom: 0`, `margin-top: auto` for a short page), the floating
+  inset, its fade and the flat hairline turned over with it, the auto-hide sliding down instead
+  of up — the appearance rule now reads its direction from `--page-header-slide` rather than
+  competing with its own vetoes — and the scroll reserve moved to the bottom, `scroll-padding-bottom`
+  on the canvas and `scroll-margin-bottom` cancelling it on the bar, so focus near the foot clears
+  the bar and a fragment lands flush at the top. The DOM and the tab order do not move; only the
+  paint does. A thumb reaches the foot of a phone, and the three controls the bar keeps at that
+  width — rail trigger, search, light/dark — are the ones it reaches for. Written up in
+  `shell.md`, `SKILL.md` and `docs/REGISTRY.md`, with `max-sm:top-0` for sticky chrome parked at
+  the reserve's depth.
 - **The shell is not zoomable on a touch screen, and a long word breaks instead of panning the
   page.** Two declarations on rules `parallax-shell` already ships. `touch-action: pan-x pan-y`
   on the shell's root ends pinch and double-tap zoom on iPhone, iPad and touch laptops alike —

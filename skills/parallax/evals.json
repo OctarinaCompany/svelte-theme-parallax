@@ -106,6 +106,17 @@
 				"Adds no scroll handler, no saved-and-restored scrollTop and no preventScroll patch: bits-ui's focus scope restores with a bare .focus() and Shift+Tab is the browser's own sequential-focus scroll, so the answer has to be geometric",
 				"Writes Svelte 5 runes syntax and semantic tokens (bg-background, border), no raw colour and no window.scrollY"
 			]
+		},
+		{
+			"name": "bottom-bar-on-phones",
+			"prompt": "On phones the header bar is hard to reach with one hand. Move it to the bottom of the screen on mobile, but keep it at the top on tablets and desktops.",
+			"expectations": [
+				"Knows parallax-shell already does this: below 640px (Tailwind's `sm`) one `@media (width < 40rem)` block scoped to Sidebar.Inset makes PageHeader the canvas's footer, and tablets (768px and up) keep the top bar — so it verifies the installed CSS is present rather than building a second bar",
+				"Does not reimplement it with `position: fixed` or a `max-sm:` class list on the component: the shipped block moves the sticky wrapper to the end of the canvas's flex column (`order: 9999`, `bottom: 0`, `margin-top: auto`) and states why sticky needs the element last in the flow",
+				"Knows the scroll reserve turns over with it — `scroll-padding-bottom` on the canvas, `scroll-margin-bottom` cancelling it on the bar — and that sticky chrome of the app's own parked at `top-[calc(var(--page-header-height)+0.5rem)]` needs `max-sm:top-0` on a phone",
+				"Points out that the DOM and the tab order do not move — the bar's controls are still reached before the page — and that the auto-hide direction comes from `--page-header-slide`, which a hand-rolled header sets instead of restating `translate`",
+				"If the user wants a different breakpoint, changes the ONE media query in plain CSS rather than adding utilities, since the block is `:where()`-zero and unlayered CSS outranks utilities anyway"
+			]
 		}
 	]
 }

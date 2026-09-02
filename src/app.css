@@ -541,9 +541,16 @@
  * `:has([data-state='open'])` catches the portaled menus, where focus has left the header's DOM
  * but the trigger still reports itself open. A dialog's overlay covers the canvas and takes every
  * wheel and touch, so nothing scrolls it while one is open and that case cannot arise at all.
+ *
+ * THE DIRECTION IS A VARIABLE. `--page-header-slide` defaults to `-100%`, off the top, and the
+ * phone block further down (`@media (width < 40rem)`) sets `100%`, off the foot, where the bar is a
+ * footer. A variable rather than a second `translate` rule for the phone, because that rule
+ * would have to be scoped to the canvas to reach only the footer, and scoped it ties with the two
+ * vetoes below at (0,3,0) and wins on source order — the bar would slide away with a menu open.
+ * The vetoes write `translate: none` and never read the variable, so they hold in both directions.
  */
 [data-slot="page-header"][data-hidden] {
-	translate: 0 -100%;
+	translate: 0 var(--page-header-slide, -100%);
 }
 
 [data-slot="page-header"][data-hidden]:has(:focus-visible),
@@ -1812,6 +1819,95 @@
 
 	:where([data-slot="sidebar-inset"]) {
 		overflow: visible;
+	}
+}
+
+/*
+ * THE BAR IS A FOOTER ON A PHONE — below 640px, the line the bar's own layout already treats as
+ * the phone case (the trail gives up there and the trigger keeps its floor), and NOT on a tablet:
+ * an iPad in portrait is 768 or 820 and keeps the bar at the top, where a hand holding it can
+ * reach. A phone is held at its foot, and the three controls the bar still shows at that width
+ * — the rail trigger, the search, the light/dark swap — are the ones a thumb reaches for; at the
+ * top of the screen they are the furthest thing from it. Owner decision, 2026-09-03.
+ *
+ * ONE BLOCK, SHIPPED WITH THE SHELL, and scoped to the shell's canvas — a header rendered outside
+ * `Sidebar.Inset` keeps its top at every width, and so does one whose parent is not the canvas's
+ * flex column, which `order` and `margin-top: auto` both need. Everything the footer takes is
+ * stated here rather than as `max-sm:` utilities in `PageHeader.svelte`, because three of the
+ * seven declarations have to beat CSS that is not a utility — the appearance stylesheet's fade and
+ * slide, and this file's own scroll reserve — and a behaviour split between a class list and a
+ * stylesheet is learned from neither.
+ *
+ * `order: 9999` (what Tailwind's `order-last` writes) puts the wrapper last in the canvas's
+ * column, and that is what lets `sticky` with `bottom: 0` work at all: sticky only offsets an
+ * element that would otherwise leave the scrollport, and a bar FIRST in the flow is in view at the
+ * top from the start, so a bottom offset never engages. Last in the flow it is held at the bottom
+ * edge until the page's end scrolls up to meet it. `margin-top: auto` covers the page shorter than
+ * the viewport, where nothing pushes the bar down. THE DOM DOES NOT MOVE: the bar is still the
+ * first thing after the skip link in the tab sequence, deliberately — the controls that open the
+ * navigation and the search are reached before the page they act on, as on every other width.
+ * Only the paint moves.
+ *
+ * The floating variant's opaque band moves below the panel (`padding-bottom` where the wrapper
+ * had `padding-top`), since content now passes under the bar's UPPER edge, and the fade hangs off
+ * the top of the wrapper and dissolves upwards. The flat variant's hairline moves to the top edge
+ * for the same reason. The auto-hide slide is the one thing NOT restated: the appearance rule
+ * reads its direction from `--page-header-slide`, and this block sets the variable — the comment
+ * on that rule says why a competing `translate` would break its vetoes.
+ *
+ * The reserve turns over with it. `scroll-padding-bottom` on the canvas where `-top` was, so
+ * focus landing near the foot of the viewport is scrolled clear of the bar, and `-top` at zero so
+ * a fragment lands flush with the top edge instead of 72px below it; the bar's own cancellation
+ * moves to `scroll-margin-bottom`, or the 361px jump the top-side rule prevents happens here
+ * instead, downwards. Sticky chrome of a consumer's parked at the reserve's depth
+ * (`top-[calc(var(--page-header-height)+0.5rem)]`) should add `max-sm:top-0`: on a phone nothing
+ * is above it to hide under.
+ *
+ * `width < 40rem` is Tailwind's `max-sm` written out, so this line and the `sm:` classes on the
+ * bar's children move together. `:where()` on the geometry, so plain CSS of a consumer's takes any
+ * of it back unaided; NOT on the fade, which has to outrank the appearance rule at (0,2,1)
+ * whichever order the two items' CSS lands in a consumer's stylesheet.
+ */
+@media (width < 40rem) {
+	:where([data-slot="sidebar-inset"] [data-slot="page-header"]) {
+		order: 9999;
+		top: auto;
+		bottom: 0;
+		margin-top: auto;
+		--page-header-slide: 100%;
+	}
+
+	:where([data-slot="sidebar-inset"] [data-slot="page-header"][data-floating]) {
+		padding-top: 0;
+		padding-bottom: --spacing(2);
+	}
+
+	[data-slot="sidebar-inset"] [data-slot="page-header"][data-floating]::after {
+		top: auto;
+		bottom: 100%;
+		background: linear-gradient(to top, var(--background), transparent);
+	}
+
+	:where(
+		[data-slot="sidebar-inset"]
+			[data-slot="page-header"]:not([data-floating])
+			[data-slot="page-header-bar"]
+	) {
+		border-bottom-width: 0;
+		border-top: 1px solid var(--sidebar-outline);
+	}
+
+	:where([data-slot="sidebar-inset"]) {
+		scroll-padding-top: 0;
+		scroll-padding-bottom: calc(var(--page-header-height) + 0.5rem);
+	}
+
+	:where(
+		[data-slot="sidebar-inset"] [data-slot="page-header"],
+		[data-slot="sidebar-inset"] [data-slot="page-header"] *
+	) {
+		scroll-margin-top: 0;
+		scroll-margin-bottom: calc((var(--page-header-height) + 0.5rem) * -2);
 	}
 }
 

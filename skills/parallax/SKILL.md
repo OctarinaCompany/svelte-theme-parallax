@@ -87,6 +87,12 @@ Before adding or changing anything:
   content must not change** — a content-sized box loops the trail's measurement.
 - **Never nest children inside `<PageHeader>`** — it is a compile error by design; page
   content goes beside the header, inside `AppShell`.
+- **Below 640px `PageHeader` is the canvas's footer.** `parallax-shell` moves it to the foot
+  of `Sidebar.Inset` — last in the column, held at the bottom edge — and turns the floating
+  inset, the fade, the flat hairline, the auto-hide slide (`--page-header-slide`) and the
+  scroll reserve (`scroll-padding-bottom`) over with it. Tablets keep the top bar. The DOM and
+  the tab order do not move. Never reimplement it with `position: fixed`; a header rendered
+  outside `Sidebar.Inset` keeps its top ([shell.md](references/shell.md#the-bar-is-a-footer-on-a-phone)).
 - **`WorkspaceSwitcher.activeWorkspace` may start undefined** — never pre-seed it with
   `workspaces[0]`; the component resolves the default itself.
 - **The canvas cannot be widened from inside** — `parallax-shell` pins
@@ -135,7 +141,9 @@ Before adding or changing anything:
     focus landing in it scrolls the canvas after something it can never reveal, and the page
     jumps. Stick it below the reserve, or cancel the reserve on the element AND its
     descendants (`scroll-margin` does not inherit; over-cancelling is inert).
-    `parallax-shell` ships that cancellation for `PageHeader` alone.
+    `parallax-shell` ships that cancellation for `PageHeader` alone. Below the reserve means
+    `top-[calc(var(--page-header-height)+0.5rem)] max-sm:top-0` — on a phone the reserve is
+    at the foot, under the footer bar, and nothing sits above.
 
 **Theming and tokens** — see [references/theming.md](references/theming.md)
 
@@ -247,7 +255,7 @@ Before adding or changing anything:
 | ---------------------------------------- | -------------------------------------------------------------------- |
 | Whole app frame                          | `AppShell` (+ `sidebar` snippet)                                     |
 | Sidebar with nav/user/workspaces         | `AppSidebar` props: `items`, `user`, `workspaces`, `isActive`        |
-| Sticky top bar                           | `PageHeader` (snippets: `sidebarTrigger`, `breadcrumb`, `search`, `controls`) |
+| Sticky bar — top, the canvas's footer below 640px | `PageHeader` (snippets: `sidebarTrigger`, `breadcrumb`, `search`, `controls`) |
 | Full-height panel beside the canvas      | a sibling of `Sidebar.Inset` in the provider's row, stretched as a flex child (or `h-full`), content `flex-1 min-h-0` — never `h-svh` / `h-screen` |
 | React to / drive scrolling               | `scrollParentOf(el)` from `$lib/shared/scroll-parent.js` — read its `scrollTop`, call its `scrollTo` — or `el.scrollIntoView()`; `window.scrollY` is 0 inside the shell |
 | Breadcrumb data                          | `Crumb[]` — `{ label, href? }`, last step never has `href`           |
