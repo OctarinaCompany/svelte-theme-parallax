@@ -2320,7 +2320,7 @@
 			"docs": "Mount `<CodeHighlighter.Root>` ONCE, at the app root and above every code block: it renders no element, publishes itself on context, and a second one below the first only compiles a second engine. Nothing goes in your stylesheet — the ink is Code block's own `data-kind` spans over the theme tokens, and no Shiki theme is loaded at all. Each grammar is a `() => import(\"@shikijs/langs/<id>\")`, so the languages become chunks of YOUR bundle and arrive on first use; only the adapter itself is in the initial payload.",
 			"dependencies": [
 				"@shikijs/langs@^3.23.0",
-				"shiki@^3.23.0"
+				"shiki@^4.4.3"
 			],
 			"devDependencies": [],
 			"registryDependencies": [
