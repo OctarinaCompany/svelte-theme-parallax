@@ -236,6 +236,26 @@ ships today is listed here.
 
 ### Fixed
 
+- **A control inside an inverted or vibrant surface is now styled FOR that surface, rules
+  included.** The chrome block gave such a control the right colours; nothing gave it the right
+  rules, because `dark:` meant "the page is dark" and a rail can be dark while the page is light.
+  `@custom-variant dark` now names the two chrome surfaces beside `.dark`, so `dark:` means "the
+  ground under this element is dark" — 153 utilities across the kit follow the surface they sit on
+  rather than the document. Nothing new is stamped on the DOM: both hooks already resolve their
+  axis to an absolute `light`/`dark`/`vibrant` on `<html>` and the first-paint script writes the
+  same, so this is a stylesheet change with no component, hook or snippet touched. Every branch is
+  pinned to (0,1,0) with `:where()`, which keeps a compiled `dark:` utility at (0,2,0) — where it
+  ties with `hover:` and `data-[state]:` and source order decides, exactly as before.
+- **A field inside a vibrant surface on a dark page was rendering its text on its own
+  background** — 1.00:1, measured, on `Input`, `Textarea`, `InputGroup` and `NativeSelect`. Their
+  `.dark` fills paint `var(--input)`, and `--input` means two different things: a control's dark
+  ground on the page, a hairline on a chrome surface — and under `vibrant` a solved near-white
+  boundary ink, which is also what the surface hands its children as text. The three fill rules now
+  fence themselves out of chrome, so a field there keeps its transparent ground and is read from
+  its border. Measured after: 9.7:1 inside the rail, and the page's own fields unchanged at 10.93:1.
+  The rule behind it — a chrome surface imposes its own half of the palette, values AND rules —
+  is written up in `docs/CONVENTIONS.md` §8, in the skill's `theming.md`, and in
+  `parallax-appearance`'s own docs, since the variant lives in a line only the consumer can write.
 - **A control inside the chrome now paints in the chrome's colours, on both surfaces and in the
   menus they open.** The nine `--sidebar-*` tokens describe the chrome, but the components dropped
   into it read PAGE tokens — a Button says `bg-background`, an Input says `bg-card`, a menu row

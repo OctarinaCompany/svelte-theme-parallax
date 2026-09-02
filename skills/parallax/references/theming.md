@@ -90,6 +90,49 @@ toggleMode();        // light/dark — mode-watcher owns class="dark" and its pe
 Never write `data-theme`, `class="dark"` or their `localStorage` keys directly —
 `mode-watcher` owns both attributes and suppresses transitions during the swap.
 
+## The wear rule
+
+**A chrome surface imposes its own half of the palette on its children.** With an `inverted`
+or `vibrant` axis set, the sidebar panel or the header bar is a dark ground on a light page
+(or the reverse), so a component sitting on it needs the surface's colours AND the surface's
+rules — not the page's.
+
+The kit does this in three places, and a consumer needs to know about the second:
+
+- **Values**: one unlayered block, selector `[data-slot="page-header-bar"], [data-sidebar="sidebar"]`,
+  projects eleven page tokens onto the nine `--sidebar-*` ones. It ships with
+  `parallax-appearance`.
+- **Rules**: the `dark` variant names those surfaces beside `.dark`. A registry item cannot
+  patch your stylesheet, and `@custom-variant dark` is written into it by shadcn's own `init`,
+  so **this one is yours to apply**:
+
+  ```css
+  @custom-variant dark {
+  	&:is(.dark *) {
+  		@slot;
+  	}
+
+  	&:is(
+  			:where(:root[data-sidebar-mode="dark"], :root[data-sidebar-mode="vibrant"])
+  				[data-sidebar="sidebar"] *,
+  			:where(:root[data-header-mode="dark"], :root[data-header-mode="vibrant"])
+  				[data-slot="page-header-bar"] *
+  		) {
+  		@slot;
+  	}
+  }
+  ```
+
+  Keep every branch at specificity (0,1,0) — the `:where()` wrappers are what does that. A
+  compiled `dark:` utility must stay at (0,2,0), where it ties with `hover:` and
+  `data-[state]:` and source order settles it; raise it and you re-order every utility
+  contest in the app.
+- **Exceptions**: a `.dark` rule whose token means something else inside chrome fences itself
+  out with `:not(:where([data-sidebar="sidebar"] *, [data-slot="page-header-bar"] *))`. `--input`
+  is the case that exists: a control's dark GROUND on the page, a HAIRLINE on a chrome surface.
+  Painting it as a fill inside chrome put a field's text on its own background — 1.00:1,
+  measured — which is why the kit's own input, textarea and input-group dark fills are fenced.
+
 ## The appearance axes
 
 Five module-level hooks (`$lib/hooks/`), importable anywhere, no provider. All persist to

@@ -76,7 +76,60 @@
  */
 @source "../node_modules/svelte-streamdown/**/*";
 
-@custom-variant dark (&:is(.dark *));
+/*
+ * WEAR, NOT PAGE MODE — the rule this whole file's chrome work rests on, stated once here because
+ * this line is what enforces it.
+ *
+ * A CHROME SURFACE IMPOSES ITS OWN HALF OF THE PALETTE ON EVERYTHING INSIDE IT. A sidebar or a
+ * header bar wearing dark IS a dark ground, on a light page as much as on a dark one, so a
+ * component sitting on it must wear its dark treatment: `dark:` stops meaning "the page is dark"
+ * and starts meaning "the ground under this element is dark". Without that, a control in an
+ * inverted or vibrant rail got the LIGHT treatment on a dark panel — the chrome block below could
+ * hand it the right colours, but never the right rules.
+ *
+ * NOTHING NEW IS STAMPED ON THE DOM, which is what makes this a stylesheet change and not a
+ * component one. Both hooks resolve their axis to an ABSOLUTE value on `<html>` — `light`,
+ * `dark` or `vibrant`; `inverted` never reaches the attribute — and `index.html`'s first-paint
+ * script writes the same resolution before the app boots. `vibrant` is listed beside `dark`
+ * because it IS a dark ground and reports itself as one (`sidebarWear` in the hook). The two
+ * surfaces are `[data-sidebar="sidebar"]` — the desktop panel AND the mobile Sheet, which carries
+ * the same attribute — and `[data-slot="page-header-bar"]`.
+ *
+ * SPECIFICITY IS THE INVARIANT TO PROTECT, and it is easy to break here. `&:is(.dark *)` weighs
+ * (0,1,0), so a compiled `dark:` utility weighs (0,2,0) and TIES with `hover:`, `focus:` and
+ * `data-[state]:`, which source order then settles. Every branch added here must weigh (0,1,0)
+ * too: hence `:where()` around each root test, which contributes nothing, leaving the branch's
+ * weight to the single attribute it ends on. A branch at (0,2,0) would silently lift every
+ * `dark:` utility above every `hover:` in the kit; one at (0,0,0) would sink it below.
+ *
+ * THIS IS THE ADDITIVE HALF ONLY. The mirror — a LIGHT-wearing rail on a DARK page, where `dark:`
+ * should stop applying inside the panel — is deliberately NOT here. Removing a treatment strands a
+ * control on whatever its light rules read, and the chrome block below projects eleven page tokens
+ * but not `--primary`, `--secondary` or the status family: a component whose light branch reads
+ * one of those would fall back to the DARK page's value on a light panel, which is worse than what
+ * it does today. That half waits for the projection to cover them. Measured meanwhile: the mirror
+ * case renders legibly, because the eleven that ARE projected pull the values to the panel's own
+ * half.
+ *
+ * @see the chrome block below — what those surfaces hand their children as VALUES; this line is
+ *      what hands them the right RULES, and the two are only correct together.
+ */
+@custom-variant dark {
+	&:is(.dark *) {
+		@slot;
+	}
+
+	&:is(
+		:where(:root[data-sidebar-mode="dark"], :root[data-sidebar-mode="vibrant"])
+			[data-sidebar="sidebar"]
+			*,
+		:where(:root[data-header-mode="dark"], :root[data-header-mode="vibrant"])
+			[data-slot="page-header-bar"]
+			*
+	) {
+		@slot;
+	}
+}
 
 :root {
 	/* Surfaces. The page itself is tinted, and near-white cards float on it. */
@@ -2510,8 +2563,34 @@ thead,
 	min-height: var(--control-h-default);
 }
 
-.dark [data-slot="input"]:not([data-slot="table-cell"] *),
-.dark [data-slot="textarea"]:not([data-slot="table-cell"] *) {
+/*
+ * A FILL, AND THEREFORE NEVER INSIDE CHROME.
+ *
+ * `--input` carries two incompatible readings in this kit. On the page it is a control's dark
+ * GROUND, which is what this rule paints. On a chrome surface the block near the top of this file
+ * aliases it to `--sidebar-outline` — a HAIRLINE — and `src/vibrant.css` aliases it again to
+ * `--vibrant-ink-soft`, an L 0.85 near-white chosen because WCAG 1.4.11 binds a control's boundary
+ * at 3:1. Painting a boundary as a fill is wrong in both cases and catastrophic in the second: the
+ * vibrant panel hands its children that SAME near-white as their inherited ink, so field and text
+ * land on one colour. Measured on a dark page with a vibrant rail, before this fence: 1.00:1, on
+ * input, textarea and native-select alike — invisible text, shipping.
+ *
+ * So the fence, rather than a new token. A field inside chrome keeps the component's own
+ * transparent ground and is read from its border, exactly as it is with no axis set — which is
+ * what the eleven-token projection already dresses correctly.
+ *
+ * THIS IS THE COUNTERPART OF THE WEAR RULE at the top of this file, not an exception to it: wear
+ * decides which RULES run, and a rule whose value means something different inside chrome has to
+ * say so itself. When a `.dark` rule is added here, ask which of the two readings its token has.
+ */
+.dark
+	[data-slot="input"]:not([data-slot="table-cell"] *):not(
+		:where([data-sidebar="sidebar"] *, [data-slot="page-header-bar"] *)
+	),
+.dark
+	[data-slot="textarea"]:not([data-slot="table-cell"] *):not(
+		:where([data-sidebar="sidebar"] *, [data-slot="page-header-bar"] *)
+	) {
 	background-color: var(--input); /* input-bg-dark = gray-700-dark */
 }
 
@@ -2540,7 +2619,11 @@ thead,
 	background-color: var(--card); /* input-bg */
 }
 
-.dark [data-slot="input-group"]:not([data-slot="command-input-wrapper"] > *) {
+/* A fill, so it is fenced out of chrome for the reason the input rule above states. */
+.dark
+	[data-slot="input-group"]:not([data-slot="command-input-wrapper"] > *):not(
+		:where([data-sidebar="sidebar"] *, [data-slot="page-header-bar"] *)
+	) {
 	background-color: var(--input); /* input-bg-dark */
 }
 
@@ -2606,7 +2689,11 @@ thead,
  * Unlayered, so it also cancels shadcn's `dark:hover:bg-input/50`: a select has no hover
  * state in this design, at any strength.
  */
-.dark [data-slot="native-select"] {
+/* A fill, so it is fenced out of chrome for the reason the input rule above states. */
+.dark
+	[data-slot="native-select"]:not(
+		:where([data-sidebar="sidebar"] *, [data-slot="page-header-bar"] *)
+	) {
 	background-color: var(--input); /* input-bg-dark */
 }
 

@@ -78,6 +78,31 @@ Add this to the `<head>` of your `index.html` (or `src/app.html` under SvelteKit
 
 Keep it in step with the hooks: it repeats their resolution, and every `localStorage` key it reads is exported from one of them as a constant.
 
+### The wear rule, and the one line only you can write
+
+A chrome surface imposes its own half of the palette on its children: with `inverted` or `vibrant` set, the rail or the bar is a dark ground on a light page, so a component sitting on it needs the surface's colours AND its rules. This item ships the colours — one unlayered block projecting eleven page tokens onto the nine chrome ones, on both surfaces at once.
+
+The rules are yours to add, because they live in a line a registry item cannot patch: shadcn's `init` writes `@custom-variant dark` into YOUR stylesheet. Teach it the surfaces, keeping every branch at specificity (0,1,0) so a compiled `dark:` utility still weighs (0,2,0) and keeps tying with `hover:`:
+
+```css
+@custom-variant dark {
+	&:is(.dark *) {
+		@slot;
+	}
+
+	&:is(
+			:where(:root[data-sidebar-mode="dark"], :root[data-sidebar-mode="vibrant"])
+				[data-sidebar="sidebar"] *,
+			:where(:root[data-header-mode="dark"], :root[data-header-mode="vibrant"])
+				[data-slot="page-header-bar"] *
+		) {
+		@slot;
+	}
+}
+```
+
+And one trap that comes with it: `--input` is a control's dark GROUND on the page but a HAIRLINE on a chrome surface, so any `.dark` rule painting it as a fill must fence itself out with `:not(:where([data-sidebar="sidebar"] *, [data-slot="page-header-bar"] *))`. Unfenced, a field's text lands on its own background — measured at 1.00:1 on a dark page with a vibrant rail.
+
 ### The page's scrollbar
 
 `page-scrollbar` is the fifth axis and the simplest: it writes `data-scrollbar="themed"` on `<html>` when the key says `true`, and the one CSS block behind that attribute gives the canvas `scrollbar-width: thin` and a `scrollbar-color` pair from the palette — the same `--border` the `ScrollArea` component paints its own thumb with. Off, the canvas hands the bar back to the operating system.

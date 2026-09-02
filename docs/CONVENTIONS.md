@@ -118,6 +118,37 @@ Express looks as **variants** first and use `class` for layout only; `flex` + `g
 `space-*`; `size-*`, not `w-* h-*` pairs; `data-icon` on Button icons; no sizing classes on
 icons inside components; semantic tokens only, never raw colours.
 
+**The wear rule — a chrome surface imposes its own half of the palette on everything inside
+it.** The sidebar panel and the header bar are grounds in their own right: with an `inverted`
+or `vibrant` axis set, a rail can be dark while the page is light. Everything inside such a
+surface must therefore be styled for the SURFACE, not for the page — its values AND its rules.
+
+Three mechanisms carry it, and they are only correct together:
+
+1. **Values.** One unlayered block in `app.css`, selector
+   `[data-slot="page-header-bar"], [data-sidebar="sidebar"]`, projects eleven page tokens onto
+   the nine `--sidebar-*` ones. Deliberately excluded: `--primary`, `--secondary`,
+   `--destructive` and the status family — a brand CTA and a status colour must read the same on
+   every surface — and `--popover`, which can never reach a portaled overlay from here.
+2. **Rules.** `@custom-variant dark` names those surfaces beside `.dark`, so `dark:` means "the
+   ground under this element is dark" rather than "the page is dark". Every branch is pinned to
+   (0,1,0) with `:where()`: a compiled `dark:` utility must keep weighing (0,2,0), where it ties
+   with `hover:` and `data-[state]:` and source order decides. Changing that re-orders utility
+   contests kit-wide.
+3. **Exceptions, stated where they live.** A `.dark` rule whose token means something different
+   inside chrome fences itself out with
+   `:not(:where([data-sidebar="sidebar"] *, [data-slot="page-header-bar"] *))`. Three do today,
+   all for the same reason: `--input` is a control's dark GROUND on the page but a HAIRLINE on a
+   chrome surface (and under `vibrant` a solved near-white boundary ink), so painting it as a
+   fill put a field's text on its own background — measured at 1.00:1 before the fence.
+
+So: when a component is added to a rail or a bar, check what its classes read; when a `.dark`
+rule is added to `app.css`, ask which of the two readings its tokens have; and when the variant
+is touched, re-check the specificity. The half not yet implemented is the mirror — a LIGHT
+rail on a DARK page should stop `dark:` applying inside it — which waits for the projection to
+cover `--primary` and `--secondary`, since removing a treatment strands a control on whatever
+its light branch reads.
+
 **The hand rule.** Anything that runs a command or navigates shows `cursor: pointer`, and it is stated once —
 the `@layer base` block in `app.css` that `parallax-restyle` ships, covering buttons, `select`,
 bound `<label>`s and the ARIA roles that stand for a control, plus the unlayered block for the

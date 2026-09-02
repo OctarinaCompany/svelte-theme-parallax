@@ -41,6 +41,17 @@ export const CSS_CLAIMS = [
 		nth: 0,
 		exclude: "global element defaults; the consumer's init writes its own",
 	},
+	// ---- the `dark` variant, for the same reason and with one of its own: shadcn's `init` writes
+	//      `@custom-variant dark` into the consumer's stylesheet, so no item of ours may ship a second
+	//      one — and a registry item cannot patch an existing file. The kit's version teaches it the
+	//      WEAR rule (a chrome surface imposes its own half on its children), which is therefore
+	//      carried as prose on `parallax-appearance`, exactly as the `@source` line above it is.
+	{
+		selector: "@custom-variant dark",
+		nth: 0,
+		exclude:
+			"written by the consumer's own init; parallax-appearance carries the wear rule as docs",
+	},
 	// ---- ...and the SECOND is the opposite case: the hand-cursor rule is a Parallax opinion,
 	//      and a guideline the skill states for consumer projects cannot hold in one unless the
 	//      rule travels. It rides with the item that already owns the application-global
@@ -113,14 +124,14 @@ export const RESTYLE_SELECTORS = [
 	'[data-slot="input"]:not([data-slot="table-cell"] *), [data-slot="textarea"]:not([data-slot="table-cell"] *)',
 	'[data-slot="input"]:not([data-slot="table-cell"] *)',
 	'[data-slot="textarea"]:not([data-slot="table-cell"] *)',
-	'.dark [data-slot="input"]:not([data-slot="table-cell"] *), .dark [data-slot="textarea"]:not([data-slot="table-cell"] *)',
+	'.dark [data-slot="input"]:not([data-slot="table-cell"] *):not( :where([data-sidebar="sidebar"] *, [data-slot="page-header-bar"] *) ), .dark [data-slot="textarea"]:not([data-slot="table-cell"] *):not( :where([data-sidebar="sidebar"] *, [data-slot="page-header-bar"] *) )',
 	'[data-slot="input-group"]:not(:has(> textarea)):not(:has(> [data-align^="block"]))',
 	'[data-slot="input-group"]:not([data-slot="command-input-wrapper"] > *)',
-	'.dark [data-slot="input-group"]:not([data-slot="command-input-wrapper"] > *)',
+	'.dark [data-slot="input-group"]:not([data-slot="command-input-wrapper"] > *):not( :where([data-sidebar="sidebar"] *, [data-slot="page-header-bar"] *) )',
 	'[data-slot="input"]:disabled, [data-slot="textarea"]:disabled',
 	'.dark [data-slot="input"][aria-invalid="true"], .dark [data-slot="textarea"][aria-invalid="true"]',
 	'[data-slot="native-select"]',
-	'.dark [data-slot="native-select"]',
+	'.dark [data-slot="native-select"]:not( :where([data-sidebar="sidebar"] *, [data-slot="page-header-bar"] *) )',
 	'.dark [data-slot="native-select"][aria-invalid="true"]',
 	'[data-slot="native-select"][data-size="sm"]',
 	'[data-slot="select-trigger"][data-size="default"]',
