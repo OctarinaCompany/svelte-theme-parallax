@@ -23,7 +23,7 @@ A third applies only if your stylesheet was NOT created by `shadcn-svelte init` 
 
 ## parallax-appearance
 
-The four appearance axes as persisted state: the sidebar's chrome and the header's chrome — each of them `default`, `inverted` or `vibrant` — a floating header, and a header that hides on scroll down. Module-level runes that write attributes on `<html>`, plus the CSS those attributes key on, `src/vibrant.css` included.
+The five appearance axes as persisted state: the sidebar's chrome and the header's chrome — each of them `default`, `inverted` or `vibrant` — a floating header, a header that hides on scroll down, and the page's own scrollbar, dressed in the palette or handed back to the platform. Module-level runes that write attributes on `<html>`, plus the CSS those attributes key on, `src/vibrant.css` included.
 
 ```sh
 npx shadcn-svelte@latest add https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-appearance.json
@@ -65,6 +65,8 @@ Add this to the `<head>` of your `index.html` (or `src/app.html` under SvelteKit
     if (railVibrant) root.setAttribute("data-sidebar-mode", "vibrant");
     else if (railInverted) root.setAttribute("data-sidebar-mode", railWear);
     var bar = localStorage.getItem("header-mode");
+    // The page scrollbar: on unless the reader turned it off.
+    if (localStorage.getItem("page-scrollbar") !== "false") root.setAttribute("data-scrollbar", "themed");
     if (bar === "vibrant") root.setAttribute("data-header-mode", "vibrant");
     else {
       var barWear = bar === "inverted" ? (dark ? "light" : "dark") : dark ? "dark" : "light";
@@ -75,6 +77,16 @@ Add this to the `<head>` of your `index.html` (or `src/app.html` under SvelteKit
 ```
 
 Keep it in step with the hooks: it repeats their resolution, and every `localStorage` key it reads is exported from one of them as a constant.
+
+### The page's scrollbar
+
+`page-scrollbar` is the fifth axis and the simplest: it writes `data-scrollbar="themed"` on `<html>` unless the key says `false`, and the one CSS block behind that attribute gives the canvas `scrollbar-width: thin` and a `scrollbar-color` pair from the palette — the same `--border` the `ScrollArea` component paints its own thumb with. Off, the canvas hands the bar back to the operating system.
+
+It is ON by default, which is the exception among these axes and is said rather than assumed: the kit restyles what it ships, and the page's own bar was the last surface still speaking the platform's dialect. `setPageScrollbar(false)` is the way back, and the switch on the gallery's Settings page is the worked example.
+
+Two things it deliberately does NOT own. `scrollbar-gutter: stable` stays on the canvas unconditionally and ships with `parallax-shell`: reserving the bar's width stops the page resizing between a document that overflows and one that does not, which is a fix rather than a look. And nothing outside the canvas moves — `scrollbar-color` inherits into the page's own nested scrollers, `scrollbar-width` does not inherit at all, the sidebar hides its bar with `no-scrollbar`, and anything portaled to <body> keeps the platform's.
+
+The attribute belongs in the first-paint script above rather than being written on mount, and that is not cosmetic: `thin` narrows the reserved gutter (measured: 15px to 10px at 1440px), so an attribute arriving after hydration moves the page's width under the reader.
 
 `vibrant` is the exception on both counts, which is what the two extra branches buy. It is ABSOLUTE, so it is written verbatim rather than resolved against the page; and it states its nine tokens on the painted surface rather than on `<html>`, so beside a vibrant rail there is nothing for the bar to inherit and the bar writes its own value even when the two wears agree.
 

@@ -197,6 +197,15 @@
 					railWear = light ? "dark" : "light";
 					root.setAttribute("data-sidebar-mode", railWear);
 				}
+				/*
+				 * The page's own scrollbar, the fifth axis and the only one whose attribute changes a
+				 * WIDTH: `scrollbar-width: thin` narrows the gutter the canvas reserves (measured:
+				 * 15px to 10px at 1440px), so writing it after hydration would shift the page under
+				 * the reader rather than merely recolour a bar. On unless the reader turned it off.
+				 */
+				if (localStorage.getItem("page-scrollbar") !== "false") {
+					root.setAttribute("data-scrollbar", "themed");
+				}
 				var header = localStorage.getItem("header-mode");
 				if (header === "vibrant") {
 					root.setAttribute("data-header-mode", "vibrant");

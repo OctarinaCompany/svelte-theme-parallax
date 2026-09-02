@@ -12,6 +12,24 @@ ships today is listed here.
 
 ### Added
 
+- **A fifth appearance axis, the page's own scrollbar** — one switch, on by default, and the last
+  surface in the kit still speaking the platform's dialect. On, the canvas takes
+  `scrollbar-width: thin` and a `scrollbar-color` pair from the palette, the thumb being the same
+  `--border` the `ScrollArea` component paints its own with, on a transparent track so a backdrop
+  shows through the channel; off, the bar goes back to the operating system untouched.
+  `page-scrollbar.svelte.ts` writes `data-scrollbar="themed"` on `<html>` and ships with
+  `parallax-appearance` beside the one CSS block that reads it, the Settings page carries the
+  switch, and the first-paint script echoes the key — which is not cosmetic here, since `thin`
+  narrows the reserved gutter (measured: 15px to 10px at 1440px) and a late attribute would move
+  the page's width under the reader.
+- **The canvas reserves its scrollbar's width, always** — `scrollbar-gutter: stable` on
+  `[data-slot="sidebar-inset"]`, shipped with `parallax-shell` and deliberately outside the axis
+  above: reserving the width is a fix, dressing the bar is a taste, and only the taste switches.
+  Navigating between a page that overflows and one that does not stopped resizing the canvas, which
+  used to slide the centred reading column by half a scrollbar on every step. Measured: the
+  reservation is inline-axis only — 15px at the inline edge, 0 at the block end even with content
+  overflowing on both axes — so no empty band appears along the bottom, and it is inert wherever
+  scrollbars are overlays, since an overlay bar consumes no space for a gutter to hold open.
 - **A reading panel in the header bar**, where the backdrop's wand used to sit: one `Aa` trigger
   over the two settings that decide how a page is READ rather than how it looks — its text size,
   in four steps, and the width of its content column, in four more. Both are stored per device and

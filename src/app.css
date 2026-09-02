@@ -1467,6 +1467,34 @@
  * scrolls the canvas sideways now, never the document, and `min-width: 0` above is what keeps the
  * canvas from simply widening to swallow it: the two halves of this block are one story.
  *
+ * `scrollbar-gutter: stable` — the bar's WIDTH IS RESERVED WHETHER OR NOT THERE IS A BAR, and
+ * this is a fix for movement rather than for looks. With the default `auto`, a classic scrollbar
+ * appears only once the canvas overflows, so every navigation between a page that fits and a page
+ * that does not resizes the canvas by the bar's width — the centred reading column slides half of
+ * that, the sticky bar re-lays out, and on a slow page the skeleton and the real content disagree.
+ * `stable` reserves the gutter from the start and the width stops moving.
+ *
+ * IT IS AN INLINE-AXIS RESERVATION ONLY, which had to be measured rather than assumed: the block
+ * above states that `overflow-x` computes to `auto` beside `overflow-y: auto`, so the obvious
+ * worry is a permanent empty band along the bottom as well. Measured in Chrome on a box overflowing
+ * on BOTH axes: 15px reserved at the inline edge, 0 at the block end. There is no bottom band.
+ *
+ * IT COSTS NOTHING WHERE SCROLLBARS ARE OVERLAYS — macOS, iOS, and any platform that hides them:
+ * an overlay bar is painted over the content and consumes no space, so there is no gutter for
+ * `stable` to hold open and the declaration is inert. The readers who see it are the ones who were
+ * seeing the jump.
+ *
+ * NOT `stable both-edges`, which mirrors the gutter onto the opposite edge to keep the content box
+ * symmetric: that is a second permanent band, 30px of a 1030px canvas, to correct a 7.5px offset of
+ * the centred column that nobody can see. What a reader notices is the JUMP, and one gutter is what
+ * removes it.
+ *
+ * THE BAR'S LOOK IS NOT HERE, and the split is deliberate: the gutter above is a FIX — it stops
+ * the canvas resizing between pages — while dressing the bar in the palette is a TASTE, and only
+ * the taste gets a switch. The two declarations that do it sit in their own block below, behind
+ * `:root[data-scrollbar="themed"]`, so a reader can hand the page back to the platform's bar
+ * without giving up the stable width. See that block for the colour and its measurement.
+ *
  * `scroll-padding-top` moved here from the `:root` block that still carries the height. The
  * browser reads scroll-padding from the container that scrolls — `scrollIntoView`, fragment
  * navigation and focus-driven scrolling all honour it there and nowhere else — and the page
@@ -1503,7 +1531,67 @@
 	min-height: 0;
 	overflow-y: auto;
 	overscroll-behavior-y: contain;
+	scrollbar-gutter: stable;
 	scroll-padding-top: calc(var(--page-header-height) + 0.5rem);
+}
+
+/*
+ * THE PAGE'S SCROLLBAR, DRESSED IN THE PALETTE — the one appearance axis that is a single pair of
+ * declarations, and the only surface in the kit still speaking the platform's dialect until it
+ * landed. `page-scrollbar.svelte.ts` writes the attribute; absent, this block does not match and
+ * the canvas hands its bar back to the operating system untouched. The gutter above is deliberately
+ * NOT in here: reserving the width is a fix, dressing the bar is a taste, and only the taste
+ * switches.
+ *
+ * THE THUMB IS `--border`, THE SAME TOKEN `ScrollArea` PAINTS ITS OWN WITH — an owner decision
+ * (2026-09-02), taken against the measurement below and recorded so it is not "corrected" later by
+ * someone reading only the numbers. The brief was parity with the component: its thumb is
+ * `bg-border` (measured in the "Always visible" demo: `rgb(238 243 250)`, a 7px thumb in a 10px
+ * track, track transparent), and the page's bar is meant to read as the same object.
+ *
+ * WHAT THE MEASUREMENT SAYS, so the trade is on the record: `--border` is 1.03:1 against the light
+ * page ground and 1.36:1 against the dark one. That is far below the 3:1 an interactive boundary
+ * would owe, and it is faint by design — the component gets away with it on a short bordered card,
+ * and this bar is longer and quieter still. It is legible enough in practice because a scrollbar is
+ * read as MOVEMENT and POSITION rather than as a shape at rest, and because the gutter keeps it in
+ * a channel of its own. Forced-colors force-adjusts `scrollbar-color`, so the high-contrast path
+ * never sees this value at all — and a reader who wants the platform's contrast back has the switch.
+ *
+ * IF IT EVER READS AS INVISIBLE on a particular screen, the next rung is `--muted-foreground` —
+ * the palette's secondary ink, 2.28:1 in light and 4.07:1 in dark, the token whose job is "quiet
+ * but legible". `--input` is not a rung: at 1.28:1 it is the same problem with an extra step. The
+ * two tokens that clear 3:1 are `--primary` (3.96:1) and `--foreground` (14.16:1), and a brand-blue
+ * or near-black bar down the side of every page answers a louder question than the one asked.
+ *
+ * ONE OF THE TWO INHERITS AND THE OTHER DOES NOT, which is worth knowing rather than a detail:
+ * `scrollbar-color` is an inherited property and `scrollbar-width` is not. Measured on
+ * `/components/data-table`, where four scrollers nest inside the canvas: each reports the tinted
+ * pair and `scrollbar-width: auto`. So the colour reaches every scroller INSIDE the page — a wide
+ * table, a code block, a `Scroller` demo — while only the canvas itself is narrowed and a nested
+ * bar keeps the platform's metric. That is the right way round: the page's own bar is the one worth
+ * slimming, and a table's bar is a control the reader drags.
+ *
+ * OUTSIDE THE CANVAS NOTHING CHANGES. The rail hides its bar with `no-scrollbar` (measured:
+ * `scrollbar-width: none`, colour untouched), and everything portaled to `<body>` is outside this
+ * element's subtree, so a dialog's own scroll is still a system bar. That is the bound; selecting
+ * `:root` rather than the canvas is what would change it.
+ *
+ * NO `::-webkit-scrollbar` RULES, which is the other way to draw this and cannot be combined with
+ * the standard pair: Chromium ignores the pseudo-elements on any scroller whose `scrollbar-width`
+ * or `scrollbar-color` is not `auto`, so the two are alternatives per element rather than a
+ * progressive enhancement — and the pseudo-element route converts macOS and iOS overlay bars into
+ * a permanent gutter, a regression on exactly the platforms whose bar already looks the part. The
+ * standard pair degrades the other way: an engine that does not support it keeps the platform bar.
+ *
+ * `thin` COSTS SOMETHING, and it is worth stating: on Windows it drops the arrow buttons and
+ * narrows the drag target, and it narrows the reserved gutter with it — measured at 1440px, the
+ * reservation falls from 15px to 10px and the canvas gains those 5px of content back. Which is also
+ * why the attribute is written by the first-paint script rather than on mount: arriving late, it
+ * would move the page's width under the reader.
+ */
+:root[data-scrollbar="themed"] [data-slot="sidebar-inset"] {
+	scrollbar-width: thin;
+	scrollbar-color: var(--border) transparent;
 }
 
 /*

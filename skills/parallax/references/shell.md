@@ -90,6 +90,7 @@ the `<main>`, which `AppShell` gives `id="main-content"` — is the one scroll c
 	min-height: 0;
 	overflow-y: auto;
 	overscroll-behavior-y: contain;
+	scrollbar-gutter: stable;
 	scroll-padding-top: calc(var(--page-header-height) + 0.5rem);
 }
 
@@ -136,6 +137,41 @@ keeps the canvas from widening. The rail's own rule,
 `:where([data-slot="sidebar-container"]) { height: auto }`, stays outside this set: it sizes
 the fixed rail by `inset-y-0` instead of `svh`, and still matters to a consumer who unlocks
 the document.
+
+### The canvas's scrollbar
+
+Two separate things, and only one of them is a look.
+
+`scrollbar-gutter: stable` is above, in the canvas rule, unconditional and shipped with
+`parallax-shell`. It reserves the bar's width whether or not there is a bar, so navigating
+between a document that overflows and one that does not stops resizing the canvas — a reserve,
+not a decoration. Measured: the reservation is inline-axis only (15px at the inline edge, 0 at
+the block end, even with content overflowing on both axes), so there is no empty band along the
+bottom, and it is inert wherever scrollbars are overlays, since an overlay bar consumes no space
+for a gutter to hold open.
+
+The bar's LOOK is an axis, `page-scrollbar`, and it ships with `parallax-appearance` instead —
+a hook plus one block:
+
+```css
+:root[data-scrollbar="themed"] [data-slot="sidebar-inset"] {
+	scrollbar-width: thin;
+	scrollbar-color: var(--border) transparent;
+}
+```
+
+`setPageScrollbar(false)` removes the attribute and the canvas hands its bar back to the
+operating system, keeping the stable width. It is ON by default — the exception among these axes
+— and the first-paint script writes the attribute, which is not cosmetic: `thin` narrows the
+reserved gutter (15px to 10px at 1440px), so an attribute arriving after hydration would move the
+page's width under the reader.
+
+The thumb is `--border`, the token `ScrollArea` paints its own with, so the page's bar and the
+component's read as one object. That is faint by measurement — 1.03:1 against the light page
+ground, 1.36:1 against the dark — and deliberately so; `--muted-foreground` (2.28:1 and 4.07:1)
+is the next rung if a screen swallows it. `scrollbar-color` inherits, so every scroller inside
+the page wears the pair; `scrollbar-width` does not, so only the canvas is narrowed. The rail
+hides its own bar with `no-scrollbar`, and anything portaled to `<body>` keeps the platform's.
 
 The negative `scroll-margin-top` on the header is the other half of that reserve, and it is
 not optional: the bar is pinned at `top: 0` and is never taller than the reserve is deep, so

@@ -146,6 +146,11 @@ const headerHiddenVeto = blockBySelector(
 	'[data-slot="page-header"][data-hidden]:has(:focus-visible), [data-slot="page-header"][data-hidden]:has([data-state="open"])',
 	0,
 );
+const pageScrollbar = blockBySelector(
+	blocks,
+	':root[data-scrollbar="themed"] [data-slot="sidebar-inset"]',
+	0,
+);
 const chromeDark = blockBySelector(
 	blocks,
 	':root[data-sidebar-mode="dark"], :root[data-header-mode="dark"] [data-slot="page-header-bar"]',
@@ -256,7 +261,7 @@ const APPEARANCE = {
 	type: "registry:lib",
 	title: "Parallax appearance axes",
 	description:
-		"The four appearance axes as persisted state: the sidebar's chrome and the header's chrome — each of them `default`, `inverted` or `vibrant` — a floating header, and a header that hides on scroll down. Module-level runes that write attributes on `<html>`, plus the CSS those attributes key on, `src/vibrant.css` included.",
+		"The five appearance axes as persisted state: the sidebar's chrome and the header's chrome — each of them `default`, `inverted` or `vibrant` — a floating header, a header that hides on scroll down, and the page's own scrollbar, dressed in the palette or handed back to the platform. Module-level runes that write attributes on `<html>`, plus the CSS those attributes key on, `src/vibrant.css` included.",
 	dependencies: ["mode-watcher"].map(pinned),
 	devDependencies: [],
 	/*
@@ -270,6 +275,13 @@ const APPEARANCE = {
 		file("src/lib/hooks/header-mode.svelte.ts", "registry:hook"),
 		file("src/lib/hooks/sidebar-behaviour.svelte.ts", "registry:hook"),
 		file("src/lib/hooks/header-behaviour.svelte.ts", "registry:hook"),
+		/*
+		 * The page's scrollbar. A hook and two declarations, and the only axis whose CSS selects the
+		 * SHELL's canvas rather than the header's bar — which is why the block ships here, beside the
+		 * attribute that switches it, rather than with `parallax-shell`: installed
+		 * without this item the selector matches nothing; installed with it the axis is complete.
+		 */
+		file("src/lib/hooks/page-scrollbar.svelte.ts", "registry:hook"),
 		/*
 		 * Owned HERE, referenced by URL from everything else that needs it (the shell's
 		 * auto-hide veto, swap's transition gate). Motion preference is appearance
@@ -296,6 +308,7 @@ const APPEARANCE = {
 		'[data-slot="page-header"][data-hidden]': headerHidden,
 		'[data-slot="page-header"][data-hidden]:has(:focus-visible), [data-slot="page-header"][data-hidden]:has([data-state="open"])':
 			headerHiddenVeto,
+		':root[data-scrollbar="themed"] [data-slot="sidebar-inset"]': pageScrollbar,
 	},
 	docs: [
 		"### One manual step",
@@ -334,6 +347,8 @@ const APPEARANCE = {
 		'    if (railVibrant) root.setAttribute("data-sidebar-mode", "vibrant");',
 		'    else if (railInverted) root.setAttribute("data-sidebar-mode", railWear);',
 		'    var bar = localStorage.getItem("header-mode");',
+		"    // The page scrollbar: on unless the reader turned it off.",
+		'    if (localStorage.getItem("page-scrollbar") !== "false") root.setAttribute("data-scrollbar", "themed");',
 		'    if (bar === "vibrant") root.setAttribute("data-header-mode", "vibrant");',
 		"    else {",
 		'      var barWear = bar === "inverted" ? (dark ? "light" : "dark") : dark ? "dark" : "light";',
@@ -344,6 +359,16 @@ const APPEARANCE = {
 		"```",
 		"",
 		"Keep it in step with the hooks: it repeats their resolution, and every `localStorage` key it reads is exported from one of them as a constant.",
+		"",
+		"### The page's scrollbar",
+		"",
+		'`page-scrollbar` is the fifth axis and the simplest: it writes `data-scrollbar="themed"` on `<html>` unless the key says `false`, and the one CSS block behind that attribute gives the canvas `scrollbar-width: thin` and a `scrollbar-color` pair from the palette — the same `--border` the `ScrollArea` component paints its own thumb with. Off, the canvas hands the bar back to the operating system.',
+		"",
+		"It is ON by default, which is the exception among these axes and is said rather than assumed: the kit restyles what it ships, and the page's own bar was the last surface still speaking the platform's dialect. `setPageScrollbar(false)` is the way back, and the switch on the gallery's Settings page is the worked example.",
+		"",
+		"Two things it deliberately does NOT own. `scrollbar-gutter: stable` stays on the canvas unconditionally and ships with `parallax-shell`: reserving the bar's width stops the page resizing between a document that overflows and one that does not, which is a fix rather than a look. And nothing outside the canvas moves — `scrollbar-color` inherits into the page's own nested scrollers, `scrollbar-width` does not inherit at all, the sidebar hides its bar with `no-scrollbar`, and anything portaled to <body> keeps the platform's.",
+		"",
+		"The attribute belongs in the first-paint script above rather than being written on mount, and that is not cosmetic: `thin` narrows the reserved gutter (measured: 15px to 10px at 1440px), so an attribute arriving after hydration moves the page's width under the reader.",
 		"",
 		"`vibrant` is the exception on both counts, which is what the two extra branches buy. It is ABSOLUTE, so it is written verbatim rather than resolved against the page; and it states its nine tokens on the painted surface rather than on `<html>`, so beside a vibrant rail there is nothing for the bar to inherit and the bar writes its own value even when the two wears agree.",
 	].join("\n"),
@@ -1444,6 +1469,7 @@ const registry = {
 		'[data-slot="page-header"][data-floating]::after 0',
 		'[data-slot="page-header"][data-hidden] 0',
 		'[data-slot="page-header"][data-hidden]:has(:focus-visible), [data-slot="page-header"][data-hidden]:has([data-state="open"]) 0',
+		':root[data-scrollbar="themed"] [data-slot="sidebar-inset"] 0',
 		...SHELL_CSS_SELECTORS.map((s) => `${s} 0`),
 	]);
 	const counters = new Map();

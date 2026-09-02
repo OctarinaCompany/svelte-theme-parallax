@@ -40,6 +40,11 @@
 		setSidebarFloating,
 		sidebarFloating,
 	} from "$lib/hooks/sidebar-behaviour.svelte.js";
+	import {
+		PAGE_SCROLLBAR_STORAGE_KEY,
+		pageScrollbar,
+		setPageScrollbar,
+	} from "$lib/hooks/page-scrollbar.svelte.js";
 	import BackdropSelector from "$lib/components/navigation/BackdropSelector.svelte";
 	import HeaderToggle from "$lib/components/navigation/HeaderToggle.svelte";
 	import SidebarModeToggle from "$lib/components/navigation/SidebarModeToggle.svelte";
@@ -269,6 +274,7 @@
 					floating: headerFloating.current,
 					hideOnScroll: headerAutoHide.current,
 				},
+				page: { scrollbar: pageScrollbar.current },
 				backdrop: {
 					gradient: {
 						look: activeGradient.current,
@@ -303,6 +309,7 @@
 				[HEADER_MODE_STORAGE_KEY]: headerMode.current,
 				[HEADER_FLOATING_STORAGE_KEY]: String(headerFloating.current),
 				[HEADER_AUTO_HIDE_STORAGE_KEY]: String(headerAutoHide.current),
+				[PAGE_SCROLLBAR_STORAGE_KEY]: String(pageScrollbar.current),
 				...backdropStorageSnapshot(),
 			},
 			cookie: { [SIDEBAR_COOKIE_NAME]: String(sidebar.open) },
@@ -805,6 +812,34 @@
 							"The bar slides away scrolling down and returns the moment you scroll up.",
 							headerAutoHide.current,
 							setHeaderAutoHide,
+						)}
+					</div>
+				</Card.Content>
+			</Card.Root>
+		</DocSection>
+
+		<DocSection title="Scrollbar">
+			{#snippet blurb()}
+				The page's own scrollbar, and the only axis here that is one switch: dressed in the palette
+				— the same <code class="text-[87.5%] text-primary">--border</code> the
+				<code class="text-[87.5%] text-primary">ScrollArea</code> component paints its thumb with — or
+				handed back to the operating system. The width it reserves is not part of the switch: the canvas
+				keeps a stable gutter either way, so the page never resizes between a document that overflows
+				and one that does not.
+			{/snippet}
+			<Card.Root>
+				<Card.Content>
+					<!--
+						No choice grid: two states, so the switch IS the control. It reads and writes the same
+						hook the first-paint script echoes, which is why the bar never flickers on a reload.
+					-->
+					<div class="flex flex-col divide-y">
+						{@render switchRow(
+							"settings-page-scrollbar",
+							"Themed scrollbar",
+							"The page's bar wears the palette, thin, on a transparent track — the kit's default. Off hands it back to the platform, arrow buttons and all.",
+							pageScrollbar.current,
+							setPageScrollbar,
 						)}
 					</div>
 				</Card.Content>
