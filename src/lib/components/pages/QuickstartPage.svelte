@@ -2,6 +2,7 @@
 	import * as Card from "$lib/components/ui/card/index.js";
 	import * as CodeBlock from "$lib/components/ui/code-block/index.js";
 	import * as Table from "$lib/components/ui/table/index.js";
+	import * as Tabs from "$lib/components/ui/tabs/index.js";
 	import DocPage from "$lib/components/layout/DocPage.svelte";
 	import DocSection from "$lib/components/layout/DocSection.svelte";
 
@@ -24,17 +25,35 @@
 	const REGISTRY_URL =
 		"https://octarinacompany.github.io/svelte-theme-parallax/r/parallax-skill.json";
 
-	const PERSONAL_UNIX = `# Claude Code, then Codex — every session on this machine
-npx degit OctarinaCompany/svelte-theme-parallax/skills/parallax ~/.claude/skills/parallax
-npx degit OctarinaCompany/svelte-theme-parallax/skills/parallax ~/.codex/skills/parallax`;
-
-	const PERSONAL_WINDOWS = `# PowerShell. Keep the quotes AND $env:USERPROFILE — see the note below.
-npx degit OctarinaCompany/svelte-theme-parallax/skills/parallax "$env:USERPROFILE\\.claude\\skills\\parallax"
-npx degit OctarinaCompany/svelte-theme-parallax/skills/parallax "$env:USERPROFILE\\.codex\\skills\\parallax"`;
-
-	const PROJECT = `# Run from the project root, and commit the result
-npx degit OctarinaCompany/svelte-theme-parallax/skills/parallax .claude/skills/parallax
-npx degit OctarinaCompany/svelte-theme-parallax/skills/parallax .codex/skills/parallax`;
+	/*
+	 * ONE ASSISTANT PER TAB. The three blocks used to stack both destinations on top of each other,
+	 * which reads as "run both lines" — nobody installs into an assistant they do not use, and the
+	 * spare line was the easiest thing on this page to copy by accident. The tabs make the choice
+	 * explicit and halve what is on screen. The commands are otherwise untouched: the two differ
+	 * only in the directory name, which is why the scope table above still shows them side by side.
+	 */
+	const INSTALLS = [
+		{
+			id: "claude",
+			label: "Claude Code",
+			personalUnix: `# Every Claude Code session on this machine
+npx degit OctarinaCompany/svelte-theme-parallax/skills/parallax ~/.claude/skills/parallax`,
+			personalWindows: `# PowerShell. Keep the quotes AND $env:USERPROFILE — see the note below.
+npx degit OctarinaCompany/svelte-theme-parallax/skills/parallax "$env:USERPROFILE\\.claude\\skills\\parallax"`,
+			project: `# Run from the project root, and commit the result
+npx degit OctarinaCompany/svelte-theme-parallax/skills/parallax .claude/skills/parallax`,
+		},
+		{
+			id: "codex",
+			label: "Codex",
+			personalUnix: `# Every Codex session on this machine
+npx degit OctarinaCompany/svelte-theme-parallax/skills/parallax ~/.codex/skills/parallax`,
+			personalWindows: `# PowerShell. Keep the quotes AND $env:USERPROFILE — see the note below.
+npx degit OctarinaCompany/svelte-theme-parallax/skills/parallax "$env:USERPROFILE\\.codex\\skills\\parallax"`,
+			project: `# Run from the project root, and commit the result
+npx degit OctarinaCompany/svelte-theme-parallax/skills/parallax .codex/skills/parallax`,
+		},
+	];
 
 	const REGISTRY = `npx shadcn-svelte@latest add ${REGISTRY_URL}`;
 
@@ -109,23 +128,38 @@ npx degit OctarinaCompany/svelte-theme-parallax/skills/parallax .codex/skills/pa
 	<DocSection title="Install it">
 		{#snippet blurb()}
 			A one-time install per machine (personal) or per repository (project) — never a per-session
-			step.
+			step. Pick your assistant — the two commands differ only in the directory name, so if you use
+			both, run the other tab's as well.
 		{/snippet}
-		<div class="grid gap-4">
-			<CodeBlock.Root
-				label="Personal — macOS and Linux"
-				language="bash"
-				code={PERSONAL_UNIX}
-				showLineNumbers={false}
-			/>
-			<CodeBlock.Root
-				label="Personal — Windows"
-				language="bash"
-				code={PERSONAL_WINDOWS}
-				showLineNumbers={false}
-			/>
-			<CodeBlock.Root label="Project" language="bash" code={PROJECT} showLineNumbers={false} />
-		</div>
+		<Tabs.Root value="claude" class="gap-4">
+			<Tabs.List>
+				{#each INSTALLS as install (install.id)}
+					<Tabs.Trigger value={install.id}>{install.label}</Tabs.Trigger>
+				{/each}
+			</Tabs.List>
+			{#each INSTALLS as install (install.id)}
+				<Tabs.Content value={install.id} class="grid gap-4">
+					<CodeBlock.Root
+						label="Personal — macOS and Linux"
+						language="bash"
+						code={install.personalUnix}
+						showLineNumbers={false}
+					/>
+					<CodeBlock.Root
+						label="Personal — Windows"
+						language="bash"
+						code={install.personalWindows}
+						showLineNumbers={false}
+					/>
+					<CodeBlock.Root
+						label="Project"
+						language="bash"
+						code={install.project}
+						showLineNumbers={false}
+					/>
+				</Tabs.Content>
+			{/each}
+		</Tabs.Root>
 		<p class="mt-4 text-sm text-muted-foreground">
 			Three things bite. Re-running to update fails unless you add <code>--force</code> — degit
 			refuses a destination that is not empty. The directory name must stay
