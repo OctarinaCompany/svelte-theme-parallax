@@ -499,11 +499,31 @@
 	 *
 	 * Only the three body steps are remapped — 142 of the 158 `text-*` uses in this
 	 * codebase. The display steps keep Tailwind's sizes so page titles and stat figures
-	 * are not inflated; they take the heading treatment only (below).
+	 * are not inflated; they take the heading treatment only (below) — and they are RESTATED
+	 * rather than left to Tailwind, for the reason the next paragraph gives.
+	 *
+	 * EVERY STEP IS SCALED BY `--text-factor`, WHICH DEFAULTS TO 1 AND SO CHANGES NOTHING. It is
+	 * the hook `--radius-factor` already uses below, and it works for the same reason: `@theme
+	 * inline` INLINES these values into every `text-*` utility rather than emitting a variable, so
+	 * each utility carries the multiplication and resolves it per element against whatever
+	 * `--text-factor` is in scope. Set it on one container and the type inside that container
+	 * scales; set it on `:root` and the whole document does, portaled overlays included.
+	 *
+	 * WHY THE DISPLAY STEPS HAD TO BE RESTATED: a step this block does not declare keeps
+	 * Tailwind's own literal, and would sit still while everything around it moved — a page whose
+	 * body grew and whose title did not. The four sizes below are Tailwind's own, copied, so the
+	 * default rendering is unchanged to the pixel.
+	 *
+	 * The line-heights are unitless and the letter-spacings are in `em`, so both scale
+	 * themselves. Only the sizes need the factor.
+	 *
+	 * NOTHING IN THE REGISTRY SETS IT. The hook ships inert exactly as `--radius-factor` does, and
+	 * this gallery's own reading control is the one thing that drives it — on the page content
+	 * only, so the chrome holding that control stays still while the page it governs moves.
 	 */
-	--text-xs: 0.8125rem; /* font-size-sm — captions, meta labels */
+	--text-xs: calc(0.8125rem * var(--text-factor, 1)); /* font-size-sm — captions, meta labels */
 	--text-xs--line-height: 1.5; /* line-height-base */
-	--text-sm: 0.9375rem; /* font-size-base — the body size */
+	--text-sm: calc(0.9375rem * var(--text-factor, 1)); /* font-size-base — the body size */
 	--text-sm--line-height: 1.5; /* line-height-base */
 	/*
 	 * `text-base` is 15px, NOT the 17px an earlier version assumed. Map by
@@ -516,7 +536,7 @@
 	 * It therefore ties with `--text-sm`, the same way `--radius-lg` ties with
 	 * `--radius-xl` below: two shadcn slots, one house value.
 	 */
-	--text-base: 0.9375rem; /* font-size-base — h4 headings and form controls */
+	--text-base: calc(0.9375rem * var(--text-factor, 1)); /* font-size-base — h4, form controls */
 	--text-base--line-height: 1.5; /* line-height-base */
 
 	/*
@@ -529,7 +549,7 @@
 	 * The line-height stays 1.5 rather than the heading 1.1, because this step also plays
 	 * `font-size-lg` in non-heading roles; the Typography headings ask for 1.1 explicitly.
 	 */
-	--text-lg: 1.0625rem; /* font-size-lg = h3-font-size */
+	--text-lg: calc(1.0625rem * var(--text-factor, 1)); /* font-size-lg = h3-font-size */
 	--text-lg--line-height: 1.5; /* line-height-base */
 
 	/*
@@ -539,12 +559,16 @@
 	 * role, and deliberately not to the body steps above, where it would tighten
 	 * ordinary prose.
 	 */
+	--text-xl: calc(1.25rem * var(--text-factor, 1)); /* Tailwind's own size, restated */
 	--text-xl--letter-spacing: -0.02em; /* headings-letter-spacing */
 	--text-xl--line-height: 1.1; /* headings-line-height */
+	--text-2xl: calc(1.5rem * var(--text-factor, 1)); /* Tailwind's own size, restated */
 	--text-2xl--letter-spacing: -0.02em; /* headings-letter-spacing */
 	--text-2xl--line-height: 1.1; /* headings-line-height */
+	--text-3xl: calc(1.875rem * var(--text-factor, 1)); /* Tailwind's own size, restated */
 	--text-3xl--letter-spacing: -0.02em; /* display-letter-spacing */
 	--text-3xl--line-height: 1.1; /* display-line-height */
+	--text-4xl: calc(2.25rem * var(--text-factor, 1)); /* Tailwind's own size, restated */
 	--text-4xl--letter-spacing: -0.02em; /* display-letter-spacing */
 	--text-4xl--line-height: 1.1; /* display-line-height */
 	--color-sidebar-ring: var(--sidebar-ring);
@@ -1701,7 +1725,7 @@
 	--table-head-h: 2.5rem;
 	--table-row-h: 2.5rem;
 	--table-cell-py: 0.25rem;
-	font-size: 0.8125rem; /* font-size-sm — .table-sm's body type, density through type */
+	font-size: calc(0.8125rem * var(--text-factor, 1)); /* font-size-sm — .table-sm's body type */
 }
 
 :where([data-density="default"]) {
@@ -1719,7 +1743,10 @@
 [data-slot="table-head"] {
 	background-color: var(--background); /* table-head-bg */
 	color: var(--muted-foreground); /* table-head-color = secondary-color */
-	font-size: 0.8125rem; /* font-size-sm — a literal, since `@theme inline` does not emit --text-xs */
+	/* font-size-sm — a literal, since `@theme inline` does not emit --text-xs. It carries the
+	   ramp's own `--text-factor` for exactly that reason: the variable it would have read is not
+	   there, so the multiplication is restated or this cell alone ignores a reader's text size. */
+	font-size: calc(0.8125rem * var(--text-factor, 1));
 	font-weight: 600; /* font-weight-bold */
 	letter-spacing: var(--label-tracking);
 	text-transform: uppercase;
@@ -1734,7 +1761,7 @@
  */
 [data-slot="data-grid-column-header"] {
 	color: var(--muted-foreground);
-	font-size: 0.8125rem;
+	font-size: calc(0.8125rem * var(--text-factor, 1)); /* the table head's size, and its reason */
 	font-weight: 600;
 	letter-spacing: var(--label-tracking);
 	text-transform: uppercase;
@@ -2464,7 +2491,7 @@ thead,
 	height: var(--control-h-sm);
 	padding-block: 0.125rem; /* input-padding-y-sm */
 	padding-left: 0.5rem; /* input-padding-x-sm */
-	font-size: 0.8125rem; /* font-size-sm */
+	font-size: calc(0.8125rem * var(--text-factor, 1)); /* font-size-sm */
 	border-radius: 0.25rem; /* border-radius-sm */
 }
 
@@ -2907,8 +2934,10 @@ ol[data-sonner-toaster] {
 [data-sonner-toaster] [data-sonner-toast][data-styled="true"] {
 	width: 300px; /* toast-max-width */
 	/* toast-font-size = font-size-base, against sonner's hardcoded 13px. A literal, since
-	   `@theme inline` does not emit --text-sm. */
-	font-size: 0.9375rem;
+	   `@theme inline` does not emit --text-sm — carrying the ramp's factor with it, which only a
+	   consumer who sets `--text-factor` at the root will ever see: the toaster portals to
+	   `<body>`, outside any container this gallery scales. */
+	font-size: calc(0.9375rem * var(--text-factor, 1));
 }
 
 /*
@@ -3207,7 +3236,7 @@ ol[data-sonner-toaster] [data-sonner-toast][data-styled="true"] [data-close-butt
  * the height has to keep matching the card header.
  */
 [data-slot="tabs-list"][data-variant="line"][data-size="sm"] > [data-slot="tabs-trigger"] {
-	font-size: 0.8125rem; /* nav-tabs-font-size-sm = font-size-sm */
+	font-size: calc(0.8125rem * var(--text-factor, 1)); /* nav-tabs-font-size-sm = font-size-sm */
 	/* divide(font-size-base, nav-tabs-font-size-sm) * nav-tabs-link-padding-y, quoted from the
 	   compiled bundle. */
 	padding-block: 1.1538461538rem;

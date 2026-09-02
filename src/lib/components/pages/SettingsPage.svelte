@@ -40,6 +40,7 @@
 		setSidebarFloating,
 		sidebarFloating,
 	} from "$lib/hooks/sidebar-behaviour.svelte.js";
+	import BackdropSelector from "$lib/components/navigation/BackdropSelector.svelte";
 	import HeaderToggle from "$lib/components/navigation/HeaderToggle.svelte";
 	import SidebarModeToggle from "$lib/components/navigation/SidebarModeToggle.svelte";
 	import {
@@ -515,7 +516,8 @@
 			{#snippet blurb()}
 				What is painted behind the page: a light, a lattice, a mark and a texture, each switched on
 				and tuned on its own. Every layer takes its colours from the active palette, so all of them
-				suit all {THEMES.length} palettes in both modes. The header's wand carries the same switches.
+				suit all {THEMES.length} palettes in both modes. The wand below — under
+				<em>The same axes, as bar controls</em> — carries the same four switches in one menu.
 			{/snippet}
 
 			<!--
@@ -820,9 +822,12 @@
 				<code class="text-[87.5%] text-primary">parallax-appearance-controls</code> for an
 				application that wants them back in the header through
 				<code class="text-[87.5%] text-primary">PageHeader</code>'s
-				<code class="text-[87.5%] text-primary">controls</code> snippet. They are live: change one and
-				the grids above follow, because both read the same state. The backdrop's wand is not repeated
-				here: the bar above already renders it.
+				<code class="text-[87.5%] text-primary">controls</code> snippet. They are live: change one
+				and the grids above follow, because both read the same state.
+				<code class="text-[87.5%] text-primary">BackdropSelector</code> stands with them now — it used
+				to ride in the header bar, and the bar has gone back to carrying nothing that belongs to the look:
+				what sits there instead is the reading panel, which governs how a page is read rather than how
+				it looks.
 			{/snippet}
 			<Card.Root>
 				<Card.Content>
@@ -836,6 +841,7 @@
 					<div class="flex flex-wrap items-center gap-2">
 						<SidebarModeToggle />
 						<HeaderToggle />
+						<BackdropSelector />
 					</div>
 				</Card.Content>
 			</Card.Root>

@@ -12,6 +12,20 @@ ships today is listed here.
 
 ### Added
 
+- **A reading panel in the header bar**, where the backdrop's wand used to sit: one `Aa` trigger
+  over the two settings that decide how a page is READ rather than how it looks — its text size,
+  in four steps, and the width of its content column, in four more. Both are stored per device and
+  neither is part of the look a consumer installs, which is what earns them a place on a bar the
+  kit otherwise keeps for the light/dark toggle alone; every appearance axis, the backdrop now
+  included, lives on the Settings page where it can be named and explained. The text size is one
+  multiplier, `--text-factor`, which the type ramp in `src/app.css` now carries on every step —
+  `@theme inline` inlines the multiplication into each `text-*` utility, so it resolves per
+  element against whatever scope sets it, exactly as `--radius-factor` already did for the radius
+  ramp. It ships inert (the factor defaults to 1 and the rendering is unchanged to the pixel), and
+  a consumer can now scale the kit's type in any container — or at `:root`, which catches portaled
+  overlays too. Only the type scales: control heights, spacing and radii keep their own ramps, so
+  the top step stops at 1.3, where the densest 1.5rem control tier is 1.3px over its line box and
+  still spills rather than clips.
 - Six more palettes, taking the set to eighteen. Three widen the spectrum: `moss` and `fern`
   fill the 104° of hue circle that had nothing in it between Sandstone and Evergreen — the
   yellow-green and the kit's first true green — and `heather` takes the untouched arc between

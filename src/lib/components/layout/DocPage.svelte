@@ -4,9 +4,10 @@
 	import PageHeader from "$lib/components/layout/PageHeader.svelte";
 	import PageIntro from "$lib/components/layout/PageIntro.svelte";
 	import CommandPalette from "$lib/components/navigation/CommandPalette.svelte";
-	import BackdropSelector from "$lib/components/navigation/BackdropSelector.svelte";
 	import ModeToggle from "$lib/components/navigation/ModeToggle.svelte";
+	import ReadingSettings from "$lib/components/navigation/ReadingSettings.svelte";
 	import RepositoryLink from "$lib/components/navigation/RepositoryLink.svelte";
+	import { reading } from "$lib/hooks/reading.svelte.js";
 	import {
 		setSectionSourceContext,
 		type PageSections,
@@ -320,16 +321,24 @@
 	`controls` is the same seam for the same reason. Overriding it means rendering the GROUP, so
 	the light/dark toggle is repeated here rather than inherited: that is the slot's contract, and
 	the header's own comment says so. The order is: the link that LEAVES the site first, then the
-	two appearance controls, with the toggle closest to the edge — it is the one a reader reaches
-	for repeatedly, and it has always sat there.
+	reading panel, with the toggle closest to the edge — it is the one a reader reaches for
+	repeatedly, and it has always sat there.
 
-	THE BACKDROP PICKER IS A DELIBERATE DEPARTURE from the rule this bar settled on, which is that
-	the header carries the light/dark toggle and every other appearance axis lives on the Settings
-	page, where it can be named and explained. A backdrop is chosen the way a palette is — once — so
-	by that rule it belongs there too, and it is on the bar anyway because it is the axis this
-	gallery exists to let someone COMPARE: switching backdrops is a thing you do on the
-	page you are judging, not on a settings screen you have to leave. It costs one 40px button of
-	the search field's width between 768px and 893px, and the Settings page carries it as well.
+	THE READING PANEL IS THE ONE CONTROL HERE THAT IS NOT AN APPEARANCE AXIS, which is exactly why
+	it is allowed on a bar the kit otherwise keeps for light/dark alone. Every axis — the palette,
+	the two chrome modes, the backdrop, the sizing tiers — decides what an application LOOKS like,
+	is part of the look a consumer installs, and lives on the Settings page where it can be named
+	and explained. Text size and column width decide how THIS reader reads THIS page: the same kind
+	of choice as light/dark, made while reading, on the page being read, stored per device and with
+	nothing to export. The backdrop's wand stood in this slot until it was, and now sits on Settings
+	beside the other axes — where a look can be explained rather than only switched, and where the
+	published `BackdropSelector` still has a page rendering it.
+
+	THE BAR'S BUDGET DID NOT MOVE: the swap is icon for icon, the wand and the `Aa` being the same
+	40px ghost button, so the cluster's content is still 120px of the three controls the demo has
+	always put here. Measured on the Badge page at 768px — the tightest width in the range, where
+	the rail is expanded and the bar is most over-subscribed — the search field keeps its 102px and
+	neither the document nor the canvas grows a horizontal scrollbar.
 -->
 <PageHeader {trail}>
 	{#snippet search()}
@@ -337,13 +346,26 @@
 	{/snippet}
 	{#snippet controls()}
 		<RepositoryLink />
-		<BackdropSelector />
+		<ReadingSettings />
 		<ModeToggle />
 	{/snippet}
 </PageHeader>
 
-<div bind:this={content} class="px-3 pb-4 md:px-9">
-	<ContentColumn>
+<!--
+	`--text-factor` ON THE PAGE CONTENT, AND NOWHERE HIGHER. Everything below the bar scales with
+	it — the ramp in `app.css` inlines the multiplication into every `text-*` utility, so no
+	element has to opt in — while the header above holds still, which is what keeps the control the
+	reader is pressing from being one of the things moving under their finger.
+
+	AN OVERLAY A DEMO PORTALS TO `<body>` IS OUTSIDE THIS BOX and stays at 1. The bound is stated
+	rather than worked around: raising the factor to `:root` would catch those overlays and take
+	the bar and the rail with them, and the chrome is not what a reader asked to resize.
+
+	The width is a class rather than a style, because the column is a percentage of its container
+	and `ContentColumn` merges what it is given over its own `lg:`/`xl:` fractions — see the hook.
+-->
+<div bind:this={content} class="px-3 pb-4 md:px-9" style="--text-factor: {reading.textScale}">
+	<ContentColumn class={reading.widthClass}>
 		<PageIntro {title} {subtitle} />
 		<div>
 			{@render children()}
