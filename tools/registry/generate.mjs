@@ -138,7 +138,11 @@ function cssFromSelectors(selectors) {
 const baseLight = blockBySelector(blocks, ":root", 0);
 const baseDark = blockBySelector(blocks, ".dark", 0);
 const headerMetrics = blockBySelector(blocks, ":root", 1);
-const headerChrome = blockBySelector(blocks, '[data-slot="page-header-bar"]', 0);
+const chromeSurfaces = blockBySelector(
+	blocks,
+	'[data-slot="page-header-bar"], [data-sidebar="sidebar"]',
+	0,
+);
 const headerFade = blockBySelector(blocks, '[data-slot="page-header"][data-floating]::after', 0);
 const headerHidden = blockBySelector(blocks, '[data-slot="page-header"][data-hidden]', 0);
 const headerHiddenVeto = blockBySelector(
@@ -303,7 +307,7 @@ const APPEARANCE = {
 	],
 	css: {
 		":root": headerMetrics,
-		'[data-slot="page-header-bar"]': headerChrome,
+		'[data-slot="page-header-bar"], [data-sidebar="sidebar"]': chromeSurfaces,
 		'[data-slot="page-header"][data-floating]::after': headerFade,
 		'[data-slot="page-header"][data-hidden]': headerHidden,
 		'[data-slot="page-header"][data-hidden]:has(:focus-visible), [data-slot="page-header"][data-hidden]:has([data-state="open"])':
@@ -322,7 +326,7 @@ const APPEARANCE = {
 		"The CSS this installed keys on attributes your own header has to write. Nothing paints until it does:",
 		"",
 		'- `data-slot="page-header"` on the outer sticky element — the one the floating fade hangs off, the auto-hide translates, and the vibrant paint reads to place its corner light.',
-		'- `data-slot="page-header-bar"` on the bar inside it — this is what the inverted palette and the vibrant paint both select, and what re-scopes the nine chrome tokens onto the controls.',
+		'- `data-slot="page-header-bar"` on the bar inside it — this is what the inverted palette and the vibrant paint both select, and what puts the bar in the chrome block that projects the nine chrome tokens onto the eleven page tokens its controls actually read. The rail is in that same block through `data-sidebar="sidebar"`, which shadcn\'s own sidebar writes, so both surfaces move together.',
 		"- `data-floating` and `data-hidden` on the outer element, present or absent, from `headerFloating.current` and the auto-hide state.",
 		"",
 		'A vibrant RAIL asks one thing more, and it comes from shadcn\'s own sidebar rather than from you: `data-sidebar="sidebar"` on the panel, which is the element the paint block states its tokens on.',
@@ -547,6 +551,8 @@ const SHELL_CSS_SELECTORS = [
 	'[data-side="left"][data-state="expanded"] [data-slot="sidebar-rail"], [data-side="right"][data-state="collapsed"] [data-slot="sidebar-rail"]',
 	'[data-side="left"][data-state="collapsed"] [data-slot="sidebar-rail"], [data-side="right"][data-state="expanded"] [data-slot="sidebar-rail"]',
 	'[data-slot="sidebar-inner"]',
+	// The flush variant's outer edge, on the panel's hairline rather than the page's border.
+	'[data-slot="sidebar-container"]',
 	// The mobile sheet's edge, on the ring's token.
 	'[data-slot="sidebar"][data-mobile="true"]',
 	'[data-slot="sidebar-group"], [data-slot="sidebar-header"], [data-slot="sidebar-footer"]',
@@ -1465,7 +1471,7 @@ const registry = {
 		':root[data-sidebar-mode="dark"], :root[data-header-mode="dark"] [data-slot="page-header-bar"] 0',
 		':root.dark[data-sidebar-mode="light"], :root[data-header-mode="light"] [data-slot="page-header-bar"] 0',
 		":root 1",
-		'[data-slot="page-header-bar"] 0',
+		'[data-slot="page-header-bar"], [data-sidebar="sidebar"]' + " 0",
 		'[data-slot="page-header"][data-floating]::after 0',
 		'[data-slot="page-header"][data-hidden] 0',
 		'[data-slot="page-header"][data-hidden]:has(:focus-visible), [data-slot="page-header"][data-hidden]:has([data-state="open"]) 0',

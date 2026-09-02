@@ -432,13 +432,25 @@
 
 /* Two-tone focus, on the shared selector so a control in the bar gets the same pair as one in the
    rail: the component's white ring, then a dark halo outside it, so one of the two always reads
-   whichever point of the field the control happens to sit on. */
+   whichever point of the field the control happens to sit on.
+
+   THE ELEMENT LIST IS NOT `button` ALONE, because half the bar is not a `<button>`: the gallery's
+   repository link is an `<a>`, and `ModeToggle` — which is `PageHeader`'s DEFAULT control, so every
+   consumer has one — is a `<div role="button">` wrapping a checkbox. Both were taking the page's
+   focus ring on a painted surface. `[role="button"]` and `a` close that, and the two rail
+   selectors stay because a menu button is neither. */
 :root[data-sidebar-mode="vibrant"]
 	[data-sidebar="sidebar"]
-	:is([data-sidebar="menu-button"], [data-slot="sidebar-menu-sub-button"], button):focus-visible,
+	:is(
+		[data-sidebar="menu-button"],
+		[data-slot="sidebar-menu-sub-button"],
+		button,
+		[role="button"],
+		a
+	):focus-visible,
 :root[data-header-mode="vibrant"][data-header-mode][data-header-mode]
 	[data-slot="page-header-bar"]
-	:is([data-slot="button"], button):focus-visible {
+	:is([data-slot="button"], button, [role="button"], a):focus-visible {
 	outline: 2px solid var(--vibrant-b);
 	outline-offset: 2px;
 }
@@ -467,7 +479,7 @@
  * panel. Its ink is the same solved pair the panel uses, so nothing here is a second measurement.
  */
 :root[data-sidebar-mode="vibrant"]
-	body:has([data-sidebar="sidebar"] [data-sidebar="menu-button"][data-state="open"])
+	body:has([data-sidebar="sidebar"] [data-state="open"])
 	:is(
 		[data-slot="dropdown-menu-content"],
 		[data-slot="dropdown-menu-sub-content"],
@@ -482,14 +494,38 @@
 	) {
 	--popover: var(--vibrant-a);
 	--popover-foreground: var(--vibrant-ink);
-	/* The item hover/active pair, the separator, and the label — the four page tokens a menu's
-	   children read that would otherwise still be the document's. */
+	/* The item hover/active pair, the separator, and the label — the page tokens a menu's own rows
+	   read that would otherwise still be the document's. */
 	--accent: rgb(255 255 255 / 0.14);
 	--accent-foreground: #fff;
 	--border: rgb(255 255 255 / 0.16);
 	--muted-foreground: var(--vibrant-ink-soft);
 	/* The content's own hairline is `ring-foreground/10`, so `--foreground` has to move with it. */
 	--foreground: var(--vibrant-ink);
+
+	/*
+	 * AND THE FOUR A CONTROL INSIDE THE MENU READS, which the rows above do not. A menu is not only
+	 * rows: this kit opens popovers with Buttons in them, and the reading panel is the worked
+	 * example — its `outline` buttons paint `bg-background`, its ghost buttons hover on `--muted`
+	 * (this kit's Button forks shadcn's `bg-accent` to `bg-muted`, so `--accent` alone never
+	 * reached them), and a focused one draws `focus-visible:border-ring`. Measured before this
+	 * block grew: near-white buttons on the near-white page ground, over a dark blue pane, with a
+	 * page-blue focus border at 2.15:1 against it — 18 palettes out of 18 below 3:1.
+	 *
+	 * The values are the surfaces' own, restated rather than referenced: portaled content is not a
+	 * descendant of either surface, and under vibrant the nine chrome tokens live ON the panel
+	 * rather than on `:root`, so `var(--sidebar-*)` here would resolve to the page's values. That
+	 * is the same reason this block exists at all.
+	 *
+	 * THE PAIR TO KEEP IN STEP is the chrome block in `src/app.css` — one list for the two
+	 * surfaces, this one for what they open. They cover the same components; when a token is added
+	 * there, ask whether a control in a menu reads it too.
+	 */
+	--background: var(--vibrant-a);
+	--card: var(--vibrant-a);
+	--muted: rgb(255 255 255 / 0.14);
+	--ring: #fff;
+	--input: var(--vibrant-ink-soft);
 	color-scheme: dark;
 }
 

@@ -40,7 +40,7 @@ Skip the step and `default` and `inverted` still work perfectly — but the Vibr
 The CSS this installed keys on attributes your own header has to write. Nothing paints until it does:
 
 - `data-slot="page-header"` on the outer sticky element — the one the floating fade hangs off, the auto-hide translates, and the vibrant paint reads to place its corner light.
-- `data-slot="page-header-bar"` on the bar inside it — this is what the inverted palette and the vibrant paint both select, and what re-scopes the nine chrome tokens onto the controls.
+- `data-slot="page-header-bar"` on the bar inside it — this is what the inverted palette and the vibrant paint both select, and what puts the bar in the chrome block that projects the nine chrome tokens onto the eleven page tokens its controls actually read. The rail is in that same block through `data-sidebar="sidebar"`, which shadcn's own sidebar writes, so both surfaces move together.
 - `data-floating` and `data-hidden` on the outer element, present or absent, from `headerFloating.current` and the auto-hide state.
 
 A vibrant RAIL asks one thing more, and it comes from shadcn's own sidebar rather than from you: `data-sidebar="sidebar"` on the panel, which is the element the paint block states its tokens on.

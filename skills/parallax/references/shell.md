@@ -387,13 +387,62 @@ Contracts that make overrides safe:
 
 - **`search`**: whatever you pass must carry `min-w-0 shrink` — it is the slot that gives
   when the bar runs out of room. With the default controls (one button) it rarely has to;
-  put your own group of controls back in the bar and it does.
+  put your own group of controls back in the bar and it does. It is also chrome, not page:
+  the bar re-scopes eleven page tokens onto the chrome family (see below), so a field, a
+  button or an input dropped in here paints the bar's ground rather than the document's — and
+  a control that reads a token OUTSIDE that list still paints the page's value, which on an
+  inverted or vibrant bar is the wrong half of the palette.
 - **`breadcrumb`**: render into a `min-w-0 flex-1` box whose width your own content cannot
   change; a content-sized box re-enters the trail's measurement loop.
 - **`sidebarTrigger`**: it is a snippet (not a boolean) because `Sidebar.Trigger` throws
   outside a `Sidebar.Provider` — pass an empty snippet to render the header providerless.
 - **children are rejected at compile time** (`Omit<…, "class" | "children">`): page
   content goes beside the header, never inside it.
+
+### What a control inside the chrome reads
+
+The nine `--sidebar-*` tokens describe the chrome; the components you drop into it read PAGE
+tokens. `parallax-appearance` ships one unlayered block that projects one family onto the
+other, on **both** chrome surfaces at once:
+
+```css
+[data-slot="page-header-bar"],
+[data-sidebar="sidebar"] {
+	--foreground: var(--sidebar-accent-foreground);
+	--card-foreground: var(--sidebar-accent-foreground);
+	--muted-foreground: var(--sidebar-foreground);
+	--muted: var(--sidebar-accent);
+	--accent: var(--sidebar-accent);
+	--accent-foreground: var(--sidebar-accent-foreground);
+	--background: var(--sidebar);
+	--card: var(--sidebar);
+	--border: var(--sidebar-outline);
+	--input: var(--sidebar-outline);
+	--ring: var(--sidebar-ring);
+}
+```
+
+One selector list rather than two blocks, deliberately: the bar carried this alone for a long
+time and the rail carried none, so the same component rendered in chrome colours in the header
+and in page colours in the sidebar. The mobile rail is covered too — its Sheet carries
+`data-sidebar="sidebar"`.
+
+Eight of the eleven are projections of values that already agree (measured byte-identical
+across all 36 palette blocks), so they can only change what a chrome axis has already changed.
+`--background` and `--card` are the ones that move in every palette, and that is the repair: an
+`outline` Button or a search field in the bar used to paint the document's ground on a chrome
+surface.
+
+Deliberately absent: `--primary`, `--secondary` and `--destructive` with their inks. A brand CTA
+and a status colour must read the same on every surface, and under `vibrant` `--sidebar-primary`
+is plain white — aliasing would repaint your call to action. `--popover` too, because every
+overlay portals to `<body>` and a declaration on the surface can never reach one; the vibrant
+stylesheet carries a separate block for what those surfaces OPEN, keyed on `:has()` over the
+open trigger.
+
+**The maintenance edge:** a control that reads a page token outside that list still paints the
+page's value. Add it to the list — both surfaces get it at once — or give the control a
+`--sidebar-*` class.
 - The floating / auto-hide / inverted behaviour needs no wiring here — the header already
   carries `data-slot="page-header"` / `"page-header-bar"` and writes
   `data-floating`/`data-hidden` itself.

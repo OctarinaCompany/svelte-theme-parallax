@@ -236,6 +236,28 @@ ships today is listed here.
 
 ### Fixed
 
+- **A control inside the chrome now paints in the chrome's colours, on both surfaces and in the
+  menus they open.** The nine `--sidebar-*` tokens describe the chrome, but the components dropped
+  into it read PAGE tokens — a Button says `bg-background`, an Input says `bg-card`, a menu row
+  says `bg-accent` — and only the header bar had a block projecting one family onto the other, six
+  tokens wide. The rail had none at all, and the block for portaled menus stopped four tokens
+  short. Three lists, no two the same, with nothing keeping them in step; the visible results were
+  the reading panel's buttons rendering near-white on near-white over a vibrant bar, its focus
+  border page-blue at 2.15:1 against that pane (below 3:1 in all eighteen palettes), the account
+  avatar drawing a near-white page puck on a navy rail in both `inverted` and `vibrant`, and the
+  flush rail's own outer edge drawing the page's `--border` at 12.09:1 against the panel it edges.
+  The bar's block is now ONE selector list covering the bar, the rail and the mobile Sheet, widened
+  to eleven tokens; the vibrant menu block covers eleven too; and the flush rail's edge takes
+  `--sidebar-outline` like every other edge drawn on that panel. Eight of the eleven were measured
+  byte-identical to their chrome counterparts across all 36 palette blocks, so they cannot change
+  anything a chrome axis has not already changed — `--background` and `--card` are the two that
+  move, which is the repair rather than a side effect. `--primary`, `--secondary` and
+  `--destructive` are deliberately left alone: a brand CTA and a status colour must read the same
+  on every surface.
+- **The vibrant focus halo reaches the controls the bar actually holds.** It selected
+  `[data-slot="button"], button`, and half the bar is neither: the repository link is an `<a>` and
+  `ModeToggle` — `PageHeader`'s DEFAULT control, so every consumer has one — is a
+  `<div role="button">`. Both took the page's focus ring on a painted surface.
 - **The mobile sidebar no longer draws a pale line down its inner edge under a dark rail.**
   Below the breakpoint the sidebar renders through `Sheet.Content`, whose own 1px `border-r`
   took the PAGE's `--border` from the `@layer base` default — invisible while the panel follows

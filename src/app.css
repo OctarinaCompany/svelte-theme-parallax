@@ -361,31 +361,72 @@
 }
 
 /*
- * What the bar's children read.
+ * WHAT A CONTROL INSIDE THE CHROME READS — on BOTH chrome surfaces, which is the point of the
+ * selector list.
  *
- * Re-scoping the nine chrome tokens onto the bar changes nothing on screen by itself, because the
- * controls inside it read PAGE tokens — `--foreground`, `--muted`, `--border` and so on. This
- * block is the mapping, and it is unconditional on purpose: the bar is a chrome surface whether or
- * not it is pinned, which is what makes the sticky ground legible at rest, and with no attribute
- * set the nine resolve exactly as they did before, so this degrades to the old appearance.
+ * The nine `--sidebar-*` tokens describe the chrome, but the components dropped into it read PAGE
+ * tokens: a Button says `bg-background`, an Input says `bg-card`, a menu row says `bg-accent`.
+ * This block is the projection of one family onto the other, and it is unconditional on purpose —
+ * a bar and a rail are chrome whether or not an axis is set, and with no attribute the nine
+ * resolve to the page's own values, so it degrades to no change at all.
  *
- * The pairing is not invented. It is the one the rail already uses for a control on a panel —
+ * ONE SELECTOR LIST, NOT TWO BLOCKS, and that is the correction rather than the decoration. The
+ * bar carried this mapping alone for a long time and the rail carried none, so the same component
+ * rendered in chrome colours in the header and in page colours in the sidebar — the account
+ * avatar's near-white puck on a navy rail was that, and so was the flush rail's own bright edge,
+ * each patched once where it showed. Two lists that must agree with nothing keeping them agreeing
+ * is how that happens; one list cannot drift. The mobile rail comes along for free, since its
+ * Sheet carries `data-sidebar="sidebar"` too.
+ *
+ * THE PAIRING IS NOT INVENTED. It is the one the rail already uses for a control on a panel —
  * `sidebar-menu-button.svelte` is `hover:bg-sidebar-accent hover:text-sidebar-accent-foreground`
  * with `ring-sidebar-ring`, resting ink inherited from `--sidebar-foreground`. There is no
  * `--sidebar-input` and no `--sidebar-muted`, and neither should be minted: `--sidebar-outline` is
  * exactly the hairline anything drawn INSIDE the panel needs, which is what it was added for.
  *
+ * EIGHT OF THE ELEVEN COST NOTHING OUTSIDE AN INVERTED OR VIBRANT CHROME, and that was measured
+ * rather than assumed: across all 36 palette blocks in `themes.css` and this file, `--accent` is
+ * byte-identical to `--sidebar-accent`, `--accent-foreground` and `--card-foreground` to
+ * `--sidebar-accent-foreground`, `--card` to `--sidebar`, and `--ring` to `--sidebar-ring`. They
+ * are projections of values that already agree, so they can only ever change what a chrome axis
+ * has already changed.
+ *
+ * `--background: var(--sidebar)` IS THE ONE THAT MOVES, in all 36 — and it is a repair, not a
+ * side effect. The surface's ground IS `--sidebar`; an `outline` Button, a `Sidebar.Input` or the
+ * search field a consumer is told to pass into the bar all paint `--background` or `--card`, so
+ * before this they drew the PAGE's ground on a chrome surface — visible with no axis set at all,
+ * and white-on-white the moment one was.
+ *
  * `--sidebar-border` is deliberately NOT used for edges here. It is set flush with the panel in
  * dark on purpose, so a bar that drew its underline with it would have no edge at all in dark —
  * the one failure a sticky bar cannot afford.
  *
- * THE MAINTENANCE EDGE: a control added to this bar that reads a page token not on this list will
- * paint the page's value, not the chrome's. Add it here, or give the control a `--sidebar-*` class.
+ * WHAT IS DELIBERATELY ABSENT. `--primary` and `--secondary` and their inks: a brand CTA and a
+ * status colour must read the same on every surface, and under vibrant `--sidebar-primary` is
+ * plain white, so aliasing would silently repaint a consumer's call to action and every
+ * `text-primary` link. `--destructive` and the status family, for the same reason — a red that
+ * stops being red on one surface is a worse bug than a red that is hard to read on it.
+ * `--popover` and its ink, because every popover, menu, tooltip and dialog in this kit portals to
+ * `<body>`: a declaration here can never reach one, and the block that does is in
+ * `src/vibrant.css`, which has to restate literals because the chrome family is not on `:root`
+ * under vibrant.
+ *
+ * THE MAINTENANCE EDGE: a control added to either surface that reads a page token not on this
+ * list still paints the page's value. Add it here — to the list, so both surfaces get it at once —
+ * or give the control a `--sidebar-*` class. And when it is added here, check the portaled block
+ * at the end of `src/vibrant.css`: the two lists cover the same components on the same surfaces,
+ * and every defect this comment recounts began as one of them moving alone.
  */
-[data-slot="page-header-bar"] {
+[data-slot="page-header-bar"],
+[data-sidebar="sidebar"] {
 	--foreground: var(--sidebar-accent-foreground);
+	--card-foreground: var(--sidebar-accent-foreground);
 	--muted-foreground: var(--sidebar-foreground);
 	--muted: var(--sidebar-accent);
+	--accent: var(--sidebar-accent);
+	--accent-foreground: var(--sidebar-accent-foreground);
+	--background: var(--sidebar);
+	--card: var(--sidebar);
 	--border: var(--sidebar-outline);
 	--input: var(--sidebar-outline);
 	--ring: var(--sidebar-ring);
@@ -1214,6 +1255,24 @@
 [data-side="left"][data-state="collapsed"] [data-slot="sidebar-rail"],
 [data-side="right"][data-state="expanded"] [data-slot="sidebar-rail"] {
 	cursor: var(--cursor-arrow-right), e-resize;
+}
+
+/*
+ * The flush rail's outer edge, on the panel's own hairline rather than the page's.
+ *
+ * `variant="sidebar"` draws the rail's edge against the canvas with `border-e` on
+ * `sidebar-container` — which is OUTSIDE `[data-sidebar="sidebar"]`, so the chrome block above
+ * cannot reach it and the `@layer base` default hands it the PAGE's `--border`. On a light page
+ * with an inverted rail that is `#eef3fa` on `#182f4f`: a bright line down a navy panel, at
+ * 12.09:1 against the surface it is supposed to edge.
+ *
+ * `--sidebar-outline`, like the floating ring below and the mobile sheet's border above — the
+ * third element to draw this edge and the third to have needed telling. Under `vibrant` the nine
+ * tokens live on the panel rather than on `:root`, so this rule resolves to the page's value there
+ * and `src/vibrant.css` restates it on the container; under every other mode this is the answer.
+ */
+[data-slot="sidebar-container"] {
+	border-color: var(--sidebar-outline);
 }
 
 /*
