@@ -3,7 +3,20 @@
 	<head>
 		<meta charset="UTF-8" />
 		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<!--
+			NO PINCH OR DOUBLE-TAP ZOOM ON A TOUCH SCREEN — the reader sizes the text with a control,
+			not with a gesture, and a pinch scales the whole pinned shell into something the layout
+			never meant to be. This meta is HALF of that decision, and the smaller half: Android honours
+			the triple, but iOS Safari has ignored `user-scalable=no` for pinch since iOS 10, so the
+			`touch-action: pan-x pan-y` on the shell's root in app.css (shipped with `parallax-shell`) is
+			what actually reaches an iPhone or iPad — and a touch laptop, which this meta never governed.
+			`maximum-scale=1` stays for what only the meta can do: stop iOS zooming the page when a
+			field takes focus. Desktop keyboard and wheel zoom are untouched by either half.
+		-->
+		<meta
+			name="viewport"
+			content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+		/>
 		<!--
 			ADDED TO A HOME SCREEN, THIS IS A WEB APP — and the manifest is what keeps it one.
 

@@ -218,6 +218,20 @@ Move it there, keeping the name, or the mark layer fetches a 404 and paints noth
 **The first-paint script** goes in the `<head>` of `src/app.html`, before
 `%sveltekit.head%`. Exact copy in [theming.md](theming.md#the-first-paint-script).
 
+**The viewport meta** in the same `<head>` takes the no-zoom triple:
+
+```html
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+```
+
+It is the smaller half of a decision the shell's CSS already made: `parallax-shell` ships
+`touch-action: pan-x pan-y` on the shell's root, which is what actually stops pinch and
+double-tap zoom on an iPhone, an iPad and a touch laptop — iOS Safari has ignored
+`user-scalable=no` for pinch since iOS 10. The meta still does the one thing only it can:
+`maximum-scale=1` stops iOS zooming the page when a field takes focus. No registry item can
+write `index.html` or `app.html`, so this line is pasted by hand. Desktop keyboard and wheel
+zoom are untouched by either half; see [shell.md](shell.md#the-scroll-model) for the why.
+
 ## 6. Wire the shell
 
 In `src/routes/+layout.svelte`, keeping the stylesheet import the scaffold put there:

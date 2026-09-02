@@ -1530,9 +1530,25 @@
  * without one — a bare demo, a consumer's page under the same stylesheet — keeps the browser's
  * defaults, bounce and gestures both. Unlayered and in `:where()` like its neighbours, so a
  * consumer takes it back in plain CSS without `!important`.
+ *
+ * `touch-action: pan-x pan-y` — NO PINCH OR DOUBLE-TAP ZOOM ON A TOUCH SCREEN, for the same
+ * chrome. A pinch scales the whole pinned shell — rails, header bar and all — into something
+ * the layout never meant to be and the reader then pans around inside, and the double-tap that
+ * zooms a paragraph fires on the way to selecting a word. A dashboard sizes its text with a
+ * control, not with a gesture. This is the declaration that actually reaches an iPhone or iPad:
+ * Safari has ignored the viewport meta's `user-scalable=no` for pinch since iOS 10 and honours
+ * `touch-action` (13+), and so do Chrome and Edge on a touch laptop, which the meta never
+ * governed at all. The meta still carries `maximum-scale=1` for what only it can do — stop iOS
+ * zooming the page when a field takes focus — and index.html states why. `pan-x pan-y` rather
+ * than `manipulation`, which only drops the double-tap and keeps the pinch; both scroll axes
+ * stay, so a wide table or code block still pans inside its own box. Keyboard and wheel zoom on
+ * a desktop are untouched: not touch gestures, not `touch-action`'s to govern. Same scope as
+ * the line above, so a sign-in page outside the shell keeps its zoom unless the consumer
+ * restates the declaration on a bare `:root` — one line, and the consumer's own call.
  */
 :where(:root:has([data-slot="sidebar-wrapper"])) {
 	overscroll-behavior: none;
+	touch-action: pan-x pan-y;
 }
 
 /*
@@ -1578,6 +1594,19 @@
  * hold `visible` next to a scrolling value. Wide content that escapes its own scroller therefore
  * scrolls the canvas sideways now, never the document, and `min-width: 0` above is what keeps the
  * canvas from simply widening to swallow it: the two halves of this block are one story.
+ *
+ * `overflow-wrap: break-word` — A WORD THE LINE CANNOT HOLD BREAKS INSIDE THE WORD rather than
+ * being the thing that escapes. A table or a code block has a scroller of its own to overflow
+ * into; a 65-character identifier in a paragraph, or a bare URL, has none — no soft-wrap
+ * opportunity anywhere in it — so at a phone's width it ran past the canvas and the `auto` above
+ * answered by panning the WHOLE page sideways, paragraphs and the sticky header with them, since
+ * `sticky top-0` pins one axis only (measured on a consumer: `scrollWidth` 436 in a 390px canvas,
+ * one `<code>` at 389px). The property inherits, so stated once here it reaches every paragraph
+ * in the page. `break-word`, NOT `anywhere`: `anywhere` also feeds the break into min-content
+ * sizing, so an auto-layout table would shrink its cells and snap a token in half instead of
+ * scrolling, while `break-word` leaves min-content alone and a cell keeps the width its content
+ * needs. `pre` is unaffected either way — `white-space: pre` offers no wrap opportunity — and
+ * so is any word that fits: the break happens only where the alternative was overflow.
  *
  * `scrollbar-gutter: stable` — the bar's WIDTH IS RESERVED WHETHER OR NOT THERE IS A BAR, and
  * this is a fix for movement rather than for looks. With the default `auto`, a classic scrollbar
@@ -1642,6 +1671,7 @@
 	min-width: 0;
 	min-height: 0;
 	overflow-y: auto;
+	overflow-wrap: break-word;
 	overscroll-behavior-y: contain;
 	scrollbar-gutter: stable;
 	scroll-padding-top: calc(var(--page-header-height) + 0.5rem);

@@ -77,6 +77,7 @@ the `<main>`, which `AppShell` gives `id="main-content"` — is the one scroll c
 ```css
 :where(:root:has([data-slot="sidebar-wrapper"])) {
 	overscroll-behavior: none;
+	touch-action: pan-x pan-y;
 }
 
 :where([data-slot="sidebar-wrapper"]) {
@@ -89,6 +90,7 @@ the `<main>`, which `AppShell` gives `id="main-content"` — is the one scroll c
 	min-width: 0;
 	min-height: 0;
 	overflow-y: auto;
+	overflow-wrap: break-word;
 	overscroll-behavior-y: contain;
 	scrollbar-gutter: stable;
 	scroll-padding-top: calc(var(--page-header-height) + 0.5rem);
@@ -137,6 +139,31 @@ keeps the canvas from widening. The rail's own rule,
 `:where([data-slot="sidebar-container"]) { height: auto }`, stays outside this set: it sizes
 the fixed rail by `inset-y-0` instead of `svh`, and still matters to a consumer who unlocks
 the document.
+
+**A word the line cannot hold breaks inside the word** — `overflow-wrap: break-word` on the
+canvas, inherited by every paragraph in the page. A table or a code block has a scroller of
+its own to overflow into; a long identifier in a `<p>`, or a bare URL, has none, so at a
+phone's width it ran past the canvas and the `overflow-x: auto` above answered by panning
+the whole page sideways, paragraphs and the sticky header with them (`sticky top-0` pins one
+axis only). Measured on a consumer at 390px: `scrollWidth` 436, one inline `<code>` at 389px.
+`break-word` rather than `anywhere`, because `anywhere` also feeds the break into min-content
+sizing and an auto-layout table would then snap a token in half instead of scrolling; `pre`
+is unaffected either way. The break happens only where the alternative was overflow.
+
+**No pinch or double-tap zoom on a touch screen** — `touch-action: pan-x pan-y` on the same
+scoped root as the bounce rule. A pinch scales the whole pinned shell, rails and header bar
+included, into something the layout never meant to be; the double-tap that zooms a paragraph
+fires on the way to selecting a word; a dashboard sizes its text with a control. This is the
+declaration that actually reaches an iPhone or iPad: Safari has ignored the viewport meta's
+`user-scalable=no` for pinch since iOS 10 and honours `touch-action` (13+), and so do Chrome
+and Edge on a touch laptop, which the meta never governed at all. `pan-x pan-y` rather than
+`manipulation`, which only drops the double-tap and keeps the pinch; both scroll axes stay, so
+a wide table still pans inside its own box. Keyboard and wheel zoom on a desktop are untouched.
+The meta is the other, smaller half — `maximum-scale=1` is what stops iOS zooming the page
+when a field takes focus — and [bootstrap.md](bootstrap.md#5-the-manual-post-install-steps)
+has it, since no registry item can write `index.html`. Scoped like the bounce rule: a
+sign-in page outside the shell keeps its zoom unless you restate the declaration on a bare
+`:root`, which is one line and your call.
 
 ### The canvas's scrollbar
 

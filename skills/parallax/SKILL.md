@@ -92,8 +92,17 @@ Before adding or changing anything:
 - **The canvas cannot be widened from inside** — `parallax-shell` pins
   `min-width: 0` on `Sidebar.Inset`, so content too wide for the page scrolls in its own
   box instead of pushing a horizontal scrollbar onto the document. Wide content therefore
-  needs a scroll container of its own (`Table.Root` already has one). To opt out for one
-  canvas: `min-w-max!`.
+  needs a scroll container of its own (`Table.Root` already has one). A single word too long
+  for its line has no box to scroll in, so the canvas also carries `overflow-wrap: break-word`
+  — a long identifier or URL in a paragraph breaks inside the word instead of panning the
+  whole page (and the sticky header) sideways on a phone. To opt out for one canvas:
+  `min-w-max!`.
+- **Not zoomable on a touch screen.** `parallax-shell` puts `touch-action: pan-x pan-y` on
+  the shell's root — no pinch, no double-tap zoom, on iOS as on a touch laptop, where the
+  viewport meta alone never held. The meta still carries the no-zoom triple for the focus
+  zoom only it can stop; a from-scratch project pastes it by hand
+  ([bootstrap.md](references/bootstrap.md#5-the-manual-post-install-steps)). Desktop
+  keyboard and wheel zoom are untouched. Text size is a control's job: give readers one.
 - **The shell is the viewport; the canvas scrolls.** `parallax-shell` pins the provider's
   wrapper to `100dvh` and clips it, and makes `Sidebar.Inset` — the `<main>` — the one scroll
   container. The document never scrolls, so iOS Safari never collapses its toolbars

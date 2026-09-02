@@ -12,6 +12,20 @@ ships today is listed here.
 
 ### Added
 
+- **The shell is not zoomable on a touch screen, and a long word breaks instead of panning the
+  page.** Two declarations on rules `parallax-shell` already ships. `touch-action: pan-x pan-y`
+  on the shell's root ends pinch and double-tap zoom on iPhone, iPad and touch laptops alike —
+  the viewport meta's `user-scalable=no` has not stopped a pinch on iOS since iOS 10, and never
+  governed a laptop at all; the meta keeps `maximum-scale=1` for the focus zoom only it can
+  stop, and `index.html` plus the skill's `bootstrap.md` state the pairing. And
+  `overflow-wrap: break-word` on the canvas, inherited by every paragraph, so an identifier or
+  URL longer than its line breaks inside the word: measured on a consumer at 390px, one inline
+  `<code>` of 389px put the canvas's `scrollWidth` at 436 and, `overflow-x` being `auto` beside
+  `overflow-y`, the whole page — sticky header included — panned sideways. `break-word` rather
+  than `anywhere`, so a table's min-content is left alone and its cells never snap a token in
+  half. Both scoped to a document holding the shell and `:where()`-zero, so a sign-in page keeps
+  its zoom and either is taken back in plain CSS. Written up in `shell.md`, `SKILL.md`,
+  `bootstrap.md` and `docs/REGISTRY.md`.
 - **A web app manifest, so the gallery stays an app window on an iOS home screen.** iOS opens a
   home-screen site with no browser chrome and puts the URL bar and toolbar back the moment a
   navigation leaves the app's scope — and with no manifest that scope is the start URL's own
