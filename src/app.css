@@ -1209,6 +1209,29 @@
 }
 
 /*
+ * The mobile sheet's edge, on the same token as the ring and the identity buttons.
+ *
+ * Below the breakpoint the sidebar renders through `Sheet.Content`, and it is the sheet itself
+ * that carries the panel: `data-sidebar="sidebar"` for the tokens, and the component's own 1px
+ * `border-r` (`border-l` on the right side) for the edge. That border took its colour from the
+ * `@layer base` default — the PAGE's `--border` — which is the same mistake the outline token
+ * was minted to end: a rule keyed on the page describing a line drawn on the panel. Invisible
+ * while the panel follows the page; a near-white line down the whole edge of a dark panel under a
+ * light one. Measured at 390px under `inverted`: `#eef3fa` on `#182f4f`.
+ *
+ * `--sidebar-outline` and not `--sidebar-border`, for the reason the ring above gives: the
+ * sheet is the floating rail's mobile counterpart (the sheet rules near the end of this file inset
+ * it 8px for exactly that), and its edge should be the ring's — one step off the panel in either
+ * mode — where `--sidebar-border` is flush with a dark panel on purpose and would draw nothing.
+ *
+ * `vibrant` gets its lit hairline through this same token, restated on the very element by its
+ * paint block; `vibrant.css` adds the one thing a token cannot, and says why.
+ */
+[data-slot="sidebar"][data-mobile="true"] {
+	border-color: var(--sidebar-outline);
+}
+
+/*
  * Sidebar gutter. The design indents nav text 24px from the sidebar edge;
  * shadcn lands at 16px — 8px on `SidebarGroup` plus
  * 8px on the button. Raising the group, header and footer to 1rem closes the gap without
@@ -2661,10 +2684,12 @@ thead,
  * matches the app shell instead: `variant="floating"` detaches the sidebar by 8px with
  * `rounded-lg`, and a sheet sliding out beside it looked like a different kind of object.
  *
- * ONLY THE SHAPE MOVES. The surface stays as documented — the panel ground, no shadow
- * and a transparent border.
- * The panel reads against the backdrop, which is the navy at 50% above,
- * so no outline is needed to separate it and none is invented here.
+ * ONLY THE SHAPE MOVES. The plain sheet's surface stays as the Sheet page documents it — the
+ * panel ground, no shadow and a transparent border, all three passed at the call site. The panel
+ * reads against the backdrop, which is the navy at 50% above, so no outline is needed to separate
+ * it and none is invented here. THE MOBILE SIDEBAR IS THE ONE EXCEPTION, and not by this block:
+ * it is the floating rail's counterpart, so its component border takes `--sidebar-outline` from
+ * the rule beside the floating ring — see that rule for the measurement that forced it.
  *
  * `height`/`width` have to be released: the component pins `h-full` on the side panels and
  * `inset-x-0` on the top and bottom ones, either of which would push the panel back past the

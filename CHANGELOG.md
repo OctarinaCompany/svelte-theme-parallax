@@ -193,6 +193,16 @@ ships today is listed here.
 
 ### Fixed
 
+- **The mobile sidebar no longer draws a pale line down its inner edge under a dark rail.**
+  Below the breakpoint the sidebar renders through `Sheet.Content`, whose own 1px `border-r`
+  took the PAGE's `--border` from the `@layer base` default — invisible while the panel follows
+  the page, and a near-white hairline the full height of a dark panel under a light one, in
+  `inverted` and `vibrant` alike (measured at 390px: `#eef3fa` on `#182f4f`). The sheet is the
+  floating rail's mobile counterpart, so its edge now reads `--sidebar-outline`, the token the
+  floating ring already draws with: one step off the panel in either mode. Under `vibrant` the
+  same token is the lit hairline, and `vibrant.css` also runs the field under the border — the
+  component paints `bg-clip-padding`, so on the token alone the white alpha would land on the
+  scrim behind the panel rather than on the panel, where the desktop ring draws it.
 - The backdrop's three kill switches reached the wrapper's layers and the header's band but not
   the pair carrying the mark and the grain — `[data-slot="sidebar-inset"]::before` and
   `[data-slot="page-header"]::after`. Under `prefers-contrast: more`, `forced-colors: active` and

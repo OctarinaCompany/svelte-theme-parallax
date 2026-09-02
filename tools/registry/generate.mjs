@@ -372,7 +372,7 @@ const CONTROLS = {
 /**
  * The selectors `parallax-shell` lifts out of app.css, in source order — which matters once:
  * the grouped active-marker block ties on specificity with the two placement blocks after it,
- * so their order IS the cascade. 14 sidebar restyle blocks, the 6 layout rules that make the
+ * so their order IS the cascade. 15 sidebar restyle blocks, the 6 layout rules that make the
  * shell the viewport (the rail's height, the wrapper pin, the document's bounce cut at the root,
  * the canvas's scroll role, the sticky bar's exemption from that canvas's scroll reserve, and the
  * print escape), 13 sheet/mobile-drawer blocks (including both backdrop keyframes), and the
@@ -522,6 +522,8 @@ const SHELL_CSS_SELECTORS = [
 	'[data-side="left"][data-state="expanded"] [data-slot="sidebar-rail"], [data-side="right"][data-state="collapsed"] [data-slot="sidebar-rail"]',
 	'[data-side="left"][data-state="collapsed"] [data-slot="sidebar-rail"], [data-side="right"][data-state="expanded"] [data-slot="sidebar-rail"]',
 	'[data-slot="sidebar-inner"]',
+	// The mobile sheet's edge, on the ring's token.
+	'[data-slot="sidebar"][data-mobile="true"]',
 	'[data-slot="sidebar-group"], [data-slot="sidebar-header"], [data-slot="sidebar-footer"]',
 	'[data-collapsible="icon"] [data-slot="sidebar-group"], [data-collapsible="icon"] [data-slot="sidebar-header"], [data-collapsible="icon"] [data-slot="sidebar-footer"]',
 	// The fixed rail's height, taken off `svh` so a collapsing mobile toolbar leaves no strip.

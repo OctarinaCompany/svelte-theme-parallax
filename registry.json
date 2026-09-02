@@ -591,6 +591,9 @@
 				"[data-slot=\"sidebar-inner\"]": {
 					"--tw-ring-color": "var(--sidebar-outline)"
 				},
+				"[data-slot=\"sidebar\"][data-mobile=\"true\"]": {
+					"border-color": "var(--sidebar-outline)"
+				},
 				"[data-slot=\"sidebar-group\"], [data-slot=\"sidebar-header\"], [data-slot=\"sidebar-footer\"]": {
 					"padding-inline": "1rem"
 				},

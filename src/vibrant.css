@@ -407,6 +407,29 @@
 	border-color: var(--vibrant-edge);
 }
 
+/*
+ * THE MOBILE SHEET, one more edge on the same hairline. Below the breakpoint the rail renders
+ * through `Sheet.Content`, and the sheet itself carries both the paint (`data-sidebar="sidebar"`)
+ * and the component's 1px `border-r` — physical, `border-l` when it opens from the right, unlike
+ * the container's logical `border-e` above. The paint block already restates `--sidebar-outline`
+ * as the lit hairline on that element and `app.css` points the border at the token, so the colour
+ * would be right with no line here; it is stated anyway, because this stylesheet is what the
+ * appearance item ships and it must not lean on the shell's block being installed beside it.
+ *
+ * `background-clip: border-box` IS THE PART ONLY THIS FILE CAN SAY. The sheet paints
+ * `bg-clip-padding`, so the field stops at the padding edge and the border column shows whatever is
+ * BEHIND the panel — the scrim — with the white alpha over that. It is the rail's ring-outside
+ * problem again (see the paint block): the same 20% white that is a lit edge on the panel is a pale
+ * line on the scrim. Running the field under the border puts the hairline where the desktop ring
+ * draws its own — on the panel — so the two read as one edge at every breakpoint. In the other
+ * two modes the token is opaque and the clip changes nothing, which is why this stays here rather
+ * than in `app.css`.
+ */
+:root[data-sidebar-mode="vibrant"] [data-sidebar="sidebar"][data-mobile="true"] {
+	border-color: var(--vibrant-edge);
+	background-clip: border-box;
+}
+
 /* Two-tone focus, on the shared selector so a control in the bar gets the same pair as one in the
    rail: the component's white ring, then a dark halo outside it, so one of the two always reads
    whichever point of the field the control happens to sit on. */
