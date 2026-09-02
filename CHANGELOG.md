@@ -203,6 +203,13 @@ ships today is listed here.
   same token is the lit hairline, and `vibrant.css` also runs the field under the border — the
   component paints `bg-clip-padding`, so on the token alone the white alpha would land on the
   scrim behind the panel rather than on the panel, where the desktop ring draws it.
+- **A tap on a destination in the mobile sidebar now dismisses the sheet.** shadcn's sidebar
+  leaves closing the mobile Sheet to the caller, and nothing here did: the link navigated, the
+  page changed underneath, and the sheet stayed up until the reader found the scrim. `NavMain`'s
+  destination links and sub-items — the two links that render on mobile — now close it on the
+  way out, for the same clicks a client-side router would act on: a modified or non-primary
+  click opens a new tab and leaves the sheet where it is. Category rows are toggles and are
+  left alone; on desktop the rail is not an overlay and nothing moves.
 - The backdrop's three kill switches reached the wrapper's layers and the header's band but not
   the pair carrying the mark and the grain — `[data-slot="sidebar-inset"]::before` and
   `[data-slot="page-header"]::after`. Under `prefers-contrast: more`, `forced-colors: active` and

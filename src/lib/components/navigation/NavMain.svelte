@@ -38,6 +38,33 @@
 	const sidebar = useSidebar();
 
 	/**
+	 * A TAP ON A DESTINATION DISMISSES THE SHEET. Below the breakpoint the rail is a Sheet over
+	 * the page, and shadcn's sidebar leaves closing it to the caller: the link navigated, the page
+	 * changed underneath, and the sheet stayed up until the reader found the scrim. So every
+	 * destination link closes it on the way out — the destinations above the ladder and the
+	 * sub-items inside it, the only two links that render on mobile (the flyout never does). The
+	 * category rows are toggles, not destinations, and are left alone.
+	 *
+	 * Only on mobile: on desktop the rail is not an overlay and nothing should move. And only for
+	 * the clicks a client-side router would act on — a modified or non-primary click opens a new
+	 * tab and leaves this page where it is, so the sheet stays with it. `defaultPrevented` lets a
+	 * handler upstream cancel the navigation and keep the sheet in the same breath.
+	 *
+	 * HANDED TO THE COMPONENT, NOT WRITTEN ON THE ANCHOR. `Sidebar.MenuButton` runs its props
+	 * through `mergeProps`, which composes an `on*` handler with the ones it already passes down —
+	 * the tooltip trigger's close-on-click among them. An `onclick` written on the `<a>` after
+	 * `{...props}` would REPLACE that key instead: Svelte folds a spread and the attributes after
+	 * it into one object, and the later key wins silently. The sub-button hands down no handler
+	 * of its own today, and takes the same route so the two stay symmetrical.
+	 */
+	function dismissOnMobile(event: MouseEvent): void {
+		if (!sidebar.isMobile) return;
+		if (event.defaultPrevented || event.button !== 0) return;
+		if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+		sidebar.setOpenMobile(false);
+	}
+
+	/**
 	 * The two shapes in `items`, separated so each can have its own heading.
 	 *
 	 * Childless entries are destinations and sit above the ladder; entries with children are its
@@ -72,7 +99,7 @@
 	 * has nothing left to reveal, and its trigger becomes a button that answers nothing.
 	 * The sub-menu opens as a flyout beside the rail instead.
 	 *
-	 * Not on mobile: there the sidebar is a full-width sheet, so the collapsible works as usual.
+	 * Not on mobile: there the sidebar is a sheet, so the collapsible works as usual.
 	 */
 	const useFlyout = $derived(sidebar.state === "collapsed" && !sidebar.isMobile);
 
@@ -136,9 +163,14 @@
 	<Sidebar.Group>
 		<Sidebar.Menu>
 			{#each destinations as item (item.title)}
-				<!-- No children: a destination, so a plain link. The only case that reads `item.url`. -->
+				<!-- No children: a destination, so a plain link. The only case that reads `item.url`.
+				     On mobile the tap also dismisses the sheet — see `dismissOnMobile`. -->
 				<Sidebar.MenuItem>
-					<Sidebar.MenuButton tooltipContent={item.title} isActive={isCurrent(item.url)}>
+					<Sidebar.MenuButton
+						tooltipContent={item.title}
+						isActive={isCurrent(item.url)}
+						onclick={dismissOnMobile}
+					>
 						{#snippet child({ props })}
 							<a href={item.url} {...props}>
 								{#if item.icon}
@@ -266,8 +298,12 @@
 									<Sidebar.MenuSub>
 										{#each item.items ?? [] as subItem (subItem.title)}
 											<Sidebar.MenuSubItem>
-												<Sidebar.MenuSubButton isActive={isCurrent(subItem.url)}>
-													<!-- Same pattern, so the sub-item is a real link and stays keyboard-operable. -->
+												<Sidebar.MenuSubButton
+													isActive={isCurrent(subItem.url)}
+													onclick={dismissOnMobile}
+												>
+													<!-- Same pattern, so the sub-item is a real link and stays keyboard-operable —
+													     and the same tap dismisses the sheet on mobile. -->
 													{#snippet child({ props })}
 														<a href={subItem.url} {...props}>
 															<span>{subItem.title}</span>
