@@ -340,6 +340,18 @@ puts the whole group back in the bar.
 
 ## Traps
 
+- **A shell app added to an iOS home screen shows Safari's chrome again on the first
+  navigation, unless a manifest says otherwise.** iOS opens a home-screen site as an app
+  window, then puts the URL bar and toolbar back the moment a navigation leaves the app's
+  SCOPE — and with no web app manifest the scope defaults to the start URL with its last
+  segment removed, i.e. the DIRECTORY the reader happened to be on when they added it. A
+  shell whose routes are paths leaves that directory on the second click. Ship a
+  `public/manifest.webmanifest` with `"scope": "./"` and `"start_url": "./"` (both resolve
+  against the manifest's own URL, so they follow the site base without being written twice),
+  link it from `index.html`, and add `apple-mobile-web-app-capable` plus a PNG
+  `apple-touch-icon` for iOS below 16.4, which reads no manifest and falls back to a screenshot
+  of the page for the icon. iOS reads the manifest AT INSTALL TIME, so an app already on a home
+  screen has to be removed and re-added before any of it applies.
 - **`--add tailwindcss` without `=plugins:none`** hangs on an interactive plugin picker and
   scaffolds nothing. Exit code is 0, so it looks like it worked.
 - **`--yes` does not cover the stylesheet confirmation.** The one prompt that matters has

@@ -1,0 +1,17 @@
+{
+	"name": "Parallax — a dashboard theme kit for shadcn-svelte",
+	"short_name": "Parallax",
+	"description": "A dashboard theme kit for shadcn-svelte: 18 palettes, five appearance axes and 128 catalog pages.",
+	"id": "./",
+	"start_url": "./",
+	"scope": "./",
+	"display": "standalone",
+	"orientation": "any",
+	"background_color": "#f4f6f8",
+	"theme_color": "#f4f6f8",
+	"icons": [
+		{ "src": "./icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+		{ "src": "./icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+		{ "src": "./favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+	]
+}

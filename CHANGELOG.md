@@ -12,6 +12,16 @@ ships today is listed here.
 
 ### Added
 
+- **A web app manifest, so the gallery stays an app window on an iOS home screen.** iOS opens a
+  home-screen site with no browser chrome and puts the URL bar and toolbar back the moment a
+  navigation leaves the app's scope — and with no manifest that scope is the start URL's own
+  directory, so the second click on a site whose routes are paths brought Safari's chrome back.
+  `public/manifest.webmanifest` states `"scope": "./"` and `"start_url": "./"`, both resolved
+  against the manifest's URL so they follow the `/svelte-theme-parallax/` base without being
+  written twice, and `index.html` links it beside the Apple tags iOS below 16.4 still needs —
+  including a PNG `apple-touch-icon`, without which a home screen shows a screenshot of the page.
+  The trap is written up in the skill's `bootstrap.md`, since it belongs to any shell whose routes
+  are paths rather than to this gallery.
 - **A fifth appearance axis, the page's own scrollbar** — one switch, on by default, and the last
   surface in the kit still speaking the platform's dialect. On, the canvas takes
   `scrollbar-width: thin` and a `scrollbar-color` pair from the palette, the thumb being the same

@@ -4,6 +4,29 @@
 		<meta charset="UTF-8" />
 		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<!--
+			ADDED TO A HOME SCREEN, THIS IS A WEB APP — and the manifest is what keeps it one.
+
+			iOS opens a home-screen site in an app window with no browser chrome, and shows the URL bar
+			and a toolbar again the moment a navigation leaves the app's SCOPE. With no manifest the scope
+			defaults to the start URL with its last segment removed — the DIRECTORY the reader happened to
+			be on when they added it — so any route in another folder brought Safari's chrome back, on a
+			site whose routes are paths. `"scope": "./"` in the manifest resolves against the manifest's
+			own URL, which is the site base under Vite's rewrite in either environment, so every route is
+			inside it and the window stays an app window.
+
+			THE APPLE TAGS ARE NOT REDUNDANT with it: iOS only reads a manifest from 16.4, and the touch
+			icon has to be a PNG — a home screen given only an SVG falls back to a screenshot of the page.
+
+			iOS READS THE MANIFEST AT INSTALL TIME, so an app already on a home screen has to be removed
+			and re-added before any of this reaches it.
+		-->
+		<link rel="manifest" href="/manifest.webmanifest" />
+		<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+		<meta name="apple-mobile-web-app-capable" content="yes" />
+		<meta name="mobile-web-app-capable" content="yes" />
+		<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+		<meta name="apple-mobile-web-app-title" content="Parallax" />
 		<title>Parallax — a dashboard theme kit for shadcn-svelte</title>
 		<meta
 			name="description"
