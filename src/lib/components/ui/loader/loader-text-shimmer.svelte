@@ -48,7 +48,7 @@
 	class={cn("relative w-fit text-lg font-medium", className)}
 >
 	<span class="text-muted-foreground" aria-hidden="true">{label}</span>
-	<span class="shimmer absolute inset-0 text-foreground" aria-hidden="true">{label}</span>
+	<span class="bright-copy absolute inset-0 text-foreground" aria-hidden="true">{label}</span>
 </div>
 
 <style>
@@ -66,7 +66,12 @@
 		}
 	}
 
-	.shimmer {
+	/* NOT `.shimmer`. shadcn-svelte 1.6 ships a global `@utility shimmer` through the
+	   `shadcn-svelte/tailwind.css` import in `src/app.css`, and Tailwind generates it for any
+	   `shimmer` token it scans in markup. This scoped rule would win on `animation` and `mask-*`
+	   but not on the properties it never sets, so the utility's `background-clip: text` and
+	   transparent text fill would leak onto the bright copy. */
+	.bright-copy {
 		/* BOTH SPELLINGS OF EVERY MASK PROPERTY, and the prefixed one is not optional. Unprefixed
 		   `mask-*` shipped in Chrome 120; Tailwind v4's baseline reaches back to Chrome 111, so on
 		   111-119 an unprefixed-only mask is ignored outright — the bright copy then sits fully
