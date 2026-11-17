@@ -79,9 +79,9 @@ export const buttonContextualSolid = {
  *                       becomes `light-dark` and the type becomes `white`, so it stays
  *                       readable
  *   .btn-outline-dark   the classic theme overrides NOTHING, so it keeps #12263F on both the border
- *                       and the type — against a #152E4D card that is very nearly
- *                       invisible. Reproduced rather than corrected: it is the theme's
- *                       output, and inventing a colour here would hide a real gap
+ *                       and the type — here `--background`, #001227 on the #011A36 card, 1.08:1:
+ *                       very nearly invisible. Reproduced rather than corrected: it is the
+ *                       theme's output, and inventing a colour here would hide a real gap
  */
 export const buttonContextualOutline = {
 	Primary:

@@ -58,9 +58,11 @@
 	 *   bg-secondary        `form-check-input-bg` is `gray-300` (#E3EBF6) in light and
 	 *                       `form-check-input-bg-dark` = `gray-600-dark` (#244166) in dark: an
 	 *                       unchecked the classic theme radio is a FILLED grey disc, not an outlined ring.
-	 *                       `--secondary` holds #EDF2F9 / #1E3A5C — one grey step off in both
-	 *                       modes, the nearest token, and the same substitution the Switch and
-	 *                       Progress ports make for this exact variable.
+	 *                       `--secondary` holds #EEF3FA / #082A4A — one grey step off in light
+	 *                       and one rung under `gray-600-dark` in dark (OKLCH L 0.28 here,
+	 *                       against the reference's 0.37); the nearest token either way, and the
+	 *                       same substitution the Switch and Progress ports make for this exact
+	 *                       variable.
 	 *   dark:bg-secondary   present only to unseat the component's own `dark:bg-input/30`, which
 	 *                       would otherwise win in dark mode on variant order alone. It is not a
 	 *                       second colour — it repeats the line above.

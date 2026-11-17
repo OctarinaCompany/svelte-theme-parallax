@@ -171,13 +171,13 @@
 	 *
 	 * THE DARK HALF IS A REAL SPLIT, not a preference. The classic theme's dark override changes the
 	 * ground to `gray-700-dark` (#1E3A5C) while keeping the primary border and type. In dark
-	 * mode `--card` is `gray-800-dark` (#152E4D) — one step lighter than asked — and the value
-	 * the classic theme wants is the one `--secondary` carries there, where app.css records it as
-	 * "gray-700-dark, matching input-bg-dark". No single token spans both modes, since
-	 * `--secondary` in light is #EDF2F9 rather than white, so this is one of the cases the house
-	 * rule allows a `dark:` colour override for. The Buttons page leaves the same demo at
-	 * `bg-card` and is therefore one grey step off in dark mode; the value below is the exact
-	 * one.
+	 * mode `--card` is `gray-800-dark` (#011A36 on the deeper ladder) — one step DARKER than asked,
+	 * 1.20:1 off it — and the value the classic theme wants is the one `--secondary` carries there
+	 * (#082A4A), where app.css records it as "gray-700-dark, matching input-bg-dark". No single
+	 * token spans both modes, since `--secondary` in light is #EEF3FA rather than white, so this is
+	 * one of the cases the house rule allows a `dark:` colour override for. The Buttons page leaves
+	 * the same demo at `bg-card` and is therefore one grey step off in dark mode; the value below is
+	 * the exact one.
 	 *
 	 * `box-shadow: none` in the same rule is already covered by {@link white}.
 	 */

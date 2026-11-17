@@ -55,11 +55,11 @@
 	 *
 	 *   light   `popover-border-color` is `--bs-border-color-translucent` = rgba(18,38,63,.175),
 	 *           i.e. `--foreground` at 17.5% — noticeably darker than a hairline
-	 *   dark    the reference stylesheet's dark block pins it to `black` = #12263F, which `--background`
-	 *           holds exactly in that mode
+	 *   dark    the reference stylesheet's dark block pins it to `black` = #12263F, the rung
+	 *           `--background` holds in that mode (#001227 on the deeper ladder)
 	 *
-	 * `ring-border` was wrong in both: `--border` is #EDF2F9 in light, far paler than the
-	 * translucent navy, and #1E3A5C in dark against the #12263F asked for. shadcn's own default
+	 * `ring-border` was wrong in both: `--border` is #EEF3FA in light, far paler than the
+	 * translucent navy, and #082A4A in dark against the `black` asked for. shadcn's own default
 	 * `ring-foreground/10` was actually the closer of the two — the theme moved away from it.
 	 */
 	const content =

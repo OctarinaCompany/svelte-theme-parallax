@@ -80,8 +80,8 @@
 	 *   bg-background dark:bg-popover
 	 *     `--bs-offcanvas-bg: var(--bs-body-bg)` = `gray-100` (#F9FBFD) in light, and
 	 *     the reference stylesheet's dark block swaps it to `gray-800-dark` (#152E4D). No single token
-	 *     holds both: `--background` is #F9FBFD / #12263F and `--popover` is #FFFFFF / #152E4D,
-	 *     so each mode takes the token that is exact for it. This is the same split the Input
+	 *     holds both: `--background` is #F4F6F8 / #001227 and `--popover` is #FBFBFB / #011A36,
+	 *     so each mode takes the token that holds its rung. This is the same split the Input
 	 *     page makes for `input-bg`, and one of the few legitimate uses of `dark:` here — the
 	 *     pair is not a colour override, it is two different classic-theme variables.
 	 *
@@ -132,7 +132,8 @@
 	 * `border-bottom: var(--bs-border-width) solid var(--bs-border-color)`. Neither the classic framework nor
 	 * shadcn draws it. The colour is one grey step off in light — `--bs-border-color` is
 	 * `gray-300` (#E3EBF6) where `--border` holds `gray-200` (#EDF2F9) — and exact in dark
-	 * (both `gray-700-dark`). The same approximation the Accordion page documents; #E3EBF6 has
+	 * (both the `gray-700-dark` rung, #082A4A on the deeper ladder). The same approximation the
+	 * Accordion page documents; #E3EBF6 has
 	 * no token of its own here.
 	 *
 	 * The header stays a COLUMN. The classic is a `justify-content: space-between` row holding

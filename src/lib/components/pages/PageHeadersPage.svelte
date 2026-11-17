@@ -30,10 +30,11 @@
 	 *
 	 * THE DARK BAND IS NOT A MISTAKE. The reference stylesheet's dark block sets `--bs-header-bg` to
 	 * `black` and `--bs-header-color` to `white`, so in dark mode every header paints itself
-	 * #12263F — the page background — and inside a card, which is #152E4D, that reads as a
-	 * darker band. The classic theme relies on exactly this for the "Chart" variant below, which forces
-	 * `data-bs-theme="dark"` on a single header to get the band while the rest of the page
-	 * stays light. Reproducing it here means the Chart variant costs nothing extra.
+	 * the page background — #001227 here — and inside a card, which is #011A36, that reads as a
+	 * darker band (1.08:1). The classic theme relies on exactly this for the "Chart" variant
+	 * below, which forces `data-bs-theme="dark"` on a single header to get the band while the
+	 * rest of the page stays light. Reproducing it here means the Chart variant costs nothing
+	 * extra.
 	 */
 	const header = "mb-8 dark:bg-background dark:text-foreground";
 

@@ -15,10 +15,13 @@
 	 * dark or 16/255 in light over a whole run: the tile read as a static dot. `/40`, with the
 	 * keyframe fix below, restores the ring — the same probe now sees a swing of 42/255 dark and
 	 * 51/255 light, over 8000 of the box's pixels moving by at least 20/255 where none did before. It
-	 * is still well under the centre dot's 227/255, so the rings do not swamp the mark they radiate
-	 * from — the two changes are separable and both were needed: with the new keyframes but the ink
-	 * left at `/20`, the swing measured 23/255 in dark and no pixel moved by 32/255. The dot itself
-	 * is `bg-zinc-800 dark:bg-white` and becomes `bg-foreground`.
+	 * is still well under the centre dot's 227/255 in dark, so the rings do not swamp the mark they
+	 * radiate from — the two changes are separable and both were needed: with the new keyframes but
+	 * the ink left at `/20`, the swing measured 23/255 in dark and no pixel moved by 32/255. Every
+	 * one of those figures is the previous ladder's. The deeper card widens the dark ring figures by
+	 * about a quarter, since `--muted-foreground` now stands 109/255 off it against 87, and the dot's
+	 * by about a tenth, to 250/255 off the card (251/255 in light, against 236 before the ink
+	 * deepened). The dot itself is `bg-zinc-800 dark:bg-white` and becomes `bg-foreground`.
 	 *
 	 * SCALE AND OPACITY RUN AS TWO ANIMATIONS ON TWO CURVES, which is the other half of the same
 	 * defect. Pairing `scale: 0 → 1` with `opacity: 1 → 0` on one shared curve means

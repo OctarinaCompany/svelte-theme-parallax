@@ -68,7 +68,8 @@
 	 *               in light and the token that plays the role in dark.
 	 *   ring        `popover-border-color` is `--bs-border-color-translucent` =
 	 *               rgba(18,38,63,.175) in light, and the reference stylesheet's dark block pins it to
-	 *               `black` = #12263F, which `--background` holds exactly there. shadcn's own
+	 *               `black` = #12263F, the rung `--background` holds there (#001227 on the
+	 *               deeper ladder). shadcn's own
 	 *               `ring-foreground/10` is close in light and wrong in dark.
 	 *
 	 * `rounded-lg` and `bg-popover` are left alone: `popover-border-radius` is

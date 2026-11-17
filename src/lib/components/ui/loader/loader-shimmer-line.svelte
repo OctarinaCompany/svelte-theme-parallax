@@ -9,9 +9,10 @@
 	 * THE TRACK IS `bg-muted-foreground/20`, AND `ui/skeleton`'s `bg-muted` WAS TRIED FIRST AND
 	 * MEASURED ALL BUT INVISIBLE. `bg-muted` is the tempting choice, on the argument that this line
 	 * is a content-shaped placeholder rather than a gauge track. On the gallery's `bg-card` tile that
-	 * override erases the track: `--muted` is seven levels from `--card` in dark, and measured in
-	 * Chrome over 16 frames the share of the loader's box reading at least 12/255 from its ground was
-	 * 0.030 in dark against 0.170 in light — the track vanished and only the bright segment survived,
+	 * override erases the track: `--muted` is five levels from `--card` in dark (seven on the
+	 * previous ladder, where this was measured), and measured in Chrome over 16 frames the share of
+	 * the loader's box reading at least 12/255 from its ground was 0.030 in dark against 0.170 in
+	 * light — the track vanished and only the bright segment survived,
 	 * so the same component showed a sixth as much of itself in one theme as in the other. At
 	 * `bg-muted-foreground/20` — the recipe's unlit-track weight, `ui/circular-progress`'s own track
 	 * (`circular-progress-track.svelte:42`) — it is 0.170 in BOTH: the track is back, and the two

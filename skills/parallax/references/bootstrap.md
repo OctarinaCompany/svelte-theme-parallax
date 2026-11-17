@@ -337,8 +337,8 @@ that renders, so *"it displays"* is not a check. Load the page and run these nin
 | **bar exempt** | The header is not exempt from the canvas's scroll reserve: the shell CSS predates the fix. Its controls sit inside `scroll-padding-top` permanently, so closing any menu in the bar — or Shift+Tab back into it — throws the canvas hundreds of pixels upwards, or clean to the top. Re-run the `add` with `--overwrite`. Nothing looks wrong until someone opens something in the bar, which is why it is a check and not an eye test. |
 
 Compare colours as **resolved** values, never a computed colour against a raw token: a
-custom property reads back as its literal text (`#3c354a`) while `getComputedStyle` returns
-`rgb(60, 53, 74)`, so a direct `===` between the two is false on a perfectly healthy
+custom property reads back as its literal text (`#082a4a`) while `getComputedStyle` returns
+`rgb(8, 42, 74)`, so a direct `===` between the two is false on a perfectly healthy
 project. That is what `paint()` above is for — it makes the browser resolve the token
 through a real element and hands back the same form both sides are compared in.
 

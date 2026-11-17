@@ -45,19 +45,21 @@
 	 * The classic skin, applied to every skeleton on this page.
 	 *
 	 *   bg-current   `background-color: currentcolor` — the bar is painted in the text colour of
-	 *                whatever contains it, here `--card-foreground` (#0F263F in light, #FBFBFB in
+	 *                whatever contains it, here `--card-foreground` (#001227 in light, #FBFBFB in
 	 *                dark). That is why no `dark:` override is needed, and it is also the fix for
-	 *                a real problem: shadcn's `bg-muted` is #162B48 in dark, DARKER than the
-	 *                #182F4F card it sits on, so the skeleton reads as a hole punched in the
-	 *                surface — 1.06:1 against the card, i.e. nothing at all.
+	 *                a real problem: shadcn's `bg-muted` is #041531 in dark, DARKER than the
+	 *                #011A36 card it sits on, so the skeleton reads as a hole punched in the
+	 *                surface — 1.04:1 against the card, i.e. nothing at all.
 	 *                `currentcolor` also survives a theme swap where a token would not:
-	 *                `--foreground` is the neutral ink at L .265 in EVERY light theme and pure
-	 *                white in every dark one (`themes.css`), so the composite below measures the
-	 *                same under all twelve. `--muted-foreground` is solved per theme (L .535 /
-	 *                .668) and Parallax's is the odd one out, so painting with it would drift
+	 *                `--foreground` is the neutral ink at L .18 in EVERY light theme and white or
+	 *                near-white in every dark one (#FBFBFB in the base, pure white in
+	 *                `themes.css`), so the .2 and .08 composites this page renders measure the
+	 *                same under all eighteen (within .07:1). `--muted-foreground` is solved per
+	 *                theme (L .535 / .657) and Parallax's is the odd one out, so painting with it
+	 *                would drift
 	 *   opacity-20   NOT the classic `placeholder-opacity-max: .5`, the one value on this page
-	 *                deliberately overruled. At .5 the bar composites to #85919D on the light
-	 *                card and #8A95A5 on the dark one — 3.1:1 and 4.4:1 against the surface,
+	 *                deliberately overruled. At .5 the bar composites to #7E8791 on the light
+	 *                card and #7E8B99 on the dark one — 3.5:1 and 5.0:1 against the surface,
 	 *                which is the contrast of live TEXT. A skeleton has to read as absence, not
 	 *                as content, and the failure is asymmetric in the way that gives it away:
 	 *                because `currentcolor` is the MAXIMUM-contrast token in either mode, the
@@ -66,7 +68,7 @@
 	 *                was already the classic framework's own MIN, and the .4 ratio between the ends is kept
 	 *                exactly (Material UI's skeleton pulses on the same .4, 1 → .4 over a base
 	 *                alpha of .11 light / .13 dark, and lands in the same band). That measures
-	 *                1.49:1 → 1.17:1 in light and 1.85:1 → 1.27:1 in dark — a bar that is
+	 *                1.56:1 → 1.18:1 in light and 1.83:1 → 1.23:1 in dark — a bar that is
 	 *                plainly there and plainly not content.
 	 *                On the element, not the colour, because the glow animates the element's
 	 *                `opacity` and needs this as its resting value

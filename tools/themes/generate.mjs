@@ -79,23 +79,27 @@ const CSS_HEADER = `/**
  * Every value below is derived; none of them was picked by hand in this file.
  *
  * HOW A THEME IS BUILT. Each one restates the whole token set, but only two things actually
- * vary: the hue and the chroma. The LIGHTNESS LADDER is the anchor palette's own, measured out of
- * \`app.css\` in OKLCH and reused verbatim —
+ * vary: the hue and the chroma. The LIGHTNESS LADDER is the anchor palette's own, measured in
+ * OKLCH: its light steps are reused verbatim, and its ink and its three dark steps are taken
+ * deeper (2026-11-17, every theme darker — the dark page sits at about two thirds of the
+ * anchor's lightness), with the anchor's own values in parentheses —
  *
  *   light  n100 .987  n200 .959  n300 .937  n400 .894  n500 .808  n600 .733  n700 .608
- *          n800 .426  n900 .359  ink .266
- *   dark   d700 .344  d800 .298  d900 .282, on the same ink as the page
+ *          n800 .426  n900 .359  ink .180 (.266)
+ *   dark   d700 .276 (.344)  d800 .218 (.298)  d900 .198 (.282), on the same ink as the page
  *
- * — and so is the mapping from those steps onto the tokens (\`--border\` is n200, \`--input\` is
- * n400, the dark card is d800, the sidebar's border is flush with its panel, and so on:
- * docs/THEME.md §2). That is what makes a dozen different palettes feel like one family —
- * every surface sits at the same lightness, only the cast changes.
+ * — and the mapping from those steps onto the tokens is the anchor's, unchanged (\`--border\` is
+ * n200, \`--input\` is n400, the dark card is d800, the sidebar's border is flush with its panel,
+ * and so on: docs/THEME.md §2). That is what makes a dozen different palettes feel like one
+ * family — every surface sits at the same lightness, only the cast changes.
  *
  * WHAT IS SOLVED RATHER THAN INHERITED, and why in each case:
  *
- *   --muted-foreground        the anchor value measures 2.37:1 on a white card.
- *                             Here it is the lightness that
- *                             clears 4.5:1 against every ground it sits on.
+ *   --muted-foreground        the anchor value measures 2.37:1 on a white card. Here it is the
+ *                             lightness that clears 4.5:1 against every ground it sits on —
+ *                             and in dark APCA Lc 41.5 as well, about where it read on the
+ *                             anchor's ladder: on the deeper grounds 4.5:1 alone lands some six
+ *                             Lc dimmer.
  *   --sidebar-foreground      same value, same reason — the anchor measures 3.82:1.
  *   the five *-foreground     a naive contrast pick puts white
  *                             on the success green at 1.87:1 and on the info cyan at 2.55:1.
@@ -104,13 +108,22 @@ const CSS_HEADER = `/**
  *                             near-black — and taking the better.
  *   the dark *-subtle grounds a classic 45% mix of the colour into black lets a bright
  *                             status ground eat the room its ink needs. The mix is 28% here,
- *                             which lands every lifted status's wash near the dark-700 line.
- *   *-subtle-foreground       the ink on those washes — a walked emphasis ink,
- *                             never the raw status colour
+ *                             measured on the anchor's ladder, where it lands every lifted
+ *                             status's wash near the dark-700 line (L .30–.34 against .344).
+ *                             Each wash is then carried down with that line, keeping the offset
+ *                             the mix gave it (L .23–.28 against .276 now); the base palette's
+ *                             five are re-cut onto the line itself instead.
+ *   *-subtle-foreground       the ink on those washes — a walked emphasis ink rather than the
+ *                             raw status colour
  *                             (1.5–4.4:1, the worst rows this audit ever measured). Solved by
  *                             \`subtleInk\`: walked from the status colour until the 80%-opacity
  *                             composite — the alert description's form — clears 4.5:1, with an
- *                             APCA Lc 68 floor in dark. Full-strength lands at 5.9–7.6:1.
+ *                             APCA Lc 68 floor in dark. Full-strength, the inks land at
+ *                             5.8–7.5:1 in light and 9.0–10.4:1 in dark, the two ink brands
+ *                             aside. A colour that already clears both on its wash is not
+ *                             walked at all, so its ink is the fill itself: every dark warning
+ *                             on the deeper washes (counted in that dark range), and the two
+ *                             ink brands in both modes (11.3–11.4:1 in light, 10.8:1 in dark).
  *   --scrim                   a new token. The sheet backdrop was the literal #12263F, so it
  *                             would have stayed the anchor palette navy under every other theme.
  *   --sidebar-outline         a new token, and the counterpart \`--sidebar-border\` cannot be.
@@ -128,7 +141,7 @@ const CSS_HEADER = `/**
  * status it names. Where a hue has nowhere to go (a green brand beside a green success), the
  * separation is carried by lightness instead, which is what Carbon does with its Blue 60 and
  * Blue 70. Every theme's numbers are checked by \`node tools/themes/audit.mjs\`, against the
- * WCAG floor AND against the anchor palette's own measurement for the same pairing.
+ * WCAG floor AND against the base palette's own measurement for the same pairing.
  *
  * SELECTORS. \`.dark\` and \`data-theme\` both live on <html> — mode-watcher writes the first and,
  * since 1.1, the second. \`:root[data-theme=…]\` is (0,2,0) and \`:root[data-theme=…].dark\` is

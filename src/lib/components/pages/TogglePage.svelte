@@ -117,10 +117,11 @@
 	 *                        which `--card-foreground` holds exactly in both
 	 *   hover:bg-accent      `--bs-btn-hover-bg: var(--bs-gray-100)`; `--accent` is #F9FBFD, exact
 	 *   dark:hover:bg-background  the dark override moves that hover to `black` (#12263F),
-	 *                        which is `--background` in dark, exact
+	 *                        which is `--background`'s rung in dark, exact (#001227 here)
 	 *   hover:border-input   `--bs-btn-hover-border-color` is `gray-400` (#D2DDEC) in light and
 	 *                        `gray-700-dark` (#1E3A5C) in dark — and `--input` carries exactly
-	 *                        those two values, so this one is exact in both modes
+	 *                        those two rungs (#D0DCEA / #082A4A here), so this one is exact in
+	 *                        both modes
 	 *
 	 * The REST border is the single inexact value, as on the Buttons page: the classic theme asks for
 	 * `gray-300` (#E3EBF6) in light and `gray-600-dark` (#244166) in dark, and `--border`
@@ -155,7 +156,7 @@
 	 *   bg-card       `background-color: input-bg` = `white`, i.e. the button's own ground —
 	 *                 The classic theme's checked toggle does NOT change fill in light mode
 	 *   dark:bg-secondary  the dark block DOES change it, to `var(--bs-gray-700-dark)` (#1E3A5C),
-	 *                 which `--secondary` holds exactly in dark
+	 *                 the rung `--secondary` holds exactly in dark (#082A4A on the deeper ladder)
 	 */
 	const checkedSurface =
 		"aria-pressed:border-ring aria-pressed:hover:border-ring aria-pressed:bg-card aria-pressed:hover:bg-card dark:aria-pressed:bg-secondary dark:aria-pressed:hover:bg-secondary";

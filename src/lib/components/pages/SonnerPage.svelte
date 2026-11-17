@@ -77,15 +77,16 @@
 	 * WHAT IS ALREADY RIGHT, and needs nothing from this page:
 	 *
 	 *   surface    the installed `sonner.svelte` pipes `--normal-bg: var(--color-popover)` into
-	 *              sonner's own CSS, and `--popover` is #FFFFFF light / #152E4D dark — the two
-	 *              values `toast-background-color` resolves to, exactly, in both modes
-	 *   text       `--normal-text: var(--color-popover-foreground)` is #12263F / #FFFFFF, which
+	 *              sonner's own CSS, and `--popover` is #FBFBFB light / #011A36 dark — the two
+	 *              rungs `toast-background-color` resolves to, exactly, in both modes
+	 *   text       `--normal-text: var(--color-popover-foreground)` is #001227 / #FBFBFB, which
 	 *              is `--bs-toast-header-color` = `--bs-body-color`, exactly, in both modes
 	 *   padding    sonner's `[data-sonner-toast]` is `padding: 16px`; `.toast-body` is 16px
 	 *
 	 * WHAT COULD NOT BE REACHED. The light-mode border is one grey step off: the classic theme asks for
 	 * `gray-300` (#E3EBF6) and `--border` holds `gray-200` (#EDF2F9). Dark matches exactly
-	 * (#1E3A5C both sides). It is left alone rather than corrected because `--normal-border` is
+	 * (`gray-700-dark` both sides, #082A4A on the deeper ladder). It is left alone rather than
+	 * corrected because `--normal-border` is
 	 * written as an inline `style` attribute on the `<Toaster>` element inside
 	 * `components/ui/sonner/sonner.svelte`, which no stylesheet rule can override without
 	 * `!important` — and both that file and `App.svelte` are outside this page.
@@ -231,10 +232,10 @@
 	 * full-strength colour: it is the accent edge, not type, and 3:1 non-text suffices there.
 	 *
 	 * OUTLINE drops the fill. Upstream writes `var(--background)`, which in stock shadcn is the
-	 * plain white page; here `--background` is `body-bg` (#F9FBFD light, #12263F dark), so
+	 * plain white page; here `--background` is `body-bg` (#F4F6F8 light, #001227 dark), so
 	 * filling with it would punch a page-coloured hole through a floating surface. `--popover` is
-	 * what the toast already stands on — `toast-background-color` resolves to the same #FFFFFF /
-	 * #152E4D — so the skin colours only the two things "outline" is claiming.
+	 * what the toast already stands on — the rungs `toast-background-color` resolves to,
+	 * #FBFBFB / #011A36 here — so the skin colours only the two things "outline" is claiming.
 	 *
 	 * SOLID takes `--{status}-foreground` where upstream hardcodes `--color-white`. It shows on
 	 * one of the four: `color-contrast(warning)` picks `gray-900` (#283E59) against the classic theme's

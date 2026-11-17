@@ -25,7 +25,8 @@ its **own walked token**, never the raw status color on its tint:
 ```html
 <!-- correct -->
 <span class="bg-warning-subtle text-warning-subtle-foreground">Pending</span>
-<!-- wrong: raw status ink on the tint fails contrast -->
+<!-- wrong: in light, raw status ink on the tint fails contrast (1.5:1); in dark the token
+     happens to hold the fill's value today, which is why only the token is safe to rely on -->
 <span class="bg-warning-subtle text-warning">Pending</span>
 ```
 
@@ -195,7 +196,9 @@ step with the hooks' exported storage keys):
 palette and the mode decide what the surfaces are painted WITH, a backdrop decides what is
 painted BEHIND them. Four layers compose — a gradient (twelve looks), a pattern (ten), one
 SVG mark and a grain — over sixteen `localStorage` keys, and every colour derives from the
-live tokens, so one block serves all eighteen palettes in both modes. `none`/off writes no
+live tokens, so one block serves all eighteen palettes in both modes — except the dark aurora's
+chroma ceilings, stated per palette at each brand hue, so a re-branded `--primary` needs its
+own. `none`/off writes no
 attribute, so the kit as it ships needs no backdrop CSS to be correct. It arrives as
 `parallax-backdrop`, needs `@import "./backdrops.css";` after the palettes and before
 `vibrant.css`, and paints only where the shell's slots exist — `sidebar-wrapper`,

@@ -209,8 +209,9 @@
 	 *   font-normal   `font-weight-base`. shadcn's Button asks for 500, which no classic form
 	 *                 control does
 	 *   bg-card       `input-bg: white`, which `--card` holds. The dark half is
-	 *                 `input-bg-dark: gray-700-dark` (#1E3A5C) — that is `--secondary`, NOT
-	 *                 `--card` (#152E4D), so the two modes genuinely need different tokens
+	 *                 `input-bg-dark: gray-700-dark` (#1E3A5C) — that is `--secondary` (#082A4A
+	 *                 here), NOT `--card` (#011A36), so the two modes genuinely need different
+	 *                 tokens
 	 *   hover, open   `.form-select` has no hover rule at all and does not change colour because
 	 *                 its menu is open. The `outline` variant has `hover:bg-muted`,
 	 *                 `dark:hover:bg-input/50` AND `aria-expanded:bg-muted`; all three are
@@ -253,7 +254,7 @@
 	 *                     `black` IS `--foreground`, so the panel's own `ring-foreground/10` is
 	 *                     that value exactly in light. Dark inverts it to white where
 	 *                     `dropdown-border-color-dark` is solid `black`, and `--background`
-	 *                     holds #12263F there
+	 *                     holds that rung there (#001227 on the deeper ladder)
 	 *
 	 * The radius, ground, and flattened elevation are already right and are not restated —
 	 * `app.css` zeroes `--tw-shadow` on every floating surface in the app.
@@ -317,7 +318,7 @@
 	 * Dropdowns page's item records at length.
 	 *
 	 * `bg-accent` RATHER THAN THE COMPONENT'S OWN `data-selected:bg-muted`. The two tokens are the
-	 * same #132A46 in dark, but in light `--muted` is `gray-200` and `--accent` is `gray-100`,
+	 * same #041531 in dark, but in light `--muted` is `gray-200` and `--accent` is `gray-100`,
 	 * one step lighter — and `--accent` is what the Dropdowns menu and the Filters menu paint with.
 	 * Inheriting `bg-muted` here would put a visibly darker band in this one list in light mode.
 	 *

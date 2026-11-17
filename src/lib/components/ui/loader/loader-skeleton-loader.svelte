@@ -11,21 +11,24 @@
 	 * MEASURED INVISIBLE. `bg-muted` is the obvious choice, because this repo ships `ui/skeleton` as
 	 * `animate-pulse rounded-md bg-muted` and these four parts are exactly that object. In this
 	 * palette that choice does not survive contact with the page. The gallery
-	 * draws every specimen on a `bg-card` tile, and `--muted` (#162b48) is SEVEN levels from `--card`
-	 * (#182f4f) in dark. Measured in Chrome on the rendered tile — 16 frames over 5.4s, the loader's
-	 * own box — `bg-muted` gave a peak departure from its ground of 7/255 dark, 13/255 light, and
-	 * ZERO pixels changing by 6/255 over the whole run: a blank card, while `getAnimations()`
-	 * cheerfully reported four running animations with advancing `currentTime`.
+	 * draws every specimen on a `bg-card` tile, and `--muted` (#041531) is FIVE levels from `--card`
+	 * (#011a36) in dark — seven on the previous ladder, where it was measured. Measured in Chrome on
+	 * the rendered tile — 16 frames over 5.4s, the loader's own box — `bg-muted` gave a peak
+	 * departure from its ground of 7/255 dark, 13/255 light, and ZERO pixels changing by 6/255 over
+	 * the whole run: a blank card, while `getAnimations()` cheerfully reported four running
+	 * animations with advancing `currentTime`.
 	 *
 	 * `bg-muted-foreground/20` is the house unlit-track weight, the one `ui/circular-progress`
-	 * already paints its track (`circular-progress-track.svelte:42`). Measured the same way it gives
-	 * 18/255 dark and 21/255 light, with about a fifth of the loader's box in dark and a quarter in
-	 * light now at least 12/255 from the ground (it was none, and a tenth), and the pulse swinging
-	 * 9-10/255 instead of 4-6 — the contrast a skeleton needs to read as one (`zinc-200` on white,
-	 * for scale, is 27/255). `/30` was measured too and gives 26/255 dark, past that, which is a
-	 * louder skeleton than the quiet placeholder this wants to be. The fix is the token, not the
-	 * dial. Do not "correct" this back to `bg-muted`: in a palette whose `--muted` and `--card` are
-	 * one step apart, matching the house component costs the loader its existence.
+	 * already paints its track (`circular-progress-track.svelte:42`). Measured the same way on the
+	 * previous ladder it gave 18/255 dark and 21/255 light, with about a fifth of the loader's box in
+	 * dark and a quarter in light at least 12/255 from the ground (it was none, and a tenth), and the
+	 * pulse swinging 9-10/255 instead of 4-6 — the contrast a skeleton needs to read as one
+	 * (`zinc-200` on white, for scale, is 27/255). The deeper ladder evens the two themes out —
+	 * computed from the tokens, the composite now sits 22/255 off the card in both and the pulse
+	 * swings 11/255. `/30` was measured too and gave 26/255 dark, past that, which is a louder
+	 * skeleton than the quiet placeholder this wants to be — 33/255 on today's card. The fix is the
+	 * token, not the dial. Do not "correct" this back to `bg-muted`: in a palette whose `--muted`
+	 * and `--card` are one step apart, matching the house component costs the loader its existence.
 	 *
 	 * WHAT IS NOT BORROWED FROM `ui/skeleton` IS ITS `animate-pulse`. Tailwind's built-in pulse is
 	 * one 2s cycle with no way to phase-shift it, and the stagger IS this loader — four parts

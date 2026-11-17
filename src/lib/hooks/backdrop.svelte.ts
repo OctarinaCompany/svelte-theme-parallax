@@ -501,9 +501,12 @@ function markInk(): string {
  * is one property of the noise rather than the shape of two clamped curves.
  *
  * THE EXCURSION IS PER CHANNEL. Zero-mean is a per-channel property, so each channel takes its own
- * symmetric headroom (`min(255 − c, c)`) — red on the dark blue page moves ±15, blue ±63 — and the
- * texture is a modulation along the ground's own light-to-dark line rather than a hue shift. One
- * shared excursion would be the smallest channel's, which halved the visible texture for nothing.
+ * symmetric headroom (`min(255 − c, c)`) — on the dark navy page, rgb(0 18 39) since the deeper
+ * ladder, red cannot move at all, green moves ±18 and blue ±39 (±15 / ±38 / ±63 on the previous
+ * ladder's rgb(15 38 63)) — and the texture is a modulation along the ground's own light-to-dark
+ * line rather than a hue shift: below mid-grey that line runs from black to twice the ground. One
+ * shared excursion would be the smallest channel's, which halved the visible texture for nothing
+ * on the old page and would erase it outright on this one.
  *
  * Two details are load-bearing. Filter results are passed on PREMULTIPLIED and `feTurbulence`
  * fills alpha with noise too, so alpha is forced opaque before the ramp reads red; otherwise the

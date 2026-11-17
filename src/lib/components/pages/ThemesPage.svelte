@@ -299,10 +299,11 @@
 					</Card.Header>
 					<Card.Content class="grid gap-3 text-sm text-muted-foreground">
 						<p>
-							Every theme reuses one lightness ladder, written out of
-							<code class="text-foreground">app.css</code> in OKLCH — the page, the card, the two border
-							weights and the dark surfaces all sit at the same lightness in every one. Only hue and chroma
-							move, which is why a different palette never reads as a different product.
+							Every theme reuses one lightness ladder in OKLCH: the anchor palette's, with its ink
+							and dark steps taken deeper by the generator, and the base palette in
+							<code class="text-foreground">app.css</code> is derived from it too — the page, the card,
+							the two border weights and the dark surfaces all sit at the same lightness in every one.
+							Only hue and chroma move, which is why a different palette never reads as a different product.
 						</p>
 						<p>
 							Two things are solved rather than inherited, because picking them by eye misses the

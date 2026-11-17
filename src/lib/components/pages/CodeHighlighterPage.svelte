@@ -255,7 +255,7 @@
 			token: "Inside a comment, docstring or literal that opened earlier",
 			house: "guessed",
 			adapter: "comment / string",
-			why: "DIVERGENCE, and the reason the adapter exists. On line two of a block comment the house is not plain — it has already read the line as code and coloured its punctuation, its numbers and its keywords. Painting the whole construct one colour necessarily overrules that. It is the largest class by far: 9,348 characters of the 9,511 this page's snippets, the Code block page's and `src/app.css` repaint between them.",
+			why: "DIVERGENCE, and the reason the adapter exists. On line two of a block comment the house is not plain — it has already read the line as code and coloured its punctuation, its numbers and its keywords. Painting the whole construct one colour necessarily overrules that. It is the largest class by far: 12,741 characters of the 12,976 this page's snippets, the Code block page's and `src/app.css` repaint between them.",
 		},
 		{
 			token: "${…} in a template literal, {…} in an f-string",
@@ -264,7 +264,7 @@
 			why: "DIVERGENCE, and the other half of the same idea. The house paints a one-line literal green end to end; the grammar knows the hole is parsed code, so the braces come out punctuation and the expression inside them is coloured as what it is. The literal chunks either side stay green.",
 		},
 		{
-			token: "0.375rem, -100%, #641725",
+			token: "0.375rem, -100%, #001227",
 			house: "split",
 			adapter: "one run",
 			why: "DIVERGENCE, from the container pass. The house matches a number without its sign or unit and has no rule for a hex colour, so it draws `0.375rem` as a number, a grey dot and plain text. `constant.numeric` and `constant.other.color` claim the whole token, which is one colour instead of three.",
@@ -731,8 +731,8 @@
 					six places the grammar DOES have something to say and disagrees, and every one of them is
 					a row below marked DIVERGENCE. They are counted rather than sampled — a per-character diff
 					of both tokenizers over every snippet this page and the Code block page render, plus
-					<code>src/app.css</code>, is 9,511 characters, and 9,348 of them are the first divergence
-					alone.
+					<code>src/app.css</code>, is 12,976 characters, and 12,741 of them are the first
+					divergence alone.
 				</p>
 				<Card.Root>
 					<Card.Content class="px-0 [&_[data-slot=table-cell]]:whitespace-normal">

@@ -2,8 +2,11 @@
  * the anchor palette's own tokens — the values app.css's `:root` and `.dark` held before the
  * base became the nudged palette.
  *
- * They are the INPUT the base theme is computed from: `parallax` reads these two tables and
- * moves every value by under 2% (`nudgeAnchors` in `themes.mjs`), and it is the SOLVED result —
+ * They are the INPUT the base theme is computed from: `parallax` reads these two tables, takes
+ * their four ladder colours — the navy ink #12263f, which is the light text and the dark page at
+ * once, and the dark surfaces #132a46, #152e4d and #1e3a5c — down to the kit's deeper ladder
+ * (`deepen` in `themes.mjs`; L 0.266 / 0.282 / 0.298 / 0.344 become 0.18 / 0.198 / 0.218 /
+ * 0.276), then moves every value by under 2% (`nudgeAnchors`), and it is the SOLVED result —
  * not this copy — that app.css holds now, and that every generated theme is audited beside. A
  * row that measures below 4.5:1 but at or above the base's value for the same pairing is an
  * inherited property of the design, not a regression the generator introduced — and the report

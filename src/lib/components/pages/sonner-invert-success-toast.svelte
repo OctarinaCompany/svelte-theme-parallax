@@ -8,8 +8,8 @@
 	 *
 	 * THE INVERT GROUND IS `bg-foreground text-background`. Upstream's `bg-invert` /
 	 * `text-invert-foreground` tokens do not exist in this theme, and the pair that means the
-	 * same thing — the page's own colours swapped — is already here: `--foreground` is #12263F
-	 * light / #FFFFFF dark, so the toast comes out dark-on-light pages and light-on-dark ones,
+	 * same thing — the page's own colours swapped — is already here: `--foreground` is #001227
+	 * light / #FBFBFB dark, so the toast comes out dark-on-light pages and light-on-dark ones,
 	 * which is exactly what "invert" flips. Upstream's opacity steps (`/70`, `/40`) ride along
 	 * on `text-background` unchanged.
 	 *

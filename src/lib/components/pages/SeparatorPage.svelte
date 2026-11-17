@@ -81,7 +81,8 @@
 					`--bs-border-color`, i.e. `border-color: gray-300` (#E3EBF6) in light and
 					`border-color-dark: gray-700-dark` (#1E3A5C) in dark. `--border` holds
 					`card-border-color = gray-200` (#EDF2F9) in light — one step lighter — and
-					#1E3A5C in dark, where it is exact. This is the same gap the Accordion page
+					the gray-700-dark rung in dark, where it is exact (#082A4A on the deeper
+					ladder). This is the same gap the Accordion page
 					recorded: no token in `app.css` carries gray-300 except `--sidebar-border`, and
 					reaching for that name outside the sidebar would not survive review.
 				-->
@@ -97,7 +98,7 @@
 						to `width: var(--bs-border-width); min-height: 1em; align-self: stretch;
 						background-color: currentcolor; opacity: 1`. The width matches `w-px` and the
 						stretch matches `h-full`, but `currentcolor` at full opacity would paint these
-						rules in `body-color` (#12263F) — darker than the `hr` immediately above them
+						rules in `body-color` (#001227 here) — darker than the `hr` immediately above them
 						in the same demo. That full strength is not a decision the classic theme made about
 						vertical rules either: `.vr` reads `hr-opacity`, which the classic theme raised to 1 for
 						`<hr>`, whose own colour is `--bs-border-color` rather than the inherited text

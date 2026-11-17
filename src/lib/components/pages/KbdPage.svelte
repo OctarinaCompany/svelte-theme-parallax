@@ -79,7 +79,7 @@
 	 *
 	 * shadcn dims the chip inside a tooltip (`bg-background/20 text-background`) because ITS
 	 * tooltip is a dark chip. This theme's is not — the `app.css` rule aligns the tooltip on the
-	 * popover surface, which is `--popover`: #FFFFFF in light and #152E4D in dark, i.e. exactly
+	 * popover surface, which is `--popover`: #FBFBFB in light and #011A36 in dark, i.e. exactly
 	 * `--card` in both. So a chip inside a tooltip sits on the same ground as a chip on a card,
 	 * and wants the same treatment; shadcn's near-white type would simply be unreadable on it.
 	 *

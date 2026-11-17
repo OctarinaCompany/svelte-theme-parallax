@@ -244,11 +244,14 @@
 
 		`border-muted-foreground` and NOT `border-border`, which every other card here uses.
 		`--border` is solved to read against `--card`; this is the one card on the page with no fill
-		of its own, so its edge is drawn on the PAGE ground, where `--border` measures 1.08:1 and
-		simply is not there. Measured on this page: `--muted-foreground` at full strength is 4.99:1
-		in light and 5.06:1 in dark, clear of the 3:1 the WCAG asks of a boundary that carries
-		meaning — and here the dashes ARE the demo. Every weaker step was measured too and none
-		reaches it: `/25` gives 1.38:1, `/50` 2.00:1, `/70` 2.80:1.
+		of its own, so its edge is drawn on the PAGE ground, where `--border` measures 1.03:1 in
+		light and 1.29:1 in dark in the base palette (1.08-1.09:1 and 1.25-1.29:1 in the generated
+		ones) and simply is not there. `--muted-foreground` at full strength measures 5.00:1 in the
+		base palette's dark mode, and 4.94-5.01:1 in light and 5.94-6.03:1 in dark across the
+		generated palettes, clear of the 3:1 the WCAG asks of a boundary that carries meaning — and
+		here the dashes ARE the demo. The base palette's light mode is the one miss, at 2.28:1: its
+		secondary ink is the odd one out, as the Skeleton page notes too. No weaker step would do in
+		light: on a generated palette `/25` gives 1.38:1, `/50` 2.00:1, `/70` 2.80:1.
 	-->
 	<Card.Root class="border border-dashed border-muted-foreground bg-transparent shadow-none ring-0">
 		<Card.Content>

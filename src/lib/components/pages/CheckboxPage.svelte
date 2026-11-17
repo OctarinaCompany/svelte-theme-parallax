@@ -236,7 +236,8 @@
 	 *   hover:bg-accent       `--bs-list-group-action-hover-bg` compiles to `--bs-tertiary-bg`
 	 *                         (#F9FBFD) in light and the classic theme overrides it to
 	 *                         `list-group-hover-bg-dark: gray-900-dark` (#132A46) in dark;
-	 *                         `--accent` is both, exactly. shadcn asks for half of it
+	 *                         `--accent` is both rungs, exactly (#041531 in dark on the
+	 *                         deeper ladder). shadcn asks for half of it
 	 *   bg-primary-subtle     `primary-bg-subtle` / `primary-bg-subtle-dark`, the ground of
 	 *                         `.text-bg-primary-subtle`, which is how the classic theme marks a
 	 *                         selected row. Both modes are tokens here, so unlike shadcn's
@@ -522,8 +523,9 @@
 	 * The five status colours, and the reason there are five rather than the source's six: on this
 	 * palette they are the tokens the classic theme carries unchanged into dark mode, so the burst reads the
 	 * same on a white card and a navy one. Every `-subtle` partner inverts, and a piece painted
-	 * #143767 would be invisible against the dark card it lands on. The generated palettes
-	 * do move their status hues between modes, but they move them to another saturated colour, so
+	 * `--primary-subtle`'s dark #132649 would be invisible against the dark card it lands on
+	 * (1.17:1). The generated palettes do move their status hues between modes, but they move them
+	 * to another saturated colour, so
 	 * the argument that survives everywhere is the weaker one: a `-subtle` token is a ground, and a
 	 * ground makes a poor 4px dot.
 	 */

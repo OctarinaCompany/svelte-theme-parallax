@@ -36,28 +36,34 @@
  *
  * THE ELBOW IS `--background` TAKEN VERBATIM — not a lightness pinned near it, the token itself —
  * so the corner cannot drift from the page whatever the palette. Every dark background in this kit
- * is a palette-hued neutral-ink at L 0.264-0.267 (the default palette's navy sits at 0.264 too),
+ * is a palette-hued neutral-ink at L 0.178-0.181 (the default palette's navy sits at 0.180 too),
  * and because that stop IS the page it also gives up its share of the torsion: it is the page's
  * hue, not a rotation of the brand's.
  *
- * THE FAR STOP IS PINNED AT 0.285, HALFWAY. The page is L 0.265 and the rail wears L 0.297-0.304
- * with the axis set to `default` — measured across the kit — so 0.285 is the midpoint of the only
- * two lightnesses this surface already has a name for: half a step off the page, half a step short
- * of the chrome the kit ships. It is the owner's chosen intensity, and picking the midpoint of two
- * stated values rather than a number by eye is what keeps it from drifting again.
+ * THE FAR STOP IS PINNED AT 0.199, HALFWAY. The page is L 0.178-0.181 and the rail wears
+ * L 0.216-0.219 with the axis set to `default` — measured across all eighteen palettes — so 0.199
+ * is the midpoint of the only two lightnesses this surface already has a name for (the two bands'
+ * centres, 0.1797 and 0.2178, average 0.1987): half a step off the page, half a step short of the
+ * chrome the kit ships. It is the owner's chosen intensity, and picking the midpoint of two stated
+ * values rather than a number by eye is what keeps it from drifting again — and what moved it when
+ * the dark ladder deepened. On the earlier ladder, page L 0.265 and rail 0.297-0.304, it stood at
+ * 0.285 (the same rule on that ladder gives 0.283; 0.285 was not its exact output).
  *
- * FIVE EARLIER CUTS ARE WHY THE ANCHORS ARE WRITTEN DOWN. 0.22 -> 0.14 ran below the page for its
- * whole length: a hole, in a region of sRGB too narrow to carry any chroma, which is why it read
- * as flat near-black. 0.42 -> 0.315 overcorrected past the LIGHT ramp's own 0.40 -> 0.28, so both
- * halves rendered at the same lightness and switching modes appeared to do nothing. 0.37 -> 0.285
- * and 0.34 -> 0.268 were both still above the default the rail wears without this axis, which is
- * what "too light in dark" meant. 0.305 -> 0.245 kept that same head but ran the foot a shade
- * UNDER the page, so the band spent its whole travel getting darker away from the corner and read
- * as a shadowed surface rather than a lit one — the foot, not the head, was the error. And
- * 0.33 and then 0.305, both falling to the page, were the right shape at too much amplitude —
- * 0.305 sat exactly ON the default rail's band, which still announces more than dark should. Every
- * anchor is now a token or the midpoint of two measured bands the kit already states, and cannot
- * drift these ways again.
+ * FIVE EARLIER CUTS ARE WHY THE ANCHORS ARE WRITTEN DOWN. All five were cut on that earlier ladder,
+ * so their numbers read against its page (L 0.265) and its rail (0.297-0.304), not today's.
+ * 0.22 -> 0.14 ran below the page for its whole length: a hole, in a region of sRGB too narrow to
+ * carry any chroma, which is why it read as flat near-black. (The deeper ladder has since moved
+ * the page itself into that band; the part of the lesson that carries over is the order — the
+ * head above the page, never under it.) 0.42 -> 0.315 overcorrected past the LIGHT ramp's own
+ * 0.40 -> 0.28, so both halves rendered at the same lightness and switching modes appeared to do
+ * nothing. 0.37 -> 0.285 and 0.34 -> 0.268 were both still above the default the rail wears
+ * without this axis, which is what "too light in dark" meant. 0.305 -> 0.245 kept that same head
+ * but ran the foot a shade UNDER the page, so the band spent its whole travel getting darker away
+ * from the corner and read as a shadowed surface rather than a lit one — the foot, not the head,
+ * was the error. And 0.33 and then 0.305, both falling to the page, were the right shape at too
+ * much amplitude — 0.305 sat exactly ON the default rail's band, which still announces more than
+ * dark should. Every anchor is now a token or the midpoint of two measured bands the kit already
+ * states, and cannot drift these ways again.
  *
  * WHAT KEEPS IT A SURFACE AT THE ELBOW is nothing — deliberately. That corner IS the page, the
  * melt is the point, and the only boundary left there is the lit hairline every edge is drawn
@@ -66,20 +72,25 @@
  *
  * CHROMA IS CLAMPED TO THE sRGB GAMUT AT EACH STOP'S OWN LIGHTNESS, not to taste. The first cut
  * authored up to 0.044 past the gamut, and the browser clips with an algorithm that shifts hue —
- * so eight of the twelve palettes rendered a colour nobody wrote. The floors are what the two
- * deliberately achromatic brands need to be a tinted surface rather than a grey one — and in dark
- * the FLOOR moves too, because at L 0.285 the narrowest hue ceilings below the light ramp's own
- * floor. The dark cap is a VARIABLE (`--vibrant-cap`), because four hues are narrower there than
- * the shared 0.115 assumes — harbor, evergreen, sandstone and ember carry measured per-theme caps
- * below, where the shared clamp would hand the browser an out-of-gamut colour to mangle.
+ * so eight of the twelve palettes the kit had then rendered a colour nobody wrote. The floors are
+ * what the two deliberately achromatic brands need to be a tinted surface rather than a grey one —
+ * and in dark the FLOOR moves too, because at L 0.199 the narrowest hue ceilings at 0.0339, below
+ * both of the light ramp's floors (0.065 and 0.045). The dark cap is a VARIABLE (`--vibrant-cap`),
+ * because twelve of the eighteen palettes ask more there than their hue's sRGB ceiling holds —
+ * they carry measured per-theme caps below, where the shared 0.115 would hand the browser an
+ * out-of-gamut colour to mangle.
  *
  * A 12deg TORSION, because a ramp that holds one hue and only drops lightness reads as a colour
- * with the lights turned down rather than as a lit surface. It is also a gamut decision: teal and
- * green have the narrowest chroma ceiling of any hue at these lightnesses, so the two palettes
- * that live there rotate the other way to buy headroom.
+ * with the lights turned down rather than as a lit surface. It is also a gamut decision: at these
+ * lightnesses the sRGB chroma ceiling is narrowest at cyan (h200) and yellow (h89), with a peak in
+ * green (h142) between them, so the two palettes nearest the cyan trough on its green side, harbor
+ * and evergreen, rotate the other way — `-6` turns their head away from the trough and toward the
+ * peak, in both modes.
  *
- * `in oklab`, NEVER `in oklch`. The arc here is 12deg, where oklab's midpoint chroma dip is half
- * a percent — invisible — and what it buys is the absence of a hue channel that can go powerless
+ * `in oklab`, NEVER `in oklch`. In light the arc is the torsion's 12deg, where oklab's midpoint
+ * chroma dip is half a percent; in dark it runs from the page's hue to the head's, 1.5 to 25deg
+ * across the palettes, and the dip peaks at 2.2% (harbor), never more than 0.0011 of chroma —
+ * invisible either way — and what it buys is the absence of a hue channel that can go powerless
  * when a stop is near-achromatic, which is the case two of these palettes are.
  *
  * WHY ITS OWN FILE. It is not a backdrop, so it does not belong in `src/backdrops.css`; and it is
@@ -88,8 +99,11 @@
  * the backdrops that painted chrome were cut — but the ordering is the guarantee, not the current
  * contents. It stays out of `src/app.css` for now because that file is audited block by block by
  * the registry generator; publishing this axis is a separate, deliberate step, and one this needs
- * no per-theme generation for: every value is derived from `--primary`, so one block serves all
- * eighteen palettes.
+ * no per-theme generation for. It is not one block for all eighteen palettes, though: the field
+ * and its inks derive from the palette's own tokens, but the dark head also carries a measured
+ * per-palette chroma cap for twelve of them (the caps note below), and harbor and evergreen
+ * reverse the torsion. The caps are hand-written literals keyed by palette name, and
+ * `npm run themes:audit` checks them against the palettes (`tools/themes/ceilings.mjs`).
  *
  * @see src/lib/hooks/sidebar-mode.svelte.ts — the axis, and why `vibrant` writes itself verbatim
  * @see src/lib/hooks/header-mode.svelte.ts — and why a vibrant rail forces the bar to speak up
@@ -99,8 +113,16 @@
 	--vibrant-torsion: 6;
 
 	/* Fallbacks first, always, and derived from tokens rather than from black: mixing toward
-	   `--foreground` lands both stops in the right lightness band on a light page without
-	   inheriting the primary's own lightness. */
+	   `--foreground` keeps both stops off the primary's own lightness. On the deeper ladder's
+	   L 0.18 ink, thirteen of the sixteen palettes with a coloured light brand land both stops
+	   within 0.022 of the 0.40 -> 0.28 the relative-colour ramp pins — on the earlier ladder's
+	   lighter ink their second stop sat 0.07 to 0.08 above 0.28 — and crimson, bluestone and
+	   kiln, the darkest of those brands (L 0.41-0.46), land their first stop 0.07 to 0.09 short
+	   of 0.40. Graphite and sepia land at L 0.20 -> 0.19, below the supported 0.28 foot: their
+	   light primary is the ink brand at L 0.22, mixed toward that L 0.18 ink. That is accepted on
+	   this path, because every text role on the band reads higher on the darker ground than on
+	   the supported ramp — their resting ink 8.4:1 against 5.8-5.9:1, white 18:1 against
+	   9.2-9.4:1. */
 	--vibrant-a: color-mix(in oklab, var(--primary) 55%, var(--foreground));
 	--vibrant-b: color-mix(in oklab, var(--primary) 30%, var(--foreground));
 	--vibrant-ink: color-mix(in oklab, white 90%, var(--vibrant-a));
@@ -138,9 +160,16 @@
 	--vibrant-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='182' height='182'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.1'/%3E%3C/svg%3E");
 }
 
-/* Teal and green have the narrowest chroma ceiling of any hue at these lightnesses, so their
-   darkest stop must rotate TOWARD the wider side rather than away from it. A gamut fix that
-   happens to also be the right temperature, not a preference. */
+/* Harbor and evergreen sit on the green side of the cyan trough (h200), the narrowest ceiling on
+   the hue circle, so `-6` rotates their HEAD away from it and toward the green peak (h142), in
+   both modes. A gamut fix that happens to also be the right temperature, not a preference: in
+   dark the head is where the gamut binds, and at L 0.199 the turn lifts harbor's ceiling from
+   0.0339 to 0.0344 and evergreen's from 0.0367 to 0.0414 (the darkest stop there is the page,
+   which does not rotate). In light both torsions stay inside the gamut: the head gains (L 0.40:
+   harbor 0.0681 -> 0.0691 against an ask of 0.065, evergreen 0.0738 -> 0.0834 against 0.0719),
+   and the darkest stop, which turns toward the trough instead, gives up a little headroom it can
+   spare (L 0.28: harbor 0.0484 -> 0.0476 against an ask of 0.045, evergreen 0.0584 -> 0.0517
+   against 0.0507). */
 :root:is([data-theme="harbor"], [data-theme="evergreen"]):is(
 		[data-sidebar-mode="vibrant"],
 		[data-header-mode="vibrant"]
@@ -150,81 +179,143 @@
 
 /*
  * The dark head's per-theme gamut caps — see the clamp note in the header. Measured sRGB ceilings
- * at the head's own L 0.285, against what the shared `c * 0.62` asks for:
+ * at the head's own L 0.199 and its hue after torsion, against what the shared
+ * `clamp(0.033, c * 0.62, 0.115)` asks for. Every ceiling here is `maxChroma` from
+ * `tools/themes/color.mjs`, which counts a gamma-encoded channel as inside sRGB up to 1e-4 past
+ * [0, 1] — 0.0255 of one 8-bit code value, about a fortieth — and each cap is its ceiling TRUNCATED
+ * to three decimals on that definition, never rounded: rounding would put five of these back past
+ * the gamut (bluestone, fern, nordic, crimson and heather — 0.0379 -> 0.038 is the first). Ember's
+ * 0.049 is the one cap that sits on that tolerance: its strict ceiling is 0.0489, and at 0.049 its
+ * blue channel lands 0.0001 under zero, which a clip returns to the same 8-bit code:
  *
- *   harbor     h190   asks 0.071   ceiling 0.0492
- *   evergreen  h166   asks 0.065   ceiling 0.0591
- *   sandstone  h74    asks 0.068   ceiling 0.0604
- *   ember      h56    asks 0.084   ceiling 0.0697
- *   fern       h151   asks 0.090   ceiling 0.0766
- *   kiln       h82    asks 0.077   ceiling 0.0588
+ *   harbor     h190   asks 0.071   ceiling 0.0344   cap 0.034
+ *   bluestone  h225   asks 0.049   ceiling 0.0379   cap 0.037
+ *   kiln       h82    asks 0.077   ceiling 0.0411   cap 0.041
+ *   evergreen  h166   asks 0.065   ceiling 0.0414   cap 0.041
+ *   sandstone  h74    asks 0.068   ceiling 0.0422   cap 0.042
+ *   ember      h56    asks 0.084   ceiling 0.0490   cap 0.049
+ *   moss       h128   asks 0.075   ceiling 0.0523   cap 0.052
+ *   fern       h151   asks 0.090   ceiling 0.0536   cap 0.053
+ *   nordic     h251   asks 0.071   ceiling 0.0576   cap 0.057
+ *   crimson    h14    asks 0.090   ceiling 0.0796   cap 0.079
+ *   orchid     h346   asks 0.115   ceiling 0.0843   cap 0.084
+ *   heather    h326   asks 0.115   ceiling 0.0927   cap 0.092
  *
- * SIX AND NOT TWO, because the list grows as the head comes down: the gamut narrows toward black,
- * so lowering the anchor pulls more hues under the shared cap. That is a fact about sRGB, not a
- * sign the approach is fraying — the palettes absent from this list have ceilings from 0.064
- * (sepia) to 0.192 (parallax) and never touch it.
+ * TWELVE AND NOT SIX, because the list grows as the head comes down. Below every hue's cusp the
+ * sRGB ceiling is proportional to L, so taking the head from 0.285 to 0.199 cut all eighteen
+ * ceilings by the same 30% while the request, `c * 0.62`, stayed where it was — six caps on the
+ * earlier ladder became twelve. That is a fact about sRGB, not a sign the approach is fraying: the
+ * palettes absent from this list have ceilings from 0.0445 (sepia) to 0.1337 (parallax) and never
+ * touch them.
  *
- * MOSS IS THE ONE TO WATCH: its head asks 0.0746 where the ceiling is 0.0748, so it is inside by
- * 0.0002 and carries no cap. If it ever reads hue-shifted against the other greens, that margin is
- * why, and 0.074 is the answer.
+ * AMETHYST IS THE ONE TO WATCH: its head asks 0.1000 where the ceiling is 0.1017, so it is inside
+ * by 0.0017 and carries no cap. If it ever reads hue-shifted against the other violets, that margin
+ * is why, and 0.101 is the answer. (Moss held this seat on the earlier ladder, inside by 0.0002;
+ * at 0.199 it carries a cap.)
  *
- * The two new greens do NOT join harbor and evergreen's `-6` torsion. That rotation buys headroom
- * at teal, and at h 122-145 it costs it instead: moss's head at -6 would need a cap of 0.065 where
- * the default +6 needs none.
+ * The other two greens, moss and fern, do NOT join harbor and evergreen's `-6` torsion. That
+ * rotation buys headroom by turning toward the ceiling's green peak (h142, 0.0678 at this L): at
+ * +6 harbor would cap at 0.033 and evergreen at 0.036. Moss, at h122, has the peak on the other
+ * side, so -6 costs it instead — a cap of 0.045 where the default +6 gives 0.052. Fern, at h145,
+ * sits just past the peak, so -6 would widen its ceiling (a cap of 0.062 against 0.053); it needs a
+ * cap at either torsion and keeps the default.
  */
 :root[data-theme="harbor"].dark:is([data-sidebar-mode="vibrant"], [data-header-mode="vibrant"]) {
-	--vibrant-cap: 0.049;
+	--vibrant-cap: 0.034;
 }
-:root[data-theme="evergreen"].dark:is([data-sidebar-mode="vibrant"], [data-header-mode="vibrant"]) {
-	--vibrant-cap: 0.059;
-}
-:root[data-theme="sandstone"].dark:is([data-sidebar-mode="vibrant"], [data-header-mode="vibrant"]) {
-	--vibrant-cap: 0.06;
-}
-:root[data-theme="ember"].dark:is([data-sidebar-mode="vibrant"], [data-header-mode="vibrant"]) {
-	--vibrant-cap: 0.069;
-}
-:root[data-theme="fern"].dark:is([data-sidebar-mode="vibrant"], [data-header-mode="vibrant"]) {
-	--vibrant-cap: 0.076;
+:root[data-theme="bluestone"].dark:is([data-sidebar-mode="vibrant"], [data-header-mode="vibrant"]) {
+	--vibrant-cap: 0.037;
 }
 :root[data-theme="kiln"].dark:is([data-sidebar-mode="vibrant"], [data-header-mode="vibrant"]) {
-	--vibrant-cap: 0.058;
+	--vibrant-cap: 0.041;
+}
+:root[data-theme="evergreen"].dark:is([data-sidebar-mode="vibrant"], [data-header-mode="vibrant"]) {
+	--vibrant-cap: 0.041;
+}
+:root[data-theme="sandstone"].dark:is([data-sidebar-mode="vibrant"], [data-header-mode="vibrant"]) {
+	--vibrant-cap: 0.042;
+}
+:root[data-theme="ember"].dark:is([data-sidebar-mode="vibrant"], [data-header-mode="vibrant"]) {
+	--vibrant-cap: 0.049;
+}
+:root[data-theme="moss"].dark:is([data-sidebar-mode="vibrant"], [data-header-mode="vibrant"]) {
+	--vibrant-cap: 0.052;
+}
+:root[data-theme="fern"].dark:is([data-sidebar-mode="vibrant"], [data-header-mode="vibrant"]) {
+	--vibrant-cap: 0.053;
+}
+:root[data-theme="nordic"].dark:is([data-sidebar-mode="vibrant"], [data-header-mode="vibrant"]) {
+	--vibrant-cap: 0.057;
+}
+:root[data-theme="crimson"].dark:is([data-sidebar-mode="vibrant"], [data-header-mode="vibrant"]) {
+	--vibrant-cap: 0.079;
+}
+:root[data-theme="orchid"].dark:is([data-sidebar-mode="vibrant"], [data-header-mode="vibrant"]) {
+	--vibrant-cap: 0.084;
+}
+:root[data-theme="heather"].dark:is([data-sidebar-mode="vibrant"], [data-header-mode="vibrant"]) {
+	--vibrant-cap: 0.092;
 }
 
 :root:is([data-sidebar-mode="vibrant"], [data-header-mode="vibrant"]).dark {
 	/*
 	 * The dark fallback mixes toward the BACKGROUND, not toward black: mixing the primary toward
-	 * black inherits its lightness, and in dark ten of the twelve palettes ship a primary that is
-	 * already a light tint. A small primary share into a slightly whitened page ground lands the
-	 * head just above the page on all twelve — and the foot is the page itself, verbatim.
+	 * black inherits its lightness, and in dark fifteen of the eighteen palettes ship a primary that
+	 * is already a light tint (L 0.72-0.93; crimson, kiln and parallax sit at 0.58-0.59). A small
+	 * primary share into a slightly whitened page ground lands the head in the upper half of the
+	 * page-to-rail step on all eighteen — L 0.199-0.211, at or just above the midpoint the
+	 * relative-colour head is pinned to, and 0.0067 or more short of the rail — and the foot is the
+	 * page itself, verbatim.
+	 *
+	 * 3% AND NOT THE 4% THIS WAS: at 4% the two near-white brands, graphite and sepia (primary
+	 * L 0.93), landed 0.0007 and 0.0006 ABOVE their own rail, the "too light in dark" the far stop
+	 * exists to avoid — and on the earlier ladder they already overshot it, by 0.0006 and 0.0024.
+	 * The primary share is the term that spreads the palettes apart (the white lifts every page
+	 * alike), so it is the one cut.
 	 */
 	--vibrant-a: color-mix(
 		in oklab,
-		var(--primary) 4%,
+		var(--primary) 3%,
 		color-mix(in oklab, white 1%, var(--background))
 	);
 	--vibrant-b: var(--background);
 
 	/*
 	 * THE HAIRLINE, AT THE WEIGHT THE KIT ITSELF SPENDS ON A DARK SEPARATION — not a value picked
-	 * by eye. Measured on the default palette: `--sidebar-outline` sits 0.046 of lightness off the
-	 * dark panel, a card's `--border` sits 0.085 off the dark page, and the default dark
+	 * by eye. Measured on the default palette: `--sidebar-outline` sits 0.063 of lightness off the
+	 * dark panel, a card's `--border` sits 0.101 off the dark page, and the default dark
 	 * `--sidebar-border` is FLUSH with the panel at 0.000. That is the kit's whole vocabulary for
-	 * separating two dark surfaces: 0.04 to 0.09.
+	 * separating two dark surfaces: 0.063 to 0.101 (0.057 to 0.101 across all eighteen palettes).
 	 *
-	 * A 20% white on this panel spends 0.149-0.165 — two to four times the kit's own step, which
-	 * is why the rail and the bar were drawing a visibly brighter outline in dark than anything
-	 * else on the page does. At 7% the same white spends 0.052-0.059: inside the kit's band, next
-	 * to the outline step rather than the card step, and the fold reads as a fold again.
+	 * A 20% white on this panel spends 0.172-0.192 (white composited in sRGB, lightness read in
+	 * OKLCH, from the page at the elbow to the far stop) — 1.7 to 3 times the kit's own step,
+	 * which is why the rail and the bar were drawing a visibly brighter outline in dark than
+	 * anything else on the page does. At 8% the same white spends 0.067-0.080: inside the kit's
+	 * band, next to the outline step rather than the card step, and the fold reads as a fold again.
+	 *
+	 * 8% AND NOT THE 7% THIS WAS. On the earlier ladder 7% spent 0.053-0.059 against an outline
+	 * step of 0.046, though it already fell under orchid's own outline step there (0.0459 against
+	 * 0.0464, at its head); the deeper ladder widened the default palette's step to 0.063, and 7%
+	 * now spends 0.058-0.071 — under it at the far stop, the default palette's deep-blue head, which
+	 * a white lifts less than any other point in the kit. The default palette's lowest lift meets its
+	 * outline step at 7.61%, and 8% is the first whole percent that clears its own outline step on
+	 * all eighteen palettes (0.067-0.083 across them).
 	 *
 	 * It stays a white alpha rather than becoming a solid, for the reason the light value gives —
 	 * one value has to be right at both ends of a ramp. Nothing accessible rides on it: control
 	 * boundaries take `--input` (solved ink, WCAG 1.4.11) and focus takes its own two-tone pair.
 	 */
-	--vibrant-edge: rgb(255 255 255 / 0.07);
+	--vibrant-edge: rgb(255 255 255 / 0.08);
 
-	/* `soft-light` scales its effect by the backdrop, so the 10% that dithers a near-white rail is
-	   close to inert over an L 0.31 one — and the dark ramp has fewer 8-bit codes to spend. */
+	/* `soft-light` scales its effect by the backdrop: over this field (L 0.18 -> 0.199) a grain
+	   pixel moves lightness 0.69 to 0.82 times as far as over the light ramp (L 0.40 -> 0.28), so
+	   14% here lands at 0.97 to 1.14 of what the light block's 10% does there. The range is the
+	   noise model. 0.69 assumes symmetric grey noise in sRGB; 0.82 is the figure for what this
+	   SVG's feTurbulence emits — independent noise in each channel and in alpha, generated in
+	   linearRGB, its default, because the SVG sets no `color-interpolation-filters` — shown in
+	   sRGB, which lifts mid-noise to about 0.73, so soft-light almost only lightens. And the dark
+	   ramp has fewer 8-bit codes to spend — the widest channel spans 6 to 32 codes from the elbow
+	   to the far stop, against 34 to 55 in light — so it needs the dither at least as much. */
 	--vibrant-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='182' height='182'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.14'/%3E%3C/svg%3E");
 
 	/*
@@ -264,11 +355,17 @@
 	}
 
 	:root:is([data-sidebar-mode="vibrant"], [data-header-mode="vibrant"]).dark {
-		/* The floor drops with the head, and it has to: at L 0.285 harbor's teal ceilings at 0.0492,
-		   BELOW the 0.05 the light ramp floors at — so the floor itself would have been the
-		   out-of-gamut value. 0.045 clears the narrowest hue at this lightness (h200, 0.0485). */
+		/* The floor drops with the head, and it has to: at L 0.199 harbor's teal ceilings at 0.0344
+		   and the narrowest hue of the whole circle (h200) at 0.0339, BELOW both floors the light ramp
+		   uses (0.065, 0.045) — so either would itself be the out-of-gamut value. 0.033 is that
+		   narrowest ceiling truncated to three decimals, the rule every cap follows. It clears the
+		   whole circle, not just the eighteen brands' hues, because what reaches it is a primary too
+		   grey to set its own chroma — graphite and sepia ask 0.0036 and 0.0074 — and a floor has to
+		   hold at whatever hue such a primary carries. And it sits under the lowest cap, harbor's
+		   0.034, because `clamp()` returns its MIN whenever MIN > MAX: a floor above a cap would
+		   silently override it. */
 		--vibrant-a: oklch(
-			from var(--primary) 0.285 clamp(0.045, calc(c * 0.62), var(--vibrant-cap, 0.115))
+			from var(--primary) 0.199 clamp(0.033, calc(c * 0.62), var(--vibrant-cap, 0.115))
 				calc(h + var(--vibrant-torsion))
 		);
 		--vibrant-b: var(--background);
@@ -288,7 +385,7 @@
 	 * THE RESTING INK IS THE SOFT ONE, AND THAT IS THE WHOLE HIERARCHY OF A NAV RAIL. Every palette
 	 * in this kit spends two inks on the panel: `--sidebar-foreground` for an item at rest and
 	 * `--sidebar-accent-foreground` for the one you are on. Measured on the default palette, that
-	 * gap is #6c86a3 against #0f263f — a muted grey-blue beside a near-black, so the current page
+	 * gap is #6c86a3 against #001227 — a muted grey-blue beside a near-black, so the current page
 	 * announces itself from across the rail.
 	 *
 	 * This block used to hand BOTH steps the same near-white: `--vibrant-ink` at L 0.97 resting
@@ -327,8 +424,8 @@
 	 */
 	--tw-ring-inset: inset;
 	/* The fold hairline is a fold, not a control boundary. WCAG 1.4.11 binds the boundary of an
-	   input at 3:1, so it gets the solved soft ink rather than the 20% wash the alias block in
-	   `app.css` would otherwise hand it. */
+	   input at 3:1, so it gets the solved soft ink rather than the white wash — 20% in light, 8% in
+	   dark — that the alias block in `app.css` would otherwise hand it. */
 	--input: var(--vibrant-ink-soft);
 
 	/*
@@ -339,7 +436,7 @@
 	 * THE VALUE HERE IS THE RAIL'S, and the bar takes its own back in the rule below. The two
 	 * surfaces rest at different weights and always have: measured with no axis set, the rail is
 	 * `--sidebar-foreground` (#6c86a3, muted — an item at rest) and the bar is `--foreground`
-	 * (#0f263f, strong — its controls are the page's primary actions). One shared declaration
+	 * (#001227, strong — its controls are the page's primary actions). One shared declaration
 	 * flattens that, which is what it did while both inks were near-white.
 	 */
 	color: var(--sidebar-foreground);

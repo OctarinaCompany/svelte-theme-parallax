@@ -23,8 +23,10 @@
 	 *                  expressed as a ratio instead of an unreachable pixel value
 	 *   bg-secondary   `progress-bg` is `--bs-secondary-bg` = `gray-200` in light, which
 	 *                  `--secondary` holds exactly. The classic theme's dark override asks for
-	 *                  `gray-600-dark` (#244166) where `--secondary` is #1E3A5C — one step
-	 *                  darker, and the only inexact value on this page
+	 *                  `gray-600-dark` (#244166) where `--secondary` is #082A4A — one rung
+	 *                  under it (OKLCH L 0.28 here, against the reference's 0.37) and the only
+	 *                  inexact value on this page. The track still reads on the dark card at
+	 *                  1.20:1
 	 *
 	 * The filled bar needs nothing: shadcn's indicator is already `bg-primary`, and
 	 * `progress-bar-bg` is `primary`.

@@ -107,8 +107,9 @@ ships today is listed here.
   (ten), one SVG mark placed from a corner or the centre, scaled and turned, and a grain over all of it — with
   twelve adjustments over sixteen `localStorage` keys — eleven numeric and clamped, plus the
   mark's corner. Every colour derives from the live
-  tokens, so one stylesheet serves all eighteen palettes in both modes rather than eighteen
-  hand-written blocks per look, and `none` writes no attribute, so the kit as it ships costs
+  tokens, so one stylesheet serves all eighteen palettes in both modes, the dark aurora's
+  per-palette chroma ceilings aside, rather than eighteen hand-written blocks per look, and
+  `none` writes no attribute, so the kit as it ships costs
   nothing. It publishes as `parallax-backdrop` (the hook, `src/backdrops.css` and the mark's SVG)
   and `parallax-backdrop-controls` (the wand dropdown over the four layers).
 - The AI chat family: twelve house components under a new `AI chat` catalog group —
@@ -215,6 +216,47 @@ ships today is listed here.
 
 ### Changed
 
+- **Every palette is darker.** The dark ladder all eighteen palettes stand on is the anchor
+  palette's taken deeper, in OKLCH: the page from L 0.266 to 0.18 — about two thirds as light —
+  the hover and muted grounds from 0.282 to 0.198, the cards, popovers and rail from 0.298 to
+  0.218, and the lines, inputs and `secondary` from 0.344 to 0.276, each step a little wider than
+  it was, at the anchor's chroma clipped to the gamut. Light mode keeps its pages, cards and
+  borders: what moved there is the body ink and `--scrim` — the same colour as the dark page —
+  from L 0.266 to 0.18, Graphite's and Sepia's ink brands, which sit a hair above it, from 0.30
+  to 0.22, and `--chart-1` in sixteen of the seventeen generated palettes, since it is one value
+  for both modes (below). The dark `*-subtle` washes are carried down with the line, each keeping
+  the offset its 28% mix gave it on the old ladder — re-cutting them onto the line was measured
+  and rejected, since a brand wash there wears the border's own colour (ΔEok 0.004 in Indigo and
+  Moss) — and on the deeper washes every dark warning's ink is the warning itself, its walk
+  ending where it starts. In the seventeen generated palettes the dark secondary text is held at
+  APCA Lc 41.5, where it read before: 4.55:1 alone would have landed it about six Lc dimmer on
+  the deeper grounds, and it now measures 5.5–6.0:1. `chart-1`, one value for both modes, is
+  re-solved against the darker card: 3.1:1 there now floors it at L 0.50–0.54 rather than
+  0.56–0.59, so in twelve palettes the series is the brand itself, and Crimson's, Bluestone's and
+  Kiln's deep brands are lifted only to 0.51–0.53. The Parallax base takes the same ladder at its
+  own hue and chroma before its nudge — dark `--background` `#0f263f` → `#001227`; `--card`,
+  `--popover`, `--sidebar` and `--sidebar-border` `#182f4f` → `#011a36`; `--border`, `--input`,
+  `--secondary` and `--sidebar-outline` `#1d3c5d` → `#082a4a`; `--muted`, `--accent` and
+  `--sidebar-accent` `#162b48` → `#041531`; light `--foreground` and its five aliases, and
+  `--scrim`, `#0f263f` → `#001227` — and `index.html`'s dark `theme-color` follows it. Its five
+  dark washes are cut onto the deeper line, as they were onto the old one, and their inks are
+  walked again. Its own secondary text — the anchor's, nudged rather than solved — did not move:
+  it reads about Lc 35 on the darker grounds, under the 41.5 the generated palettes hold, but
+  now clears 4.5:1 there (4.64:1 on the card, from 3.58). The hand-tuned dark stops of the
+  `vibrant` chrome and of the backdrops are re-derived for the deeper grounds. The vibrant head
+  sits at L 0.199, midway between the page and the rail, with its chroma floor at 0.033, its dark
+  hairline at 8% white and twelve palettes capped where six were. The aurora's dark fields sit at
+  L 0.21 / 0.206 / 0.201, near the places on the page-to-card step they held, and every pinned
+  dark ink is re-solved to keep its shipped lift at its own alpha and chroma — the weave, whose
+  soft-light blend lost half its room, by taking more alpha too. The dark aurora now carries a
+  measured sRGB ceiling on fifteen palettes, 31 of its 54 fields: its shared clamps alone already
+  left the gamut on nine, where the browser clips with a hue shift. Its fallback mixes (11 / 10 /
+  6.9%, from 22 / 16 / 11%) keep every field under the card at the default intensity, in the
+  supported path's order. Both hand-cut ceiling tables are now checked by `npm run themes:audit`
+  (`tools/themes/ceilings.mjs`), which fails when a palette or a stop moves under them. In the
+  audit ledger, Crimson's two dark text entries are re-recorded at 3.81 and 4.09 (from 3.02 and
+  3.32 — the brand did not move, its grounds did), and its dark fill entry is retired: the brand
+  now clears the 3.1 non-text floor on the darker card.
 - **The shell owns the scroll.** `parallax-shell` now pins `Sidebar.Provider`'s wrapper to
   `100dvh` and clips it, and makes `Sidebar.Inset` — the `<main>` — the one scroll container:
   `overflow-y: auto`, `overscroll-behavior-y: contain` so a flick at the end of the canvas does
@@ -280,7 +322,8 @@ ships today is listed here.
   ground on the page, a hairline on a chrome surface — and under `vibrant` a solved near-white
   boundary ink, which is also what the surface hands its children as text. The three fill rules now
   fence themselves out of chrome, so a field there keeps its transparent ground and is read from
-  its border. Measured after: 9.7:1 inside the rail, and the page's own fields unchanged at 10.93:1.
+  its border. Measured after: 9.7:1 inside the rail (on the earlier ladder), and the page's own
+  fields unchanged at 14.09:1.
   The rule behind it — a chrome surface imposes its own half of the palette, values AND rules —
   is written up in `docs/CONVENTIONS.md` §8, in the skill's `theming.md`, and in
   `parallax-appearance`'s own docs, since the variant lives in a line only the consumer can write.

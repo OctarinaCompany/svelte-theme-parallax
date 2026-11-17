@@ -23,20 +23,22 @@ import { cn } from "$lib/utils.js";
  *
  *   border         `border: input-border-width solid var(--bs-<picker>-border-color)`,
  *                  where the colour is `input-border-color` — `gray-400` (#D2DDEC) light,
- *                  `gray-700-dark` (#1E3A5C) dark — which `--input` holds exactly in BOTH
- *                  modes. shadcn's docs ask for a bare `border`, i.e. `--border` (#EDF2F9),
- *                  all but invisible against white.
+ *                  `gray-700-dark` (#1E3A5C) dark — which `--input` holds rung for rung in BOTH
+ *                  modes (#D0DCEA / #082A4A here). shadcn's docs ask for a bare `border`,
+ *                  i.e. `--border` (#EDF2F9), all but invisible against white.
  *   rounded-md     `border-radius` (0.375rem). the picker's own panel is 5px and the classic theme
  *                  never touches it, but 6px is what the classic theme puts on everything else.
  *   ground         `--bs-<picker>-bg` is `input-bg`: `#fff` in light and `gray-700-dark`
  *                  (#1E3A5C) in dark. The component goes `bg-transparent` inside a
  *                  `card-content` OR a `popover-content`, so without these rules the panel
- *                  shows the host surface through — which in dark is #152E4D, EXACTLY the
- *                  colour of the range band below, and the highlight disappears. That is not
- *                  hypothetical: the popover form shipped that way, and the band measured
- *                  rgb(21,46,77) on rgb(21,46,77). The `--card` / dark `--input` pair is the
- *                  same one `.form-control` uses in `app.css`, and honestly so — the classic theme's
- *                  picker IS a form control, and its popup inherits the field's ground.
+ *                  shows the host surface through — which in dark is `--card` (#011A36),
+ *                  EXACTLY the colour of the range band below, and the highlight disappears.
+ *                  That is not hypothetical: the popover form shipped that way, and the band
+ *                  measured rgb(21,46,77) on rgb(21,46,77), the card as it then was. On the dark
+ *                  `--input` ground the band reads at 1.20:1. The `--card` / dark `--input`
+ *                  pair is the same one `.form-control` uses in `app.css`, and honestly so — the
+ *                  classic theme's picker IS a form control, and its popup inherits the field's
+ *                  ground.
  *   --cell-size    the 39px day cell — the picker's, untouched
  *                  by the classic theme. shadcn ships 32px.
  *   [&_th]         the weekday row: `color: inherit !important` drags the picker's grey up to
@@ -48,8 +50,9 @@ import { cn } from "$lib/utils.js";
  *                  middles and end alike — so one selector covers the band.
  *
  * `--bs-light` is `gray-200` (#EDF2F9) in light and `light-dark` = `gray-800-dark`
- * (#152E4D) in dark. No single token holds both: `--secondary` is exact in light, `--card` in
- * dark — the same split, and the same reason for a `dark:` override, as the tooltip chip.
+ * (#152E4D) in dark. No single token holds both: `--secondary` is that rung in light, `--card`
+ * in dark (#011A36 on the deeper ladder) — the same split, and the same reason for a `dark:`
+ * override, as the tooltip chip.
  *
  * The last two rules round the band's ends at a ROW boundary, which shadcn rounds for middles
  * and forgets for the two caps: a range that ends on the first cell of a week would otherwise

@@ -79,8 +79,9 @@
 	 * `border-width: 0 0 var(--bs-border-width) 0` — a BOTTOM rule only, not shadcn's box —
 	 * in `navbar-light-border-color`, which is `gray-300` (#E3EBF6) in light and
 	 * `gray-800-dark` (#152E4D) in dark, i.e. flush with the bar's own background: the classic theme
-	 * deliberately hides the rule in dark mode. `--border` would draw #EDF2F9 / #1E3A5C and
-	 * so would be wrong in light and visible in dark, where the classic theme shows nothing.
+	 * deliberately hides the rule in dark mode. `--border` would draw #EEF3FA / #082A4A and
+	 * so would be wrong in light and visible in dark (1.20:1 on the bar), where the classic theme
+	 * shows nothing.
 	 *
 	 * `--sidebar-border` is not a near miss here, it is the same Sass variable: this app's
 	 * sidebar IS the classic theme's `.navbar-vertical.navbar-light`, and `app.css` records the token as
@@ -147,8 +148,8 @@
 	 * The hairline is left as shadcn's `ring-1 ring-foreground/10` in light, because that is
 	 * `dropdown-border-color: rgba(var(--bs-black-rgb), .1)` written out — `black` is
 	 * `--foreground`. Dark mode is the exception TooltipPage also hit: `dropdown-border-
-	 * color-dark` is solid `black`, i.e. #12263F, which in dark mode is `--background` and
-	 * has no other token. Hence the one `dark:` override on the page.
+	 * color-dark` is solid `black`, i.e. #12263F, which in dark mode is `--background` (#001227 on
+	 * the deeper ladder) and has no other token. Hence the one `dark:` override on the page.
 	 *
 	 * A navbar's menu keeps that border, incidentally — `.navbar-nav .dropdown-menu { border:
 	 * none }` applies only while the navbar is COLLAPSED; every `.navbar-expand-*` breakpoint

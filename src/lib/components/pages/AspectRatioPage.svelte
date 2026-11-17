@@ -38,7 +38,7 @@
 	 *
 	 * NO REMOTE IMAGE: the docs demo loads a stock photo. This repo makes no network requests
 	 * at runtime, so every frame holds the same `bg-muted` block the Cards page uses as a chart
-	 * stand-in (`--muted` is `gray-200` #EDF2F9 light, `gray-900-dark` #132A46 dark). The docs'
+	 * stand-in (`--muted` is `gray-200` #EEF3FA light, `gray-900-dark` #041531 dark). The docs'
 	 * `dark:brightness-[0.2] dark:grayscale` on the `<img>` goes with it — there is no photograph
 	 * left to dim.
 	 */

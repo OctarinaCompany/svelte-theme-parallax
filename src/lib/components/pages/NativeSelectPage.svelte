@@ -29,8 +29,9 @@
 	 *   padding: .5rem 1.75rem .5rem .75rem;         input-padding-y/x + form-select-indicator-padding
 	 *
 	 * Four of those are ALREADY what shadcn ships and are left untouched: `appearance-none`, the
-	 * `border-input` colour (#D2DDEC in light and #1E3A5C in dark are `--input` exactly, in both
-	 * modes), `rounded-md` (= `border-radius`), and `text-sm` — which this repo remaps to
+	 * `border-input` colour (gray-400 / gray-700-dark, #D2DDEC / #1E3A5C, are the rungs `--input`
+	 * holds in both modes — #D0DCEA / #082A4A here), `rounded-md` (= `border-radius`), and
+	 * `text-sm` — which this repo remaps to
 	 * 0.9375rem, i.e. `font-size-base`. The font weight is inherited 400 on both sides.
 	 *
 	 * THE CARET IS THE SURPRISE. shadcn draws a Lucide `chevron-down` element where the classic framework

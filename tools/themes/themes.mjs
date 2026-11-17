@@ -6,9 +6,10 @@
  *
  * Two things are inherited from the anchor palette and are what make the themes feel like one family:
  *
- *   1. THE LIGHTNESS LADDER. the anchor palette's neutral ramp, measured in OKLCH, is reused verbatim,
- *      so every theme has the same surface, elevation, border and text architecture. Only
- *      hue and chroma move.
+ *   1. THE LIGHTNESS LADDER. the anchor palette's neutral ramp, measured in OKLCH, is reused for
+ *      every theme — its light steps verbatim, its ink and its dark steps taken deeper (see
+ *      `L_DARK`) — so every theme has the same surface, elevation, border and text
+ *      architecture. Only hue and chroma move.
  *   2. THE TOKEN MAPPING. Which ramp step plays `--border`, `--input`, `--sidebar-accent` …
  *      is the mapping docs/THEME.md §2 records, unchanged.
  *
@@ -33,8 +34,16 @@ import {
 import { ANCHOR_LIGHT, ANCHOR_DARK } from "./base.mjs";
 
 // ---------------------------------------------------------------------------------------
-// the anchor palette's structure, measured
+// the anchor palette's structure, measured — and taken deeper
 // ---------------------------------------------------------------------------------------
+
+/*
+ * THE ANCHOR'S OWN LADDER, as measured off its navy ramp (#12263F ink, #132A46, #152E4D and
+ * #1E3A5C). The kit no longer ships it: `L_LIGHT.ink` and `L_DARK` below are these four taken
+ * deeper. It stays written down because two rules are stated against it — the base palette's
+ * re-laddering (`deepen`) and the dark washes' place under the dark-700 line (`darkWash`).
+ */
+const ANCHOR_LADDER = { ink: 0.266, d900: 0.282, d800: 0.298, d700: 0.344 };
 
 const L_LIGHT = {
 	n100: 0.987,
@@ -46,7 +55,9 @@ const L_LIGHT = {
 	n700: 0.608,
 	n800: 0.426,
 	n900: 0.359,
-	ink: 0.266,
+	// The anchor's 0.266, deepened with the dark ladder below: it is the same colour — the dark
+	// page IS the light ink — so the two cannot move apart.
+	ink: 0.18,
 };
 const C_LIGHT = {
 	n100: 0.0034,
@@ -60,8 +71,40 @@ const C_LIGHT = {
 	n900: 0.0548,
 	ink: 0.0538,
 };
-const L_DARK = { d700: 0.344, d800: 0.298, d900: 0.282 };
+/*
+ * THE DARK LADDER, TAKEN DEEPER (owner, 2026-11-17: every theme darker, as the darker Graphite
+ * prototype was). The page — the ink — goes from 0.266 to 0.18, about two thirds as light, and
+ * each step above it widens a little: d900 0.198, d800 0.218 (cards, popovers, the rail), d700
+ * 0.276 (borders, inputs, `secondary`), against the anchor's 0.282, 0.298 and 0.344 — steps of
+ * 0.018, 0.020 and 0.058 where there were 0.016, 0.016 and 0.046. Perceptually that holds above
+ * d900 and not quite below it. Measured in CIE L* across the seventeen generated palettes, d900
+ * to d800 is 2.1-2.5 (1.6-2.2 before) and d800 to d700 6.5-7.2 (5.1-5.7), but the page to d900
+ * narrows to 1.5-2.0 (1.6-2.1); and the WCAG ratios between surfaces come out a hair lower —
+ * card on page 1.07-1.09 against 1.10-1.12, a line on a card 1.17-1.19 against 1.18-1.20, with
+ * Harbor's line rising instead (1.18 to 1.19) and Bluestone's level — because the same OKLCH
+ * step spans less luminance near black.
+ *
+ * The chroma is the anchor's at every step, unscaled, and the gamut clips it where a hue cannot
+ * hold it this deep — though not through `fit`: `ramp` calls `oklchToHex`, which caps the chroma
+ * at the sRGB boundary itself (`maxChroma`), byte for byte what `fit` gives at every step of both
+ * ramps. Seven steps clip on this ladder, where the anchor's clipped two: Harbor's ink and its
+ * three dark steps keep 69-83% of their chroma (its d900 and d800 kept 98.5% and 96% before), and
+ * Sandstone's ink, d900 and d800 keep 92-93%. The clip is not what lifts Harbor's line, though;
+ * 8-bit rounding is. At the lightnesses asked for, its line on its card falls like every other
+ * palette's (1.191 to 1.184), but its card rounds to L 0.2165 and its line to 0.2771 — a step of
+ * 0.061 for the 0.058 asked — where on the anchor's ladder the two rounded the other way (0.2991
+ * and 0.3429). Bluestone's level line is the same rounding; unrounded, it falls 1.189 to 1.181.
+ */
+const L_DARK = { d700: 0.276, d800: 0.218, d900: 0.198 };
 const C_DARK = { d700: 0.069, d800: 0.0646, d900: 0.0595 };
+
+/**
+ * The dark secondary text's perceptual floor. On the deeper grounds 4.55:1 alone lands about six
+ * Lc dimmer than it did on the anchor's — Lc 34.2-35.9 against 40.1-42.5, across the seventeen
+ * generated palettes and the three grounds — and this holds it there: Lc 41.6-42.8, binding on
+ * the card, which leaves the WCAG floor behind at 5.5-6.0:1. See `solveText`.
+ */
+const LC_SECONDARY_DARK = 41.5;
 
 /** Chart series 2 — the anchor palette's `"primary-300"` (#A6C5F7), a tint of the brand. */
 const CHART2 = { L: 0.818, C: 0.0785 };
@@ -88,11 +131,14 @@ const UI = 3.1;
 //
 // So since 2026-08-11 the pairing is the classic DESIGN with the numbers SOLVED: the
 // grounds keep the mixes below (20% light / 28% dark — at a classic 45% a bright status
-// ground eats the ink's room; the base palette's dark grounds are additionally re-cut, see
-// `alignDarkWash`), and the type is a dedicated `{state}-subtle-foreground`, walked by
-// `subtleInk` until the pairing clears AA in its harshest composited form. The raw status
-// colour is a fill again, exactly as Radix's step 9 is — nothing renders it as type on a
-// tint any more.
+// ground eats the ink's room; the 28% is measured on the anchor's ladder and carried down
+// with it, see `darkWash`, and the base palette's dark grounds are re-cut onto the dark-700
+// line instead, see `alignDarkWash`), and the type is a dedicated
+// `{state}-subtle-foreground`, walked by `subtleInk` until the pairing clears AA in its
+// harshest composited form. The raw status colour is a fill again, exactly as Radix's step 9
+// is — nothing renders it as type on a tint any more. The type is always the dedicated token,
+// even where the walk returns the fill's own value, as it now does for every dark warning on
+// the deeper washes (see `subtleInk`).
 // ---------------------------------------------------------------------------------------
 
 const SUBTLE_LIGHT = 0.2;
@@ -106,14 +152,23 @@ export const subtleD = (hex) => mixHex(hex, "#000000", SUBTLE_DARK);
  * at a tint percentage. The status colour's own lightness walks away from the wash (down in
  * light, up in dark), hue held, chroma clamped to the gamut, until the HARSHEST consumer
  * clears WCAG AA: the alert description, which renders this ink at 80% opacity over the
- * wash. The full-strength ink then lands near 6–7.5:1 on its own.
+ * wash. The full-strength ink then lands at 5.8–7.5:1 on its own in light; in dark, at
+ * 9.3–10.4:1 on the generated themes' deeper washes and 8.5–9.0:1 on the base's, which are cut
+ * onto the line — counting the inks that walk; below for the ones that do not.
  *
  * Dark adds an APCA floor of Lc 68, because WCAG 2.x arithmetic flatters dark pairs — a
  * dark pairing can pass 4.5:1 at a perceptual Lc 40 that light mode would only produce
  * around 1.9:1. Lc 68 lands the walked inks in the measured territory of classic dark
  * text-emphasis (7.2–10.8:1) and Radix's step 11 (7.1–10.3:1), well under the Lc 85–90
- * halation cap. Light needs no such floor: an ink dark enough for the 80% composite
- * measures Lc 67–81 by itself.
+ * halation cap: they measure Lc 68.0–69.0. Light needs no such floor: an ink dark enough for
+ * the 80% composite measures Lc 66–82 by itself.
+ *
+ * THE WALK CAN END WHERE IT STARTS. A colour that already clears both floors on its wash is
+ * returned as it stands, so its ink IS the fill — as Graphite's and Sepia's ink brands always
+ * were, in both modes (11.3–11.4:1 in light). On the deeper dark washes that takes in every
+ * dark warning too: the amber clears 4.5:1 at 80% (6.3–6.5:1) and Lc 70.1–72.4 at the first
+ * step, 9.0–9.2:1 at full strength. The two ink brands' dark fills, already near-white, are the
+ * one pair that reaches into the halation band — Lc 87.5–87.8 on their washes.
  *
  * The target is WCAG's own 4.5 rather than this file's `AA` margin constant: the at-80%
  * composite IS the margin-bearing form, and the full-strength ink clears `AA` by a mile.
@@ -170,6 +225,8 @@ function liftDark(h, C, fromL, card, inkish, onCard = AA) {
 		const hex = fit(L, C, h);
 		// The label has to survive the lift too. Without this the search happily stops in the
 		// dead band where a fill is too light for white type and too dark for ink type.
+		// (`subtleD` stands in for the wash here: it is always lighter than the `darkWash` the
+		// theme ships, so a colour that clears it clears the real one with room to spare.)
 		const label = Math.max(contrast(WHITE, hex), contrast(inkish, hex));
 		if (contrast(hex, card) >= onCard && contrast(hex, subtleD(hex)) >= AA && label >= AA)
 			return { L, hex };
@@ -264,7 +321,9 @@ export const THEMES = [
 		// role a neutral, and every hue on screen is then free to mean exactly one thing.
 		brandH: 264,
 		brandC: 0.01,
-		brandL: 0.3,
+		// An ink brand sits a hair above the ink, and moves with it: 0.30 over the anchor's
+		// 0.266, 0.22 over the deeper 0.18.
+		brandL: 0.22,
 		brandDark: { L: 0.93, C: 0.006 },
 		// `chart-1` would otherwise be a near-black and `chart-2` a grey the two neutral series
 		// already cover, so the chart ramp takes a hue of its own.
@@ -281,7 +340,8 @@ export const THEMES = [
 		nc: 0.55,
 		brandH: 60,
 		brandC: 0.02,
-		brandL: 0.3,
+		// The ink brand over the deeper ink, as Graphite's.
+		brandL: 0.22,
 		brandDark: { L: 0.93, C: 0.012 },
 		chartH: 62,
 		chartC: 0.12,
@@ -376,8 +436,8 @@ export const THEMES = [
 		brandC: 0.1,
 		brandL: 0.41,
 		// Lifted only to the point where a WHITE label still works. Letting the solver find the
-		// next passing lightness on its own put it at L 0.76, where the only legible label is
-		// dark type and the fill had faded to a dusty pink.
+		// next passing lightness on its own put it at L 0.74 (0.75 at the C 0.145 used here),
+		// where the only legible label is dark type and the fill had faded to a dusty pink.
 		brandDark: { L: 0.58, C: 0.145 },
 		status: { destructive: { h: 34 } },
 	},
@@ -483,7 +543,7 @@ export const THEMES = [
 		blurb: "Violet-tinted neutrals under a muted iris primary.",
 		// Rosé Pine tints every neutral toward the ground's own hue in BOTH variants, which is why
 		// there is no grey anywhere in it. Here that is the kit's full neutral cast at a hue nothing
-		// else claims — dark ground #26213A, card #2E2846 — under a brand quiet enough to be the
+		// else claims — dark ground #120D24, card #1B1431 — under a brand quiet enough to be the
 		// second occupant of the chroma gap Bluestone opens.
 		nh: 292,
 		nc: 0.85,
@@ -501,8 +561,10 @@ export const THEMES = [
 		//
 		// This is the kit's only warm near-achromatic neutral — Graphite is near-achromatic but cool
 		// at nh 264, Sepia is warm but at nc 0.55 — and with Crimson the only brand that stays deep
-		// in BOTH modes. The dark brand is hand-placed because 0.59 is the single value that works:
-		// 0.58 drops its text on the page below the base, 0.60 drops its own label below it.
+		// in BOTH modes. The dark brand is hand-placed because 0.59 is the single value that works,
+		// measured again on the deeper ladder: 0.58 drops its text on the page and on the card below
+		// the base's (4.30 and 3.96 against 4.38 and 4.07), 0.60 drops its own label below it (4.03
+		// against 4.15).
 		nh: 88,
 		nc: 0.15,
 		brandH: 76,
@@ -515,20 +577,20 @@ export const THEMES = [
 	},
 	// LAST ON PURPOSE, AND THE BASE. Every theme above answers "what if the brand were another
 	// hue"; this one answers "what if it were the same hue, measured again", so it belongs at the
-	// end of the list rather than beside the eleven that actually depart.
+	// end of the list rather than beside the seventeen that actually depart.
 	//
 	// `builtin` means it emits no `[data-theme]` block, because it IS `:root` and `.dark` in
 	// `src/app.css`. Shipping a palette derived from the anchors, rather than the anchors
 	// themselves, is the point of the nudge. The anchor values survive only in `base.mjs`, as the
-	// table this one's per-token shift is computed from and as the reference the audit measures
-	// against — an input to the build, never an output of it.
+	// table this one's re-laddering (`deepen`) and per-token shift are computed from — an input
+	// to the build, never an output of it; the audit's yardstick is the solved result.
 	{
 		id: "parallax",
 		name: "Parallax",
 		builtin: true,
 		nudgeOf: "anchors",
-		why: "The base palette, and the one theme with no block of its own: every token is the anchor palette's read from a hair's different angle, so none is shared with it and none is far from it.",
-		blurb: "Navy and blue, every value nudged under 2% off the original.",
+		why: "The base palette, and the one theme with no block of its own: the anchor palette with its four ladder colours, and every token aliased to them, taken down to the kit's deeper ladder, every token then read from a hair's different angle and the dark washes re-cut onto the new line — so none is shared with the original, and none but the ladder and those washes is far from it.",
+		blurb: "Navy and blue, its ladder and dark washes taken deeper, the rest nudged under 2%.",
 	},
 ];
 
@@ -543,9 +605,11 @@ const ramp = (Ls, Cs, hue, scale) =>
  * THE NUDGED PALETTE, the one theme not solved from anchors.
  *
  * Everything else in this file derives a palette from a handful of numbers. `parallax` instead
- * reads the anchor palette's own tokens and moves each one by between 0.1% and 2% — far enough that it
- * shares no value with the original, near enough that the two read as the same design. It is
- * the theme's own colours, measured a second time by a slightly different instrument.
+ * reads the anchor palette's own tokens, takes the four that form its ladder down to the kit's
+ * deeper one (`deepen`, below — the move every generated theme's surfaces made with it), and
+ * moves each one by between 0.1% and 2% — far enough that it shares no value with the original,
+ * near enough that, the deeper ladder aside, the two read as the same design. It is the theme's
+ * own colours, measured a second time by a slightly different instrument.
  *
  * DETERMINISTIC BY CONSTRUCTION, which `Math.random` could not be: `generate.mjs` has to emit
  * the same bytes on every run — `audit.mjs` diffs the palette against `app.css` and CI rebuilds
@@ -640,19 +704,24 @@ function nudgeAnchors(spec) {
 			]),
 		);
 	};
-	const light = side(ANCHOR_LIGHT);
-	const dark = side(ANCHOR_DARK);
+	// The anchors are re-laddered BEFORE the nudge, so the nudge moves the deeper colours exactly
+	// as it moved the originals: the four ladder colours are where the base takes the kit's
+	// deeper ladder, and every other value is the anchor's own.
+	const light = side(deepenTable(ANCHOR_LIGHT));
+	const dark = side(deepenTable(ANCHOR_DARK));
 
 	/*
 	 * THE DARK WASHES ARE RE-CUT, NOT NUDGED (2026-08-11). the anchor palette's hand values carry
 	 * a classic 45% shift, which preserves each status's own luminance and so spread the five
-	 * grounds from L 0.34 (primary) to L 0.48 (warning) — five washes, five behaviours, and the
+	 * grounds from L 0.34 (primary) to L 0.47 (warning) — five washes, five behaviours, and the
 	 * reason the family's contrast varied by state. One line makes it behave like one family:
 	 * success and warning's walked inks land within a step of their raw colour, i.e. the state
-	 * the reporter judged "fine" becomes the family norm. The generated themes need no re-cut:
-	 * their statuses are lifted high before `subtleD` runs, so 28% of a lifted status lands
-	 * near this line already (measured L 0.30–0.37 across all eleven; only Crimson's
-	 * deliberately deep wine brand sinks its own wash to 0.25, and the walked ink absorbs it).
+	 * the reporter judged "fine" becomes the family norm. The generated themes need no re-cut of
+	 * this kind: their statuses are lifted high before `subtleD` runs, so 28% of a lifted status
+	 * landed near the anchor's line already (measured on the anchor's ladder: L 0.30–0.37 across
+	 * all seventeen, bar the two deliberately deep brands — Crimson's wine and Kiln's bronze sank
+	 * their own washes to 0.25 and 0.26, and the walked ink absorbs it), and `darkWash` carries
+	 * each of them down with the ladder from there, to L 0.18–0.31.
 	 */
 	for (const key of ["primary", "destructive", "success", "warning", "info"]) {
 		dark[`${key}-subtle`] = [alignDarkWash(dark[key][0]), "status, cut to the dark-700 line"];
@@ -680,20 +749,73 @@ function nudgeAnchors(spec) {
 }
 
 /**
- * One dark wash, re-cut onto the dark-700 line: the mix of the status colour into black
- * whose OKLCH lightness lands closest to 0.34 — half a step under `L_DARK.d700`, and the
- * line the anchor palette's own primary and destructive washes already sat on. Solved per colour because a
- * fixed percentage cannot land five statuses of five different luminances on one line.
+ * One dark wash, re-cut onto a line: the mix of the status colour into black whose OKLCH
+ * lightness lands closest to `line`. By default that is the dark-700 line, half a step under
+ * `L_DARK.d700` — where the anchor palette's own primary wash sat, 0.340 under its 0.344 (its
+ * destructive wash sat just above, at 0.350). Solved per colour because a fixed percentage
+ * cannot land five statuses of five different luminances on one line.
  */
-function alignDarkWash(statusHex) {
+function alignDarkWash(statusHex, line = L_DARK.d700 - 0.004) {
 	let best = null;
 	for (let i = 20; i <= 120; i++) {
 		const wash = mixHex(statusHex, "#000000", i / 200);
-		const dL = Math.abs(hexToOklch(wash)[0] - 0.34);
+		const dL = Math.abs(hexToOklch(wash)[0] - line);
 		if (!best || dL < best.dL) best = { wash, dL };
 	}
 	return best.wash;
 }
+
+/**
+ * A generated theme's dark wash: where the 28% mix lands on the anchor's ladder, carried down
+ * with its dark-700 line.
+ *
+ * 28% alone would now land every wash where it sat on the ANCHOR's ladder (the dark fills it
+ * mixes did not move) — around a line 0.068 above the deeper borders, more than the whole
+ * d800-to-d700 step. Re-cutting all five onto the deeper line instead (the base palette's rule,
+ * above) was measured and rejected: most palettes tint their neutrals toward the brand, so a
+ * brand wash ON the line is the line's own colour — Indigo's and Moss's measure ΔEok 0.004 from
+ * `secondary` — and the same happens to a status that shares the neutral's hue (Evergreen's
+ * success, Crimson's destructive, 0.013-0.014). Kept at the offset the mix gave each one instead
+ * — every wash lands within 0.003 of its old height against the line — the brand washes stay
+ * ΔEok 0.033-0.094 from `secondary` (0.031-0.099 on the anchor's ladder) and the two ink brands
+ * stay above the line, so a selected or pressed ground never wears the border's colour.
+ *
+ * What the deeper ground costs is chroma: a mix into black this dark keeps 59-77% of what the
+ * wash had, so most separations narrow a little — from `secondary` by a median 0.009 ΔEok (at
+ * most 0.024, Harbor's destructive), from the card by a median 0.006. The tightest are the
+ * warning washes, which the mix put on the line to begin with, so only their cast keeps them off
+ * it: Sepia's measures 0.013 from `secondary` (0.023 before), Sandstone's 0.019 — and for
+ * warning the two rules all but coincide: the same hex in two palettes of the seventeen, no more
+ * than ΔEok 0.0055 apart in the rest, and within 0.002 of each other in distance from `secondary`.
+ */
+const darkWash = (hex) =>
+	alignDarkWash(hex, hexToOklch(subtleD(hex))[0] - (ANCHOR_LADDER.d700 - L_DARK.d700));
+
+/*
+ * THE BASE TAKES THE DEEPER LADDER TOO. Its four ladder colours — the ink, which is the light
+ * text and the dark page at once, and the three dark surfaces — move to the kit's deeper
+ * lightnesses at the anchor's own hue and chroma; nothing else in its tables moves. The nudge
+ * then runs on the result exactly as it ran on the anchors.
+ */
+const RUNG_OF = new Map(
+	[
+		[ANCHOR_DARK.background, "ink"],
+		[ANCHOR_DARK.muted, "d900"],
+		[ANCHOR_DARK.card, "d800"],
+		[ANCHOR_DARK.border, "d700"],
+	].map(([hex, rung]) => [hex.toUpperCase(), rung]),
+);
+const DEEP_L = { ink: L_LIGHT.ink, ...L_DARK };
+
+function deepen(hex) {
+	const rung = RUNG_OF.get(hex.toUpperCase());
+	if (!rung) return hex;
+	const [, C, h] = hexToOklch(hex);
+	return fit(DEEP_L[rung], C, h);
+}
+
+const deepenTable = (tokens) =>
+	Object.fromEntries(Object.entries(tokens).map(([token, hex]) => [token, deepen(hex)]));
 
 export function buildTheme(spec) {
 	if (spec.nudgeOf) return nudgeAnchors(spec);
@@ -719,7 +841,8 @@ export function buildTheme(spec) {
 	 * binds it: in light mode the page (`n100`), which is a tinted off-white and therefore
 	 * darker than the white card; in dark mode the card (`d800`), which is lighter than the
 	 * page. An explicit `brandL` / `brandDark` in a theme spec still wins — those are the
-	 * hand-placed ink brands, and Graphite and Sepia clear the floor by a factor of two.
+	 * hand-placed ink brands, and Graphite and Sepia clear the floor by a factor of three on the
+	 * deeper ladder (14.1-16.8:1 against the binding ground).
 	 */
 	const brandL = spec.brandL
 		? { L: spec.brandL, hex: fit(spec.brandL, spec.brandC, spec.brandH) }
@@ -747,10 +870,13 @@ export function buildTheme(spec) {
 
 	// --- charts --------------------------------------------------------------------------
 	// `chart-1` is one value serving BOTH modes, as the anchor palette's is, so it has to be seen against
-	// the white card and against the dark one. That is a window, not a point: 3:1 on white caps
-	// it near L 0.67 and 3:1 on the dark card floors it near L 0.53. A deep brand (Crimson's
-	// wine at L 0.41) falls under the floor, so the series is lifted into the window rather
-	// than left invisible on the dark page.
+	// the white card and against the dark one. That is a window, not a point: across the chart
+	// hues `UI`'s 3.1:1 on white caps it near L 0.67 (0.65-0.69), and 3.1:1 on the deeper dark
+	// card floors it near L 0.52 (0.50-0.54, where the anchor's lighter card held it at
+	// 0.56-0.59). A deep brand — Crimson's wine at L 0.41, Bluestone's petrol and Kiln's bronze
+	// at 0.46 — falls under the floor, so the series is lifted into the window rather than left
+	// invisible on the dark page. Every other hue brand now sits inside the window as it stands,
+	// so for those twelve `chart-1` is the brand itself.
 	const chartH = spec.chartH ?? spec.brandH;
 	const chart1C = spec.chartC ?? spec.brandC;
 	const chart1 = (() => {
@@ -767,17 +893,19 @@ export function buildTheme(spec) {
 	const chart2 = fit(CHART2.L, CHART2.C, chartH);
 
 	// --- secondary text ------------------------------------------------------------------
-	// Solved rather than taken from the ramp, in both modes and against the harder of the two
-	// grounds it sits on. See DIVERGENCES.
-	const solveText = (grounds, from, step) => {
+	// Solved rather than taken from the ramp, in both modes and against every ground it sits
+	// on. In dark it also has to reach `LC_SECONDARY_DARK` on each: WCAG 2.x flatters a light
+	// ink on a dark ground, and the deeper the ground the more — on the deeper ladder 4.55:1
+	// alone is met about six Lc under where the text read before.
+	const solveText = (grounds, from, step, lc = 0) => {
 		for (let L = from; step > 0 ? L <= 0.95 : L >= 0.25; L += step) {
 			const hex = fit(L, C_LIGHT.n700 * spec.nc, spec.nh);
-			if (grounds.every((g) => contrast(hex, g) >= AA)) return hex;
+			if (grounds.every((g) => contrast(hex, g) >= AA && Math.abs(apca(hex, g)) >= lc)) return hex;
 		}
 		throw new Error("no secondary-text lightness works");
 	};
 	const mutedFgLight = solveText([WHITE, n.n100, n.n200], 0.7, -0.002);
-	const mutedFgDark = solveText([d.d800, n.ink, d.d900], 0.5, +0.002);
+	const mutedFgDark = solveText([d.d800, n.ink, d.d900], 0.5, +0.002, LC_SECONDARY_DARK);
 
 	const primaryFg = onSolid(brand, n.n900);
 	const primaryFgDark = onSolid(brandDark, n.n900);
@@ -858,31 +986,40 @@ export function buildTheme(spec) {
 		"muted-foreground": [mutedFgDark, "secondary text, solved"],
 		accent: [d.d900, "dark-900"],
 		"accent-foreground": [WHITE, "white"],
-		"primary-subtle": [subtleD(brandDark), "brand, 28% into black"],
+		"primary-subtle": [darkWash(brandDark), "brand, carried down with the dark-700 line"],
 		destructive: [status.destructive.dark.hex, "destructive, lifted"],
 		"destructive-foreground": [
 			status.destructive.dark.fg.hex,
 			`on destructive, ${status.destructive.dark.fg.ratio.toFixed(2)}:1`,
 		],
-		"destructive-subtle": [subtleD(status.destructive.dark.hex), "destructive, 28% into black"],
+		"destructive-subtle": [
+			darkWash(status.destructive.dark.hex),
+			"destructive, carried down with the dark-700 line",
+		],
 		success: [status.success.dark.hex, "success, lifted"],
 		"success-foreground": [
 			status.success.dark.fg.hex,
 			`on success, ${status.success.dark.fg.ratio.toFixed(2)}:1`,
 		],
-		"success-subtle": [subtleD(status.success.dark.hex), "success, 28% into black"],
+		"success-subtle": [
+			darkWash(status.success.dark.hex),
+			"success, carried down with the dark-700 line",
+		],
 		warning: [status.warning.dark.hex, "warning, lifted"],
 		"warning-foreground": [
 			status.warning.dark.fg.hex,
 			`on warning, ${status.warning.dark.fg.ratio.toFixed(2)}:1`,
 		],
-		"warning-subtle": [subtleD(status.warning.dark.hex), "warning, 28% into black"],
+		"warning-subtle": [
+			darkWash(status.warning.dark.hex),
+			"warning, carried down with the dark-700 line",
+		],
 		info: [status.info.dark.hex, "info, lifted"],
 		"info-foreground": [
 			status.info.dark.fg.hex,
 			`on info, ${status.info.dark.fg.ratio.toFixed(2)}:1`,
 		],
-		"info-subtle": [subtleD(status.info.dark.hex), "info, 28% into black"],
+		"info-subtle": [darkWash(status.info.dark.hex), "info, carried down with the dark-700 line"],
 		border: [d.d700, "dark-700"],
 		input: [d.d700, "dark-700"],
 		ring: [brandDark, "brand"],

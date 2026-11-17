@@ -1,10 +1,11 @@
 /**
  * The audit report — and the gate.
  *
- * Every generated theme is measured against the SAME rows as the anchor palette itself, and each row is
- * judged twice: against the WCAG floor, and against the anchor palette's own number for that pairing.
- * A row below the floor but at or above the anchor palette is an inherited property of the design; a row
- * below the anchor palette is a regression the generator introduced. Every one of those must be entered
+ * Every generated theme is measured against the SAME rows as the base palette itself, and each row
+ * is judged twice: against the WCAG floor, and against the base's own number for that pairing — the
+ * solved `parallax`, on the same deeper ladder, not the anchor table it is derived from. A row
+ * below the floor but at or above the base is an inherited property of the design; a row below
+ * the base is a regression the generator introduced. Every one of those must be entered
  * in the ACCEPTED_REGRESSIONS ledger below with its rationale — an unexplained regression, an
  * accepted one that has degraded further, or a ledger entry no run reproduces any more each
  * exit non-zero, so drift fails CI instead of scrolling past in the report.
@@ -13,6 +14,7 @@ import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
 import { THEMES, buildTheme, audit } from "./themes.mjs";
+import { checkCeilings } from "./ceilings.mjs";
 
 /*
  * The base: the theme app.css's `:root` and `.dark` hold, and the yardstick every other theme is
@@ -87,12 +89,30 @@ const BASE = buildTheme(BASE_SPEC);
 }
 
 // ---------------------------------------------------------------------------------------
+// Pre-flight: the hand-cut sRGB ceilings still fit the palettes
+// ---------------------------------------------------------------------------------------
+
+/*
+ * `src/vibrant.css` and `src/backdrops.css` carry per-palette chroma ceilings for their dark
+ * stops — data derived from each palette's dark `--primary`, written into stylesheets the
+ * generator does not own. A palette or ladder change that voids one would otherwise pass this
+ * audit untouched; `ceilings.mjs` rebuilds both tables and says why they exist.
+ */
+{
+	const { problems } = checkCeilings();
+	if (problems.length) {
+		console.error(`sRGB ceiling tables out of step with the palettes:\n  ${problems.join("\n  ")}`);
+		process.exit(1);
+	}
+}
+
+// ---------------------------------------------------------------------------------------
 // The accepted regressions
 // ---------------------------------------------------------------------------------------
 
 /*
  * The ledger of trade-offs. Each entry is one pairing that measures below BOTH the WCAG
- * floor and the anchor palette's own value, examined and kept deliberately. `measured` is the ratio at
+ * floor and the base's own value, examined and kept deliberately. `measured` is the ratio at
  * acceptance time — for a status pair it is the raw-luminance ratio, the first of the three
  * channels the pair check weighs — and `baseline` is the base's number for the same
  * pairing, recorded so an entry states how far the trade-off reaches without re-running
@@ -114,15 +134,13 @@ const acc = (theme, mode, pairing, measured, baseline, why) => ({
 const WHY_INFO =
 	"a legible solid info badge costs contrast on a white card — one cause shared by every theme in the group below, see the group note";
 const WHY_PAIR =
-	"success/info end a step closer than the anchor palette on all three channels; dHue ≥ 50° and the tone ladder still separate them";
+	"success/info end a step closer than the base's pair on all three channels; dHue ≥ 50° and the tone ladder still separate them";
 const WHY_CHART2 =
 	"chart-2 is the brand's own 300-tint, and a cyan-leaning brand tints lighter than the anchor palette blue; repainting one series would break the ramp";
 const WHY_NUDGE =
 	"a pairing the anchor palette itself fails, jittered a hair further by the nudge — see the group note";
-const WHY_CRIMSON =
-	"the dark-lifted red brand still lands 0.30 under the anchor palette blue on the dark card; lifting further reads pink, not crimson";
 const WHY_CRIMSON_TEXT =
-	"the one hand-placed dark brand the AA text solver does not reach: at h8 C0.145 the window where a WHITE label still works closes before 4.5:1 does, and the solver's own next passing lightness (L 0.76) is a dusty pink carrying dark type. `text-primary` on this theme in dark mode is the link variant and the today marker only — the fill-and-label pairing every other use of the token relies on measures 4.62:1";
+	"the one hand-placed dark brand the AA text solver does not reach: at h8 C0.145 the window where a WHITE label still works closes before 4.5:1 does, and the solver's own next passing lightness (L 0.75) is a dusty pink carrying dark type. `text-primary` on this theme in dark mode is the link variant and the today marker only — the fill-and-label pairing every other use of the token relies on measures 4.62:1";
 
 const ACCEPTED_REGRESSIONS = [
 	/*
@@ -131,7 +149,7 @@ const ACCEPTED_REGRESSIONS = [
 	 * foreground at `AA`. For a cyan the foreground that wins is the dark ink, and dark ink wants
 	 * the colour LIGHTER — so the solver walks up, landing near L 0.724 against an anchor of
 	 * 0.704, lighter than #39afd1 and therefore 0.11–0.20:1 under it on a white card. Every theme
-	 * inherits the same walk, which is why there are eleven identical entries.
+	 * inherits the same walk, which is why there are fourteen identical entries.
 	 *
 	 * SO THERE IS NO ONE-LINE FIX, and an earlier version of this note claiming otherwise was
 	 * wrong: dropping the anchor to 0.654 and re-running produces a byte-identical report,
@@ -198,23 +216,27 @@ const ACCEPTED_REGRESSIONS = [
 	// `harbor` and `evergreen` are out for the same reason as `orchid` above: the base moved under
 	// them by a hair and their chart-2 is no longer below it.
 
-	acc("crimson", "dark", "primary on card", 3.02, 3.32, WHY_CRIMSON),
 	/*
 	 * The same colour, judged as type. Eight light themes and Crimson's dark brand were the nine
 	 * pairs that failed when `--primary` was solved as a fill only; the solver now clears the AA
 	 * text floor against the binding ground in both modes, and this is the single pair it cannot
 	 * reach, for the reason its own spec comment already records.
+	 *
+	 * The deeper dark ladder (2026-11-17) raised both rows without moving the brand — 3.02 → 3.81
+	 * on the card, 3.32 → 4.09 on the page — and retired the entry beside them: as a FILL the
+	 * brand now clears the 3.1 non-text floor on the darker card. The base rose with it, so the
+	 * two rows still sit under the base's own numbers, re-recorded here at their new values.
 	 */
-	acc("crimson", "dark", "primary as text on card", 3.02, 3.14, WHY_CRIMSON_TEXT),
-	acc("crimson", "dark", "primary as text on background", 3.32, 3.57, WHY_CRIMSON_TEXT),
+	acc("crimson", "dark", "primary as text on card", 3.81, 4.07, WHY_CRIMSON_TEXT),
+	acc("crimson", "dark", "primary as text on background", 4.09, 4.38, WHY_CRIMSON_TEXT),
 
 	/*
 	 * `parallax` had thirteen entries here and no longer needs one. It is the base now: app.css's
 	 * `:root` and `.dark` are its values, so it is reported in the base section above rather than
 	 * pardoned as a theme, exactly as the former base was while it held that seat. The reasoning
 	 * those entries carried still holds and is worth keeping, because it is the reason the nudge is
-	 * safe to ship at all: parallax is not solved from scratch, it is the anchor palette displaced
-	 * by up to 2%, so
+	 * safe to ship at all: parallax is not solved from scratch, it is the anchor palette re-laddered
+	 * onto the kit's deeper ladder (`deepen`), then displaced by up to 2%, so
 	 * a random displacement lands on the low side of roughly half the pairings it touches, and any
 	 * of those the anchors already failed reappears. Every one of them sat against an anchor value
 	 * itself under the floor — 1.87 against 4.5, 1.76 against 3, 2.55 against 3.1. It inherits the
@@ -303,13 +325,13 @@ for (const spec of THEMES) {
 		under = [];
 	for (const r of a.rows) {
 		const ref = baseRow.get(`${r.scope}|${r.what}`);
-		// Only a row that is BOTH below its floor and below the anchor palette is a regression. A row
-		// comfortably above the floor that measures 15.21 where the anchor palette measures 15.28 is noise.
+		// Only a row that is BOTH below its floor and below the base is a regression. A row
+		// comfortably above the floor that measures 15.21 where the base measures 15.28 is noise.
 		if (!r.pass && ref !== undefined && r.value < ref - 0.05) worse.push([r, ref]);
 		else if (!r.pass) under.push([r, ref]);
 	}
 	console.log(
-		`${a.rows.length - under.length - worse.length}/${a.rows.length} rows at or above both the floor and the anchor palette`,
+		`${a.rows.length - under.length - worse.length}/${a.rows.length} rows at or above both the floor and the base`,
 	);
 	for (const [r, ref] of worse)
 		line(
@@ -343,7 +365,7 @@ for (const spec of THEMES) {
 	for (const p of a.pairs) {
 		const b = basePair.get(`${p.a}|${p.b}`);
 		// Three channels separate a pair: raw luminance, and the two dichromatic simulations.
-		// A pair is only a problem when it is weaker than the anchor palette's on ALL of them — being
+		// A pair is only a problem when it is weaker than the base's on ALL of them — being
 		// weaker on one while stronger on another is a different balance, not a worse one.
 		const ok = p.lum >= b.lum * 0.8 || p.deutan >= b.deutan * 0.9 || p.protan >= b.protan * 0.9;
 		const tag = ok
@@ -395,10 +417,11 @@ for (const spec of THEMES) {
 }
 
 /*
- * Three counts, and the split is the whole point of auditing against the anchor palette rather than
+ * Three counts, and the split is the whole point of auditing against the base rather than
  * against the floor alone. `unexplained` is what to act on, and what fails the run;
  * `accepted` is the ledger above holding; `belowFloor` is the shape of the design — and
- * the anchor palette's own run, printed above, carries 24 of those.
+ * the base's own run, printed above, carries 22 of those on the deeper dark ladder (its four
+ * dark secondary-text rows cleared 4.5:1 when the page and the card went darker).
  */
 console.log(
 	`\n${unexplained} unexplained pairings below BOTH the WCAG floor and the base's own value for it` +

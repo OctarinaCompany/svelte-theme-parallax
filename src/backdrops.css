@@ -4,7 +4,11 @@
  * WHAT A BACKDROP IS. The palette (`data-theme`) and the mode (`.dark`) decide what the surfaces
  * are painted WITH. A backdrop decides what is painted BEHIND them. Every backdrop DERIVES its
  * colours from the live tokens, so one block serves all eighteen palettes in both modes rather
- * than eighteen hand-written blocks per backdrop.
+ * than eighteen hand-written blocks per backdrop. Two rules in the aurora block name palettes:
+ * the five warm ones take a narrower fan, a hue judgement, and the dark fields' chroma ceilings
+ * are stated per palette, because at that lightness the sRGB gamut differs too much from hue to
+ * hue for one number to serve. The ceilings are data derived from the tokens, not design, and
+ * `npm run themes:audit` checks them (`tools/themes/ceilings.mjs`).
  *
  * TWENTY-TWO LOOKS ACROSS TWO LAYERS — twelve gradients and ten patterns — plus the mark and the
  * grain, which are files and textures rather than looks. Several are the same idea at two
@@ -373,12 +377,36 @@
  *
  * THE STOPS ARE LIGHTNESS-PINNED, which is the whole reason this is safe: a tint of the raw
  * brand would drag the page ground toward the brand's own lightness and take `--muted-foreground`
- * with it, and that token is already the tightest pair in the kit. Pinned at L 0.90 in light and
- * L 0.34 in dark, the composite stays inside the page's own band and every measured ratio holds.
+ * with it, and that token is already the page's lowest-contrast neutral text. Pinned at L 0.90 in
+ * light and L 0.266 / 0.24 in dark, the composite stays inside the page's own band — the dark
+ * peaks land at L 0.20-0.27, under the dark-700 line (0.275-0.280) on all eighteen palettes — and
+ * `--muted-foreground` still clears 4.5:1 on either peak on every generated palette (4.78:1 at
+ * worst, harbor). The base palette, whose own pair on the card is 4.64:1, reads 4.44-4.51:1 there.
+ *
+ * THE DARK PINS FOLLOW THE LADDER. They were 0.34 and 0.32 while the dark page sat at
+ * L 0.264-0.268. The deeper ladder dropped it to 0.178-0.181, and each pin came down until its
+ * field's centre lifts the default palette's page by what it did before — 62 and 28 code values
+ * over the same page with no backdrop, computed (gamma-sRGB compositing model, validated against
+ * the radiant family's browser measurements) rather than measured. Left at 0.34 it would have
+ * lifted 80 and put the peak above the dark-700 line on all eighteen palettes. Those are the
+ * centres, and at the default bearing both sit just above the viewport, so the brightest point on
+ * screen lifts by 47 and 22; other bearings bring each centre on screen, which is why the figures
+ * here are the centres'. Alpha is the designed weight and did not move; nor did chroma.
+ *
+ * KEPT CHROMA AT A LOWER PIN LEAVES THE GAMUT MORE OFTEN, which is what keeping it costs. Out of
+ * sRGB on the deeper ladder: the first ink on fifteen palettes where it was on thirteen, the
+ * second on sixteen where it was on twelve, with clip hue shifts up to 34deg (kiln) and 37deg
+ * (moss) where they reached 23deg and 30deg. Every lift here is computed on the clipped colour,
+ * which is what the browser paints, so the weights hold where the hue does not.
  *
  * A CHROMA FLOOR, so the two achromatic palettes get a faint neutral halo rather than nothing.
  * ========================================================================================== */
 
+/* The light fallback's 16% is one number over a token that moved on two palettes: graphite's and
+   sepia's light `--primary` came down with the ladder (L 0.30 to 0.22), so there it now darkens
+   the page by 36 and 37 code values where it darkened it by 33 and 34. Kept, because the
+   percentage is shared; the other light fallbacks over the brand drift the same way on those two,
+   by one to three. */
 :root[data-backdrop-gradient="glow"] {
 	--backdrop-glow-1: color-mix(
 		in oklab,
@@ -394,17 +422,19 @@
 	);
 }
 
+/* Re-solved with the pins: 19% and 12% lift the default palette's deeper page by the 36 and 23
+   code values that 22% and 14% did on the lighter one. */
 :root[data-backdrop-gradient="glow"].dark {
 	--backdrop-glow-1: color-mix(
 		in oklab,
 		var(--primary)
-			calc(22% * var(--backdrop-gradient-k) / (1 + 0.22 * (var(--backdrop-gradient-k) - 1))),
+			calc(19% * var(--backdrop-gradient-k) / (1 + 0.19 * (var(--backdrop-gradient-k) - 1))),
 		transparent
 	);
 	--backdrop-glow-2: color-mix(
 		in oklab,
 		var(--sidebar-primary)
-			calc(14% * var(--backdrop-gradient-k) / (1 + 0.14 * (var(--backdrop-gradient-k) - 1))),
+			calc(12% * var(--backdrop-gradient-k) / (1 + 0.12 * (var(--backdrop-gradient-k) - 1))),
 		transparent
 	);
 }
@@ -423,11 +453,11 @@
 
 	:root[data-backdrop-gradient="glow"].dark {
 		--backdrop-glow-1: oklch(
-			from var(--primary) 0.34 max(c, 0.07) h /
+			from var(--primary) 0.266 max(c, 0.07) h /
 				calc(0.75 * var(--backdrop-gradient-k) / (1 + 0.75 * (var(--backdrop-gradient-k) - 1)))
 		);
 		--backdrop-glow-2: oklch(
-			from var(--primary) 0.32 max(c, 0.05) calc(h - 40) /
+			from var(--primary) 0.24 max(c, 0.05) calc(h - 40) /
 				calc(0.55 * var(--backdrop-gradient-k) / (1 + 0.55 * (var(--backdrop-gradient-k) - 1)))
 		);
 	}
@@ -465,19 +495,42 @@
  * ONCE THE HUES ARE THAT CLOSE, GEOMETRY DOES THE SEPARATING — three sizes, three falloffs,
  * three quadrants, and a chroma ladder that makes exactly one field genuinely chromatic and the
  * other two a tinted ghost. That is how the restrained systems get depth without a second accent.
+ * It holds on all eighteen palettes in light. In dark the gamut bends it — the ceilings below cap
+ * field one on fifteen palettes and field two on ten — so, by ΔE against the page (on the 8-bit
+ * composites), field one is the strongest of the three on sixteen palettes, field two outweighs
+ * it on moss and bluestone (field one at 0.91 and 0.95 of it), and the two are at near-parity on
+ * the base palette and on damson (1.03; damson needs no ceiling and was already the closest pair
+ * as shipped, at 1.09). Field three never leads.
  *
  * THE BUDGET IS MEASURED, NOT CHOSEN. The wash sits behind opaque cards, so the one relation it
  * can damage is card-against-ground, and this kit states that step itself: dark `--background` is
- * L 0.264-0.267 against a dark `--card` at L 0.297-0.304. The first cut composited the ground to
- * about L 0.325 — ABOVE the card — so inside every blob the cards stopped reading as raised
- * surfaces and started reading as holes. That inversion, more than the hue spread, is what made
- * it look broken. The lightness ladder now sits within a few thousandths of the ground and the
- * colour is carried by chroma instead, which is the honest reading of "closer to the theme".
+ * L 0.178-0.181 against a dark `--card` at L 0.216-0.219. The first cut, on the lighter ladder of
+ * its day (page 0.264-0.267, card 0.297-0.304), composited the ground to about L 0.325 — ABOVE the
+ * card — so inside every blob the cards stopped reading as raised surfaces and started reading as
+ * holes. That inversion, more than the hue spread, is what made it look broken. The three dark
+ * stops now sit 80%, 69% and 56% of the way up the page-to-card step (the mean of eighteen; 77-82,
+ * 67-71 and 54-58% palette by palette), near the 81%, 69% and 57% they held on the lighter ladder,
+ * carried down when it deepened. The default palette's stops moved up into the pack, from about
+ * 70%, 60% and 50% (the lowest of the eighteen then) to 81%, 71% and 57%. So a field lifts the
+ * ground by L 0.008-0.019 at its centre and composites at least 0.018 short of the card, still
+ * 0.012 short with the intensity control at its 300% maximum. The colour is carried by chroma
+ * instead, which is the honest reading of "closer to the theme".
  *
  * CHROMA IS CAPPED AT THE sRGB CEILING FOR EACH BLOB'S OWN LIGHTNESS. At L 0.94 the gamut allows
  * roughly 0.02-0.03 on most hues, so the first cut's `max(c, 0.08)` was authoring a colour the
  * browser then clipped with a hue-shifting algorithm — twelve palettes, twelve different amounts
  * of wrong. The floors are what the two achromatic brands need to be a tint rather than a fog.
+ *
+ * IN DARK NO SINGLE NUMBER CAN BE THAT CAP. Below the gamut's cusp the ceiling is proportional to
+ * lightness at a fixed hue, with a slope that is the hue's own: across the eighteen palettes' field
+ * hues at L 0.20-0.21 it runs from 0.034 (h 195) to 0.145 (h 265). A literal low enough for every
+ * palette leaves the base palette's wash less chromatic than its own page (C 0.051); the shared
+ * clamps alone already authored out-of-gamut colour on nine palettes on the lighter ladder, and on
+ * fifteen once it deepened — clip hue shifts up to 31deg, and harbor's first field rendering at
+ * L 0.231, above its own card. So the clamps keep the design's ladder and each palette states its
+ * measured ceiling (the block after the dark fields), applied by a `min()` OUTSIDE the clamp:
+ * `clamp()` returns its MIN when MIN exceeds MAX, so inside it a floor above the ceiling — sepia's,
+ * bluestone's — would win, and author the very colour the ceiling exists to prevent.
  *
  * NO `filter: blur()`, AND THEREFORE NO `saturate()`. The published aurora recipes pair the two
  * because blur averages toward grey and the saturation boost buys it back. Feathering with wide
@@ -529,21 +582,32 @@
 }
 
 :root[data-backdrop-gradient="aurora"].dark {
+	/* The same design keeps the same card step, and the shipped 22% did not: it composited the
+	   first field above `--card` on fifteen palettes on the lighter ladder, sixteen on this one. A
+	   raw-brand mix cannot pin lightness, so the lightest brand lifts the most and graphite binds:
+	   field one touches the card at 12% and carries 11%, under it by L 0.003 at worst. Fields two
+	   and three then follow the supported path's own ladder: at 10% and 6.9%, field one runs 1.30
+	   and 2.25 times their ΔE against the page (the ratio of the eighteen-palette means, on the
+	   8-bit composites) where the supported fields run 1.29 and 2.28, and the order holds on every
+	   palette. That keeps the card step at the default intensity and up to 117% on the control;
+	   past that, graphite's and sepia's first fields cross it, and at 300% fourteen palettes' first
+	   field and two palettes' second are over it, where the supported path stays under. The outer
+	   alpha carries the intensity curve, so it stays. */
 	--backdrop-aur-1: color-mix(
 		in oklab,
-		color-mix(in oklab, var(--primary) 22%, var(--background))
+		color-mix(in oklab, var(--primary) 11%, var(--background))
 			calc(40% * var(--backdrop-gradient-k) / (1 + 0.4 * (var(--backdrop-gradient-k) - 1))),
 		transparent
 	);
 	--backdrop-aur-2: color-mix(
 		in oklab,
-		color-mix(in oklab, var(--primary) 16%, var(--background))
+		color-mix(in oklab, var(--primary) 10%, var(--background))
 			calc(34% * var(--backdrop-gradient-k) / (1 + 0.34 * (var(--backdrop-gradient-k) - 1))),
 		transparent
 	);
 	--backdrop-aur-3: color-mix(
 		in oklab,
-		color-mix(in oklab, var(--primary) 11%, var(--background))
+		color-mix(in oklab, var(--primary) 6.9%, var(--background))
 			calc(28% * var(--backdrop-gradient-k) / (1 + 0.28 * (var(--backdrop-gradient-k) - 1))),
 		transparent
 	);
@@ -575,21 +639,119 @@
 	:root[data-backdrop-gradient="aurora"].dark {
 		/* Pressed to the ground's own lightness band and paid for in chroma instead: alpha scales
 		   the lift and the tint by the same factor, so sitting near the ground buys the most
-		   colour for the least disturbance of the card step above it. */
+		   colour for the least disturbance of the card step above it.
+
+		   The lightnesses moved with the ladder (0.292 / 0.288 / 0.284 on the lighter one) and the
+		   chroma rules did not, any more than the ladder's own chroma did: OKLab chroma is
+		   colourfulness, not a share of lightness. Kept and capped, the fields hold 78%, 96% and
+		   102% of their shipped strength (ΔE against the page on the 8-bit composites, mean of
+		   eighteen); scaled with L they would have held 70%, 79% and 90%. What field one gives up
+		   is the gamut, not a choice: its ceiling binds on fifteen palettes, and that is what
+		   flattens the ladder the design note describes — field one over field two averages 1.30
+		   palette by palette, against 1.62 as shipped and 1.53 with the same stops left to clip,
+		   and drops below 1 on moss and bluestone. */
 		--backdrop-aur-1: oklch(
-			from var(--primary) 0.292 clamp(0.062, calc(c * 0.75), 0.115) h /
+			from var(--primary) 0.21
+				min(clamp(0.062, calc(c * 0.75), 0.115), var(--backdrop-aur-ceil-1, 1)) h /
 				calc(0.6 * var(--backdrop-gradient-k) / (1 + 0.6 * (var(--backdrop-gradient-k) - 1)))
 		);
 		--backdrop-aur-2: oklch(
-			from var(--primary) 0.288 clamp(0.048, calc(c * 0.55), 0.09)
+			from var(--primary) 0.206
+				min(clamp(0.048, calc(c * 0.55), 0.09), var(--backdrop-aur-ceil-2, 1))
 				calc(h + var(--backdrop-aur-fan)) /
 				calc(0.5 * var(--backdrop-gradient-k) / (1 + 0.5 * (var(--backdrop-gradient-k) - 1)))
 		);
 		--backdrop-aur-3: oklch(
-			from var(--primary) 0.284 clamp(0.034, calc(c * 0.38), 0.062)
+			from var(--primary) 0.201
+				min(clamp(0.034, calc(c * 0.38), 0.062), var(--backdrop-aur-ceil-3, 1))
 				calc(h - var(--backdrop-aur-fan)) /
 				calc(0.42 * var(--backdrop-gradient-k) / (1 + 0.42 * (var(--backdrop-gradient-k) - 1)))
 		);
+	}
+
+	/*
+	 * THE MEASURED CEILINGS, dark only, for every field whose clamp would leave the sRGB gamut: the
+	 * largest chroma at that field's lightness (0.21 / 0.206 / 0.201) and hue (the brand's, then the
+	 * fan either side of it), floored to the thousandth — floor(maxChroma(L, hue) * 1000) / 1000,
+	 * with `maxChroma` from `tools/themes/color.mjs`. Graphite, indigo and damson need none. This is
+	 * derived data in a file the theme generator does not write, so `npm run themes:audit` checks
+	 * the table against the live tokens (`tools/themes/ceilings.mjs`).
+	 *
+	 * Below the cusp the ceiling is exactly proportional to L at a fixed hue for a strict sRGB
+	 * boundary, so if the stops move, every entry scales by the same ratio; if a brand hue moves, its
+	 * row is re-measured. `maxChroma` itself lets a gamma channel run 1e-4 past the boundary (about
+	 * 0.03 of a code value), and under that tolerance four entries — sepia's second, fern's first,
+	 * heather's second, kiln's third — sit outside strict sRGB, by under 0.02 of a code value with
+	 * `color.mjs`'s matrices and with CSS Color 4's alike; clipped and rounded, each is the same 8-bit
+	 * colour as its strict ceiling. A palette with no row keeps the bare clamp, which is what every
+	 * palette had before.
+	 *
+	 * The base palette has no `themes.css` block, so its row also answers to a root with no
+	 * `data-theme` at all — and it is measured at the base brand hue, 261.3 (fields at 261.3, 285.3
+	 * and 237.3). A consumer who re-brands `--primary` needs its own three ceilings: the same
+	 * formula at L 0.21 / 0.206 / 0.201 and hues h, h + fan and h - fan, set on a rule that wins
+	 * over this row's (0,4,0).
+	 */
+	:root[data-theme="sepia"][data-backdrop-gradient="aurora"].dark {
+		--backdrop-aur-ceil-1: 0.049;
+		--backdrop-aur-ceil-2: 0.044;
+	}
+	:root[data-theme="nordic"][data-backdrop-gradient="aurora"].dark {
+		--backdrop-aur-ceil-1: 0.052;
+		--backdrop-aur-ceil-3: 0.036;
+	}
+	:root[data-theme="harbor"][data-backdrop-gradient="aurora"].dark {
+		--backdrop-aur-ceil-1: 0.035;
+		--backdrop-aur-ceil-2: 0.037;
+		--backdrop-aur-ceil-3: 0.039;
+	}
+	:root[data-theme="evergreen"][data-backdrop-gradient="aurora"].dark {
+		--backdrop-aur-ceil-1: 0.04;
+		--backdrop-aur-ceil-2: 0.035;
+	}
+	:root[data-theme="sandstone"][data-backdrop-gradient="aurora"].dark {
+		--backdrop-aur-ceil-1: 0.046;
+		--backdrop-aur-ceil-2: 0.042;
+	}
+	:root[data-theme="ember"][data-backdrop-gradient="aurora"].dark {
+		--backdrop-aur-ceil-1: 0.055;
+		--backdrop-aur-ceil-2: 0.047;
+	}
+	:root[data-theme="crimson"][data-backdrop-gradient="aurora"].dark {
+		--backdrop-aur-ceil-1: 0.084;
+	}
+	:root[data-theme="orchid"][data-backdrop-gradient="aurora"].dark {
+		--backdrop-aur-ceil-1: 0.091;
+		--backdrop-aur-ceil-2: 0.082;
+	}
+	:root[data-theme="amethyst"][data-backdrop-gradient="aurora"].dark {
+		--backdrop-aur-ceil-1: 0.11;
+	}
+	:root[data-theme="moss"][data-backdrop-gradient="aurora"].dark {
+		--backdrop-aur-ceil-1: 0.051;
+		--backdrop-aur-ceil-2: 0.062;
+		--backdrop-aur-ceil-3: 0.041;
+	}
+	:root[data-theme="fern"][data-backdrop-gradient="aurora"].dark {
+		--backdrop-aur-ceil-1: 0.066;
+		--backdrop-aur-ceil-2: 0.041;
+		--backdrop-aur-ceil-3: 0.048;
+	}
+	:root[data-theme="heather"][data-backdrop-gradient="aurora"].dark {
+		--backdrop-aur-ceil-1: 0.1;
+		--backdrop-aur-ceil-2: 0.088;
+	}
+	:root[data-theme="bluestone"][data-backdrop-gradient="aurora"].dark {
+		--backdrop-aur-ceil-1: 0.038;
+	}
+	:root[data-theme="kiln"][data-backdrop-gradient="aurora"].dark {
+		--backdrop-aur-ceil-1: 0.044;
+		--backdrop-aur-ceil-2: 0.042;
+		--backdrop-aur-ceil-3: 0.046;
+	}
+	:root:is(:not([data-theme]), [data-theme="parallax"])[data-backdrop-gradient="aurora"].dark {
+		--backdrop-aur-ceil-1: 0.092;
+		--backdrop-aur-ceil-3: 0.044;
 	}
 }
 
@@ -639,12 +801,16 @@
 }
 
 /*
- * THE DITHER, and this is the layer that genuinely needs one. The wash now moves only a few
- * thousandths of lightness, which is two to four 8-bit code values spread over six hundred-odd
- * pixels of blurred radial — a contour every 150-300px, the widest and so the most visible kind
- * of band there is. It is a SECOND, STATIC pseudo-element on purpose: noise that travelled with
- * the drift would move the contour rather than break it up. Achromatic, `normal` blending, and
- * the tile at its natural size — a resampled noise tile stops dithering and reads as dirt.
+ * THE DITHER, and this is the layer that genuinely needs one. In dark the wash moves lightness by
+ * only 0.008-0.019 at a field's centre, a change worth two to four ACHROMATIC 8-bit grey levels,
+ * spread over six hundred-odd pixels of blurred radial: as a grey ramp, a contour every
+ * 150-300px, the widest and so the most visible kind of band there is. The centres are chromatic,
+ * though, and per channel they move up to 22 code values (indigo's first field; 19 of the 54
+ * fields move a channel by 10 or more), so a single channel steps far more often than that and
+ * the spacing above is the lightness's alone. It is a SECOND, STATIC pseudo-element on purpose:
+ * noise that travelled with the drift would move the contour rather than break it up.
+ * Achromatic, `normal` blending, and the tile at its natural size — a resampled noise tile stops
+ * dithering and reads as dirt.
  */
 :root[data-backdrop] [data-slot="sidebar-wrapper"]::after {
 	content: "";
@@ -716,6 +882,20 @@
  *
  * DARK SPENDS LESS CHROMA, NOT LESS ALPHA. A saturated hue vibrates against a dark ground, and
  * dropping alpha instead would just grey the field. Each dark twin multiplies c by ~0.7.
+ *
+ * THE DARK PINS FOLLOW THE LADDER, as the glow's do. Spotlight's 0.35, horizon's 0.33 and corner's
+ * 0.34 were set on the lighter ladder; on the deeper one they are 0.271, 0.251 and 0.261, the
+ * lightnesses at which each field's centre lifts the default palette's page by what it did before
+ * — 41, 35 and 40 code values, computed with the glow's model — with the eighteen-palette spread
+ * within a code value of where it was. The peaks land at L 0.22-0.26, under the dark-700 line on
+ * every palette. Horizon's and corner's are on screen at the default bearing; the spotlight's
+ * centre sits just above the viewport there, so its brightest point on screen lifts by 37. The
+ * fallbacks were re-solved to their own shipped lifts the same way: 33, 30 and 36.
+ *
+ * THE GLOW'S GAMUT COST COMES WITH THEM, since chroma stayed: out of sRGB on twelve, thirteen and
+ * twelve palettes where they were on five, six and six, with clip hue shifts up to 17deg, 20deg
+ * and 19deg where they reached 6deg, 9deg and 7deg, all three worst on kiln. The lifts are
+ * computed on the clipped colour.
  * ========================================================================================== */
 
 :root[data-backdrop-gradient="spotlight"] {
@@ -732,7 +912,7 @@
 	--backdrop-spot: color-mix(
 		in oklab,
 		var(--primary)
-			calc(20% * var(--backdrop-gradient-k) / (1 + 0.2 * (var(--backdrop-gradient-k) - 1))),
+			calc(17.5% * var(--backdrop-gradient-k) / (1 + 0.175 * (var(--backdrop-gradient-k) - 1))),
 		transparent
 	);
 }
@@ -745,7 +925,7 @@
 	}
 	:root[data-backdrop-gradient="spotlight"].dark {
 		--backdrop-spot: oklch(
-			from var(--primary) 0.35 max(calc(c * 0.7), 0.05) h /
+			from var(--primary) 0.271 max(calc(c * 0.7), 0.05) h /
 				calc(0.7 * var(--backdrop-gradient-k) / (1 + 0.7 * (var(--backdrop-gradient-k) - 1)))
 		);
 	}
@@ -772,7 +952,7 @@
 	--backdrop-sky: color-mix(
 		in oklab,
 		var(--primary)
-			calc(18% * var(--backdrop-gradient-k) / (1 + 0.18 * (var(--backdrop-gradient-k) - 1))),
+			calc(16% * var(--backdrop-gradient-k) / (1 + 0.16 * (var(--backdrop-gradient-k) - 1))),
 		transparent
 	);
 }
@@ -785,7 +965,7 @@
 	}
 	:root[data-backdrop-gradient="horizon"].dark {
 		--backdrop-sky: oklch(
-			from var(--primary) 0.33 max(calc(c * 0.7), 0.045) h /
+			from var(--primary) 0.251 max(calc(c * 0.7), 0.045) h /
 				calc(0.65 * var(--backdrop-gradient-k) / (1 + 0.65 * (var(--backdrop-gradient-k) - 1)))
 		);
 	}
@@ -815,7 +995,7 @@
 	--backdrop-corner: color-mix(
 		in oklab,
 		var(--primary)
-			calc(22% * var(--backdrop-gradient-k) / (1 + 0.22 * (var(--backdrop-gradient-k) - 1))),
+			calc(19% * var(--backdrop-gradient-k) / (1 + 0.19 * (var(--backdrop-gradient-k) - 1))),
 		transparent
 	);
 }
@@ -828,7 +1008,7 @@
 	}
 	:root[data-backdrop-gradient="corner"].dark {
 		--backdrop-corner: oklch(
-			from var(--primary) 0.34 max(calc(c * 0.7), 0.055) h /
+			from var(--primary) 0.261 max(calc(c * 0.7), 0.055) h /
 				calc(0.72 * var(--backdrop-gradient-k) / (1 + 0.72 * (var(--backdrop-gradient-k) - 1)))
 		);
 	}
@@ -977,11 +1157,13 @@
 	   falls toward its opposite. */
 	--backdrop-toward: calc(180deg + var(--backdrop-aim));
 
-	/* Drawn lattices — hairlines over a mostly empty tile. */
+	/* Drawn lattices — hairlines over a mostly empty tile. This fallback mixes the light INK, which
+	   came down with the deeper ladder (#0f263f to #001227 on the default palette), so it carries
+	   13.1% to darken that page by the 32 code values 14% did; 14% would now darken it by 34. */
 	--backdrop-ink: color-mix(
 		in oklab,
 		var(--foreground)
-			calc(14% * var(--backdrop-pattern-k) / (1 + 0.14 * (var(--backdrop-pattern-k) - 1))),
+			calc(13.1% * var(--backdrop-pattern-k) / (1 + 0.131 * (var(--backdrop-pattern-k) - 1))),
 		transparent
 	);
 	/*
@@ -1010,10 +1192,14 @@
 
 	/* Thin radiant geometry: rays, rules, ticks. The calibration `rays` was cut back to. */
 	/*
-	 * CALIBRATED AGAINST THE FAMILY, NOT AGAINST THE EYE. Measured as the difference from the same
-	 * page with no backdrop, in dark: rays and hiashi peak at 12 code values, sunrise at 8. The
-	 * first cut of these two doubled and tripled that — ripple peaked at 32 and the eclipse's rim
-	 * at 72 — and a hard-edged 72 does not read as light, it reads as a line drawn on the page.
+	 * CALIBRATED AGAINST THE FAMILY, NOT AGAINST THE EYE. Measured in the browser, on the lighter
+	 * ladder, as the difference from the same page with no backdrop, in dark, on the default
+	 * palette: rays and hiashi peak at 12 code values, sunrise at 8. The deeper ladder keeps exactly
+	 * that, computed rather than measured again: the gamma-sRGB compositing model the dark pins were
+	 * re-solved with (see the dark twins) reproduces those figures on the lighter ladder, ripple's
+	 * 12 as well, and the rim over a streamer at 21 where the browser read about 20. The first cut
+	 * of these two doubled and tripled that — ripple peaked at 32 and the eclipse's rim at 72 — and
+	 * a hard-edged 72 does not read as light, it reads as a line drawn on the page.
 	 *
 	 * The mistake was fixing one thing twice. A 1px ring is invisible because of its WIDTH, not its
 	 * alpha; widening it was the whole fix, and the alpha that went with it was belt and braces
@@ -1048,29 +1234,33 @@
 	);
 }
 
+/* The dark fallbacks land on the family's calibration on the default palette's deeper page, the
+   way 7% did on the lighter one: 6.3% puts the thin inks at 12 code values, 7% the rim just above
+   them at 13, 4% — unchanged, and now a code value nearer than its 7 was — the soft ink at
+   sunrise's 8, and 9.4% keeps the drawn ink at its shipped 24. */
 :root[data-backdrop].dark {
 	--backdrop-ink: color-mix(
 		in oklab,
 		var(--foreground)
-			calc(10% * var(--backdrop-pattern-k) / (1 + 0.1 * (var(--backdrop-pattern-k) - 1))),
+			calc(9.4% * var(--backdrop-pattern-k) / (1 + 0.094 * (var(--backdrop-pattern-k) - 1))),
 		transparent
 	);
 	--backdrop-ring: color-mix(
 		in oklab,
 		var(--primary)
-			calc(7% * var(--backdrop-gradient-k) / (1 + 0.07 * (var(--backdrop-gradient-k) - 1))),
+			calc(6.3% * var(--backdrop-gradient-k) / (1 + 0.063 * (var(--backdrop-gradient-k) - 1))),
 		transparent
 	);
 	--backdrop-rim: color-mix(
 		in oklab,
 		var(--primary)
-			calc(8% * var(--backdrop-gradient-k) / (1 + 0.08 * (var(--backdrop-gradient-k) - 1))),
+			calc(7% * var(--backdrop-gradient-k) / (1 + 0.07 * (var(--backdrop-gradient-k) - 1))),
 		transparent
 	);
 	--backdrop-radiant: color-mix(
 		in oklab,
 		var(--primary)
-			calc(7% * var(--backdrop-gradient-k) / (1 + 0.07 * (var(--backdrop-gradient-k) - 1))),
+			calc(6.3% * var(--backdrop-gradient-k) / (1 + 0.063 * (var(--backdrop-gradient-k) - 1))),
 		transparent
 	);
 	--backdrop-radiant-soft: color-mix(
@@ -1105,25 +1295,39 @@
 		);
 	}
 
+	/*
+	 * RE-SOLVED FOR THE DEEPER LADDER. The dark page fell by L 0.084-0.089 (0.0845 on the default
+	 * palette), and at the pins of the lighter one (0.40-0.44, and 0.82 for the drawn ink) the
+	 * default palette's page would have been lifted by 16 code values where the family is
+	 * calibrated at 12, 10 where sunrise sits at 8, and 26 for the drawn lattices where they shipped
+	 * at 23. Each pin came down until its own shipped lift came back — 12 for the ring and the thin
+	 * ink, 10 for the rim, 8 for the soft ink, 23 for the drawn one — and the eighteen-palette spread
+	 * came back with it, the thin ink still 6-12. Alpha is the designed weight and stayed, and so did
+	 * chroma, which costs gamut at the lower pins: the thin ink leaves sRGB on seven palettes where
+	 * it left on two, the ring and the rim on six where they left on one, the soft ink on three where
+	 * it left on one, with clip hue shifts up to 9deg, 7deg and 5deg, all worst on kiln, where they
+	 * reached 1deg, 0.4deg and 0.2deg. The lifts are computed on the clipped colour. The drawn ink's
+	 * chroma is low enough to stay inside on every palette.
+	 */
 	:root[data-backdrop].dark {
 		--backdrop-ink: oklch(
-			from var(--primary) 0.82 clamp(0.01, calc(c * 0.25), 0.04) h /
+			from var(--primary) 0.768 clamp(0.01, calc(c * 0.25), 0.04) h /
 				calc(0.14 * var(--backdrop-pattern-k) / (1 + 0.14 * (var(--backdrop-pattern-k) - 1)))
 		);
 		--backdrop-ring: oklch(
-			from var(--primary) 0.42 max(calc(c * 0.7), 0.04) h /
+			from var(--primary) 0.343 max(calc(c * 0.7), 0.04) h /
 				calc(0.15 * var(--backdrop-gradient-k) / (1 + 0.15 * (var(--backdrop-gradient-k) - 1)))
 		);
 		--backdrop-rim: oklch(
-			from var(--primary) 0.42 max(calc(c * 0.7), 0.04) h /
+			from var(--primary) 0.343 max(calc(c * 0.7), 0.04) h /
 				calc(0.125 * var(--backdrop-gradient-k) / (1 + 0.125 * (var(--backdrop-gradient-k) - 1)))
 		);
 		--backdrop-radiant: oklch(
-			from var(--primary) 0.4 max(calc(c * 0.7), 0.04) h /
+			from var(--primary) 0.323 max(calc(c * 0.7), 0.04) h /
 				calc(0.16 * var(--backdrop-gradient-k) / (1 + 0.16 * (var(--backdrop-gradient-k) - 1)))
 		);
 		--backdrop-radiant-soft: oklch(
-			from var(--primary) 0.44 max(calc(c * 0.7), 0.04) h /
+			from var(--primary) 0.364 max(calc(c * 0.7), 0.04) h /
 				calc(0.09 * var(--backdrop-gradient-k) / (1 + 0.09 * (var(--backdrop-gradient-k) - 1)))
 		);
 	}
@@ -1144,7 +1348,7 @@
  * job is to break a contour nobody should notice; here the texture IS the backdrop, and at that
  * weight it read as nothing at all. At 13%, with a coarser cell and a third octave, it reads as
  * paper. That is still an order of magnitude below anything that could touch text contrast — the
- * page ground is unmoved, and body type keeps its 14:1.
+ * page ground is unmoved, and body type keeps its 17:1 (17.4-18.9:1 across the palettes and modes).
  */
 /*
  * GRAIN IS NO LONGER A PATTERN, IT IS A LAYER OVER ONE. It used to be the eleventh entry in the
@@ -1244,11 +1448,13 @@
 		transparent
 	);
 }
+/* Rays' own ink is the thin family ink, re-solved with it in both paths — see the dark twins of
+   `--backdrop-radiant`. */
 :root[data-backdrop-gradient="rays"].dark {
 	--backdrop-ray: color-mix(
 		in oklab,
 		var(--primary)
-			calc(7% * var(--backdrop-gradient-k) / (1 + 0.07 * (var(--backdrop-gradient-k) - 1))),
+			calc(6.3% * var(--backdrop-gradient-k) / (1 + 0.063 * (var(--backdrop-gradient-k) - 1))),
 		transparent
 	);
 }
@@ -1261,7 +1467,7 @@
 	}
 	:root[data-backdrop-gradient="rays"].dark {
 		--backdrop-ray: oklch(
-			from var(--primary) 0.4 max(calc(c * 0.7), 0.04) h /
+			from var(--primary) 0.323 max(calc(c * 0.7), 0.04) h /
 				calc(0.16 * var(--backdrop-gradient-k) / (1 + 0.16 * (var(--backdrop-gradient-k) - 1)))
 		);
 	}
@@ -1297,6 +1503,19 @@
  * sits on — and the light inks sat at L 0.9, the lightening side, where the headroom is smaller
  * still. So light multiplies and dark keeps soft-light, and the inks are calibrated per half to
  * suit. Two designs, because the two grounds are genuinely different problems.
+ *
+ * THE DEEPER LADDER HALVED THE DARK HALF'S ROOM, by the same arithmetic: `b(1-b)` collapses toward
+ * black too, and the new page's channels are under half what they were — 0.42 of them on average
+ * across the eighteen, and the base palette's red is 0. The shipped dark inks kept 54% and 55% of
+ * their own weight (ΔE against the page on the 8-bit composites, mean of eighteen). Lightness
+ * alone cannot buy it back without leaving the gamut on fifteen and seventeen palettes, so the
+ * inks came down by the ladder's 0.086 ink step and alpha took the rest: 0.85 and 0.76 restore
+ * 90-110% of the shipped weight on every palette. Kept chroma still costs gamut at the lower pins
+ * — the warp leaves sRGB on ten palettes and the weft on nine, where both left on six, with clip
+ * hue shifts up to 20deg and 24deg where they reached 8deg and 17deg — and the weights are
+ * computed on the clipped colour. The price is the intensity control's reach on this one backdrop
+ * — 10% leaves 43% and 32% of the default where it left 25% and 21%, and 300% reaches 111% and
+ * 119% where it reached 129% and 139%.
  *
  * It blends on the LAYER's own background list (`background-blend-mode`), not across elements
  * (`mix-blend-mode`) — the latter creates a stacking context that would then fight every portaled
@@ -1345,12 +1564,12 @@
 	}
 	:root[data-backdrop-gradient="weave"].dark {
 		--backdrop-warp: oklch(
-			from var(--primary) 0.36 max(calc(c * 0.7), 0.05) calc(h + 26) /
-				calc(0.66 * var(--backdrop-gradient-k) / (1 + 0.66 * (var(--backdrop-gradient-k) - 1)))
+			from var(--primary) 0.274 max(calc(c * 0.7), 0.05) calc(h + 26) /
+				calc(0.85 * var(--backdrop-gradient-k) / (1 + 0.85 * (var(--backdrop-gradient-k) - 1)))
 		);
 		--backdrop-weft: oklch(
-			from var(--primary) 0.33 max(calc(c * 0.7), 0.045) calc(h - 30) /
-				calc(0.58 * var(--backdrop-gradient-k) / (1 + 0.58 * (var(--backdrop-gradient-k) - 1)))
+			from var(--primary) 0.244 max(calc(c * 0.7), 0.045) calc(h - 30) /
+				calc(0.76 * var(--backdrop-gradient-k) / (1 + 0.76 * (var(--backdrop-gradient-k) - 1)))
 		);
 	}
 }

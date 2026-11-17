@@ -10,8 +10,9 @@
 	 * MEASURED INVISIBLE. `bg-muted` is the obvious choice, because
 	 * `src/lib/components/ui/skeleton/skeleton.svelte` says a content placeholder
 	 * is `bg-muted`. That choice does not survive this palette. On the gallery's `bg-card` tile
-	 * `--muted` is seven levels from `--card` in dark, so the block itself had no edge and the reader
-	 * saw a band travelling across nothing. Measured in Chrome, 16 frames over 5.4s: with `bg-muted`
+	 * `--muted` is five levels from `--card` in dark (seven on the previous ladder, where this was
+	 * measured), so the block itself had no edge and the reader saw a band travelling across
+	 * nothing. Measured in Chrome, 16 frames over 5.4s: with `bg-muted`
 	 * only 9% of the loader's box sat at least 12/255 from its ground in dark (60% in light — the
 	 * same component reading six times better in one theme than the other is the tell); with
 	 * `bg-muted-foreground/20`, the recipe's unlit-track weight and the one
@@ -26,7 +27,9 @@
 	 * distance in both themes — a soft shadow crossing the block in light, a soft highlight in dark —
 	 * which is the general move Rule 8 of the token map asks for: re-express a literal as one token at
 	 * varying alpha, so it is right in every generated palette rather than in one. Measured on the
-	 * card tile, block and band together peak at 43/255 from the ground in light and 38/255 in dark.
+	 * card tile, block and band together peaked at 43/255 from the ground in light and 38/255 in
+	 * dark; computed from today's tokens, the deeper ink and the deeper card take them to 45/255 and
+	 * 44/255.
 	 */
 	let {
 		ref = $bindable(null),

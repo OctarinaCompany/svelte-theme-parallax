@@ -165,10 +165,11 @@
 	 * THE GROUND NEEDS BOTH MODES SPELLED OUT, and neither is exact. `avatar-title-bg` is
 	 * `gray-500` (#B1C2D9) in light and `avatar-title-bg-dark` is `gray-600-dark` (#244166);
 	 * no token holds either. `--muted-foreground` is #95AAC9 (gray-600), one grey step darker
-	 * than the light value, and `--secondary` is #1E3A5C (gray-700-dark), one step darker than
-	 * the dark one — the same near-miss the Progress track and the Switch already document. They
-	 * land on different tokens, so the `dark:` half cannot be avoided: in dark mode
-	 * `--muted-foreground` is a light grey, i.e. the opposite of what is wanted.
+	 * than the light value, and `--secondary` is #082A4A (gray-700-dark), one rung under the dark
+	 * one (OKLCH L 0.28 here, against the reference's 0.37) — the same near-miss the Progress
+	 * track and the Switch already document. They land on different tokens, so the `dark:` half
+	 * cannot be avoided: in dark mode `--muted-foreground` is a light grey, i.e. the opposite of
+	 * what is wanted.
 	 *
 	 * `--input` (#D2DDEC, gray-400) is gray-500's other neighbour in light and is closer in
 	 * name, but white type on it is illegible; the darker neighbour is chosen for that reason.

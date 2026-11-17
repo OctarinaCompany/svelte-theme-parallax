@@ -87,9 +87,10 @@
 	 *
 	 * THE SOFT FAMILY IS THE OPPOSITE CASE, corrected on 2026-08-11: `-subtle` grounds now
 	 * carry a dedicated contrast-walked `-subtle-foreground` ink (4.5:1 even for the 80%
-	 * description, 5.9-7.6:1 at full strength, both modes) instead of the raw status colour,
-	 * which measured 1.5-4.4:1. The correction is a token the whole soft family shares, not a
-	 * page-local repaint; app.css §status tokens holds the derivation.
+	 * description; at full strength 5.9-7.4:1 in light and 8.5-9.0:1 in dark in the base
+	 * palette, 5.8-11.4:1 and 9.0-10.8:1 across the generated ones) instead of the raw status
+	 * colour, which measured 1.5-4.4:1. The correction is a token the whole soft family shares,
+	 * not a page-local repaint; app.css §status tokens holds the derivation.
 	 *
 	 * ONE PAIRING IS DELIBERATELY *NOT* REPRODUCED, and it is the one upstream gets wrong:
 	 * §7's solid warning is white on `amber-600` upstream, which measures 3.2:1 in light and
@@ -160,7 +161,8 @@
 	 *
 	 * - `dark` is `dark` = `black` (#12263F), and the reference stylesheet does NOT override
 	 *   `dark` — it stays navy in dark mode. `bg-foreground` alone would invert to white
-	 *   there, so it is pinned with `dark:bg-background`, the same #12263F.
+	 *   there, so it is pinned with `dark:bg-background`, the token that plays `black` in dark
+	 *   (#001227 on the deeper ladder).
 	 * - `light` is `light` = gray-200 in light and `light-dark` = `gray-800-dark` in dark.
 	 *   `--secondary` is exactly the first, `--card` exactly the second. Its type splits the
 	 *   same way: `gray-900` in light, `white` in dark.
@@ -647,8 +649,8 @@
 					08. Two actions on a solid primary ground.
 
 					UPSTREAM'S BUTTONS ARE `--secondary`, AND THAT TOKEN CANNOT BE USED HERE. §4.1 of
-					the theme notes maps `--secondary` to the quiet-SURFACE role, so it is #EDF2F9 in
-					light and #1E3A5C in dark — it inverts, and on a fixed blue ground the pair would
+					the theme notes maps `--secondary` to the quiet-SURFACE role, so it is #EEF3FA in
+					light and #082A4A in dark — it inverts, and on a fixed blue ground the pair would
 					read as a white chip in one mode and a navy one in the other. That is mistake #2 of
 					§16 exactly.
 

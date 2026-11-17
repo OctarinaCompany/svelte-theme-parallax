@@ -119,7 +119,8 @@
 	 *                `list-group-border-color: var(--bs-gray-200)` is #EDF2F9, which
 	 *                `--border` holds exactly, and `list-group-border-color-dark:
 	 *                var(--bs-border-color)` resolves to `border-color-dark` (#1E3A5C),
-	 *                which `--border` also holds — an exact match in both modes
+	 *                whose rung `--border` also holds (#082A4A on the deeper ladder) — an exact
+	 *                match in both modes
 	 *   px-5 py-4    `list-group-item-padding-x: 1.25rem` / `list-group-item-padding-y: 1rem`,
 	 *                against the docs' 16/12. These rows are the demo's own invention;
 	 *                `.list-group-item` is the nearest thing the classic theme has to "a bordered row

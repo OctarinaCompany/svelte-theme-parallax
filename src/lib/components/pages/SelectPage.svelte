@@ -70,9 +70,9 @@
 	 *               background-image caret pinned at `right .75rem center`; with the caret as
 	 *               a real flex child, `.75rem` on both sides puts it in the same place.
 	 *   bg-card     `input-bg: white`, which `--card` holds. The dark half is
-	 *               `input-bg-dark: gray-700-dark` (#1E3A5C) — that is `--secondary`, not
-	 *               `--card` (#152E4D), so the two modes genuinely need different tokens and
-	 *               the `dark:` override is the honest way to say it. It also displaces
+	 *               `input-bg-dark: gray-700-dark` (#1E3A5C) — that is `--secondary` (#082A4A
+	 *               here), not `--card` (#011A36), so the two modes genuinely need different
+	 *               tokens and the `dark:` override is the honest way to say it. It also displaces
 	 *               shadcn's `dark:bg-input/30`, a translucent fill the classic theme does not have.
 	 *   hover       `.form-select` has no hover rule at all, so shadcn's
 	 *               `dark:hover:bg-input/50` is pinned back to the resting colour.
@@ -112,11 +112,12 @@
 	 * `dropdown-font-size: font-size-base`.
 	 *
 	 * The border needs a word. `dropdown-border-color` is `rgba(var(--bs-black-rgb), .1)` and
-	 * the classic theme's `black` IS `--foreground` (#12263F), so shadcn's `ring-1 ring-foreground/10`
-	 * is that value exactly — nothing to do in light mode. Dark mode inverts it to
-	 * `rgba(255,255,255,.1)` where `dropdown-border-color-dark` is solid `black`; `--background`
-	 * is #12263F in dark, so `dark:ring-background` restates the classic value rather than
-	 * approximating it. Same problem, same shape of fix, as the card outline in `app.css`.
+	 * the classic theme's `black` IS `--foreground` (#001227 here), so shadcn's
+	 * `ring-1 ring-foreground/10` is that value exactly — nothing to do in light mode. Dark mode
+	 * inverts it to `rgba(255,255,255,.1)` where `dropdown-border-color-dark` is solid `black`;
+	 * `--background` is that `black` in dark (#001227 on the deeper ladder), so
+	 * `dark:ring-background` restates the classic value rather than approximating it. Same
+	 * problem, same shape of fix, as the card outline in `app.css`.
 	 */
 	const menu =
 		"min-w-40 rounded-md px-0 py-2 text-sm data-[side=bottom]:rounded-t-none dark:ring-background";

@@ -451,7 +451,7 @@ const BACKDROP = {
 	type: "registry:lib",
 	title: "Parallax backdrop",
 	description:
-		"The backdrop axis: four layers painted BEHIND the page, each independent — a gradient lit from a bearing you choose (twelve), a drawn lattice that fades out over a length you choose (ten), one SVG mark placed from a corner or the centre, and a grain over all of it. Persisted state plus the stylesheet its attributes key on. Every layer derives its colours from the live tokens, so one block serves all eighteen palettes in both modes.",
+		"The backdrop axis: four layers painted BEHIND the page, each independent — a gradient lit from a bearing you choose (twelve), a drawn lattice that fades out over a length you choose (ten), one SVG mark placed from a corner or the centre, and a grain over all of it. Persisted state plus the stylesheet its attributes key on. Every layer derives its colours from the live tokens, so one block serves all eighteen palettes in both modes — except the dark aurora's chroma ceilings, stated per palette at each brand hue, so a re-branded `--primary` needs its own.",
 	/* No imports at all in the hook — it is plain runes over `localStorage` and two built data URIs. */
 	dependencies: [],
 	devDependencies: [],

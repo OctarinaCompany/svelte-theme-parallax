@@ -134,11 +134,11 @@
 :root {
 	/* Surfaces. The page itself is tinted, and near-white cards float on it. */
 	--background: #f4f6f8; /* the tinted page ground */
-	--foreground: #0f263f; /* body ink — the palette's near-black navy */
+	--foreground: #001227; /* body ink — the palette's near-black navy */
 	--card: #fbfbfb; /* card surface, floated above the page */
-	--card-foreground: #0f263f; /* body ink */
+	--card-foreground: #001227; /* body ink */
 	--popover: #fbfbfb; /* popovers share the card surface */
-	--popover-foreground: #0f263f; /* body ink */
+	--popover-foreground: #001227; /* body ink */
 
 	/* Brand. `primary` is the only saturated colour in the whole light theme. */
 	--primary: #3a76e4; /* the primary blue */
@@ -151,14 +151,14 @@
 	 * one.
 	 */
 	--secondary: #eef3fa; /* the light-grey control fill */
-	--secondary-foreground: #0f263f; /* body ink */
+	--secondary-foreground: #001227; /* body ink */
 
 	--muted: #eef3fa; /* muted surface — the same grey step as secondary */
 	--muted-foreground: #8fa7c5; /* secondary type */
 
 	/* Hover surface for menu items, table rows and list-group actions. */
 	--accent: #f4f6f8; /* hover wash — the page grey */
-	--accent-foreground: #0f263f; /* body ink */
+	--accent-foreground: #001227; /* body ink */
 
 	/*
 	 * Status colours are used two ways: solid (a filled chip with contrast-picked type)
@@ -171,7 +171,9 @@
 	 * alerts, worst in dark), so since 2026-08-11 the ink is its own token, walked by
 	 * `subtleInk` in `tools/themes/themes.mjs` until even the alert description's
 	 * 80%-opacity composite clears 4.5:1. The raw status colour is a fill again, never
-	 * type on a tint.
+	 * type on a tint: the type is always the dedicated `*-subtle-foreground` token, even
+	 * where the walk returns the fill's own value — as it now does for every dark warning,
+	 * this palette's included (`.dark` holds #f5c042 in both `--warning` and its ink).
 	 */
 	--primary-subtle: #d9e8fd; /* primary-bg-subtle */
 	--primary-subtle-foreground: #0644ae; /* ink on primary-subtle, 6.91:1 / 4.53:1 at 80% */
@@ -204,7 +206,7 @@
 	 * file — sheet, dialog and drawer scrims — which read the variable directly; a `bg-scrim`
 	 * utility nothing would call is dead weight.
 	 */
-	--scrim: #0f263f; /* offcanvas-backdrop-bg = black */
+	--scrim: #001227; /* offcanvas-backdrop-bg = black */
 
 	/* Two distinct border tokens: cards/tables are lighter than form controls. */
 	--border: #eef3fa; /* card-border-color = gray-200 */
@@ -250,7 +252,7 @@
 	--sidebar-primary: #3a76e4; /* active-item accent, primary */
 	--sidebar-primary-foreground: #fbfbfb; /* white */
 	--sidebar-accent: #f4f6f8; /* hover surface, gray-100 */
-	--sidebar-accent-foreground: #0f263f; /* navbar-light-active-color = black */
+	--sidebar-accent-foreground: #001227; /* navbar-light-active-color = black */
 	--sidebar-border: #e4edf8; /* navbar-light-border-color = gray-300 */
 	--sidebar-outline: #e4edf8; /* gray-300 — one step off the panel; see the rule below */
 	--sidebar-ring: #3a76e4; /* primary */
@@ -262,55 +264,56 @@
  * to the light theme. The page is the darkest surface (black) and cards sit *above* it.
  */
 .dark {
-	--background: #0f263f; /* body-bg-dark = black */
+	--background: #001227; /* body-bg-dark = black */
 	--foreground: #fbfbfb; /* body-color-dark = white */
-	--card: #182f4f; /* card-bg-dark = gray-800-dark */
+	--card: #011a36; /* card-bg-dark = gray-800-dark */
 	--card-foreground: #fbfbfb; /* white */
-	--popover: #182f4f; /* dropdown-bg-dark = gray-800-dark */
+	--popover: #011a36; /* dropdown-bg-dark = gray-800-dark */
 	--popover-foreground: #fbfbfb; /* white */
 
 	--primary: #3a76e4; /* primary — unchanged in dark mode */
 	--primary-foreground: #fbfbfb; /* white */
 
-	--secondary: #1d3c5d; /* gray-700-dark, matching input-bg-dark */
+	--secondary: #082a4a; /* gray-700-dark, matching input-bg-dark */
 	--secondary-foreground: #fbfbfb; /* white */
 
-	--muted: #162b48; /* gray-900-dark */
+	--muted: #041531; /* gray-900-dark */
 	--muted-foreground: #6c86a3; /* body-secondary-color-dark = gray-700 */
 
-	--accent: #162b48; /* list-group-hover-bg-dark = gray-900-dark */
+	--accent: #041531; /* list-group-hover-bg-dark = gray-900-dark */
 	--accent-foreground: #fbfbfb; /* white */
 
 	/*
 	 * Status colours themselves are identical in dark mode. The `*-subtle` washes are not
 	 * hand values (a classic 45% mix into black spreads them from L 0.34 to
-	 * L 0.48 — five washes, five behaviours): each is cut by `alignDarkWash` onto the
-	 * dark-700 line, and `*-subtle-foreground` is walked on top to 7.2–7.6:1, with an
+	 * L 0.47 — five washes, five behaviours): each is cut by `alignDarkWash` onto the
+	 * dark-700 line, and `*-subtle-foreground` is walked on top to 8.5–9.0:1 (7.15–7.64:1
+	 * on the earlier ladder's lighter washes), with an
 	 * APCA Lc 68 floor because WCAG arithmetic flatters dark pairs. Danger's ink is a
 	 * pink and primary's a sky — the same convergence as Radix red11 (#ff9592)
 	 * and Tailwind red-400 (#f87171).
 	 */
-	--primary-subtle: #1a3668; /* primary, cut to the dark-700 line */
-	--primary-subtle-foreground: #b1cdff; /* ink on primary-subtle, 7.36:1 / 5.34:1 at 80% */
+	--primary-subtle: #132649; /* primary, cut to the dark-700 line */
+	--primary-subtle-foreground: #a6c7ff; /* ink on primary-subtle, 8.73:1 / 6.15:1 at 80% */
 	--destructive: #e83556; /* danger — unchanged in dark mode */
 	--destructive-foreground: #fbfbfb; /* color-contrast(danger) */
-	--destructive-subtle: #641725; /* danger, cut to the dark-700 line */
-	--destructive-subtle-foreground: #ffb9bc; /* ink on destructive-subtle, 7.64:1 / 5.45:1 at 80% */
+	--destructive-subtle: #47101a; /* danger, cut to the dark-700 line */
+	--destructive-subtle-foreground: #ffb1b4; /* ink on destructive-subtle, 8.99:1 / 6.24:1 at 80% */
 	--success: #1cde7f; /* success — unchanged */
 	--success-foreground: #fbfbfb; /* color-contrast(success) */
-	--success-subtle: #084326; /* success, cut to the dark-700 line */
-	--success-subtle-foreground: #33e989; /* ink on success-subtle, 7.15:1 / 5.22:1 at 80% */
+	--success-subtle: #062f1b; /* success, cut to the dark-700 line */
+	--success-subtle-foreground: #23e181; /* ink on success-subtle, 8.50:1 / 5.98:1 at 80% */
 	--warning: #f5c042; /* warning — unchanged */
 	--warning-foreground: #293e5a; /* the solid ground stays light in dark mode */
-	--warning-subtle: #453612; /* warning, cut to the dark-700 line */
-	--warning-subtle-foreground: #f9c447; /* ink on warning-subtle, 7.27:1 / 5.31:1 at 80% */
+	--warning-subtle: #30250d; /* warning, cut to the dark-700 line */
+	--warning-subtle-foreground: #f5c042; /* ink on warning-subtle, 8.95:1 / 6.29:1 at 80% */
 	--info: #42aed5; /* info — unchanged */
 	--info-foreground: #fbfbfb; /* color-contrast(info) */
-	--info-subtle: #173d4b; /* info, cut to the dark-700 line */
-	--info-subtle-foreground: #76d8ff; /* ink on info-subtle, 7.22:1 / 5.26:1 at 80% */
+	--info-subtle: #102b34; /* info, cut to the dark-700 line */
+	--info-subtle-foreground: #6ad2fa; /* ink on info-subtle, 8.62:1 / 6.09:1 at 80% */
 
-	--border: #1d3c5d; /* border-color-dark = gray-700-dark */
-	--input: #1d3c5d; /* input-border-color-dark = gray-700-dark */
+	--border: #082a4a; /* border-color-dark = gray-700-dark */
+	--input: #082a4a; /* input-border-color-dark = gray-700-dark */
 	--ring: #3a76e4; /* primary */
 
 	/* chart-colors-dark keeps the same series colours as the light theme. */
@@ -320,14 +323,14 @@
 	--chart-4: #6c86a3; /* gray-700 */
 	--chart-5: #b5c5dd; /* gray-500 */
 
-	--sidebar: #182f4f; /* navbar-light-bg-dark = gray-800-dark */
+	--sidebar: #011a36; /* navbar-light-bg-dark = gray-800-dark */
 	--sidebar-foreground: #6c86a3; /* navbar-light-color = gray-700 */
 	--sidebar-primary: #3a76e4; /* primary */
 	--sidebar-primary-foreground: #fbfbfb; /* white */
-	--sidebar-accent: #162b48; /* gray-900-dark */
+	--sidebar-accent: #041531; /* gray-900-dark */
 	--sidebar-accent-foreground: #fbfbfb; /* navbar-light-active-color-dark = white */
-	--sidebar-border: #182f4f; /* navbar-light-border-color-dark — flush with the panel */
-	--sidebar-outline: #1d3c5d; /* gray-700-dark — one step off the panel; see the rule below */
+	--sidebar-border: #011a36; /* navbar-light-border-color-dark — flush with the panel */
+	--sidebar-outline: #082a4a; /* gray-700-dark — one step off the panel; see the rule below */
 	--sidebar-ring: #3a76e4; /* primary */
 }
 
@@ -560,14 +563,14 @@
 
 :root[data-sidebar-mode="dark"],
 :root[data-header-mode="dark"] [data-slot="page-header-bar"] {
-	--sidebar: #182f4f; /* navbar-light-bg-dark = gray-800-dark */
+	--sidebar: #011a36; /* navbar-light-bg-dark = gray-800-dark */
 	--sidebar-foreground: #6c86a3; /* navbar-light-color = gray-700 */
 	--sidebar-primary: #3a76e4; /* primary */
 	--sidebar-primary-foreground: #fbfbfb; /* white */
-	--sidebar-accent: #162b48; /* gray-900-dark */
+	--sidebar-accent: #041531; /* gray-900-dark */
 	--sidebar-accent-foreground: #fbfbfb; /* navbar-light-active-color-dark = white */
-	--sidebar-border: #182f4f; /* navbar-light-border-color-dark — flush with the panel */
-	--sidebar-outline: #1d3c5d; /* gray-700-dark — one step off the panel */
+	--sidebar-border: #011a36; /* navbar-light-border-color-dark — flush with the panel */
+	--sidebar-outline: #082a4a; /* gray-700-dark — one step off the panel */
 	--sidebar-ring: #3a76e4; /* primary */
 }
 
@@ -578,7 +581,7 @@
 	--sidebar-primary: #3a76e4; /* active-item accent, primary */
 	--sidebar-primary-foreground: #fbfbfb; /* white */
 	--sidebar-accent: #f4f6f8; /* hover surface, gray-100 */
-	--sidebar-accent-foreground: #0f263f; /* navbar-light-active-color = black */
+	--sidebar-accent-foreground: #001227; /* navbar-light-active-color = black */
 	--sidebar-border: #e4edf8; /* navbar-light-border-color = gray-300 */
 	--sidebar-outline: #e4edf8; /* gray-300 — one step off the panel */
 	--sidebar-ring: #3a76e4; /* primary */
@@ -1323,8 +1326,8 @@
  * `variant="sidebar"` draws the rail's edge against the canvas with `border-e` on
  * `sidebar-container` — which is OUTSIDE `[data-sidebar="sidebar"]`, so the chrome block above
  * cannot reach it and the `@layer base` default hands it the PAGE's `--border`. On a light page
- * with an inverted rail that is `#eef3fa` on `#182f4f`: a bright line down a navy panel, at
- * 12.09:1 against the surface it is supposed to edge.
+ * with an inverted rail that is `#eef3fa` on `#011a36`: a bright line down a navy panel, at
+ * 15.67:1 against the surface it is supposed to edge (12.09:1 on the previous ladder's `#182f4f`).
  *
  * `--sidebar-outline`, like the floating ring below and the mobile sheet's border above — the
  * third element to draw this edge and the third to have needed telling. Under `vibrant` the nine
@@ -1360,7 +1363,8 @@
  * `@layer base` default — the PAGE's `--border` — which is the same mistake the outline token
  * was minted to end: a rule keyed on the page describing a line drawn on the panel. Invisible
  * while the panel follows the page; a near-white line down the whole edge of a dark panel under a
- * light one. Measured at 390px under `inverted`: `#eef3fa` on `#182f4f`.
+ * light one. Measured at 390px under `inverted`: `#eef3fa` on `#182f4f`, the rail's ground before
+ * the deeper ladder took it to `#011a36` — where the same line measures 15.67:1.
  *
  * `--sidebar-outline` and not `--sidebar-border`, for the reason the ring above gives: the
  * sheet is the floating rail's mobile counterpart (the sheet rules near the end of this file inset
@@ -1700,7 +1704,7 @@
  * track, track transparent), and the page's bar is meant to read as the same object.
  *
  * WHAT THE MEASUREMENT SAYS, so the trade is on the record: `--border` is 1.03:1 against the light
- * page ground and 1.36:1 against the dark one. That is far below the 3:1 an interactive boundary
+ * page ground and 1.29:1 against the dark one. That is far below the 3:1 an interactive boundary
  * would owe, and it is faint by design — the component gets away with it on a short bordered card,
  * and this bar is longer and quieter still. It is legible enough in practice because a scrollbar is
  * read as MOVEMENT and POSITION rather than as a shape at rest, and because the gutter keeps it in
@@ -1708,10 +1712,11 @@
  * never sees this value at all — and a reader who wants the platform's contrast back has the switch.
  *
  * IF IT EVER READS AS INVISIBLE on a particular screen, the next rung is `--muted-foreground` —
- * the palette's secondary ink, 2.28:1 in light and 4.07:1 in dark, the token whose job is "quiet
+ * the palette's secondary ink, 2.28:1 in light and 5.00:1 in dark, the token whose job is "quiet
  * but legible". `--input` is not a rung: at 1.28:1 it is the same problem with an extra step. The
- * two tokens that clear 3:1 are `--primary` (3.96:1) and `--foreground` (14.16:1), and a brand-blue
- * or near-black bar down the side of every page answers a louder question than the one asked.
+ * two tokens that clear 3:1 in light are `--primary` (3.96:1) and `--foreground` (17.37:1), and a
+ * brand-blue or near-black bar down the side of every page answers a louder question than the one
+ * asked.
  *
  * ONE OF THE TWO INHERITS AND THE OTHER DOES NOT, which is worth knowing rather than a detail:
  * `scrollbar-color` is an inherited property and `scrollbar-width` is not. Measured on
@@ -1920,7 +1925,9 @@
  * contrast plus the card shadow, not an outline.
  *
  * shadcn instead draws `ring-1 ring-foreground/10`. That inverts with the theme: in dark
- * mode it renders near-white on a #152E4D card, which is the opposite of the intent.
+ * mode it is the near-white ink at 10%, and an outset ring is painted outside the card, so it
+ * composites over the page behind it — #19293c on the #001227 page, a line LIGHTER than the
+ * #011a36 card it edges (1.18:1 against it), which is the opposite of the intent.
  *
  * `--tw-ring-color` is Tailwind's own hook for this, so the ring is recoloured rather than
  * removed — the card keeps its 1px geometry either way. `--border` is exactly the
@@ -2160,9 +2167,12 @@ thead,
 
 /*
  * `form-check-input-bg` is `gray-300` (#E3EBF6) in light and `gray-600-dark` (#244166) in
- * dark. `--secondary` holds #EDF2F9 / #1E3A5C — one grey step off in both modes, the nearest
- * token, and the same substitution the Progress track already makes. See the theme doc's
- * "still approximate: two greys with no token".
+ * dark. `--secondary` holds #eef3fa / #082a4a — one grey step off in light; in dark the d700
+ * line, one rung under `gray-600-dark` (OKLCH L 0.28 here, against the reference's 0.37). It is
+ * the nearest token in both, and the same substitution the Progress track already makes. See the
+ * theme doc's "still approximate: two greys with no token". What the substitution has to keep is
+ * the track's edge on its ground, and it does: 1.20:1 on the dark card (1.19:1 on the previous
+ * ladder), 1.08:1 on the light one.
  *
  * The checked half needs nothing: the component's own `data-checked:bg-primary` is already
  * `form-check-input-checked-bg-color` = `component-active-bg` = `primary`.
@@ -2172,9 +2182,11 @@ thead,
 }
 
 /*
- * The knob. `form-switch-color` is `white` in light and `gray-800-dark` (#152E4D) in dark,
- * which is exactly `--card` in both modes — the token for a surface raised above the page,
- * which is what the knob is. Nothing is approximate here.
+ * The knob. `form-switch-color` is `white` in light and `gray-800-dark` (#152E4D in the
+ * reference) in dark, which is exactly the rung `--card` carries in both modes — the token for a
+ * surface raised above the page, which is what the knob is. Nothing is approximate in the
+ * mapping; the dark value is the deeper ladder's #011a36, and the knob still stands off the
+ * unchecked track by the d800-to-d700 step, 1.20:1 (1.19:1 on the previous ladder).
  */
 [data-slot="switch-thumb"] {
 	width: 18px; /* `circle r='3'` of a 24px box */
@@ -2214,8 +2226,10 @@ thead,
  * Checkbox fill — the house checkbox is a solid grey chip, not an empty outline:
  * n300 in light and
  * d600 in dark. `--secondary` holds
- * #EDF2F9 / #1E3A5C — one grey step off in both modes, the nearest token, and the same
- * substitution the Switch and Progress ports already make.
+ * #eef3fa / #082a4a — one grey step off in light and one rung under d600 in dark (OKLCH L 0.28
+ * here, against the reference's 0.37); the nearest token either way, and the same
+ * substitution the Switch and Progress ports already make. The box keeps its edge on the dark
+ * card at the track's 1.20:1.
  *
  * KEYED ON `[data-state='unchecked']` rather than written at the call site. A bare
  * `bg-secondary` loses to the component's own `dark:bg-input/30`, since `dark:` compiles to
@@ -2430,17 +2444,17 @@ thead,
  *
  * The chip keeps shadcn's `bg-muted`, as the Kbd page's header explains: the design never
  * styles `kbd`, so there is no theme value to follow and an inverted default would read as a
- * heavy black block here. But `--muted` sits BELOW `--card` in the dark ramp — #132A46
- * against #152E4D — so the chip measures 1.06:1 against the surface it sits on and effectively
- * has no ground at all in dark mode. Light is better but not by much, at 1.12:1.
+ * heavy black block here. But `--muted` sits BELOW `--card` in the dark ramp — #041531
+ * against #011a36 — so the chip measures 1.04:1 against the surface it sits on and effectively
+ * has no ground at all in dark mode. Light is better but not by much, at 1.08:1.
  *
  * No fill can fix it: of the six candidate tokens, the best contrast available against the dark
- * card is 1.19:1. A hairline reads far better than an aplat at the same ratio, so the edge is
- * drawn instead — 1.37:1 in light, 1.19:1 in dark, and visibly a chip in both.
+ * card is 1.20:1, the d700 line. A hairline reads far better than an aplat at the same ratio, so
+ * the edge is drawn instead — 1.34:1 in light, 1.20:1 in dark, and visibly a chip in both.
  *
  * `--input` is the theme's border-of-a-control token, which is what a key cap is, and it is
- * the one token that stays visible against the chip's own fill in both modes: #D2DDEC over
- * #EDF2F9, and #1E3A5C over #132A46.
+ * the one token that stays visible against the chip's own fill in both modes: #d0dcea over
+ * #eef3fa, and #082a4a over #041531, 1.25:1 each.
  */
 [data-slot="kbd"] {
 	border: 1px solid var(--input);
@@ -2632,7 +2646,8 @@ thead,
  * utilities without a specificity tie.
  *
  * What is NOT restated here already agrees: `border-input` is `input-border-color`
- * (gray-400 #D2DDEC light, gray-700-dark #1E3A5C dark) exactly in both modes, `rounded-md` is
+ * (gray-400 light, gray-700-dark dark — #d0dcea / #082a4a here, #D2DDEC / #1E3A5C in the
+ * reference) rung for rung in both modes, `rounded-md` is
  * `input-border-radius` = `border-radius`, and `text-base md:text-sm` both resolve to
  * .9375rem here, which is `font-size-base` — the size `.form-control` compiles to.
  *
@@ -2807,10 +2822,11 @@ thead,
 }
 
 /*
- * `input-bg-dark` is `gray-700-dark` (#1E3A5C), which `--input` holds to the digit — an odd
- * token to paint a background with, but it is the value, and shadcn reaches for the same one at
- * `dark:bg-input/30`. At 30% over a #152E4D card that lands nearly on the card colour, so the
- * control loses its edge in dark mode; the house fill is a full step lighter than the card.
+ * `input-bg-dark` is `gray-700-dark`, the rung `--input` holds (#082a4a on the deeper ladder,
+ * #1E3A5C in the reference) — an odd token to paint a background with, but it is the value, and
+ * shadcn reaches for the same one at `dark:bg-input/30`. At 30% over the #011a36 card that lands
+ * nearly on the card colour — #031f3c, 1.05:1 — so the control loses its edge in dark mode; the
+ * house fill is a full step lighter than the card, 1.20:1.
  *
  * Unlayered, so it also cancels shadcn's `dark:hover:bg-input/50`: a select has no hover
  * state in this design, at any strength.
@@ -2826,8 +2842,10 @@ thead,
 /*
  * The invalid border is the danger red at full strength in BOTH modes.
  * shadcn halves it in dark mode
- * (`dark:aria-invalid:border-destructive/50`), which on a #152E4D ground reads as a muddy
- * outline rather than an error.
+ * (`dark:aria-invalid:border-destructive/50`). The select sets no `background-clip`, so its own
+ * fill paints under the border and a half-strength line composites over that fill — the house's
+ * dark `--input`, #082a4a — to #783050: half the red's chroma, 1.62:1 against the field where the
+ * full colour holds 3.52:1, and it reads as a muddy outline rather than an error.
  */
 .dark [data-slot="native-select"][aria-invalid="true"] {
 	border-color: var(--destructive); /* form-invalid-border-color-dark */
@@ -2918,9 +2936,12 @@ thead,
 /*
  * Same inversion, same fix and same mechanism as the card rule above. shadcn outlines both panel
  * surfaces with `ring-1 ring-foreground/10`, which in LIGHT is exactly
- * `dropdown-border-color: rgba(black, .1)` — nothing to do. In dark it resolves to white at 10%
- * over a #152E4D panel, the opposite of the intent: the reference stylesheet sets
- * `dropdown-border-color-dark: black` (#12263F), which `--background` is in dark mode.
+ * `dropdown-border-color: rgba(black, .1)` — nothing to do. In dark it resolves to white at 10%,
+ * and as an outset ring it composites over whatever is behind the panel rather than over the
+ * #011a36 panel itself — #19293c over the page, #1a314a where the panel overlays a card — a light
+ * line either way and the opposite of the intent: the reference stylesheet sets
+ * `dropdown-border-color-dark: black` (#12263F there), the rung `--background` plays in dark mode
+ * (#001227 on the deeper ladder).
  * Recolouring the ring rather than removing it keeps the 1px geometry.
  */
 .dark [data-slot="navigation-menu-viewport"],
@@ -2975,7 +2996,7 @@ thead,
  * `rgb(0 0 0 / 0)` and has no hue, so interpolating toward it in a polar space is undefined
  * (the bug that made Tailwind's own blues render pink in Safari).
  *
- * Keeping the token a plain colour, rather than folding the 50% into it as `#12263F80`, is what
+ * Keeping the token a plain colour, rather than folding the 50% into it as `#00122780`, is what
  * lets the Themes page draw it beside the other forty-three. The cost is that the build emits an
  * `@supports` fallback of the opaque colour for engines without `color-mix` — everything before
  * Chrome 111 / Firefox 113 / Safari 16.2 — which this file already requires in four other rules.
@@ -3142,10 +3163,11 @@ thead,
  * on the call site — so the bar fades .2 → .08 → .2 rather than shadcn's `animate-pulse` 1 → .5 → 1.
  *
  * The VALUE is the one place the classic numbers are not kept. That ramp is .5 → .2, and against a
- * `currentcolor` bar it peaks at 3.1:1 on the light card and 4.4:1 on the dark one — the contrast
- * of live text, on an element whose whole job is to read as absence. The ramp is scaled by the .4
- * that already separated its two ends, which puts the max at .2 — the old minimum — and
- * the min at .08. SkeletonPage's `placeholder` comment measures the four resulting composites.
+ * `currentcolor` bar it peaks at 3.5:1 on the light card and 5.0:1 on the dark one (3.1:1 and
+ * 4.4:1 on the previous ladder) — the contrast of live text, on an element whose whole job is to
+ * read as absence. The ramp is scaled by the .4 that already separated its two ends, which puts
+ * the max at .2 — the old minimum — and the min at .08. SkeletonPage's `placeholder` comment
+ * measures the four resulting composites.
  */
 @keyframes placeholder-glow {
 	50% {
@@ -3164,8 +3186,10 @@ thead,
  * wins.
  *
  * `form-range-track-bg` is `var(--bs-secondary-bg)`: #EDF2F9 in light, which `--secondary` holds
- * exactly, and #3B506C in dark, where `--secondary` is #1E3A5C — one step darker, and no token
- * here holds #3B506C. Same approximation the Progress track makes for `progress-bg`.
+ * exactly, and #3B506C in dark — `gray-800`, a rung of the LIGHT ramp — where `--secondary` is
+ * #082a4a, the d700 line (OKLCH L 0.28 here, against the reference's 0.43), and no token here
+ * holds #3B506C. Same approximation the Progress track makes for `progress-bg`; the track keeps
+ * its edge on the dark card at 1.20:1.
  *
  * The cursor is the classic track pointer; the `@layer base` reboot rule
  * above does not reach it, since the thumb is `role="slider"` rather than a button.
@@ -3219,8 +3243,9 @@ thead,
 	 * the handle stops reading as a separate object. `--card` is the token this theme already
 	 * uses for exactly that job — it is `form-switch-color`, the switch knob's fill, i.e. the
 	 * surface that reads as raised above what is behind it — and it inverts correctly, giving a
-	 * white rim on the light theme and a #152E4D one on the dark, each darker or lighter than
-	 * both the fill and the track.
+	 * white rim on the light theme and a #011a36 one on the dark, each darker or lighter than
+	 * both the fill and the track (the dark rim measures 4.07:1 against the fill, 1.20:1 against
+	 * the track).
 	 *
 	 * 1px rather than 2px so the disc stays 14px inside shadcn's 16px box.
 	 */
@@ -3329,7 +3354,7 @@ ol[data-sonner-toaster] {
  * light mode is left standing on the two greys.
  *
  * That leak nearly hides on a default toast, where near-black on white passes for `--foreground`'s
- * #12263F and the ring is one grey step off. It would not hide at all on a skinned one: the twelve
+ * #001227 and the ring is one grey step off. It would not hide at all on a skinned one: the twelve
  * status skins on `SonnerPage` repaint the toast through that same `--normal-*` trio, and
  * `closeButton` composes with every one of them, so a near-black glyph inside a near-white ring on
  * a solid red ground is one call site away. No demo on the page pairs them today; the theme still
@@ -3341,8 +3366,10 @@ ol[data-sonner-toaster] {
  * HOVER IS THE HALF SONNER GETS WRONG IN BOTH MODES. It swaps the chip's ground for `--gray2` /
  * `--gray5` in light and `--normal-bg-hover` / `--normal-border-hover` in dark, and the wrapper in
  * `ui/sonner/sonner.svelte` writes only the plain trio — so a dark hover lands on sonner's own
- * hsl(0, 0%, 12%), a near-black chip on a #152E4D toast. Pinning the ground and moving the
- * rest opacity (.5) to the hover opacity (.75) keeps the feedback without it.
+ * hsl(0, 0%, 12%), a neutral grey off the palette. On the previous ladder that was a near-black
+ * chip on the toast; on the deeper one it is a shade LIGHTER than the #011a36 toast (OKLCH L 0.24
+ * against 0.22, 1.06:1), a grey patch on a navy ground — wrong either way. Pinning the ground and
+ * moving the rest opacity (.5) to the hover opacity (.75) keeps the feedback without it.
  *
  * THE `ol` IS LOAD-BEARING, for the reason the width block above gives. Without it the base rule is
  * (0,4,0) — exactly sonner's dark rule — and a tie is settled by source order, which puts `app.css`
@@ -3390,9 +3417,10 @@ ol[data-sonner-toaster] [data-sonner-toast][data-styled="true"] [data-close-butt
  * needs (`h-auto`, `w-auto`, `p-0`, `gap-6`) would TIE with a base utility the component already
  * sets. It also spares fifteen triggers a repeated class string.
  *
- * `--border` is exact in dark and one grey step light in light: `border-color` is `gray-300`
- * (#E3EBF6) / `gray-700-dark` (#1E3A5C), against #EDF2F9 / #1E3A5C. Same substitution, and same
- * miss, that the Accordion page documents for `accordion-border-color`.
+ * `--border` is the same rung in dark and one grey step light in light: `border-color` is
+ * `gray-300` (#E3EBF6) / `gray-700-dark` (#1E3A5C), against `--border`'s `gray-200` /
+ * `gray-700-dark` — #eef3fa / #082a4a here. Same substitution, and same miss, that the Accordion
+ * page documents for `accordion-border-color`.
  */
 [data-slot="tabs-list"][data-variant="line"] {
 	/* The classic tab row is a block-level list; shadcn's `w-fit` shrink-wraps it. `auto` gives

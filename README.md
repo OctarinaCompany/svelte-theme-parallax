@@ -153,13 +153,16 @@ They are **generated, not hand-picked**. `tools/themes/themes.mjs` holds a handf
 theme — a neutral hue, a chroma scale, a brand, and any status hue that had to move out of the
 brand's way — and everything else is derived from the base palette's structure: the lightness
 ladder of its neutral ramp, measured in OKLCH, and the token mapping recorded in
-[`docs/THEME.md`](./docs/THEME.md). That is what makes a dozen different palettes read as one
-family — every surface sits at the same lightness, and only the cast changes.
+[`docs/THEME.md`](./docs/THEME.md). The ladder's light steps are the anchor palette's own; its ink
+and dark steps are taken deeper, so in dark mode every palette's page sits at about OKLCH L 0.18,
+its cards at 0.218 and its lines at 0.276. That is what makes a dozen different palettes read as
+one family — every surface sits at the same lightness, and only the cast changes.
 
 `Parallax`, the default, is built the other way round: it is not solved from a handful of numbers
-but derived from the anchor set in `tools/themes/base.mjs` by a small deterministic per-colour
-shift. The shift is drawn from a hash of each colour, never a random number, because the generated
-files have to be byte-identical on every run.
+but derived from the anchor set in `tools/themes/base.mjs` — its four ladder colours taken down to
+the same deeper ladder, then every colour moved by a small deterministic per-colour shift. The
+shift is drawn from a hash of each colour, never a random number, because the generated files have
+to be byte-identical on every run.
 
 The audit is the interesting half. It measures every pairing against the WCAG floor **and**
 against the base palette's own number for the same pairing, so a theme that inherits a weakness is
@@ -185,7 +188,7 @@ One hundred and thirty-three items ship today — the palette, the axes, the she
 | `parallax-theme` | The palette: the base light and dark tokens, `src/themes.css` with the seventeen alternates, and the Tailwind mappings for the families shadcn does not ship — `success`, `warning`, `info`, the subtle family, `--sidebar-outline` |
 | `parallax-appearance` | The four appearance axes as persisted state — the sidebar's and the header's own chrome, each `default`, `inverted` or `vibrant`, plus a floating header and hide-on-scroll — with the CSS their attributes key on, `src/vibrant.css` included |
 | `parallax-appearance-controls` | The two dropdown menus that drive those axes |
-| `parallax-backdrop` | The fifth axis: four layers painted behind the page — a gradient lit from a bearing, a lattice that fades out, one SVG mark placed from a corner or the centre, and a grain over all of it — with every colour derived from the live tokens, so one stylesheet serves all eighteen palettes in both modes |
+| `parallax-backdrop` | The fifth axis: four layers painted behind the page — a gradient lit from a bearing, a lattice that fades out, one SVG mark placed from a corner or the centre, and a grain over all of it — with every colour derived from the live tokens, so one stylesheet serves all eighteen palettes in both modes, the dark aurora's per-palette chroma ceilings aside |
 | `parallax-backdrop-controls` | `BackdropSelector`, the wand dropdown over those four layers |
 | `parallax-swap` | The two-state icon crossfade behind the light/dark toggle — a house primitive absent from the official registry |
 | `parallax-shell` | The application shell: sidebar (workspace switcher, navigation, user menu, icon rail, mobile drawer) and page header bar (breadcrumb, search slot, light/dark toggle), taking content as typed props and active-state as a predicate — never a router |

@@ -75,8 +75,9 @@
 	 * the value is `dropdown-border-color: rgba(var(--bs-black-rgb), .1)` in light — which
 	 * `ring-foreground/10` already IS, exactly, so nothing is done there — and
 	 * `dropdown-border-color-dark: var(--bs-black)` in dark, a SOLID #12263F where shadcn's
-	 * 10% mix inverts to 10% white. `--background` is #12263F in dark, so it carries that
-	 * value; no single token covers both modes, which is why these two need the `dark:` prefix.
+	 * 10% mix inverts to 10% white. `--background` is that `black` in dark (#001227 on the deeper
+	 * ladder), so it carries that value; no single token covers both modes, which is why these two
+	 * need the `dark:` prefix.
 	 * (The Dropdowns page predates this reading and still ships shadcn's ring on both sides.)
 	 */
 	const menuGeometry = "min-w-40 rounded-md px-0 py-2 text-sm";
@@ -147,7 +148,7 @@
 	 * is deliberately quiet — transparent hover, square corners, rows running edge to edge — and
 	 * a row of filled caps fights all three, while the rows that carry no shortcut start to read
 	 * as unfinished beside the ones that do. The chip also all but vanishes on this ground in
-	 * dark mode, where `--muted` (#132A46) sits 1.06:1 against `--popover` (#152E4D).
+	 * dark mode, where `--muted` (#041531) sits 1.04:1 against `--popover` (#011A36).
 	 */
 
 	/**
@@ -213,7 +214,7 @@
 	 * `border-color` is `gray-300` (#E3EBF6) in light, which no token carries exactly —
 	 * `--border` is #EDF2F9, one step lighter, the same substitution the Accordion page
 	 * documents. In dark, `border-color-dark: gray-700-dark` (#1E3A5C) and `--border` is
-	 * precisely that.
+	 * precisely that rung (#082A4A on the deeper ladder).
 	 *
 	 * `rounded-xl` is `card-border-radius` (0.5rem), not the menu's `border-radius` (6px) —
 	 * this box is a card shape, not a dropdown shape. The docs' `text-sm` is dropped: it is

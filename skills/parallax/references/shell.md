@@ -269,7 +269,7 @@ page's width under the reader. The stable width itself is kept either way.
 
 The thumb is `--border`, the token `ScrollArea` paints its own with, so the page's bar and the
 component's read as one object. That is faint by measurement — 1.03:1 against the light page
-ground, 1.36:1 against the dark — and deliberately so; `--muted-foreground` (2.28:1 and 4.07:1)
+ground, 1.29:1 against the dark — and deliberately so; `--muted-foreground` (2.28:1 and 5.00:1)
 is the next rung if a screen swallows it. `scrollbar-color` inherits, so every scroller inside
 the page wears the pair; `scrollbar-width` does not, so only the canvas is narrowed. The rail
 hides its own bar with `no-scrollbar`, and anything portaled to `<body>` keeps the platform's.
